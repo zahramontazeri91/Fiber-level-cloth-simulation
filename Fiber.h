@@ -146,43 +146,19 @@ namespace Fiber {
 
 	public:
 		Yarn();
-		Yarn(const std::string &path);
-
 		~Yarn();
 
 		/* Parse config file from disk */
 		void parse(const char *filename = NULL);
 
-		///* Save config file to disk*/
-		//void save(const char *filename = NULL);
-
-		///* Simulate yarn */
+		/* Simulate yarn */
 		void yarn_simulate();
-		///* Simulate ply  */
-		//void simulate_ply();
 
 		/* compress yarn with theta, direction, a and b, cross section ellipse param. */
 		void compress_yarn(const char* filename);
 
-		///* Load unrolled plys*/
-		//vec2f roll_plys(yarn_t &yarn);
-		//void roll_plys(const int K, const std::string &ply_fn, const std::string &fiber_fn);
-
-		///* Write simulated data (separate plys) to disk */
-		//void write_plys(const char *filename = NULL);
-
-		///* Write simulated data (single yarns) to disk */
+		/* Write simulated data (single yarns) to disk */
 		void write_yarn(const char* filename);
-		//void write_yarn_binary();
-		//void write_binary_fiber_header();
-		//void write_total_vertex_num();
-		//std::vector<float> fiber_data;
-
-		///* Simulate woven yarns and write file */
-		//int total_fiber_num, total_vertex_num;
-		//void reserve_space_for_total_fiber_num();
-		//void write_total_fiber_num();
-		////void simulate_and_write_woven(float L1, float L2_h, float L2_w);
 
 		/* map the straight yarn on a curved spline */
 		void curve_yarn(const char* filename);
