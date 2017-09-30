@@ -1,0 +1,26 @@
+ply_num: 2
+fiber_num: 10
+
+aabb_min: [-0.0498028,-0.0498028,-4.86193]
+aabb_max: [0.0498028,0.0498028,4.86193]
+
+z_step_size: 0.01
+z_step_num: 1480
+
+yarn_clock_wise: 0
+fiber_clock_wise: 1
+yarn_alpha: 0.37229
+alpha: 0.380801
+
+yarn_radius: 0.0286676
+ellipse_long: 0.0282957
+ellipse_short: 0.0208841
+
+epsilon: 0.0521
+beta: 0.292726
+R_max: 1
+
+use_migration: 1
+s_i: 1.6
+rho_min: 0.85
+rho_max: 1
