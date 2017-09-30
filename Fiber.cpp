@@ -313,18 +313,17 @@ namespace Fiber {
 	void Yarn::curve_yarn(const char* filename) {
 		std::cout << "step8: map the straight yarn to the spline curve ..." << std::endl;
 	
-		/* use hermite spline */
+		/* use hermite spline multiple segments */
 		//HermiteSpline_multiSeg splines(filename);
 
-		//for one-segment
-		//const double first_z = this->plys[0].fibers[0].vertices[0].z;
-		//const double last_z = this->plys[0].fibers[0].vertices[this->plys[0].fibers[0].vertices.size() - 1].z;
-		/*		Eigen::Vector3d start_p(0, 0, first_z), end_p(0, 0, last_z);
+		/* Hermite spline for one-segment */
+		const double first_z = this->plys[0].fibers[0].vertices[0].z;
+		const double last_z = this->plys[0].fibers[0].vertices[this->plys[0].fibers[0].vertices.size() - 1].z;
+		Eigen::Vector3d start_p(0, 0, first_z), end_p(0, 0, last_z);
 		Eigen::Vector3d start_tg(0,1,0), end_tg(0,-1,0);
-		HermiteSpline spline(start_p, end_p, start_tg, end_tg );*/		
+		HermiteSpline spline(start_p, end_p, start_tg, end_tg );		
 
-		/***********************************************************/
-		// using the paper "Calculation of reference frames along a space curve"
+		/* using the paper "Calculation of reference frames along a space curve" */
 		vec3f T0, N0, B0;
 		vec3f T1, N1, B1;
 		Eigen::Vector3d world;
@@ -337,34 +336,33 @@ namespace Fiber {
 				const int vertices_num = this->plys[i].fibers[f].vertices.size();
 				for (int v = 0; v < vertices_num; v++) {
 
-					/// the curve we want to map on, is a sin wave (1/10 sin (10x) ) 
-					const float p_z = fiber.vertices[v].z;
-					const vec3f p_curve(0.f, (0.1 * std::sinf(10.0*p_z)), p_z);
-					const vec3f V (0.f, std::cosf(10.0 * p_z), p_z); //derivative of the spline
-					const vec3f Q (0.f, -10.0 * std::sinf(10.0 * p_z), p_z); //derivative of the V (velocity)
+					/* map to a sin wave (1/10 sin (10x) )  */
+					//const float p_z = fiber.vertices[v].z;
+					//const vec3f P (0.f, (0.1 * std::sinf(10.0*p_z)), p_z);
+					//const vec3f V (0.f, std::cosf(10.0 * p_z), p_z); //derivative of the spline
+					//const vec3f Q (0.f, -10.0 * std::sinf(10.0 * p_z), p_z); //derivative of the V (velocity)
 
-					/////////////////////////////////////////////////////////////////////////
-					//const float z = fiber.vertices[v].z;
-					// ********************
-					//double curve = z - first_z;
-					//double curve_total = last_z - first_z;
+					/* map to a given spline */
+					const float z = fiber.vertices[v].z;
+					double curve = z - first_z;
+					double curve_total = last_z - first_z;
+
 					//double t = splines.get_seg_num() * curve / curve_total;
 					// TODO : skip for the last vertex of all fibers!
 					//if (curve / curve_total >= 1) continue; 
-					//double t = spline.arcLengthInvApprox(curve, 100); // very slow
-					//double t = curve / curve_total;
-					//Eigen::Vector3d P_e = splines.eval(t);
-					//Eigen::Vector3d V_e = splines.evalTangent(t);
-					//Eigen::Vector3d Q_e = splines.evalCurvature(t);
-					//const vec3f P = vec3f(P_e[0], P_e[1], P_e[2]);
-					//const vec3f V = vec3f(V_e[0], V_e[1], V_e[2]);
-					//const vec3f Q = vec3f(Q_e[0], Q_e[1], Q_e[2]);
 
-					// *******************
+					double t = curve / curve_total;
+					Eigen::Vector3d P_e = spline.eval(t);
+					Eigen::Vector3d V_e = spline.evalTangent(t);
+					Eigen::Vector3d Q_e = spline.evalCurvature(t);
+					const vec3f P = vec3f(P_e[0], P_e[1], P_e[2]);
+					const vec3f V = vec3f(V_e[0], V_e[1], V_e[2]);
+					const vec3f Q = vec3f(Q_e[0], Q_e[1], Q_e[2]);
+					
+
 					if (v == 0) {
 						// obtain T, N, and B vectors for the first cross section of the yarn						
 						T0 = nv::normalize(V);
-						//N0 = vec3f(1.f, 0.f, 0.f);
 						N0 = nv::normalize(cross(cross(V, Q), V));
 						B0 = cross(T0, N0);
 						
@@ -376,7 +374,8 @@ namespace Fiber {
 						R << N_e, B_e, T_e;
 						Eigen::Vector3d local(fiber.vertices[v].x, fiber.vertices[v].y, 0.f);
 						world = R*local;
-						
+
+						//if (N_e[0] != N_e[0]) std::cout << " ##############\n";
 					}
 					/* find N and B for the subsequence cross-sections */
 					else {
@@ -404,19 +403,26 @@ namespace Fiber {
 						Eigen::Vector3d N0_e (N0.x, N0.y, N0.z);
 						Eigen::Vector3d B1_e = R_frenet*B0_e;
 						Eigen::Vector3d N1_e = R_frenet*N0_e;
-						Eigen::Vector3d T1_e(T1.x, T1.y, T1.z);
+						Eigen::Vector3d T1_e (T1.x, T1.y, T1.z);
+						B1 = vec3f(B1_e[0], B1_e[1], B1_e[2]);
+						N1 = vec3f(N1_e[0], N1_e[1], N1_e[2]);
 						
+						//if (N1.x != N1.x) std::cout << " ##############\n";
+						//std::cout << N1_e[0] << std::endl;
+
 						//use matrix for transformation
 						Eigen::MatrixXd R(3, 3);
 						R << N1_e, B1_e, T1_e;
 						Eigen::Vector3d local(fiber.vertices[v].x, fiber.vertices[v].y, 0.f);
 						world = R*local;
 						
-						//std::cout << N1_e << std::endl << std::endl;
+						//std::cout << P.z << std::endl << std::endl;
 
-						T0 = T1;
+						//T0 = T1;
+						//B0 = B1;
+						//N0 = N1;
 					}
-					fiber.vertices[v] = p_curve + vec3f(world[0], world[1], world[2]);
+					fiber.vertices[v] = P + vec3f(world[0], world[1], world[2]);
 				}
 				std::cout << "Fiber " << f << " of ply " << i << " is generated.\n";
 			}
