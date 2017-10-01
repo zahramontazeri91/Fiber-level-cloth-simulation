@@ -112,6 +112,9 @@ public:
 	inline int get_seg_num() const {
 		return m_spline_seg;
 	}
+	inline HermiteSpline get_spline(int id) {
+		return m_splines[id];
+	}
 protected:
 	std::vector<HermiteSpline> m_splines;
 	int m_spline_seg;

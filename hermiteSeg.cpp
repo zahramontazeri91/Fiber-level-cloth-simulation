@@ -257,8 +257,9 @@ void HermiteSpline_multiSeg::init_splines(const char* filename) {
 	std::getline(fin, line);
 	m_spline_seg = atof(line.c_str());
 
-	while (std::getline(fin, line)) {
+	for (int i=0; i < m_spline_seg; i++ ) {
 
+		std::getline(fin, line);
 		std::vector<std::string> splits = split(line, ' ');
 		const Eigen::Vector3d p0(atof(splits[0].c_str()), atof(splits[1].c_str()), atof(splits[2].c_str()));
 
@@ -278,20 +279,25 @@ void HermiteSpline_multiSeg::init_splines(const char* filename) {
 		HermiteSpline spline(p0, p1, m0, m1);
 		m_splines.push_back(spline);
 	}
-
 }
 
 Eigen::Vector3d HermiteSpline_multiSeg::eval(double t) {
 	int spline_id = int(t); // curve from t = 0 to t = 1 defined by first segment and so on
-	return m_splines[spline_id].evalTangent(t - double(spline_id));
+	if (t == m_spline_seg)
+		return m_splines[spline_id-1].eval(1.0);
+	return m_splines[spline_id].eval(t - double(spline_id));
 }
 
 Eigen::Vector3d HermiteSpline_multiSeg::evalTangent(double t){
 	int spline_id = int(t); // curve from t = 0 to t = 1 defined by first segment and so on
+	if (t == m_spline_seg)
+		return m_splines[spline_id-1].eval(1.0);
 	return m_splines[spline_id].evalTangent(t-double(spline_id) );
 }
 
 Eigen::Vector3d HermiteSpline_multiSeg::evalCurvature(double t){
 	int spline_id = int(t);
+	if (t == m_spline_seg)
+		return m_splines[spline_id-1].eval(1.0);
 	return m_splines[spline_id].evalCurvature(t - double(spline_id));
 }
