@@ -1,6 +1,5 @@
 #include "Fiber.h"
 #include "hermiteSeg.h"
-//#include <Eigen/Dense>
 
 namespace Fiber {
 	
