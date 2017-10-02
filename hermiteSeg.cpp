@@ -291,13 +291,13 @@ Eigen::Vector3d HermiteSpline_multiSeg::eval(double t) {
 Eigen::Vector3d HermiteSpline_multiSeg::evalTangent(double t){
 	int spline_id = int(t); // curve from t = 0 to t = 1 defined by first segment and so on
 	if (t == m_spline_seg)
-		return m_splines[spline_id-1].eval(1.0);
+		return m_splines[spline_id-1].evalTangent(1.0);
 	return m_splines[spline_id].evalTangent(t-double(spline_id) );
 }
 
 Eigen::Vector3d HermiteSpline_multiSeg::evalCurvature(double t){
 	int spline_id = int(t);
 	if (t == m_spline_seg)
-		return m_splines[spline_id-1].eval(1.0);
+		return m_splines[spline_id-1].evalCurvature(1.0);
 	return m_splines[spline_id].evalCurvature(t - double(spline_id));
 }

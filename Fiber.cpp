@@ -331,7 +331,7 @@ namespace Fiber {
 		std::ofstream fout_p ("spline_positions.txt");
 		std::ofstream fout_t ("spline_tangents.txt");
 		std::ofstream fout_n ("spline_normals.txt");
-		bool file_done = false;
+		bool file_done = false; //write to file only for the first fiber
 
 		const int ply_num = this->plys.size();
 		for (int i = 0; i < ply_num; i++) {
@@ -361,10 +361,11 @@ namespace Fiber {
 					 
 					//if (t > 0.99 && t < 1.01)
 						//std::cout << t << " *************\n";
-
-					if ( !(t-int(t)) ) { // TODO: Initialize the Frenet frame for each spline
+					if ( !(t-int(t)) ) { // TODO: Initialize the Frenet frame for the first point of each spline
 						// obtain T, N, and B vectors for the first cross section of the yarn						
 						T0 = nv::normalize(V);
+						if (Q == vec3f(0.f))
+							std::cout << "error: If curvature is zero, N can be any perpendiculat vector to T. \n";
 						//N0 = nv::normalize(cross(cross(V, Q), V));
 						N0 = vec3f(1, 0, 0);
 						B0 = cross(T0, N0);
@@ -378,7 +379,7 @@ namespace Fiber {
 						Eigen::Vector3d local(fiber.vertices[v].x, fiber.vertices[v].y, 0.f);
 						world = R*local;
 
-						if (!file_done)// && !(v % 5)) //write one third 
+						if (!file_done /*&& !(v % 5)*/ ) //write one third 
 						{
 							fout_p << P.x << " " << P.y << " " << P.z << std::endl;
 							fout_t << T0.x << " " << T0.y << " " << T0.z << std::endl;
@@ -393,6 +394,12 @@ namespace Fiber {
 						float sqy = A.y * A.y;
 						float sqz = A.z * A.z;
 						float cos = dot(T0, T1);
+						if (cos >= 1.f) { // If the tangent does not change, nor should the normal
+							B1 = B0;
+							N1 = N0;
+							continue;
+						}
+
 						float cos1 = 1.f - cos;
 						float xycos1 = A.x * A.y * cos1;
 						float yzcos1 = A.y * A.z * cos1;
@@ -428,6 +435,10 @@ namespace Fiber {
 						Eigen::Vector3d local(fiber.vertices[v].x, fiber.vertices[v].y, 0.f);
 						world = R*local;
 
+						T0 = T1;
+						B0 = B1;
+						N0 = N1;
+
 						// DEBUG: write results to file
 						if (!file_done)// && !(v % 5)) //write one third 
 						{
@@ -447,6 +458,7 @@ namespace Fiber {
 		fout_t.close();
 		fout_n.close();
 	}
+
 	void Yarn::write_yarn(const char* filename) {
 		std::cout << "\n\n";
 		printf("Writing vertices ...\n");
