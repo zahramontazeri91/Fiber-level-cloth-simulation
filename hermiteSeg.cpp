@@ -51,6 +51,73 @@ struct polySolver<1>
 };
 
 
+void HermiteSpline::build(int _subdiv)
+{
+    subdiv = _subdiv;
+
+    lens.resize(subdiv + 1, 0.0);
+    for ( int i = 1; i <= subdiv; ++i ) {
+        double t0 = static_cast<double>(i - 1)/subdiv, t1 = static_cast<double>(i)/subdiv;
+        lens[i] = lens[i - 1] + (eval(t0) - eval(t1)).norm();
+    }
+
+    norms.resize(subdiv + 1);
+    std::vector<bool> flags(subdiv + 1);
+    for ( int i = 0; i <= subdiv; ++i ) {
+        norms[i] = evalPrincipalNormal(static_cast<double>(i)/subdiv);
+        if ( flags[i] = norms[i].norm() > HERMITE_EPS )
+            norms[i].normalize();
+    }
+    if ( !flags[0] || !flags[subdiv] ) {
+        fprintf(stderr, "Error: principle normal vanishes at endpoints!\n");
+        subdiv = 0; lens.clear(); norms.clear();
+        return;
+    }
+
+    for ( int i = 1; i < subdiv; ++i )
+        if ( !flags[i] ) {
+            int L, R;
+            L = i - 1;
+            while ( !flags[L] ) --L;
+            R = i + 1;
+            while ( !flags[R] ) ++R;
+
+            Eigen::Vector3d tangL = evalTangent(static_cast<double>(L)/subdiv),
+                tangR = evalTangent(static_cast<double>(R)/subdiv),
+                tang = evalTangent(static_cast<double>(i)/subdiv);
+
+            Eigen::Vector3d norm0 = computeNormal(tangL, tang, norms[L]),
+                norm1 = computeNormal(tangR, tang, norms[R]);
+
+            double w = static_cast<double>(i - L)/(R - L);
+            norms[i] = ((1.0 - w)*norm0 + w*norm1).normalized();
+        }
+}
+
+
+Eigen::Vector3d HermiteSpline::evalNormal(double t) const
+{
+    if ( subdiv ) {
+        if ( t < HERMITE_EPS ) return norms[0];
+        if ( t > 1.0 - HERMITE_EPS ) return norms[subdiv];
+
+        Eigen::Vector3d tang = evalTangent(t);
+
+        int i = static_cast<int>(std::floor(t*subdiv));
+        double t0 = static_cast<double>(i)/subdiv, t1 = static_cast<double>(i + 1)/subdiv;
+        Eigen::Vector3d norm0 = computeNormal(evalTangent(t0), tang, norms[i]),
+            norm1 = computeNormal(evalTangent(t1), tang, norms[i + 1]);
+
+        double w = t*subdiv - i;
+        return ((1.0 - w)*norm0 + w*norm1).normalized();
+    }
+    else {
+        fprintf(stderr, "Error: normal uninitialized!\n");
+        return Eigen::Vector3d::Zero();
+    }
+}
+
+
 bool HermiteSpline::project(const Eigen::Vector3d &x, double &t, double &dist, Eigen::Vector3d *q) const
 {
     const Eigen::Vector3d e = p0 - x;
@@ -157,39 +224,24 @@ double HermiteSpline::errorBound_BruteForce() const
 #endif
 
 
-double HermiteSpline::arcLengthApprox(double t, int subdiv) const
+double HermiteSpline::arcLengthApprox(double t) const
 {
-    double res = 0.0;
-    Eigen::Vector3d last = p0, cur;
-    double t0 = 0.0;
-    for ( int i = 1; i <= subdiv; ++i ) {
-        double t1 = static_cast<double>(i)/subdiv;
-        cur = eval(t1);
-        if ( t > t1 ) {
-            res += (last - cur).norm();
-            last = cur; t0 = t1;
-        }
-        else {
-            res += (last - cur).norm()*(t - t0)/(t1 - t0);
-            break;
-        }
-    }
-    return res;
+    if ( t < HERMITE_EPS ) return 0.0;
+    if ( t > 1.0 - HERMITE_EPS ) return lens[subdiv];
+
+    int i = static_cast<int>(std::floor(t*subdiv));
+    double w = t*subdiv - i;
+    return lens[i] + w*(lens[i + 1] - lens[i]);
 }
 
 
-double HermiteSpline::arcLengthInvApprox(double len, int subdiv) const
+double HermiteSpline::arcLengthInvApprox(double len) const
 {
-	double L = 0.0, R = 1.0;
-	while (R - L > HERMITE_EPS) {
-		double mid = 0.5*(L + R);
-		double val = arcLengthApprox(mid, subdiv);
-		if (val > len)
-			R = mid;
-		else
-			L = mid;
-	}
-	return 0.5*(L + R);
+    if ( len < HERMITE_EPS ) return 0.0;
+    if ( len > lens[subdiv] - HERMITE_EPS ) return 1.0;
+
+    int i = static_cast<int>(std::lower_bound(lens.begin(), lens.end(), len) - lens.begin());
+    return (i - 1 + (len - lens[i - 1])/(lens[i] - lens[i - 1]))/subdiv;
 }
 
 
@@ -238,12 +290,29 @@ double HermiteSpline::subdivideAInternal(double maxError, std::vector<HermiteSpl
 }
 
 
-void HermiteSpline::output(int n, Eigen::Vector3d *buffer) const
+void HermiteSpline::output(int n, Eigen::Vector3d *bufferPosition, Eigen::Vector3d *bufferTangent, Eigen::Vector3d *bufferNormal) const
 {
-	assert(n > 1);
-	for (int i = 0; i < n; ++i) {
-		double t = static_cast<double>(i) / (n - 1);
-		buffer[i] = eval(t);
-	}
+    assert(n > 1);
+    for ( int i = 0; i < n; ++i ) {
+        double t = static_cast<double>(i)/(n - 1);
+        bufferPosition[i] = eval(t);
+        if ( bufferTangent ) bufferTangent[i] = evalTangent(t);
+        if ( bufferNormal ) bufferNormal[i] = evalNormal(t);
+    }
 }
 
+
+Eigen::Vector3d HermiteSpline::computeNormal(const Eigen::Vector3d &tang0, const Eigen::Vector3d &tang1, const Eigen::Vector3d norm0)
+{
+    assert(std::abs(tang0.norm() - 1.0) < HERMITE_EPS && std::abs(tang1.norm() - 1.0) < HERMITE_EPS && std::abs(norm0.norm() - 1.0) < HERMITE_EPS);
+
+    double val = tang0.dot(tang1);
+    if ( val > 1.0 - HERMITE_EPS )
+        return norm0;
+    else if ( val < -1.0 + HERMITE_EPS )
+        return -norm0;
+
+    Eigen::Matrix3d m = Eigen::AngleAxisd(std::acos(val), tang0.cross(tang1).normalized()).toRotationMatrix();
+    assert((m*tang0 - tang1).norm() < HERMITE_EPS);
+    return m*norm0;
+}

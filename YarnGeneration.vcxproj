@@ -69,7 +69,12 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>D:\SDK\eigen-3.3.3;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>D:\SDK\eigen-3.3.3;$(IncludePath)</IncludePath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -114,7 +119,7 @@
   <ItemGroup>
     <ClInclude Include="Curve.h" />
     <ClInclude Include="Fiber.h" />
-    <ClInclude Include="hermiteMultiSeg.h" />
+    <ClInclude Include="hermiteCurve.h" />
     <ClInclude Include="hermiteSeg.h" />
     <ClInclude Include="nvMatrix.h" />
     <ClInclude Include="nvVector.h" />
@@ -123,7 +128,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Fiber.cpp" />
-    <ClCompile Include="hermiteMultiSeg.cpp" />
+    <ClCompile Include="hermiteCurve.cpp" />
     <ClCompile Include="hermiteSeg.cpp" />
     <ClCompile Include="YarnGeneration.cpp" />
   </ItemGroup>

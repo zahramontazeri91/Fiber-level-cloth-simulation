@@ -36,22 +36,22 @@
     <ClInclude Include="hermiteSeg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="hermiteMultiSeg.h">
+    <ClInclude Include="hermiteCurve.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Fiber.cpp">
-      <Filter>Resource Files</Filter>
-    </ClCompile>
-    <ClCompile Include="YarnGeneration.cpp">
-      <Filter>Resource Files</Filter>
-    </ClCompile>
     <ClCompile Include="hermiteSeg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="hermiteMultiSeg.cpp">
-      <Filter>Resource Files</Filter>
+    <ClCompile Include="Fiber.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="YarnGeneration.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="hermiteCurve.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

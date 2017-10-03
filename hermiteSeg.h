@@ -41,6 +41,8 @@ public:
         init(spline.p0, spline.p1, spline.m0, spline.m1);
     }
 
+    void build(int subdiv);
+
 	/* get the position for some given 0 <= t <= 1*/
     inline Eigen::Vector3d eval(double t) const
     {
@@ -53,15 +55,22 @@ public:
         return (u1*3.0*t + u2*2.0)*t + m0;
     }
 
-	/* get the derivative of the velocity */
+	/* get the curvature (i.e., derivative of the velocity) at t */
 	inline Eigen::Vector3d evalCurvature(double t) const
 	{
-		return (u1*6.0*t + u2*2.0);
+		return u1*6.0*t + u2*2.0;
 	}
 
+    /* get the principle normal at t */
+    inline Eigen::Vector3d evalPrincipalNormal(double t) const
+    {
+        Eigen::Vector3d q = evalCurvature(t), v = evalTangent(t);
+        return v.cross(q).cross(v);
+    }
+
 	/* Get the total length of the spline */
-	inline float totalLength(int subdiv) {
-		return arcLengthApprox(1, subdiv);
+	inline double totalLength() {
+		return arcLengthApprox(1.0);
 	}
 
     inline std::string toString() const
@@ -77,6 +86,7 @@ public:
         return oss.str();
     }
 
+    Eigen::Vector3d evalNormal(double t) const;
 
     bool project(const Eigen::Vector3d &x, double &t, double &dist, Eigen::Vector3d *q = NULL) const;
 #ifdef HERMITE_ENABLE_BRUTEFORCE
@@ -89,26 +99,29 @@ public:
 #endif
 
 	/* get the arc length at t */
-    double arcLengthApprox(double t, int subdiv) const;
+    double arcLengthApprox(double t) const;
 
-	/* get the t value that gives the arc length len*/
-
-    double arcLengthInvApprox(double len, int subdiv) const; // Slow implementation
+	/* get the t value that gives the arc length len */
+    double arcLengthInvApprox(double len) const;
 
     double subdivideN(int n, HermiteSpline *splines, double *error = NULL) const;
     double subdivideA(double maxError, std::vector<HermiteSpline> &results) const;
 
-    void output(int n, Eigen::Vector3d *buffer) const;
+    void output(int n, Eigen::Vector3d *bufferPosition,
+        Eigen::Vector3d *bufferTangent = NULL, Eigen::Vector3d *bufferNormal = NULL) const;
 
-	/* return z value for the starting point */
-	inline double get_start_z() {
-		return p0[2];
-	}
+    static Eigen::Vector3d computeNormal(const Eigen::Vector3d &tang0, const Eigen::Vector3d &tang1, const Eigen::Vector3d norm0);
+
+
 protected:
     double subdivideAInternal(double maxError, std::vector<HermiteSpline> &results) const;
 
     Eigen::Vector3d p0, p1, m0, m1;
     Eigen::Vector3d u1, u2;
+
+    int subdiv;
+    std::vector<double> lens;
+    std::vector<Eigen::Vector3d> norms;
 };
 
 #endif

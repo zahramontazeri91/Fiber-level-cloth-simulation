@@ -1,6 +1,5 @@
 #include "Fiber.h"
-#include "hermiteSeg.h"
-#include "hermiteMultiSeg.h"
+#include "hermiteCurve.h"
 
 namespace Fiber {
 	
@@ -314,14 +313,14 @@ namespace Fiber {
 		std::cout << "step8: map the straight yarn to the spline curve ..." << std::endl;
 	
 		/* use hermite spline multiple segments */
-		HermiteSpline_multiSeg splines(filename);
+		HermiteCurve splines(filename);
 		const int seg_num = splines.get_seg_num();
 		const int subdiv = 100;
-		std::vector<double> length_list = splines.segLengths(subdiv);
+		std::vector<double> length_list = splines.segLengths();
 		const double first_z = this->plys[0].fibers[0].vertices[0].z;
 		const double last_z = this->plys[0].fibers[0].vertices[this->plys[0].fibers[0].vertices.size() - 1].z;
 		const double total_length_z = last_z - first_z;		
-		const double total_length_curve = splines.totalLength(subdiv);
+		const double total_length_curve = splines.totalLength();
 
 		/* Calculation of reference frames along a space curve */
 		vec3f T0, N0, B0;
@@ -353,13 +352,13 @@ namespace Fiber {
 					// using the relation [ (lengh_previous_segs + arclength_seg_i ) / total_length_curve ] = [ z / z_max ]				
 					double length_z = fiber.vertices[v].z - first_z;
 					double length_curve_sofar = total_length_curve * length_z / total_length_z;
-					int segId = splines.findSegId(length_curve_sofar, 100); //find the seg id
+					int segId = splines.findSegId(length_curve_sofar); //find the seg id
 					double length_curve_completed = 0.0;
 					for (int s = 0; s < segId ; s++) {
 						length_curve_completed += length_list[s];
 					}
 					double length_curve_seg = length_curve_sofar - length_curve_completed;
-					double t = segId + splines.get_spline(segId).arcLengthInvApprox(length_curve_seg, 10);
+					double t = segId + splines.get_spline(segId).arcLengthInvApprox(length_curve_seg);
 
 					//double t = seg_num * double(v) / double(vertices_num);
 
