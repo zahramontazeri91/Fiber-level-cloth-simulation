@@ -38,21 +38,11 @@ void HermiteCurve::init(const std::vector<Eigen::Vector3d> &pts, int subdiv)
         else
             m1 = (pts[i + 2] - pts[i])*0.5;
         m_splines[i].init(pts[i], pts[i + 1], m0, m1);
-
-        //printf("m0: %.4lf %.4lf %.4lf; m1: %.4lf %.4lf %.4lf\n", m0[0], m0[1], m0[2], m1[0], m1[1], m1[2]);
     }
 
-    Eigen::Vector3d tang0, tang1, norm0, norm1;
-    norm0 = m_splines[0].evalPrincipalNormal(0.0);
-    tang0 = m_splines[0].evalTangent(0.0);
-    m_splines[0].build(subdiv, norm0);
-    for ( int i = 1; i < m_spline_seg; ++i ) {
-        tang1 = m_splines[i].evalTangent(0.0);
-        norm1 = HermiteSpline::computeRotatedNormal(tang0, tang1, norm0);
-        m_splines[i].build(subdiv, norm1);
-        tang0 = tang1; norm0 = norm1;
-    }
-    //for ( int i = 0; i <= m_spline_seg; ++i ) printf("%.4lf %.4lf %.4lf\n", norms[i][0], norms[i][1], norms[i][2]);
+    m_splines[0].build(subdiv, m_splines[0].evalPrincipalNormal(0.0));
+    for ( int i = 1; i < m_spline_seg; ++i )
+        m_splines[i].build(subdiv, m_splines[i - 1].evalNormal(1.0));
 
     m_lens.resize(m_spline_seg);
     for ( int i = 0; i < m_spline_seg; ++i ) {

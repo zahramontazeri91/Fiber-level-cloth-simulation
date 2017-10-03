@@ -50,20 +50,38 @@ void HermiteSpline::build(int _subdiv, Eigen::Vector3d _norm0)
 {
     subdiv = _subdiv;
 
-    lens.resize(subdiv + 1, 0.0);
-    for ( int i = 1; i <= subdiv; ++i ) {
-        double t0 = static_cast<double>(i - 1)/subdiv, t1 = static_cast<double>(i)/subdiv;
-        lens[i] = lens[i - 1] + (eval(t0) - eval(t1)).norm();
+    std::vector<Eigen::Vector3d> positions(subdiv + 1);
+    tangents.resize(subdiv + 1);
+    for ( int i = 0; i <= subdiv; ++i ) {
+        double t = static_cast<double>(i)/subdiv;
+        positions[i] = eval(t);
+        tangents[i] = evalTangent(t);
     }
 
-    norm0 = _norm0.norm() > HERMITE_EPS ? _norm0.normalized() : evalPrincipalNormal(0.0);
+    lens.resize(subdiv + 1);
+    lens[0] = 0.0;
+    norms.resize(subdiv + 1);
+    norms[0] = _norm0.norm() > HERMITE_EPS ? _norm0.normalized() : evalPrincipalNormal(0.0);
+    for ( int i = 1; i <= subdiv; ++i ) {
+        lens[i] = lens[i - 1] + (positions[i - 1] - positions[i]).norm();
+        norms[i] = computeRotatedNormal(tangents[i - 1], tangents[i], norms[i - 1]);
+    }
 }
 
 
 Eigen::Vector3d HermiteSpline::evalNormal(double t) const
 {
     if ( subdiv ) {
-        return computeRotatedNormal(m0.normalized(), evalTangent(t), norm0);
+        if ( t < HERMITE_EPS ) return norms[0];
+        if ( t > 1.0 - HERMITE_EPS ) return norms[subdiv];
+        int idx = static_cast<int>(std::floor(t*subdiv));
+        Eigen::Vector3d tang0 = evalTangent(t);
+        Eigen::Vector3d norm0 = computeRotatedNormal(tangents[idx], tang0, norms[idx]),
+                        norm1 = computeRotatedNormal(tangents[idx + 1], tang0, norms[idx + 1]);
+        double w = (t*subdiv) - idx;
+        Eigen::Vector3d ret = (1.0 - w)*norm0 + norm1;
+        assert(ret.norm() > HERMITE_EPS);
+        return ret.normalized();
     }
     else {
         fprintf(stderr, "Error: normal uninitialized!\n");

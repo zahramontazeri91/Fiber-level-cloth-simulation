@@ -36,7 +36,7 @@ void hermiteTest1()
         HermiteCurve curve;
         curve.init(pts, 10);
 
-        const int n = 100;
+        const int n = 200;
         Eigen::Vector3d vtx[n], tang[n], norm[n];
         curve.output(n, vtx, tang, norm);
         FILE *fout;

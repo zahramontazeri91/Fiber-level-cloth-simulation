@@ -132,7 +132,7 @@ protected:
 
     int subdiv;
     std::vector<double> lens;
-    Eigen::Vector3d norm0;
+    std::vector<Eigen::Vector3d> tangents, norms;
 };
 
 #endif
