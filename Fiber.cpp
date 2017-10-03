@@ -372,7 +372,8 @@ namespace Fiber {
 					const vec3f Q = vec3f(Q_e[0], Q_e[1], Q_e[2]);				
 
 					 
-					if ( !(t-int(t)) ) { // TODO: Initialize the Frenet frame for the first point of each spline
+					if (v==0) {
+					// TODO: Initialize the Frenet frame for some key frames of each spline
 						// obtain T, N, and B vectors for the first cross section of the yarn						
 						T0 = nv::normalize(V);
 						//TODO: N0 = nv::normalize(cross(cross(V, Q), V));
