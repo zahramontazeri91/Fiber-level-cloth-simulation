@@ -114,6 +114,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -124,12 +125,14 @@
     <ClInclude Include="nvMatrix.h" />
     <ClInclude Include="nvVector.h" />
     <ClInclude Include="Rng.h" />
+    <ClInclude Include="tests\hermiteTests.h" />
     <ClInclude Include="Util.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Fiber.cpp" />
     <ClCompile Include="hermiteCurve.cpp" />
     <ClCompile Include="hermiteSeg.cpp" />
+    <ClCompile Include="tests\hermiteTests.cpp" />
     <ClCompile Include="YarnGeneration.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -5,7 +5,6 @@
 #include <vector>
 #include <sstream>
 #include <Eigen/Dense>
-#include "Util.h"
 
 #define HERMITE_STRICT_PROJECTION
 //#define HERMITE_ENABLE_BRUTEFORCE
@@ -41,18 +40,20 @@ public:
         init(spline.p0, spline.p1, spline.m0, spline.m1);
     }
 
-    void build(int subdiv);
+    void build(int subdiv, Eigen::Vector3d norm0 = Eigen::Vector3d::Zero(), Eigen::Vector3d norm1 = Eigen::Vector3d::Zero());
 
 	/* get the position for some given 0 <= t <= 1*/
     inline Eigen::Vector3d eval(double t) const
     {
-        return ((u1*t + u2)*t + m0)*t + p0; //the hermite formula
+        return ((u1*t + u2)*t + m0)*t + p0; // the hermite formula
     }
 
 	/* get the tangent for some given 0 <= t <= 1 */
-    inline Eigen::Vector3d evalTangent(double t) const
+    inline Eigen::Vector3d evalTangent(double t, bool normalize = true) const
     {
-        return (u1*3.0*t + u2*2.0)*t + m0;
+        Eigen::Vector3d ret = (u1*3.0*t + u2*2.0)*t + m0;
+        if ( normalize ) ret.normalize();
+        return ret;
     }
 
 	/* get the curvature (i.e., derivative of the velocity) at t */
@@ -62,10 +63,12 @@ public:
 	}
 
     /* get the principle normal at t */
-    inline Eigen::Vector3d evalPrincipalNormal(double t) const
+    inline Eigen::Vector3d evalPrincipalNormal(double t, bool normalize = true) const
     {
         Eigen::Vector3d q = evalCurvature(t), v = evalTangent(t);
-        return v.cross(q).cross(v);
+        Eigen::Vector3d ret = v.cross(q).cross(v);
+        if ( normalize ) ret.normalize();
+        return ret;
     }
 
 	/* Get the total length of the spline */
@@ -110,7 +113,8 @@ public:
     void output(int n, Eigen::Vector3d *bufferPosition,
         Eigen::Vector3d *bufferTangent = NULL, Eigen::Vector3d *bufferNormal = NULL) const;
 
-    static Eigen::Vector3d computeNormal(const Eigen::Vector3d &tang0, const Eigen::Vector3d &tang1, const Eigen::Vector3d norm0);
+    static Eigen::Vector3d computeRotatedNormal(const Eigen::Vector3d &tang0, const Eigen::Vector3d &tang1,
+        const Eigen::Vector3d norm0);
 
 
 protected:
