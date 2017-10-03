@@ -12,6 +12,7 @@ int main() {
 	yarn.write_yarn("gen_yarn.txt");
 #else
     hermiteTest1();
+    hermiteTest2();
 #endif
 
 	return 0;

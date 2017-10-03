@@ -316,7 +316,8 @@ namespace Fiber {
 		HermiteCurve splines(filename);
 		const int seg_num = splines.get_seg_num();
 		const int subdiv = 100;
-		std::vector<double> length_list = splines.segLengths();
+        std::vector<double> length_list;
+        splines.segLengths(length_list);
 		const double first_z = this->plys[0].fibers[0].vertices[0].z;
 		const double last_z = this->plys[0].fibers[0].vertices[this->plys[0].fibers[0].vertices.size() - 1].z;
 		const double total_length_z = last_z - first_z;		

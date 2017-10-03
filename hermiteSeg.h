@@ -9,6 +9,8 @@
 #define HERMITE_STRICT_PROJECTION
 //#define HERMITE_ENABLE_BRUTEFORCE
 
+#define HERMITE_EPS     1e-5
+
 
 class HermiteSpline
 {
@@ -40,7 +42,7 @@ public:
         init(spline.p0, spline.p1, spline.m0, spline.m1);
     }
 
-    void build(int subdiv, Eigen::Vector3d norm0 = Eigen::Vector3d::Zero(), Eigen::Vector3d norm1 = Eigen::Vector3d::Zero());
+    void build(int subdiv, Eigen::Vector3d norm0 = Eigen::Vector3d::Zero());
 
 	/* get the position for some given 0 <= t <= 1*/
     inline Eigen::Vector3d eval(double t) const
@@ -52,7 +54,10 @@ public:
     inline Eigen::Vector3d evalTangent(double t, bool normalize = true) const
     {
         Eigen::Vector3d ret = (u1*3.0*t + u2*2.0)*t + m0;
-        if ( normalize ) ret.normalize();
+        if ( normalize ) {
+            assert(ret.norm() > HERMITE_EPS);
+            ret.normalize();
+        }
         return ret;
     }
 
@@ -67,7 +72,10 @@ public:
     {
         Eigen::Vector3d q = evalCurvature(t), v = evalTangent(t);
         Eigen::Vector3d ret = v.cross(q).cross(v);
-        if ( normalize ) ret.normalize();
+        if ( normalize ) {
+            assert(ret.norm()>HERMITE_EPS);
+            ret.normalize();
+        }
         return ret;
     }
 
@@ -110,12 +118,11 @@ public:
     double subdivideN(int n, HermiteSpline *splines, double *error = NULL) const;
     double subdivideA(double maxError, std::vector<HermiteSpline> &results) const;
 
-    void output(int n, Eigen::Vector3d *bufferPosition,
-        Eigen::Vector3d *bufferTangent = NULL, Eigen::Vector3d *bufferNormal = NULL) const;
-
     static Eigen::Vector3d computeRotatedNormal(const Eigen::Vector3d &tang0, const Eigen::Vector3d &tang1,
         const Eigen::Vector3d norm0);
 
+    void output(int n, Eigen::Vector3d *bufferPosition,
+        Eigen::Vector3d *bufferTangent = NULL, Eigen::Vector3d *bufferNormal = NULL) const;
 
 protected:
     double subdivideAInternal(double maxError, std::vector<HermiteSpline> &results) const;
@@ -125,7 +132,7 @@ protected:
 
     int subdiv;
     std::vector<double> lens;
-    std::vector<Eigen::Vector3d> norms;
+    Eigen::Vector3d norm0;
 };
 
 #endif

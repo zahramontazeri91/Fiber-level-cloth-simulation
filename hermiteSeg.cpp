@@ -1,7 +1,6 @@
 #include <algorithm>
 #include "hermiteSeg.h"
 
-#define HERMITE_EPS     1e-5
 #define POLYSOLVER_EPS  1e-8
 
 
@@ -47,7 +46,7 @@ struct polySolver<1>
 };
 
 
-void HermiteSpline::build(int _subdiv, Eigen::Vector3d norm0, Eigen::Vector3d norm1)
+void HermiteSpline::build(int _subdiv, Eigen::Vector3d _norm0)
 {
     subdiv = _subdiv;
 
@@ -57,62 +56,14 @@ void HermiteSpline::build(int _subdiv, Eigen::Vector3d norm0, Eigen::Vector3d no
         lens[i] = lens[i - 1] + (eval(t0) - eval(t1)).norm();
     }
 
-    norms.resize(subdiv + 1);
-    std::vector<bool> flags(subdiv + 1);
-    for ( int i = 0; i <= subdiv; ++i ) {
-        norms[i] = evalPrincipalNormal(static_cast<double>(i)/subdiv);
-        if ( flags[i] = norms[i].norm() > HERMITE_EPS )
-            norms[i].normalize();
-    }
-
-    //if ( norm0.norm() > HERMITE_EPS ) {
-    //    norms[0] = norm0.normalized(); flags[0] = true;
-    //}
-    //if ( norm1.norm() > HERMITE_EPS ) {
-    //    norms[subdiv] = norm1.normalized(); flags[subdiv] = true;
-    //}
-    if ( !flags[0] || !flags[subdiv] ) {
-        fprintf(stderr, "Error: principle normal vanishes at endpoints!\n");
-        subdiv = 0; lens.clear(); norms.clear();
-        return;
-    }
-
-    for ( int i = 1; i < subdiv; ++i )
-        if ( !flags[i] ) {
-            int L, R;
-            L = i - 1;
-            while ( !flags[L] ) --L;
-            R = i + 1;
-            while ( !flags[R] ) ++R;
-
-            Eigen::Vector3d tangL = evalTangent(static_cast<double>(L)/subdiv),
-                            tangR = evalTangent(static_cast<double>(R)/subdiv),
-                            tang  = evalTangent(static_cast<double>(i)/subdiv);
-
-            Eigen::Vector3d norm0 = computeRotatedNormal(tangL, tang, norms[L]),
-                            norm1 = computeRotatedNormal(tangR, tang, norms[R]);
-
-            double w = static_cast<double>(i - L)/(R - L);
-            norms[i] = ((1.0 - w)*norm0 + w*norm1).normalized();
-        }
+    norm0 = _norm0.norm() > HERMITE_EPS ? _norm0.normalized() : evalPrincipalNormal(0.0);
 }
 
 
 Eigen::Vector3d HermiteSpline::evalNormal(double t) const
 {
     if ( subdiv ) {
-        if ( t < HERMITE_EPS ) return norms[0];
-        if ( t > 1.0 - HERMITE_EPS ) return norms[subdiv];
-
-        Eigen::Vector3d tang = evalTangent(t);
-
-        int i = static_cast<int>(std::floor(t*subdiv));
-        double t0 = static_cast<double>(i)/subdiv, t1 = static_cast<double>(i + 1)/subdiv;
-        Eigen::Vector3d norm0 = computeRotatedNormal(evalTangent(t0), tang, norms[i]),
-                        norm1 = computeRotatedNormal(evalTangent(t1), tang, norms[i + 1]);
-
-        double w = t*subdiv - i;
-        return ((1.0 - w)*norm0 + w*norm1).normalized();
+        return computeRotatedNormal(m0.normalized(), evalTangent(t), norm0);
     }
     else {
         fprintf(stderr, "Error: normal uninitialized!\n");
@@ -307,13 +258,17 @@ void HermiteSpline::output(int n, Eigen::Vector3d *bufferPosition, Eigen::Vector
 
 Eigen::Vector3d HermiteSpline::computeRotatedNormal(const Eigen::Vector3d &tang0, const Eigen::Vector3d &tang1, const Eigen::Vector3d norm0)
 {
-    assert(std::abs(tang0.norm() - 1.0) < HERMITE_EPS && std::abs(tang1.norm() - 1.0) < HERMITE_EPS && std::abs(norm0.norm() - 1.0) < HERMITE_EPS);
+    assert(std::abs(tang0.norm() - 1.0) < HERMITE_EPS);
+    assert(std::abs(tang1.norm() - 1.0) < HERMITE_EPS);
+    assert(std::abs(norm0.norm() - 1.0) < HERMITE_EPS);
 
     double val = tang0.dot(tang1);
     if ( val > 1.0 - HERMITE_EPS )
         return norm0;
-    else if ( val < -1.0 + HERMITE_EPS )
+    else if ( val < -1.0 + HERMITE_EPS ) {
+        fprintf(stderr, "Warning: oppositely pointing tangents\n");
         return -norm0;
+    }
 
     Eigen::Matrix3d m = Eigen::AngleAxisd(std::acos(val), tang0.cross(tang1).normalized()).toRotationMatrix();
     assert((m*tang0 - tang1).norm() < HERMITE_EPS);
