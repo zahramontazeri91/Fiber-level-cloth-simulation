@@ -53,11 +53,13 @@ public:
         return (u1*3.0*t + u2*2.0)*t + m0;
     }
 
+	/* get the derivative of the velocity */
 	inline Eigen::Vector3d evalCurvature(double t) const
 	{
 		return (u1*6.0*t + u2*2.0);
 	}
 
+	/* Get the total length of the spline */
 	inline float totalLength(int subdiv) {
 		return arcLengthApprox(1, subdiv);
 	}
@@ -107,34 +109,6 @@ protected:
 
     Eigen::Vector3d p0, p1, m0, m1;
     Eigen::Vector3d u1, u2;
-};
-
-class HermiteSpline_multiSeg {
-public:
-	HermiteSpline_multiSeg(const char* filename) {
-		init_splines(filename);
-	}
-	void init_splines(const char* filename);
-	Eigen::Vector3d eval(double t);
-	Eigen::Vector3d evalTangent(double t);
-	Eigen::Vector3d evalCurvature(double t);
-	double HermiteSpline_multiSeg::arcLengthInvApprox(double len, int subdiv);
-	inline int get_seg_num() const {
-		return m_spline_seg;
-	}
-	inline HermiteSpline get_spline(int id) {
-		return m_splines[id];
-	}
-	inline double get_spline_start_z(int spline_id) {
-		return m_splines[spline_id].get_start_z();
-	}
-	std::vector<double> segLengths(int subdiv);
-	double totalLength(int subdiv);
-	/* Find which segment belong to the curve-length*/
-	int findSegId(double curve_length, int subdiv);
-protected:
-	std::vector<HermiteSpline> m_splines;
-	int m_spline_seg;
 };
 
 #endif

@@ -33,12 +33,24 @@
     <ClInclude Include="Fiber.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="hermiteSeg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="hermiteMultiSeg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Fiber.cpp">
       <Filter>Resource Files</Filter>
     </ClCompile>
     <ClCompile Include="YarnGeneration.cpp">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="hermiteSeg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="hermiteMultiSeg.cpp">
       <Filter>Resource Files</Filter>
     </ClCompile>
   </ItemGroup>

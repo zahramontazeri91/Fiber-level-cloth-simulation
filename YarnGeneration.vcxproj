@@ -114,6 +114,7 @@
   <ItemGroup>
     <ClInclude Include="Curve.h" />
     <ClInclude Include="Fiber.h" />
+    <ClInclude Include="hermiteMultiSeg.h" />
     <ClInclude Include="hermiteSeg.h" />
     <ClInclude Include="nvMatrix.h" />
     <ClInclude Include="nvVector.h" />
@@ -122,6 +123,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Fiber.cpp" />
+    <ClCompile Include="hermiteMultiSeg.cpp" />
     <ClCompile Include="hermiteSeg.cpp" />
     <ClCompile Include="YarnGeneration.cpp" />
   </ItemGroup>

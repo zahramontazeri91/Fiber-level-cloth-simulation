@@ -1,5 +1,6 @@
 #include "Fiber.h"
 #include "hermiteSeg.h"
+#include "hermiteMultiSeg.h"
 
 namespace Fiber {
 	
@@ -279,7 +280,7 @@ namespace Fiber {
 					for (c = 0; c < compress_params.size(); c++) {
 						if (v*this->z_step_size < compress_params[c].z) break;
 					}
-					//// std::cout << compress_params[c-1].z << "  " << v*this->z_step_size << "  " << compress_params[c].z << std::endl;
+
 					// linear interpolation to obtain compress-parameters for this z value:
 					float ratio = (compress_params[c].theta - compress_params[c - 1].theta) / (compress_params[c].z - compress_params[c - 1].z);
 					float theta = ratio * (v*this->z_step_size) + compress_params[c - 1].theta;
@@ -314,21 +315,15 @@ namespace Fiber {
 	
 		/* use hermite spline multiple segments */
 		HermiteSpline_multiSeg splines(filename);
-		int seg_num = splines.get_seg_num();
-		int subdiv = 100;
+		const int seg_num = splines.get_seg_num();
+		const int subdiv = 100;
 		std::vector<double> length_list = splines.segLengths(subdiv);
-		double total_length_curve = splines.totalLength(subdiv);
-		//std::cout << splines.findSegId(1, 100) << std::endl;
-
-		/* Hermite spline for one-segment */
 		const double first_z = this->plys[0].fibers[0].vertices[0].z;
 		const double last_z = this->plys[0].fibers[0].vertices[this->plys[0].fibers[0].vertices.size() - 1].z;
-		double total_length_z = last_z - first_z;
-		//Eigen::Vector3d start_p(0, 0, first_z), end_p(0, 0, last_z);
-		//Eigen::Vector3d start_tg(0,1,0), end_tg(0,-1,0);
-		//HermiteSpline spline(start_p, end_p, start_tg, end_tg );		
+		const double total_length_z = last_z - first_z;		
+		const double total_length_curve = splines.totalLength(subdiv);
 
-		/* using the paper "Calculation of reference frames along a space curve" */
+		/* Calculation of reference frames along a space curve */
 		vec3f T0, N0, B0;
 		vec3f T1, N1, B1;
 		Eigen::Vector3d world;
@@ -347,16 +342,15 @@ namespace Fiber {
 				const int vertices_num = this->plys[i].fibers[f].vertices.size();
 				for (int v = 0; v < vertices_num; v++) {
 
-					/* map to a sin wave (1/10 sin (10x) )  */
+					/* map to a sin wave ( y = 1/10 sin (10z) )  */
 					//const float p_z = fiber.vertices[v].z;
 					//const vec3f P (0.f, (0.1 * std::sinf(10.0*p_z)), p_z);
 					//const vec3f V (0.f, std::cosf(10.0 * p_z), p_z); //derivative of the spline
 					//const vec3f Q (0.f, -10.0 * std::sinf(10.0 * p_z), p_z); //derivative of the V (velocity)
 
-					/* map to a given spline */
-					/********* sampling t **********/
-					// (lengh_previous_seg + arclength_seg_i ) / total_length_curve = z / z_max
 					
+					/* sampling t */
+					// using the relation [ (lengh_previous_segs + arclength_seg_i ) / total_length_curve ] = [ z / z_max ]				
 					double length_z = fiber.vertices[v].z - first_z;
 					double length_curve_sofar = total_length_curve * length_z / total_length_z;
 					int segId = splines.findSegId(length_curve_sofar, 100); //find the seg id
@@ -366,14 +360,10 @@ namespace Fiber {
 					}
 					double length_curve_seg = length_curve_sofar - length_curve_completed;
 					double t = segId + splines.get_spline(segId).arcLengthInvApprox(length_curve_seg, 10);
-					//std::cout << tp << std::endl;
-
-					//Eigen::Vector3d P_e = splines.get_spline(seg_id).eval(t);
-					//Eigen::Vector3d V_e = splines.get_spline(seg_id).evalTangent(t);
-					//Eigen::Vector3d Q_e = splines.get_spline(seg_id).evalCurvature(t);
 
 					//double t = seg_num * double(v) / double(vertices_num);
 
+					/* map to a given spline */
 					Eigen::Vector3d P_e = splines.eval(t);
 					Eigen::Vector3d V_e = splines.evalTangent(t);
 					Eigen::Vector3d Q_e = splines.evalCurvature(t);
@@ -382,16 +372,10 @@ namespace Fiber {
 					const vec3f Q = vec3f(Q_e[0], Q_e[1], Q_e[2]);				
 
 					 
-					//if (t > 0.99 && t < 1.01)
-						//std::cout << t << " *************\n";
 					if ( !(t-int(t)) ) { // TODO: Initialize the Frenet frame for the first point of each spline
 						// obtain T, N, and B vectors for the first cross section of the yarn						
 						T0 = nv::normalize(V);
-						if (Q == vec3f(0.f)) {
-							std::cout << "error: If curvature is zero, N can be any perpendiculat vector to T. \n";
-							while (1);
-						}
-						//N0 = nv::normalize(cross(cross(V, Q), V)); TODO
+						//TODO: N0 = nv::normalize(cross(cross(V, Q), V));
 						N0 = vec3f(1, 0, 0);
 						B0 = cross(T0, N0);
 						
@@ -404,12 +388,12 @@ namespace Fiber {
 						Eigen::Vector3d local(fiber.vertices[v].x, fiber.vertices[v].y, 0.f);
 						world = R*local;
 
-						if (!file_done /*&& !(v % 5)*/ ) //write one third 
+						if (!file_done /*&& !(v % 5)*/ ) //write one value in each 5
 						{
 							fout_p << P.x << " " << P.y << " " << P.z << std::endl;
 							fout_t << T0.x << " " << T0.y << " " << T0.z << std::endl;
 							fout_n << N0.x << " " << N0.y << " " << N0.z << std::endl;
-							//fout_sample << t << " " << tp << std::endl;
+							fout_sample << t << std::endl;
 						}
 					}
 					/* find N and B for the subsequence cross-sections */
@@ -479,7 +463,7 @@ namespace Fiber {
 							fout_p << P.x << " " << P.y << " " << P.z << std::endl;
 							fout_t << T1.x << " " << T1.y << " " << T1.z << std::endl;
 							fout_n << N1.x << " " << N1.y << " " << N1.z << std::endl;
-							//fout_sample << t << " " << tp << std::endl;
+							fout_sample << t << std::endl;
 						}
 					}
 					fiber.vertices[v] = P + vec3f(world[0], world[1], world[2]);
