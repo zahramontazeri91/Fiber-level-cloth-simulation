@@ -314,10 +314,16 @@ namespace Fiber {
 	
 		/* use hermite spline multiple segments */
 		HermiteSpline_multiSeg splines(filename);
+		int seg_num = splines.get_seg_num();
+		int subdiv = 100;
+		std::vector<double> length_list = splines.segLengths(subdiv);
+		double total_length_curve = splines.totalLength(subdiv);
+		//std::cout << splines.findSegId(1, 100) << std::endl;
 
 		/* Hermite spline for one-segment */
-		//const double first_z = this->plys[0].fibers[0].vertices[0].z;
-		//const double last_z = this->plys[0].fibers[0].vertices[this->plys[0].fibers[0].vertices.size() - 1].z;
+		const double first_z = this->plys[0].fibers[0].vertices[0].z;
+		const double last_z = this->plys[0].fibers[0].vertices[this->plys[0].fibers[0].vertices.size() - 1].z;
+		double total_length_z = last_z - first_z;
 		//Eigen::Vector3d start_p(0, 0, first_z), end_p(0, 0, last_z);
 		//Eigen::Vector3d start_tg(0,1,0), end_tg(0,-1,0);
 		//HermiteSpline spline(start_p, end_p, start_tg, end_tg );		
@@ -330,6 +336,7 @@ namespace Fiber {
 		std::ofstream fout_p ("spline_positions.txt");
 		std::ofstream fout_t ("spline_tangents.txt");
 		std::ofstream fout_n ("spline_normals.txt");
+		std::ofstream fout_sample ("sampled_t.txt");
 		bool file_done = false; //write to file only for the first fiber
 
 		const int ply_num = this->plys.size();
@@ -346,9 +353,26 @@ namespace Fiber {
 					//const vec3f V (0.f, std::cosf(10.0 * p_z), p_z); //derivative of the spline
 					//const vec3f Q (0.f, -10.0 * std::sinf(10.0 * p_z), p_z); //derivative of the V (velocity)
 
-					/* map to a given spline */				
-					//double t = splines.get_seg_num() * curve / curve_total;
-					double t = splines.get_seg_num() * double(v) / double(vertices_num);
+					/* map to a given spline */
+					/********* sampling t **********/
+					// (lengh_previous_seg + arclength_seg_i ) / total_length_curve = z / z_max
+					
+					double length_z = fiber.vertices[v].z - first_z;
+					double length_curve_sofar = total_length_curve * length_z / total_length_z;
+					int segId = splines.findSegId(length_curve_sofar, 100); //find the seg id
+					double length_curve_completed = 0.0;
+					for (int s = 0; s < segId ; s++) {
+						length_curve_completed += length_list[s];
+					}
+					double length_curve_seg = length_curve_sofar - length_curve_completed;
+					double t = segId + splines.get_spline(segId).arcLengthInvApprox(length_curve_seg, 10);
+					//std::cout << tp << std::endl;
+
+					//Eigen::Vector3d P_e = splines.get_spline(seg_id).eval(t);
+					//Eigen::Vector3d V_e = splines.get_spline(seg_id).evalTangent(t);
+					//Eigen::Vector3d Q_e = splines.get_spline(seg_id).evalCurvature(t);
+
+					//double t = seg_num * double(v) / double(vertices_num);
 
 					Eigen::Vector3d P_e = splines.eval(t);
 					Eigen::Vector3d V_e = splines.evalTangent(t);
@@ -363,9 +387,11 @@ namespace Fiber {
 					if ( !(t-int(t)) ) { // TODO: Initialize the Frenet frame for the first point of each spline
 						// obtain T, N, and B vectors for the first cross section of the yarn						
 						T0 = nv::normalize(V);
-						if (Q == vec3f(0.f))
+						if (Q == vec3f(0.f)) {
 							std::cout << "error: If curvature is zero, N can be any perpendiculat vector to T. \n";
-						//N0 = nv::normalize(cross(cross(V, Q), V));
+							while (1);
+						}
+						//N0 = nv::normalize(cross(cross(V, Q), V)); TODO
 						N0 = vec3f(1, 0, 0);
 						B0 = cross(T0, N0);
 						
@@ -383,6 +409,7 @@ namespace Fiber {
 							fout_p << P.x << " " << P.y << " " << P.z << std::endl;
 							fout_t << T0.x << " " << T0.y << " " << T0.z << std::endl;
 							fout_n << N0.x << " " << N0.y << " " << N0.z << std::endl;
+							//fout_sample << t << " " << tp << std::endl;
 						}
 					}
 					/* find N and B for the subsequence cross-sections */
@@ -393,8 +420,17 @@ namespace Fiber {
 						float sqy = A.y * A.y;
 						float sqz = A.z * A.z;
 						float cos = dot(T0, T1);
-						if (cos >= 1.f) { // If the tangent does not change, nor should the normal
+
+						/* If the tangent does not change, nor should the normal */
+						if (cos >= 1.f) { 
 							B1 = B0;
+							N1 = N0;
+							continue;
+						}
+
+						/* If the tangent flips then the Binormal should flip as well but not normal */
+						if (cos <= -1.f) {
+							B1 = -B0;
 							N1 = N0;
 							continue;
 						}
@@ -417,7 +453,6 @@ namespace Fiber {
 						Eigen::Vector3d N0_e (N0.x, N0.y, N0.z);
 						Eigen::Vector3d B1_e = R_frenet*B0_e;
 						Eigen::Vector3d N1_e = R_frenet*N0_e;
-						//Eigen::Vector3d N1_e(1.0, 0.0, 0.0);
 						Eigen::Vector3d T1_e (T1.x, T1.y, T1.z);
 						B1 = vec3f(B1_e[0], B1_e[1], B1_e[2]);
 						N1 = vec3f(N1_e[0], N1_e[1], N1_e[2]);
@@ -444,18 +479,20 @@ namespace Fiber {
 							fout_p << P.x << " " << P.y << " " << P.z << std::endl;
 							fout_t << T1.x << " " << T1.y << " " << T1.z << std::endl;
 							fout_n << N1.x << " " << N1.y << " " << N1.z << std::endl;
+							//fout_sample << t << " " << tp << std::endl;
 						}
 					}
 					fiber.vertices[v] = P + vec3f(world[0], world[1], world[2]);
 				}
 				file_done = true;
 
-				//std::cout << "Fiber " << f << " of ply " << i << " is generated.\n";
+				std::cout << "Fiber " << f << " of ply " << i << " is generated.\n";
 			}
 		}
 		fout_p.close();
 		fout_t.close();
 		fout_n.close();
+		fout_sample.close();
 	}
 
 	void Yarn::write_yarn(const char* filename) {

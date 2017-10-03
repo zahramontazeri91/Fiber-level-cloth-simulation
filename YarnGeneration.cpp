@@ -6,7 +6,7 @@ int main() {
 
 	yarn.parse("config.txt");
 	yarn.yarn_simulate();
-	yarn.compress_yarn("compress.txt");
+	//yarn.compress_yarn("compress.txt");
 	yarn.curve_yarn("splines.txt");
 	yarn.write_yarn("gen_yarn.txt");
 

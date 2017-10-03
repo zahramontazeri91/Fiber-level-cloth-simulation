@@ -180,16 +180,16 @@ double HermiteSpline::arcLengthApprox(double t, int subdiv) const
 
 double HermiteSpline::arcLengthInvApprox(double len, int subdiv) const
 {
-double L = 0.0, R = 1.0;
-while (R - L > HERMITE_EPS) {
-	double mid = 0.5*(L + R);
-	double val = arcLengthApprox(mid, subdiv);
-	if (val > len)
-		R = mid;
-	else
-		L = mid;
-}
-return 0.5*(L + R);
+	double L = 0.0, R = 1.0;
+	while (R - L > HERMITE_EPS) {
+		double mid = 0.5*(L + R);
+		double val = arcLengthApprox(mid, subdiv);
+		if (val > len)
+			R = mid;
+		else
+			L = mid;
+	}
+	return 0.5*(L + R);
 }
 
 
@@ -234,7 +234,7 @@ double HermiteSpline::subdivideAInternal(double maxError, std::vector<HermiteSpl
 		}
 		else
 			ret = std::max(ret, splines[i].subdivideAInternal(maxError, results));
-	return ret;
+			return ret;
 }
 
 
@@ -257,7 +257,7 @@ void HermiteSpline_multiSeg::init_splines(const char* filename) {
 	std::getline(fin, line);
 	m_spline_seg = atof(line.c_str());
 
-	for (int i=0; i < m_spline_seg; i++ ) {
+	for (int i = 0; i < m_spline_seg; i++) {
 
 		std::getline(fin, line);
 		std::vector<std::string> splits = split(line, ' ');
@@ -284,20 +284,65 @@ void HermiteSpline_multiSeg::init_splines(const char* filename) {
 Eigen::Vector3d HermiteSpline_multiSeg::eval(double t) {
 	int spline_id = int(t); // curve from t = 0 to t = 1 defined by first segment and so on
 	if (t == m_spline_seg)
-		return m_splines[spline_id-1].eval(1.0);
+		return m_splines[spline_id - 1].eval(1.0);
 	return m_splines[spline_id].eval(t - double(spline_id));
 }
 
-Eigen::Vector3d HermiteSpline_multiSeg::evalTangent(double t){
+Eigen::Vector3d HermiteSpline_multiSeg::evalTangent(double t) {
 	int spline_id = int(t); // curve from t = 0 to t = 1 defined by first segment and so on
 	if (t == m_spline_seg)
-		return m_splines[spline_id-1].evalTangent(1.0);
-	return m_splines[spline_id].evalTangent(t-double(spline_id) );
+		return m_splines[spline_id - 1].evalTangent(1.0);
+	return m_splines[spline_id].evalTangent(t - double(spline_id));
 }
 
-Eigen::Vector3d HermiteSpline_multiSeg::evalCurvature(double t){
+Eigen::Vector3d HermiteSpline_multiSeg::evalCurvature(double t) {
 	int spline_id = int(t);
 	if (t == m_spline_seg)
-		return m_splines[spline_id-1].evalCurvature(1.0);
+		return m_splines[spline_id - 1].evalCurvature(1.0);
 	return m_splines[spline_id].evalCurvature(t - double(spline_id));
+}
+
+double HermiteSpline_multiSeg::arcLengthInvApprox(double len, int subdiv) {
+
+	int spline_id = int(len);
+	if (len == m_spline_seg)
+		return m_splines[spline_id - 1].arcLengthInvApprox(1.0, subdiv);
+	return m_splines[spline_id].arcLengthInvApprox(len - double(spline_id), subdiv);
+}
+
+std::vector<double> HermiteSpline_multiSeg::segLengths(int subdiv) {
+	std::vector<double> length_list;
+	for (int i = 0; i < m_spline_seg; i++) {
+		double length_seg_i = m_splines[i].totalLength(subdiv);
+		length_list.push_back(length_seg_i);
+	}
+	return length_list;
+}
+
+double HermiteSpline_multiSeg::totalLength(int subdiv) {
+	std::vector<double> length_list = segLengths(subdiv);
+	double sum = 0.0;
+	for (int i = 0; i < length_list.size(); i++) {
+		sum += length_list[i];
+	}
+	return sum;
+}
+
+int HermiteSpline_multiSeg::findSegId(double curve_length, int subdiv) { //TODO:move length_list to class member
+	int segId = 0;
+	double length_sofar = 0.0;
+	std::vector<double> length_list = segLengths(subdiv);
+	
+	for (int i = 0; i < length_list.size(); i++ ){
+		if ((curve_length - length_sofar) >= 0) {
+			length_sofar += length_list[i];
+			segId = i ;
+			continue;
+		}
+		else {
+			segId = i - 1;
+			break;
+		}
+	}
+	return segId;
 }

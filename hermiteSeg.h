@@ -58,6 +58,10 @@ public:
 		return (u1*6.0*t + u2*2.0);
 	}
 
+	inline float totalLength(int subdiv) {
+		return arcLengthApprox(1, subdiv);
+	}
+
     inline std::string toString() const
     {
         std::ostringstream oss;
@@ -86,6 +90,7 @@ public:
     double arcLengthApprox(double t, int subdiv) const;
 
 	/* get the t value that gives the arc length len*/
+
     double arcLengthInvApprox(double len, int subdiv) const; // Slow implementation
 
     double subdivideN(int n, HermiteSpline *splines, double *error = NULL) const;
@@ -93,6 +98,10 @@ public:
 
     void output(int n, Eigen::Vector3d *buffer) const;
 
+	/* return z value for the starting point */
+	inline double get_start_z() {
+		return p0[2];
+	}
 protected:
     double subdivideAInternal(double maxError, std::vector<HermiteSpline> &results) const;
 
@@ -109,12 +118,20 @@ public:
 	Eigen::Vector3d eval(double t);
 	Eigen::Vector3d evalTangent(double t);
 	Eigen::Vector3d evalCurvature(double t);
+	double HermiteSpline_multiSeg::arcLengthInvApprox(double len, int subdiv);
 	inline int get_seg_num() const {
 		return m_spline_seg;
 	}
 	inline HermiteSpline get_spline(int id) {
 		return m_splines[id];
 	}
+	inline double get_spline_start_z(int spline_id) {
+		return m_splines[spline_id].get_start_z();
+	}
+	std::vector<double> segLengths(int subdiv);
+	double totalLength(int subdiv);
+	/* Find which segment belong to the curve-length*/
+	int findSegId(double curve_length, int subdiv);
 protected:
 	std::vector<HermiteSpline> m_splines;
 	int m_spline_seg;
