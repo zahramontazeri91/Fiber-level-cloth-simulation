@@ -2,13 +2,13 @@
 #include "tests/hermiteTests.h"
 
 int main() {
-#if 0	
+#if 1
 	Fiber::Yarn yarn;
 
 	yarn.parse("config.txt");
 	yarn.yarn_simulate();
 	yarn.compress_yarn("compress.txt");
-	yarn.curve_yarn("splines.txt");
+	yarn.curve_yarn("curves.txt");
 	yarn.write_yarn("gen_yarn.txt");
 #else
     hermiteTest1();

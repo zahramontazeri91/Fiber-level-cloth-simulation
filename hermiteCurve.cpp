@@ -2,22 +2,18 @@
 #include "hermiteCurve.h"
 
 
-void HermiteCurve::init_splines(const char* filename) {
-	// read the spline parameters file
-	std::ifstream fin;
-	if (filename != NULL)
-		fin.open(filename);
+void HermiteCurve::init(const char* filename, int subdiv) {
+    assert(filename);
+	std::ifstream fin(filename);
+    assert(fin.is_open());
 
-    fin >> m_spline_seg;
-    m_splines.resize(m_spline_seg);
+    int n;
+    fin >> n;
 
-	for (int i = 0; i < m_spline_seg; i++) {
-        Eigen::Vector3d p0, p1, m0, m1;
-        fin >> p0[0] >> p0[1] >> p0[2] >> p1[0] >> p1[1] >> p1[2] >> m0[0] >> m0[1] >> m0[2] >> m1[0] >> m1[1] >> m1[2];
+    std::vector<Eigen::Vector3d> pts(n);
+    for ( int i = 0; i < n; ++i ) fin >> pts[i][0] >> pts[i][1] >> pts[i][2];
 
-		// initialize the splines
-        m_splines[i].init(p0, p1, m0, m1);
-	}
+    init(pts, subdiv);
 }
 
 

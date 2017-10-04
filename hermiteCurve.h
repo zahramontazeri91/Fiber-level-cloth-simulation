@@ -10,10 +10,11 @@
 
 class HermiteCurve {
 public:
-    inline HermiteCurve()                                   { m_spline_seg = 0; }
-    inline HermiteCurve(const char* filename)               { init_splines(filename); }
+    inline HermiteCurve() {
+        m_spline_seg = 0;
+    }
 
-	void init_splines(const char* filename);
+	void init(const char* filename, int subdiv = 10);
     void init(const std::vector<Eigen::Vector3d> &pts, int subdiv = 10);
 
 	Eigen::Vector3d eval(double t) const;

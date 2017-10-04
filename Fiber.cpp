@@ -313,171 +313,39 @@ namespace Fiber {
 		std::cout << "step8: map the straight yarn to the spline curve ..." << std::endl;
 	
 		/* use hermite spline multiple segments */
-		HermiteCurve splines(filename);
-		const int seg_num = splines.get_seg_num();
-		const int subdiv = 100;
-        std::vector<double> length_list;
-        splines.segLengths(length_list);
-		const double first_z = this->plys[0].fibers[0].vertices[0].z;
-		const double last_z = this->plys[0].fibers[0].vertices[this->plys[0].fibers[0].vertices.size() - 1].z;
-		const double total_length_z = last_z - first_z;		
-		const double total_length_curve = splines.totalLength();
+        HermiteCurve curve;
+        curve.init(filename);
 
-		/* Calculation of reference frames along a space curve */
-		vec3f T0, N0, B0;
-		vec3f T1, N1, B1;
-		Eigen::Vector3d world;
+        double zMin = std::numeric_limits<double>::max(), zMax = std::numeric_limits<double>::lowest();
+        for ( const auto &ply : plys )
+            for ( const auto &fiber : ply.fibers )
+                for ( const auto &vertex : fiber.vertices ) {
+                    zMin = std::min(zMin, static_cast<double>(vertex.z));
+                    zMax = std::max(zMax, static_cast<double>(vertex.z));
+                }
+        double zSpan = zMax - zMin;
+        double curveLength = curve.totalLength();
+        double xyScale = curveLength/zSpan;
 
-		std::ofstream fout_p ("spline_positions.txt");
-		std::ofstream fout_t ("spline_tangents.txt");
-		std::ofstream fout_n ("spline_normals.txt");
-		std::ofstream fout_sample ("sampled_t.txt");
-		bool file_done = false; //write to file only for the first fiber
+        printf("  zMin: %.4lf, zMax: %.4lf, zSpan: %.4lf\n", zMin, zMax, zSpan);
+        printf("  Curve length: %.4lf (scale: %.4lf)\n", curveLength, xyScale);
 
-		const int ply_num = this->plys.size();
-		for (int i = 0; i < ply_num; i++) {
-			const int fiber_num = this->plys[i].fibers.size();
-			for (int f = 0; f < fiber_num; f++) {
-				Fiber &fiber = this->plys[i].fibers[f];
-				const int vertices_num = this->plys[i].fibers[f].vertices.size();
-				for (int v = 0; v < vertices_num; v++) {
+        for ( auto &ply : plys )
+            for ( auto &fiber : ply.fibers )
+                for ( auto &vertex : fiber.vertices ) {
+                    double len = curveLength*(vertex.z - zMin)/zSpan;
+                    double t = curve.arcLengthInvApprox(len);
 
-					/* map to a sin wave ( y = 1/10 sin (10z) )  */
-					//const float p_z = fiber.vertices[v].z;
-					//const vec3f P (0.f, (0.1 * std::sinf(10.0*p_z)), p_z);
-					//const vec3f V (0.f, std::cosf(10.0 * p_z), p_z); //derivative of the spline
-					//const vec3f Q (0.f, -10.0 * std::sinf(10.0 * p_z), p_z); //derivative of the V (velocity)
+                    Eigen::Vector3d pos = curve.eval(t), tang = curve.evalTangent(t), norm = curve.evalNormal(t);
+                    Eigen::Vector3d binorm = tang.cross(norm);
 
-					
-					/* sampling t */
-					// using the relation [ (lengh_previous_segs + arclength_seg_i ) / total_length_curve ] = [ z / z_max ]				
-					double length_z = fiber.vertices[v].z - first_z;
-					double length_curve_sofar = total_length_curve * length_z / total_length_z;
-					int segId = splines.findSegId(length_curve_sofar); //find the seg id
-					double length_curve_completed = 0.0;
-					for (int s = 0; s < segId ; s++) {
-						length_curve_completed += length_list[s];
-					}
-					double length_curve_seg = length_curve_sofar - length_curve_completed;
-					double t = segId + splines.get_spline(segId).arcLengthInvApprox(length_curve_seg);
+                    Eigen::Vector3d pos1;
+                    pos1 = pos + xyScale*(static_cast<double>(vertex.x)*norm + static_cast<double>(vertex.y)*binorm);
 
-					//double t = seg_num * double(v) / double(vertices_num);
-
-					/* map to a given spline */
-					Eigen::Vector3d P_e = splines.eval(t);
-					Eigen::Vector3d V_e = splines.evalTangent(t);
-					Eigen::Vector3d Q_e = splines.evalCurvature(t);
-					const vec3f P = vec3f(P_e[0], P_e[1], P_e[2]);
-					const vec3f V = vec3f(V_e[0], V_e[1], V_e[2]);
-					const vec3f Q = vec3f(Q_e[0], Q_e[1], Q_e[2]);				
-
-					 
-					if (v==0) {
-					// TODO: Initialize the Frenet frame for some key frames of each spline
-						// obtain T, N, and B vectors for the first cross section of the yarn						
-						T0 = nv::normalize(V);
-						//TODO: N0 = nv::normalize(cross(cross(V, Q), V));
-						N0 = vec3f(1, 0, 0);
-						B0 = cross(T0, N0);
-						
-						//use matrix for transformation
-						Eigen::Vector3d T_e(T0.x, T0.y, T0.z);
-						Eigen::Vector3d N_e(N0.x, N0.y, N0.z);
-						Eigen::Vector3d B_e(B0.x, B0.y, B0.z);
-						Eigen::MatrixXd R(3, 3);
-						R << N_e, B_e, T_e;
-						Eigen::Vector3d local(fiber.vertices[v].x, fiber.vertices[v].y, 0.f);
-						world = R*local;
-
-						if (!file_done /*&& !(v % 5)*/ ) //write one value in each 5
-						{
-							fout_p << P.x << " " << P.y << " " << P.z << std::endl;
-							fout_t << T0.x << " " << T0.y << " " << T0.z << std::endl;
-							fout_n << N0.x << " " << N0.y << " " << N0.z << std::endl;
-							fout_sample << t << std::endl;
-						}
-					}
-					/* find N and B for the subsequence cross-sections */
-					else {
-						T1 = nv::normalize(V);
-						vec3f A = cross(T0, T1) / ( nv::length(T0)*nv::length(T1) );
-						float sqx = A.x * A.x;
-						float sqy = A.y * A.y;
-						float sqz = A.z * A.z;
-						float cos = dot(T0, T1);
-
-						/* If the tangent does not change, nor should the normal */
-						if (cos >= 1.f) { 
-							B1 = B0;
-							N1 = N0;
-							continue;
-						}
-
-						/* If the tangent flips then the Binormal should flip as well but not normal */
-						if (cos <= -1.f) {
-							B1 = -B0;
-							N1 = N0;
-							continue;
-						}
-
-						float cos1 = 1.f - cos;
-						float xycos1 = A.x * A.y * cos1;
-						float yzcos1 = A.y * A.z * cos1;
-						float zxcos1 = A.x * A.z * cos1;
-						float sin = sqrt(1 - cos*cos);
-						float xsin = A.x * sin;
-						float ysin = A.y * sin;
-						float zsin = A.z * sin;
-
-						Eigen::MatrixXd R_frenet(3, 3);
-						R_frenet << sqx + (1 - sqx)*cos,    xycos1 + zsin,           zxcos1 - ysin,
-									xycos1 - zsin,           sqy + (1 - sqy)*cos,     yzcos1 + xsin,
-									zxcos1 + ysin,           yzcos1 - xsin,           sqz + (1 - sqz)*cos;		
-
-						Eigen::Vector3d B0_e (B0.x, B0.y, B0.z);
-						Eigen::Vector3d N0_e (N0.x, N0.y, N0.z);
-						Eigen::Vector3d B1_e = R_frenet*B0_e;
-						Eigen::Vector3d N1_e = R_frenet*N0_e;
-						Eigen::Vector3d T1_e (T1.x, T1.y, T1.z);
-						B1 = vec3f(B1_e[0], B1_e[1], B1_e[2]);
-						N1 = vec3f(N1_e[0], N1_e[1], N1_e[2]);
-
-						//normalize the new vectors
-						B1 = nv::normalize(B1);
-						N1 = nv::normalize(N1);
-						N1_e = Eigen::Vector3d(B1.x, B1.y, B1.z);
-						N1_e = Eigen::Vector3d(N1.x, N1.y, N1.z);
-
-						//use matrix for transformation
-						Eigen::MatrixXd R(3, 3);
-						R << N1_e, B1_e, T1_e;
-						Eigen::Vector3d local(fiber.vertices[v].x, fiber.vertices[v].y, 0.f);
-						world = R*local;
-
-						T0 = T1;
-						B0 = B1;
-						N0 = N1;
-
-						// DEBUG: write results to file
-						if (!file_done)// && !(v % 5)) //write one third 
-						{
-							fout_p << P.x << " " << P.y << " " << P.z << std::endl;
-							fout_t << T1.x << " " << T1.y << " " << T1.z << std::endl;
-							fout_n << N1.x << " " << N1.y << " " << N1.z << std::endl;
-							fout_sample << t << std::endl;
-						}
-					}
-					fiber.vertices[v] = P + vec3f(world[0], world[1], world[2]);
-				}
-				file_done = true;
-
-				std::cout << "Fiber " << f << " of ply " << i << " is generated.\n";
-			}
-		}
-		fout_p.close();
-		fout_t.close();
-		fout_n.close();
-		fout_sample.close();
+                    vertex.x = static_cast<float>(pos1[0]);
+                    vertex.y = static_cast<float>(pos1[1]);
+                    vertex.z = static_cast<float>(pos1[2]);
+                }
 	}
 
 	void Yarn::write_yarn(const char* filename) {
