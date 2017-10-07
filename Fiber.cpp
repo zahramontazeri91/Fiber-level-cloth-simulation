@@ -330,16 +330,12 @@ namespace Fiber {
                 }
         double zSpan = zMax - zMin;
         double curveLength = curve.totalLength();
-        double xyScale;
+        double xyScale = 1.0;
 
         printf("  zMin: %.4lf, zMax: %.4lf, zSpan: %.4lf\n", zMin, zMax, zSpan);
         printf("  Curve length: %.4lf", curveLength);
-        if ( scaleXY ) {
-            printf(" (scale: %.4lf)", xyScale);
-            xyScale = curveLength/zSpan;
-        }
-        else
-            xyScale = 1.0;
+        if ( scaleXY )
+            printf(" (scale: %.4lf)", xyScale = curveLength/zSpan);
         putchar('\n');
 
         for ( auto &ply : plys )
