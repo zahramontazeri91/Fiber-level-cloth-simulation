@@ -35,6 +35,10 @@ int main(int argc, const char **argv) {
                 yarn.compress_yarn(fname.c_str());
             else if ( command == "CURVE" )
                 yarn.curve_yarn(fname.c_str());
+            else if ( command == "CURVE1" )
+                yarn.curve_yarn(fname.c_str(), true);
+            else
+                std::cerr << "Unknown command \"" << command << "\"." << std::endl;
 
         yarn.write_yarn(argv[2]);
     }

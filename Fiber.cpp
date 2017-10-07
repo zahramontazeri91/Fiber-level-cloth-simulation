@@ -31,6 +31,7 @@ namespace Fiber {
 		/*z = alpha / (2 * pi) * theta;*/
 	}
 
+
 	void Yarn::parse(const char* filename) {
 		std::ifstream fin;
 		if (filename != NULL)
@@ -163,8 +164,10 @@ namespace Fiber {
 		std::cout << "Parsing the input is done!\n\n";
 	}
 
+
 	Yarn::Yarn() {}
 	Yarn::~Yarn() {}
+
 
 	void Yarn::yarn_simulate() {
 
@@ -246,6 +249,7 @@ namespace Fiber {
 		}
 	} // yarn_simulate
 
+
 	void Yarn::compress_yarn(const char* filename) {
 		std::cout << "step7: change yarn cross-sections ..." << std::endl;
 		// read the compression parameters file
@@ -307,9 +311,10 @@ namespace Fiber {
 				}
 			}
 		}
-	}
+	} // compress_yarn
 
-	void Yarn::curve_yarn(const char* filename) {
+
+	void Yarn::curve_yarn(const char* filename, bool scaleXY) {
 		std::cout << "step8: map the straight yarn to the spline curve ..." << std::endl;
 	
 		/* use hermite spline multiple segments */
@@ -325,10 +330,17 @@ namespace Fiber {
                 }
         double zSpan = zMax - zMin;
         double curveLength = curve.totalLength();
-        double xyScale = curveLength/zSpan;
+        double xyScale;
 
         printf("  zMin: %.4lf, zMax: %.4lf, zSpan: %.4lf\n", zMin, zMax, zSpan);
-        printf("  Curve length: %.4lf (scale: %.4lf)\n", curveLength, xyScale);
+        printf("  Curve length: %.4lf", curveLength);
+        if ( scaleXY ) {
+            printf(" (scale: %.4lf)", xyScale);
+            xyScale = curveLength/zSpan;
+        }
+        else
+            xyScale = 1.0;
+        putchar('\n');
 
         for ( auto &ply : plys )
             for ( auto &fiber : ply.fibers )
@@ -346,7 +358,8 @@ namespace Fiber {
                     vertex.y = static_cast<float>(pos1[1]);
                     vertex.z = static_cast<float>(pos1[2]);
                 }
-	}
+	} // curve_yarn
+
 
 	void Yarn::write_yarn(const char* filename) {
 		std::cout << "\n\n";
@@ -371,4 +384,5 @@ namespace Fiber {
 		fout.close();
 		printf("Writing vertices to file done!\n");
 	}
+
 } // namespace Fiber
