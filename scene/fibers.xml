@@ -7,7 +7,10 @@
 	</integrator>
 
 	<shape type="hair">
-		<string name="filename" value="../output00029_1.txt"/>
+		<!--<string name="filename" value="../output00001.txt"/>-->
+		<string name="filename" value="../frame00001.txt"/>
+		<!--<string name="filename" value="../output00029.txt"/>-->
+		<!--<string name="filename" value="../frame00029.txt"/>-->
 		<float name="radius" value="0.002"/>
 		<float name="angleThreshold" value="0.001"/>
 		
@@ -58,7 +61,7 @@
 	<sensor type="perspective">
 		<string name="fovAxis" value="smaller"/>
 		<transform name="toWorld">
-			<lookAt origin="-20 0 0" target="0 0 0" up="0 1 0"/>
+			<lookAt origin="-10 0 0" target="0 0 0" up="0 1 0"/>
 		</transform>
 		<float name="fov" value="2"/>
 

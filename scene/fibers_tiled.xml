@@ -8,7 +8,8 @@
 
 	<shape type="shapegroup" id="myShapeGroup">
 		<shape type="hair">
-			<string name="filename" value="../output00029_1.txt"/>
+			<!--<string name="filename" value="../output00029.txt"/>-->
+			<string name="filename" value="../frame00029.txt"/>
 			<float name="radius" value="0.002"/>
 			<float name="angleThreshold" value="0.001"/>
 			
@@ -845,15 +846,15 @@
 		<transform name="toWorld">
 			<lookAt origin="-10 50 0" target="0 0 0" up="1 0.2 0"/>
 		</transform>
-		<float name="fov" value="24"/>
+		<float name="fov" value="20"/>
 		
 		<sampler type="ldsampler">
 			<!-- <integer name="sampleCount" value="2048"/> -->
             <integer name="sampleCount" value="64"/>
 		</sampler>
 		<film id="film" type="hdrfilm">
-			<integer name="width" value="1280"/>
-			<integer name="height" value="420"/>
+			<integer name="width" value="512"/>
+			<integer name="height" value="512"/>
 			<rfilter type="gaussian"/>
             <boolean name="banner" value="false" />
 		</film>
