@@ -119,6 +119,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="crossSection.h" />
     <ClInclude Include="Curve.h" />
     <ClInclude Include="Fiber.h" />
     <ClInclude Include="hermiteCurve.h" />
@@ -130,6 +131,7 @@
     <ClInclude Include="Util.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="crossSection.cpp" />
     <ClCompile Include="Fiber.cpp" />
     <ClCompile Include="hermiteCurve.cpp" />
     <ClCompile Include="hermiteSeg.cpp" />

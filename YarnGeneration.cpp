@@ -1,22 +1,22 @@
 #include <fstream>
 #include "Fiber.h"
 #include "tests/hermiteTests.h"
+#include "crossSection.h"
 
 int main(int argc, const char **argv) {
-#if 1
-    /*
-	Fiber::Yarn yarn;
-
-	yarn.parse("config.txt");
-	yarn.yarn_simulate();
-	yarn.compress_yarn("compress.txt");
-	yarn.curve_yarn("curves.txt");
-	yarn.write_yarn("gen_yarn.txt");
-    */
+#if 0
+    
+	//Fiber::Yarn yarn;
+	//yarn.parse("config_v2.txt");
+	//yarn.yarn_simulate();
+	//yarn.compress_yarn("compress.txt");
+	//yarn.curve_yarn("curves.txt");
+	//yarn.write_yarn("gen_yarn.txt");
+    
 
     if ( argc != 3 ) {
         printf("Usage: YarnGeneration [task file] [output file]\n");
-        return 1;
+		return 1;
     }
 
     std::ifstream fin(argv[1]);
@@ -35,18 +35,20 @@ int main(int argc, const char **argv) {
                 yarn.compress_yarn(fname.c_str());
             else if ( command == "CURVE" )
                 yarn.curve_yarn(fname.c_str());
-            else if ( command == "CURVE1" )
-                yarn.curve_yarn(fname.c_str(), true);
-            else
-                std::cerr << "Unknown command \"" << command << "\"." << std::endl;
 
         yarn.write_yarn(argv[2]);
     }
 
 
 #else
-    hermiteTest1();
-    hermiteTest2();
+    //hermiteTest1();
+    //hermiteTest2();
+
+	const char* yarnfile = "D:/sandbox/fiberSimulation/yarn_generation_project/results/output00001.txt";
+	const char* curvefile = "curves.txt"; // TODO: D: / sandbox / fiberSimulation / hairs / avg_hair / frame00029_yarn.txt";
+	CrossSection cs (yarnfile, curvefile, 10);
+	while (1);
+
 #endif
 
 	return 0;

@@ -45,6 +45,9 @@
     <ClInclude Include="tests\hermiteTests.h">
       <Filter>Tests</Filter>
     </ClInclude>
+    <ClInclude Include="crossSection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="hermiteSeg.cpp">
@@ -61,6 +64,9 @@
     </ClCompile>
     <ClCompile Include="tests\hermiteTests.cpp">
       <Filter>Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="crossSection.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

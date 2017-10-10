@@ -1,11 +1,12 @@
 ply_num: 2
-fiber_num: 5
+fiber_num: 80
 
 aabb_min: [-0.0498028,-0.0498028,-4.86193]
 aabb_max: [0.0498028,0.0498028,4.86193]
 
 z_step_size: 0.01
 z_step_num: 1480
+fly_step_size: 0
 
 yarn_clock_wise: 0
 fiber_clock_wise: 1
@@ -24,3 +25,12 @@ use_migration: 1
 s_i: 1.6
 rho_min: 0.85
 rho_max: 1
+
+use_flyaways: 0
+flyaway_hair_density: 50.3915
+flyaway_hair_ze: 0.00137289 0.0253374
+flyaway_hair_r0: 0.0184686 0.00541332
+flyaway_hair_re: 0.0123793 0.00722431
+flyaway_hair_pe: 0.439137 0.497978
+flyaway_loop_density: 39.0791
+flyaway_loop_r1: 0.0259048 0.00626075

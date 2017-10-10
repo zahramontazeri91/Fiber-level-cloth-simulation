@@ -31,6 +31,31 @@ namespace Fiber {
 		/*z = alpha / (2 * pi) * theta;*/
 	}
 
+	void Yarn::build(const char *yarnfile) {
+		//TODO: only initializing the vertices value, other parameters might be needed to setup later
+		printf("Initialize yarn with vertices from a file ...\n");
+		std::ifstream fin;
+		if (yarnfile != NULL)
+			fin.open(yarnfile);
+		
+		std::string line;
+		std::getline(fin, line);
+		int fiber_num = atoi(line.c_str());
+		this->plys.resize(1);
+		this->plys[0].fibers.resize(fiber_num);
+		for (int f = 0; f < fiber_num; ++f) {
+			Fiber &fiber = this->plys[0].fibers[f];
+			fiber.clear(); //clear the vertices list 
+			std::getline(fin, line);
+			int vrtx_num = atoi(line.c_str());
+			for (int v = 0; v < vrtx_num; ++v) {
+				std::getline(fin, line);
+				std::vector<std::string> splits = split(line, ' ');
+				vec3f vrtx(atof(splits[0].c_str()), atof(splits[1].c_str()), atof(splits[2].c_str()));
+				fiber.vertices.push_back(vrtx);
+			}
+		}
+	}
 
 	void Yarn::parse(const char* filename) {
 		std::ifstream fin;
@@ -364,7 +389,7 @@ namespace Fiber {
 		for (int i = 0; i < ply_num; i++)
 			total_fiber_num += this->plys[i].fibers.size(); 
 		std::ofstream fout(filename);
-		fout << total_fiber_num << std::endl;
+		//fout << total_fiber_num << std::endl; //generated yarn format should be same as simulated yarn 
 
 		for (int i = 0; i < ply_num; i++) {
 			int fiber_num = this->plys[i].fibers.size();
