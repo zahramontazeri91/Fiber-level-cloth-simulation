@@ -12,19 +12,18 @@ struct Plane {
 class CrossSection {
 public:
 
-	CrossSection(const char* yarnfile, const char* curvefile, const int subdiv) {
-		init(yarnfile, curvefile, subdiv);
+	CrossSection(const char* yarnfile, const char* curvefile, const int subdiv, const int num_planes) {
+		init(yarnfile, curvefile, subdiv, num_planes);
 	}
-	void init(const char* yarnfile, const char* curvefile, const int subdiv);
-	void buildPlanes();
+	void init(const char* yarnfile, const char* curvefile, const int subdiv, const int num_planes);
+	void buildPlanes(const int num_planes);
 	bool linePlaneIntersection(const vec3f &start, const vec3f &end, const Plane &plane, vec3f &its);
 	bool yarnPlaneIntersection(const Plane &plane, std::vector<vec3f> &its);
 
 protected:
 	HermiteCurve m_curve;
 	Fiber::Yarn m_yarn;
-	std::vector<Eigen::Vector4d> planesList;
-
+	std::vector<Plane> m_planesList;
 };
 
 #endif // !_CROSS_SECTION_H_
