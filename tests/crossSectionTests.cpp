@@ -31,6 +31,8 @@ void yarnPlaneIntersection_test() {
 	FILE *fout;
 	if (fopen_s(&fout, "crossSection.txt", "wt") == 0) {
 		fprintf_s(fout, "%d \n", itsList.size());
+		// First write the yarn-center
+		fprintf_s(fout, "%.4lf %.4lf %.4lf \n", plane.point[0], plane.point[1], plane.point[2]);
 		for (int i = 0; i < itsList.size(); ++i) {
 			fprintf_s(fout, "%.4lf %.4lf %.4lf \n", itsList[i][0], itsList[i][1], itsList[i][2]);
 		}
