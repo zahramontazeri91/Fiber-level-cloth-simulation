@@ -56,7 +56,7 @@ namespace Fiber {
 
 	class Yarn {
 		/* Plys in this yarn */
-		std::vector<Ply> plys;
+		//std::vector<Ply> plys; make this public
 
 		bool use_migration;		// Fiber migration
 		bool clock_wise;		// This parameter determines twisting direction of the plys in yarn 
@@ -82,6 +82,8 @@ namespace Fiber {
 		float compress_long, compress_short;
 
 	public:
+		std::vector<Ply> plys;
+
 		/* Define a set of parameters needed for compression*/
 		struct compress {
 			float z;

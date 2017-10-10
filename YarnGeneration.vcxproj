@@ -127,6 +127,7 @@
     <ClInclude Include="nvMatrix.h" />
     <ClInclude Include="nvVector.h" />
     <ClInclude Include="Rng.h" />
+    <ClInclude Include="Tests\crossSectionTests.h" />
     <ClInclude Include="tests\hermiteTests.h" />
     <ClInclude Include="Util.h" />
   </ItemGroup>
@@ -135,6 +136,7 @@
     <ClCompile Include="Fiber.cpp" />
     <ClCompile Include="hermiteCurve.cpp" />
     <ClCompile Include="hermiteSeg.cpp" />
+    <ClCompile Include="Tests\crossSectionTests.cpp" />
     <ClCompile Include="tests\hermiteTests.cpp" />
     <ClCompile Include="YarnGeneration.cpp" />
   </ItemGroup>

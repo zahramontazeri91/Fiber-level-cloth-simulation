@@ -37,9 +37,10 @@ void HermiteCurve::init(const std::vector<Eigen::Vector3d> &pts, int subdiv)
     }
 
     m_splines[0].build(subdiv, m_splines[0].evalPrincipalNormal(0.0));
+
     for ( int i = 1; i < m_spline_seg; ++i )
         m_splines[i].build(subdiv, m_splines[i - 1].evalNormal(1.0));
-
+	
     m_lens.resize(m_spline_seg);
     for ( int i = 0; i < m_spline_seg; ++i ) {
         m_lens[i] = m_splines[i].totalLength();

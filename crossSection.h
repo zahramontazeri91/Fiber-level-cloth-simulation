@@ -4,6 +4,10 @@
 
 #include "hermiteCurve.h"
 #include "Fiber.h"
+struct Plane {
+	vec3f normal;
+	vec3f point;
+};
 
 class CrossSection {
 public:
@@ -12,14 +16,14 @@ public:
 		init(yarnfile, curvefile, subdiv);
 	}
 	void init(const char* yarnfile, const char* curvefile, const int subdiv);
-	void buildPlanes(std::vector<Eigen::Vector4d> planesList);
-	void findIntersection(const Eigen::Vector4d &plane, std::vector<Eigen::Vector3d> pnts); //plane vector is [a,b,c,d] for ax+by+cz+d=0
-	//void findIntersections(const Eigen::Vector4d &plane, std::vector<Eigen::Vector3d> pnts);
+	void buildPlanes();
+	bool linePlaneIntersection(const vec3f &start, const vec3f &end, const Plane &plane, vec3f &its);
+	bool yarnPlaneIntersection(const Plane &plane, std::vector<vec3f> &its);
 
 protected:
 	HermiteCurve m_curve;
 	Fiber::Yarn m_yarn;
-
+	std::vector<Eigen::Vector4d> planesList;
 
 };
 

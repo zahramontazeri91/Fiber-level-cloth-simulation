@@ -72,8 +72,9 @@ public:
     {
         Eigen::Vector3d q = evalCurvature(t), v = evalTangent(t);
         Eigen::Vector3d ret = v.cross(q).cross(v);
+
         if ( normalize ) {
-            assert(ret.norm()>HERMITE_EPS);
+            assert(ret.norm()>HERMITE_EPS); 
             ret.normalize();
         }
         return ret;

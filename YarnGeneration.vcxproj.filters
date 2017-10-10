@@ -48,6 +48,9 @@
     <ClInclude Include="crossSection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Tests\crossSectionTests.h">
+      <Filter>Tests</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="hermiteSeg.cpp">
@@ -67,6 +70,9 @@
     </ClCompile>
     <ClCompile Include="crossSection.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Tests\crossSectionTests.cpp">
+      <Filter>Tests</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
