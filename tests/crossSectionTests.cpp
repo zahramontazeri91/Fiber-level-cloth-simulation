@@ -5,7 +5,7 @@
 void linePlaneIntersection_test() {
 	const char* yarnfile = "D:/sandbox/fiberSimulation/yarn_generation_project/results/output00001.txt";
 	const char* curvefile = "avg00029.txt"; // TO DO: why avg is wrong TODO: cleanup input files
-	CrossSection cs(yarnfile, curvefile, 10,5);
+	CrossSection cs(yarnfile,2, curvefile, 10,5);
 
 	Plane plane;
 	plane.normal = vec3f(1, 0, 0);
@@ -20,11 +20,13 @@ void linePlaneIntersection_test() {
 void yarnPlaneIntersection_test() {
 	const char* yarnfile = "D:/sandbox/fiberSimulation/yarn_generation_project/results/output00001.txt";
 	const char* curvefile = "avg00029.txt"; 
-	CrossSection cs(yarnfile, curvefile, 10,5);
+	CrossSection cs(yarnfile,2, curvefile, 10,5);
 
 	Plane plane;
-	plane.normal = vec3f(0,0,1);
-	plane.point = vec3f(0, 0, 0);
+	cs.get_plane(1, plane);
+	//std::cout << "plain point " << plane.point.x << std::endl;
+	//plane.normal = vec3f(0,0,1);
+	//plane.point = vec3f(0, 0, 0);
 	std::vector<vec3f> itsList;
 	bool b = cs.yarnPlaneIntersection(plane, itsList);
 
@@ -43,11 +45,22 @@ void yarnPlaneIntersection_test() {
 void bildPlanes_test() {
 	const char* yarnfile = "D:/sandbox/fiberSimulation/yarn_generation_project/results/output00001.txt";
 	const char* curvefile = "avg00029.txt";
-	CrossSection cs(yarnfile, curvefile, 10, 5);
+	CrossSection cs(yarnfile,2, curvefile, 10, 5);
 
 	Plane plane;
 	plane.normal = vec3f(0, 0, 1);
 	plane.point = vec3f(0, 0, 0);
 	std::vector<vec3f> itsList;
 	bool b = cs.yarnPlaneIntersection(plane, itsList);
+}
+
+void allPlanesIntersections_test() {
+	const char* yarnfile = "D:/sandbox/fiberSimulation/yarn_generation_project/results/output00001.txt";
+	const char* curvefile = "avg00029.txt"; // TO DO: why avg is wrong TODO: cleanup input files
+	CrossSection cs(yarnfile,2, curvefile, 10, 5);
+	std::vector<std::vector<vec3f>> itsLists;
+	cs.allPlanesIntersections(itsLists);
+	std::cout << "intersections lists size: " << itsLists.size() << std::endl;
+
+	cs.write_PlanesIntersections("allCrossSection.txt",itsLists);
 }

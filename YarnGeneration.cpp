@@ -46,12 +46,11 @@ int main(int argc, const char **argv) {
     //hermiteTest1();
     //hermiteTest2();
 	//linePlaneIntersection_test();
-	//yarnPlaneIntersection_test();
-	bildPlanes_test();
+	yarnPlaneIntersection_test();
+	//bildPlanes_test();
+	//allPlanesIntersections_test();
 
-	//const char* yarnfile = "D:/sandbox/fiberSimulation/yarn_generation_project/results/output00001.txt";
-	//const char* curvefile = "avg00029.txt"; // TO DO: why avg is wrong TODO: cleanup input files
-	//CrossSection cs (yarnfile, curvefile, 10);
+
 
 
 

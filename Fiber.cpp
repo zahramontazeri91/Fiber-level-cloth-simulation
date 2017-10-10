@@ -31,8 +31,8 @@ namespace Fiber {
 		/*z = alpha / (2 * pi) * theta;*/
 	}
 
-	void Yarn::build(const char *yarnfile) {
-		//TODO: only initializing the vertices value, other parameters might be needed to setup later
+	void Yarn::build(const char *yarnfile, const int ply_num) {
+		//TODO: only initializing "plys", other parameters might be needed to setup later
 		printf("Initialize yarn with vertices from a file ...\n");
 		std::ifstream fin;
 		if (yarnfile != NULL)
@@ -40,19 +40,21 @@ namespace Fiber {
 		
 		std::string line;
 		std::getline(fin, line);
-		int fiber_num = atoi(line.c_str());
-		this->plys.resize(1);
-		this->plys[0].fibers.resize(fiber_num);
-		for (int f = 0; f < fiber_num; ++f) {
-			Fiber &fiber = this->plys[0].fibers[f];
-			fiber.clear(); //clear the vertices list 
-			std::getline(fin, line);
-			int vrtx_num = atoi(line.c_str());
-			for (int v = 0; v < vrtx_num; ++v) {
+		int fiber_num = atoi(line.c_str()) / ply_num;
+		this->plys.resize(ply_num);
+		for (int p = 0; p < ply_num; ++p) {
+			this->plys[p].fibers.resize(fiber_num);
+			for (int f = 0; f < fiber_num; ++f) {
+				Fiber &fiber = this->plys[p].fibers[f];
+				fiber.clear(); //clear the vertices list 
 				std::getline(fin, line);
-				std::vector<std::string> splits = split(line, ' ');
-				vec3f vrtx(atof(splits[0].c_str()), atof(splits[1].c_str()), atof(splits[2].c_str()));
-				fiber.vertices.push_back(vrtx);
+				int vrtx_num = atoi(line.c_str());
+				for (int v = 0; v < vrtx_num; ++v) {
+					std::getline(fin, line);
+					std::vector<std::string> splits = split(line, ' ');
+					vec3f vrtx(atof(splits[0].c_str()), atof(splits[1].c_str()), atof(splits[2].c_str()));
+					fiber.vertices.push_back(vrtx);
+				}
 			}
 		}
 	}

@@ -30,5 +30,3 @@ for ii in xrange(0,90,10):
 
 plt.tight_layout()
 plt.show()
-
-
