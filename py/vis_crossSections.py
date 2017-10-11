@@ -17,6 +17,7 @@ with open('../crossSection.txt', 'r') as fin:
     n = int(fin.readline())
     center = [float(val) for val in fin.readline().strip().split(' ')]
     ax.scatter(center[0], center[1], center[2], color='red')
+    print (center)
     
     for i in range(0, n):
         pos = [float(val) for val in fin.readline().strip().split(' ')]

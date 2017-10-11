@@ -42,6 +42,9 @@ bool CrossSection::yarnPlaneIntersection(const Plane &plane, std::vector<vec3f> 
 	bool isIntrsct = false;
 	const int ply_num = m_yarn.plys.size();
 
+	assert(!(nv::length(plane.normal) - 1));
+
+
 	for (int p = 0; p < ply_num; ++p) {
 		const int fiber_num = m_yarn.plys[p].fibers.size();
 		for (int f = 0; f < fiber_num; ++f) {

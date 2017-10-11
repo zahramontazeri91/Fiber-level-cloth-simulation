@@ -46,11 +46,9 @@ int main(int argc, const char **argv) {
     //hermiteTest1();
     //hermiteTest2();
 	//linePlaneIntersection_test();
-	yarnPlaneIntersection_test();
-	//bildPlanes_test();
-	//allPlanesIntersections_test();
-
-
+	//yarnPlaneIntersection_test();
+	bildPlanes_test();
+	//allPlanesIntersections_test(); //ASSERTION: not normalize normal
 
 
 
