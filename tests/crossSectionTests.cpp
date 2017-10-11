@@ -32,18 +32,20 @@ void yarnPlaneIntersection_test() {
 	std::cout << plane.normal.x << "  " << plane.normal.y << "  " << plane.normal.z << std::endl;
 	std::cout << plane.point.x << "  " << plane.point.y << "  " << plane.point.z << std::endl;
 
-	std::vector<vec3f> itsList;
+	yarnIntersect itsList;
 	bool b = cs.yarnPlaneIntersection(plane, itsList);
 
-	std::cout << itsList.size() << std::endl;
+	std::cout << itsList[0].size() << std::endl;
 
+	plyItersect ply_its = itsList[0];
+	//write for only one ply
 	FILE *fout;
 	if (fopen_s(&fout, "crossSection.txt", "wt") == 0) {
-		fprintf_s(fout, "%d \n", itsList.size());
+		fprintf_s(fout, "%d \n", ply_its.size());
 		// First write the yarn-center
 		fprintf_s(fout, "%.4lf %.4lf %.4lf \n", plane.point[0], plane.point[1], plane.point[2]);
-		for (int i = 0; i < itsList.size(); ++i) {
-			fprintf_s(fout, "%.4lf %.4lf %.4lf \n", itsList[i][0], itsList[i][1], itsList[i][2]);
+		for (int i = 0; i < ply_its.size(); ++i) {
+			fprintf_s(fout, "%.4lf %.4lf %.4lf \n", ply_its[i][0], ply_its[i][1], ply_its[i][2]);
 		}
 		fclose(fout);
 	}
@@ -70,7 +72,7 @@ void allPlanesIntersections_test() {
 	const char* yarnfile = "D:/sandbox/fiberSimulation/yarn_generation_project/results/output00029.txt";
 	const char* curvefile = "avg00029.txt"; // TO DO: why avg is wrong TODO: cleanup input files
 	CrossSection cs(yarnfile,2, curvefile, 10, 5);
-	std::vector<std::vector<vec3f>> itsLists;
+	std::vector<yarnIntersect> itsLists;
 	cs.allPlanesIntersections(itsLists);
 	std::cout << "intersections lists size: " << itsLists.size() << std::endl;
 

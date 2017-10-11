@@ -33,7 +33,6 @@ namespace Fiber {
 
 	void Yarn::build(const char *yarnfile, const int ply_num) {
 		//TODO: only initializing "plys", other parameters might be needed to setup later
-		printf("Initialize yarn with vertices from a file ...\n");
 		std::ifstream fin;
 		if (yarnfile != NULL)
 			fin.open(yarnfile);
@@ -57,6 +56,7 @@ namespace Fiber {
 				}
 			}
 		}
+		printf("Yarn is initialized from the file. \n");
 	}
 
 	void Yarn::parse(const char* filename) {

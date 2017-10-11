@@ -1,5 +1,8 @@
 """
-Visualize 3d points
+Visualize 3d points in this format:
+point_number
+x y z
+...
 """
 
 import matplotlib

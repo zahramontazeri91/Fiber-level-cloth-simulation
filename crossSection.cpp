@@ -37,26 +37,31 @@ bool CrossSection::linePlaneIntersection(const vec3f &start, const vec3f &end, c
 	return false;
 }
 
-bool CrossSection::yarnPlaneIntersection(const Plane &plane, std::vector<vec3f> &itsList) {
-
+bool CrossSection::yarnPlaneIntersection(const Plane &plane, yarnIntersect &itsList) {
 	bool isIntrsct = false;
 	const int ply_num = m_yarn.plys.size();
+	itsList.resize(ply_num);
 
-	std::cout << "normal length: " << nv::length(plane.normal) << std::endl;
-	//TODO: assert( nv::length(plane.normal) - 1   && "normal vector is not normalized!" );
+	assert( nv::length(plane.normal) - 1.f < epsilon   && "normal vector is not normalized!" );
 
+	const int num_of_cores = omp_get_num_procs();
+#pragma omp parallel for num_threads(num_of_cores)
 
 	for (int p = 0; p < ply_num; ++p) {
 		const int fiber_num = m_yarn.plys[p].fibers.size();
 		for (int f = 0; f < fiber_num; ++f) {
-			const int num_vrtx = m_yarn.plys[p].fibers[f].vertices.size();
-			for (int v = 0; v < num_vrtx - 1; ++v) {
+			int hitFiberNum = 0;
+			const int vrtx_num = m_yarn.plys[p].fibers[f].vertices.size();
+			for (int v = 0; v < vrtx_num - 1; ++v) { //Each segment is v[i] tp v[i+1]
 				vec3f start = m_yarn.plys[p].fibers[f].vertices[v];
 				vec3f end = (m_yarn.plys[p].fibers[f].vertices[v + 1]);
 				vec3f its(0.f);
-				if (linePlaneIntersection(start, end, plane, its)) {
+				if (linePlaneIntersection(start, end, plane, its) ) {
 					isIntrsct = true;
-					itsList.push_back(its);
+					itsList[p].push_back(its);
+					if (hitFiberNum)
+						std::cout << "Fiber " << f << " intersects " << hitFiberNum << " times! \n";
+					hitFiberNum++;
 				}
 			}
 		}
@@ -66,10 +71,13 @@ bool CrossSection::yarnPlaneIntersection(const Plane &plane, std::vector<vec3f> 
 	return false;
 }
 
-bool CrossSection::allPlanesIntersections(std::vector<std::vector<vec3f>> &itsLists) {
+bool CrossSection::allPlanesIntersections(std::vector<yarnIntersect> &itsLists) {
+	const int num_of_cores = omp_get_num_procs();
+#pragma omp parallel for num_threads(num_of_cores) 
+
 	bool isIntrsct = false;
 	for (int i = 0; i < m_planesList.size(); ++i) {
-		std::vector<vec3f> itsList;
+		yarnIntersect itsList;
 		if (yarnPlaneIntersection(m_planesList[i], itsList)) {
 			isIntrsct = true;
 			itsLists.push_back(itsList);
@@ -80,19 +88,28 @@ bool CrossSection::allPlanesIntersections(std::vector<std::vector<vec3f>> &itsLi
 	return false;
 }
 
-void CrossSection::write_PlanesIntersections(const char* filename, std::vector<std::vector<vec3f>> &itsLists) {
+void CrossSection::write_PlanesIntersections(const char* filename, std::vector<yarnIntersect> &itsLists) {
+	const int ply_num = m_yarn.plys.size();
 	assert(! (m_planesList.size()-itsLists.size()) );
 	FILE *fout;
 	if (fopen_s(&fout, filename, "wt") == 0) {
-		fprintf_s(fout, "%d \n", m_planesList.size());
-		for (int i = 0; i < m_planesList.size(); ++i ) {
-			fprintf_s(fout, "%d \n", itsLists[i].size());
-			// First write the yarn-center
-			fprintf_s(fout, "%.4lf %.4lf %.4lf \n", m_planesList[i].point[0], m_planesList[i].point[1], m_planesList[i].point[2]);
-			// Then all intersections
-			for (int j = 0; j < itsLists[i].size(); ++j) {
-				fprintf_s(fout, "%.4lf %.4lf %.4lf \n", itsLists[i][j][0], itsLists[i][j][1], itsLists[i][j][2]);
+
+		fprintf_s(fout, "plane_num: %d \n", m_planesList.size());
+		fprintf_s(fout, "ply_num: %d \n", ply_num);
+		fprintf_s(fout, "\n");
+
+		for (int cs = 0; cs < m_planesList.size(); ++cs) { //for each plane
+			/* First write the yarn-center */
+			fprintf_s(fout, "center: %.4lf %.4lf %.4lf \n", m_planesList[cs].point[0], m_planesList[cs].point[1], m_planesList[cs].point[2]);
+			/* Then all the intersections for each ply */
+			for (int p = 0; p < ply_num; ++p) { //for each ply 
+				fprintf_s(fout, "ply_fiber_num: %d \n", itsLists[cs][p].size());
+				for (int j = 0; j < itsLists[cs][p].size(); ++j) { //for each intersected fiber
+					vec3f fiberIts = itsLists[cs][p][j];
+					fprintf_s(fout, "%.4lf %.4lf %.4lf \n", fiberIts.x, fiberIts.y, fiberIts.z);
+				}
 			}
+			fprintf_s(fout, "\n");
 		}
 		fclose(fout);
 	}
