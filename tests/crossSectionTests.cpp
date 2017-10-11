@@ -3,7 +3,7 @@
 #include "../crossSection.h"
 
 void linePlaneIntersection_test() {
-	const char* yarnfile = "D:/sandbox/fiberSimulation/yarn_generation_project/results/output00001.txt";
+	const char* yarnfile = "D:/sandbox/fiberSimulation/yarn_generation_project/results/output00029.txt";
 	const char* curvefile = "avg00029.txt"; // TO DO: why avg is wrong TODO: cleanup input files
 	CrossSection cs(yarnfile,2, curvefile, 10,5);
 
@@ -18,15 +18,16 @@ void linePlaneIntersection_test() {
 }
 
 void yarnPlaneIntersection_test() {
-	const char* yarnfile = "D:/sandbox/fiberSimulation/yarn_generation_project/results/output00001.txt";
+	const char* yarnfile = "D:/sandbox/fiberSimulation/yarn_generation_project/results/output00029.txt";
 	const char* curvefile = "avg00029.txt"; 
 	CrossSection cs(yarnfile,2, curvefile, 10,5);
 
 	Plane plane;
 	cs.get_plane(1, plane);
 
-	//plane.normal = vec3f(0,0,1);
-	//plane.point = vec3f(0, 0, 0);
+	//Plane plane;
+	//plane.normal = vec3f(-0.0316426, -0.304221,  0.952076);
+	//plane.point = vec3f(0,0, plane0.point.z);
 
 	std::cout << plane.normal.x << "  " << plane.normal.y << "  " << plane.normal.z << std::endl;
 	std::cout << plane.point.x << "  " << plane.point.y << "  " << plane.point.z << std::endl;
@@ -49,7 +50,7 @@ void yarnPlaneIntersection_test() {
 }
 
 void bildPlanes_test() {
-	const char* yarnfile = "D:/sandbox/fiberSimulation/yarn_generation_project/results/output00001.txt";
+	const char* yarnfile = "D:/sandbox/fiberSimulation/yarn_generation_project/results/output00029.txt";
 	const char* curvefile = "avg00029.txt";
 	const int num_planes = 1000;
 	CrossSection cs(yarnfile,2, curvefile, 10, num_planes);
@@ -59,14 +60,14 @@ void bildPlanes_test() {
 		for (int i = 0; i < num_planes; i++) {
 			Plane plane;
 			cs.get_plane(i, plane);
-			fprintf_s(fout, "%.4lf %.4lf %.4lf \n", plane.point.x, plane.point.y, plane.point.z);
+			fprintf_s(fout, "%.4lf %.4lf %.4lf \n", plane.normal.x, plane.normal.y, plane.normal.z);
 		}
 		fclose(fout);
 	}
 }
 
 void allPlanesIntersections_test() {
-	const char* yarnfile = "D:/sandbox/fiberSimulation/yarn_generation_project/results/output00001.txt";
+	const char* yarnfile = "D:/sandbox/fiberSimulation/yarn_generation_project/results/output00029.txt";
 	const char* curvefile = "avg00029.txt"; // TO DO: why avg is wrong TODO: cleanup input files
 	CrossSection cs(yarnfile,2, curvefile, 10, 5);
 	std::vector<std::vector<vec3f>> itsLists;

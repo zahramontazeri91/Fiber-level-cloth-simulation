@@ -42,7 +42,8 @@ bool CrossSection::yarnPlaneIntersection(const Plane &plane, std::vector<vec3f> 
 	bool isIntrsct = false;
 	const int ply_num = m_yarn.plys.size();
 
-	assert(!(nv::length(plane.normal) - 1));
+	std::cout << "normal length: " << nv::length(plane.normal) << std::endl;
+	//TODO: assert( nv::length(plane.normal) - 1   && "normal vector is not normalized!" );
 
 
 	for (int p = 0; p < ply_num; ++p) {

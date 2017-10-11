@@ -13,8 +13,7 @@ fig = plt.figure()
 ax = fig.gca(projection='3d')
 ax.set_aspect('equal')
         
-#with open('../allCrossSection.txt', 'r') as fin:
-with open('../test_planes.txt', 'r') as fin:
+with open('../allCrossSection.txt', 'r') as fin:
     plane_num = int(fin.readline())
     for i in range(0, plane_num):
 

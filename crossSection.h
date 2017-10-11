@@ -4,6 +4,8 @@
 
 #include "hermiteCurve.h"
 #include "Fiber.h"
+
+
 struct Plane {
 	vec3f normal;
 	vec3f point;
