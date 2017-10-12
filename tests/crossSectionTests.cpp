@@ -70,7 +70,7 @@ void bildPlanes_test() {
 
 void allPlanesIntersections_test() {
 	//const char* yarnfile = "../data/output00029.txt"; //For procedural yarn
-	const char* yarnfile = "../data/frame00029_hairs.txt"; //For simulated yarn
+	const char* yarnfile = "../data/frame00001_hairs.txt"; //For simulated yarn
 	const char* curvefile = "../data/avg00029.txt"; // TO DO: why avg is wrong TODO: cleanup input files
 	CrossSection cs(yarnfile,2, curvefile, 100, 1000);
 	std::vector<yarnIntersect> itsLists;
@@ -78,4 +78,32 @@ void allPlanesIntersections_test() {
 	//std::cout << "intersections lists size: " << itsLists.size() << std::endl;
 
 	cs.write_PlanesIntersections("../data/allCrossSection.txt",itsLists);
+}
+
+void project2Plane_test() {
+	const char* yarnfile = "../data/frame00001_hairs.txt"; //For simulated yarn
+	const char* curvefile = "../data/avg00029.txt"; // TO DO: why avg is wrong TODO: cleanup input files
+	CrossSection cs(yarnfile, 2, curvefile, 100, 1000);
+	std::vector<yarnIntersect> itsLists;
+	cs.allPlanesIntersections(itsLists);
+
+	vec3f pnt = itsLists[4][0][2];
+	vec2f prj;
+	Plane plane;
+	cs.get_plane(4, plane);
+	cs.project2Plane(pnt, plane, prj );
+	std::cout << "3D point is: "<< pnt.x << " " << pnt.y << " " << pnt.z << std::endl;
+	std::cout << "Projecte point is: " << prj.x << " " << prj.y << std::endl;
+}
+
+void write_PlanesIntersections2D_test() {
+	const char* yarnfile = "../data/output00001.txt"; //For procedural yarn
+	//const char* yarnfile = "../data/frame00029_hairs.txt"; //For simulated yarn
+	const char* curvefile = "../data/avg00001.txt"; // TO DO: why avg is wrong TODO: cleanup input files
+	CrossSection cs(yarnfile, 2, curvefile, 100, 1000);
+	std::vector<yarnIntersect> itsLists;
+	cs.allPlanesIntersections(itsLists);
+	std::cout << "intersections lists size: " << itsLists.size() << std::endl;
+
+	cs.write_PlanesIntersections2D("../data/allCrossSection2D.txt", itsLists);
 }

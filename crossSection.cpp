@@ -12,10 +12,13 @@ void CrossSection::buildPlanes(const int num_planes) {
 	const double crossSection_t = m_curve.arcLengthInvApprox(crossSectionLen);
 	for (int i = 0; i < num_planes; ++i) {
 		Eigen::Vector3d curve_p = m_curve.eval(i * crossSection_t);
-		Eigen::Vector3d curve_n = m_curve.evalTangent(i * crossSection_t);
+		Eigen::Vector3d curve_t = m_curve.evalTangent(i * crossSection_t);
+		Eigen::Vector3d curve_n = m_curve.evalNormal(i * crossSection_t); 
+		Eigen::Vector3d curve_b = curve_t.cross(curve_n); //need binormal of the plane to project 3D point on the plane
 		Plane plane;
 		plane.point = vec3f(curve_p[0], curve_p[1], curve_p[2]);
-		plane.normal = vec3f(curve_n[0], curve_n[1], curve_n[2]);
+		plane.normal = vec3f(curve_t[0], curve_t[1], curve_t[2]);
+		plane.binormal = vec3f(curve_b[0], curve_b[1], curve_b[2]);
 		m_planesList.push_back(plane);
 		//std::cout << "plane point: " << plane.point.x << "  " << plane.point.y << "  " << plane.point.z << std::endl;
 	}
@@ -116,6 +119,54 @@ void CrossSection::write_PlanesIntersections(const char* filename, std::vector<y
 				for (int j = 0; j < itsLists[cs][p].size(); ++j) { //for each intersected fiber
 					vec3f fiberIts = itsLists[cs][p][j];
 					fprintf_s(fout, "%.4lf %.4lf %.4lf \n", fiberIts.x, fiberIts.y, fiberIts.z);
+				}
+			}
+			fprintf_s(fout, "\n");
+		}
+		fclose(fout);
+	}
+	std::cout << "Intersections are written to the file successfully! \n\n ";
+}
+
+void CrossSection::project2Plane (const vec3f& P3d, const Plane& plane, vec2f& P2d) {
+	vec3f n = plane.normal;
+	vec3f e1 = plane.binormal;
+	vec3f e2 = cross(n, e1);
+
+	assert(nv::length(n) - 1.f < epsilon   && "Normal vector is not normalized!");
+	assert(dot(n, e1) < epsilon );
+
+	P2d.x = dot(e1, (P3d -  plane.point));
+	P2d.y = dot(e2, (P3d - plane.point));
+	
+}
+
+void CrossSection::write_PlanesIntersections2D(const char* filename, std::vector<yarnIntersect> &itsLists) {
+	const int ply_num = m_yarn.plys.size();
+	assert(!(m_planesList.size() - itsLists.size()));
+	FILE *fout;
+	if (fopen_s(&fout, filename, "wt") == 0) {
+
+		fprintf_s(fout, "plane_num: %d \n", m_planesList.size());
+		fprintf_s(fout, "ply_num: %d \n", ply_num);
+		fprintf_s(fout, "\n");
+
+		for (int cs = 0; cs < m_planesList.size(); ++cs) { //for each plane
+			Plane plane;
+			get_plane(cs, plane);
+			/* First write the yarn-center */
+			vec2f center2D;
+			project2Plane(plane.point, plane, center2D);
+			fprintf_s(fout, "center: %.4lf %.4lf \n", center2D.x, center2D.y);
+			/* Then all the intersections for each ply */
+			for (int p = 0; p < ply_num; ++p) { //for each ply 
+				fprintf_s(fout, "ply_fiber_num: %d \n", itsLists[cs][p].size());
+				for (int j = 0; j < itsLists[cs][p].size(); ++j) { //for each intersected fiber
+					vec3f fiberIts = itsLists[cs][p][j];
+					vec2f projected;
+					project2Plane(fiberIts, plane, projected);
+					
+					fprintf_s(fout, "%.4lf %.4lf \n", projected.x, projected.y);
 				}
 			}
 			fprintf_s(fout, "\n");

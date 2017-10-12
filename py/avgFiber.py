@@ -1,8 +1,6 @@
-
 """
 This read a the deforemed yarn and generates the average fiber
 
-@author: zahra
 """
 
 from itertools import islice

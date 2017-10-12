@@ -12,7 +12,9 @@ typedef std::vector<plyItersect> yarnIntersect;		//Plane intersection with whole
 
 
 struct Plane {
-	vec3f normal;
+	Plane() : normal(vec3f(0.f)), binormal(vec3f(0.f)), point(vec3f(0.f)) {}
+	vec3f normal;    //spline tangent
+	vec3f binormal;  //spline normal  //TODO: check if this should be spline binormal!
 	vec3f point;
 };
 
@@ -28,6 +30,8 @@ public:
 	bool yarnPlaneIntersection (const Plane &plane, yarnIntersect &itsList);
 	bool allPlanesIntersections (std::vector<yarnIntersect> &itsLists);
 	void write_PlanesIntersections(const char* filename, std::vector<yarnIntersect> &itsLists);
+	void write_PlanesIntersections2D(const char* filename, std::vector<yarnIntersect> &itsLists);
+	void project2Plane(const vec3f& P3d, const Plane& plane, vec2f& P2d);
 	inline void get_plane(const int i, Plane &plane) {
 		plane = m_planesList[i];
 	}

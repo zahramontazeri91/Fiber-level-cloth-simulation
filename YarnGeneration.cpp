@@ -48,7 +48,10 @@ int main(int argc, const char **argv) {
 	//linePlaneIntersection_test();
 	//yarnPlaneIntersection_test();
 	//bildPlanes_test();
-	allPlanesIntersections_test(); 
+	//allPlanesIntersections_test(); 
+	//project2Plane_test();
+	write_PlanesIntersections2D_test();
+
 #endif
 
 	std::system("pause");

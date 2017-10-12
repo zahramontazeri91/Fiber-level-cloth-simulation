@@ -11,7 +11,6 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 matplotlib.rcParams.update({'font.size': 16})
-
 fig = plt.figure()
 ax = fig.gca(projection='3d')
 ax.set_aspect('equal')
