@@ -69,7 +69,8 @@ void bildPlanes_test() {
 }
 
 void allPlanesIntersections_test() {
-	const char* yarnfile = "../data/output00029.txt";
+	//const char* yarnfile = "../data/output00029.txt"; //For procedural yarn
+	const char* yarnfile = "../data/frame00029_hairs.txt"; //For simulated yarn
 	const char* curvefile = "../data/avg00029.txt"; // TO DO: why avg is wrong TODO: cleanup input files
 	CrossSection cs(yarnfile,2, curvefile, 100, 1000);
 	std::vector<yarnIntersect> itsLists;

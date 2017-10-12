@@ -16,7 +16,7 @@ fig = plt.figure()
 ax = fig.gca(projection='3d')
 ax.set_aspect('equal')
 
-with open('../crossSection.txt', 'r') as fin:
+with open('../../data/crossSection.txt', 'r') as fin:
     n = int(fin.readline())
     center = [float(val) for val in fin.readline().strip().split(' ')]
     ax.scatter(center[0], center[1], center[2], color='red')
@@ -29,7 +29,7 @@ with open('../crossSection.txt', 'r') as fin:
 # rotate the axes and update
 for ii in xrange(0,90,10):
         ax.view_init(azim=10., elev=ii)
-        plt.savefig("vis_cross/view%d.png" % ii)
+        plt.savefig("../../data/vis_crossSections/view%d.png" % ii)
 
 
 plt.tight_layout()
