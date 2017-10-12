@@ -100,7 +100,7 @@ bool CrossSection::allPlanesIntersections(std::vector<yarnIntersect> &itsLists) 
 	return false;
 }
 
-void CrossSection::write_PlanesIntersections(const char* filename, std::vector<yarnIntersect> &itsLists) {
+void CrossSection::write_PlanesIntersections3D(const char* filename, std::vector<yarnIntersect> &itsLists) {
 	const int ply_num = m_yarn.plys.size();
 	assert(! (m_planesList.size()-itsLists.size()) );
 	FILE *fout;

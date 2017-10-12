@@ -4,7 +4,7 @@
 
 void linePlaneIntersection_test();
 void yarnPlaneIntersection_test();
-void bildPlanes_test();
+void buildPlanes_test();
 void allPlanesIntersections_test();
 void project2Plane_test();
 void write_PlanesIntersections2D_test();

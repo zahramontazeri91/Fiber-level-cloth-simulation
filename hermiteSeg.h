@@ -55,7 +55,7 @@ public:
     {
         Eigen::Vector3d ret = (u1*3.0*t + u2*2.0)*t + m0;
         if ( normalize ) {
-            assert(ret.norm() > HERMITE_EPS);
+            assert(ret.norm() > HERMITE_EPS); 
             ret.normalize();
         }
         return ret;
@@ -74,7 +74,7 @@ public:
         Eigen::Vector3d ret = v.cross(q).cross(v);
 
         if ( normalize ) {
-            assert(ret.norm()>HERMITE_EPS); 
+            assert(ret.norm() > HERMITE_EPS && "Either normal or tangent is zero!"); 
             ret.normalize();
         }
         return ret;

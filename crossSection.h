@@ -29,7 +29,7 @@ public:
 	bool linePlaneIntersection (const vec3f &start, const vec3f &end, const Plane &plane, vec3f &its);
 	bool yarnPlaneIntersection (const Plane &plane, yarnIntersect &itsList);
 	bool allPlanesIntersections (std::vector<yarnIntersect> &itsLists);
-	void write_PlanesIntersections(const char* filename, std::vector<yarnIntersect> &itsLists);
+	void write_PlanesIntersections3D(const char* filename, std::vector<yarnIntersect> &itsLists);
 	void write_PlanesIntersections2D(const char* filename, std::vector<yarnIntersect> &itsLists);
 	void project2Plane(const vec3f& P3d, const Plane& plane, vec2f& P2d);
 	inline void get_plane(const int i, Plane &plane) {

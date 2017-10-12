@@ -7,7 +7,7 @@ hairs_path = "../../../hairs"
 
 vrtx_num = 0
 
-for h in range (29,30): #iterate over all hair frames
+for h in range (1,30): #iterate over all hair frames
     if h<10: 
         frame_num = 'frame0000' + str(h)
     else:
@@ -26,7 +26,7 @@ for h in range (29,30): #iterate over all hair frames
     
     yarn_file = open(hairs_path + '/avgHairs/' + frame_num + '_avg.txt','w') 
     
-    yarn_file.write(str(vrtx_num) ) 
+    yarn_file.write(str(vrtx_num) )  
     for v in range (0, vrtx_num): #iterate over vertices 
         yarn_ij_x = 0.0
         yarn_ij_y = 0.0
@@ -37,7 +37,10 @@ for h in range (29,30): #iterate over all hair frames
             yarn_ij_z = yarn_ij_z + float(list_fibers[f][v].split()[2])*0.25
 
         yarn_file.write('\n')
-        yarn_file.writelines([str(yarn_ij_x/len(list_fibers) ), ' ', str(yarn_ij_y/len(list_fibers) ), ' ', str(yarn_ij_z/len(list_fibers) )])
+        avg_x = yarn_ij_x/len(list_fibers)
+        avg_y = yarn_ij_y/len(list_fibers)
+        avg_z = yarn_ij_z/len(list_fibers)
+        yarn_file.writelines('%.6f %.6f %.6f' % (avg_x, avg_y, avg_z) )
     yarn_file.close()
     print ('Center-fiber for frame ' + str(h) + ' is generated.')
 

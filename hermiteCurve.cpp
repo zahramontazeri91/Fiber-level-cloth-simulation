@@ -33,9 +33,10 @@ void HermiteCurve::init(const std::vector<Eigen::Vector3d> &pts, int subdiv) //s
             m1 = pts[i + 1] - pts[i];
         else
             m1 = (pts[i + 2] - pts[i])*0.5;
+
         m_splines[i].init(pts[i], pts[i + 1], m0, m1);
     }
-
+	
     m_splines[0].build(subdiv, m_splines[0].evalPrincipalNormal(0.0));
 
     for ( int i = 1; i < m_spline_seg; ++i )
