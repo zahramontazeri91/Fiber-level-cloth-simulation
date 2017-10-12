@@ -52,18 +52,27 @@ bool CrossSection::yarnPlaneIntersection(const Plane &plane, yarnIntersect &itsL
 		for (int f = 0; f < fiber_num; ++f) {
 			int hitFiberNum = 0;
 			const int vrtx_num = m_yarn.plys[p].fibers[f].vertices.size();
-			for (int v = 0; v < vrtx_num - 1; ++v) { //Each segment is v[i] tp v[i+1]
+			float min_dist = std::numeric_limits<float>::max();
+			vec3f closest_its(0.f);
+			for (int v = 0; v < vrtx_num - 1; ++v) { //Each segment is v[i] to v[i+1]
 				vec3f start = m_yarn.plys[p].fibers[f].vertices[v];
 				vec3f end = (m_yarn.plys[p].fibers[f].vertices[v + 1]);
 				vec3f its(0.f);
 				if (linePlaneIntersection(start, end, plane, its) ) {
+					if (hitFiberNum) {
+						float dist = nv::distance(its, plane.point); //distance between the fiber and the center
+						if (dist < min_dist)
+							closest_its = its;
+						else 
+							break;
+						//std::cout << "Ply " << p << ", fiber " << f << " intersects " << hitFiberNum + 1 << " times with the plane! \n";
+					}
 					isIntrsct = true;
-					itsList[p].push_back(its);
-					if (hitFiberNum)
-						std::cout << "Fiber " << f << " intersects " << hitFiberNum + 1 << " times with the plane! \n";
+					closest_its = its;
 					hitFiberNum++;
 				}
 			}
+			itsList[p].push_back(closest_its);
 		}
 	}
 	if (isIntrsct)

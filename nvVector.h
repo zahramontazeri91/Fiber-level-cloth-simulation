@@ -687,6 +687,14 @@ public:
 //
 ////////////////////////////////////////////////////////////////////////////////
 
+// compute the distance between two points
+template<class T>
+inline typename T::value_type distance(const T & p0, const T & p1) {
+	typename T::value_type dis = 0;
+	dis = length(p0 - p1);
+	return dis;
+}
+
 // compute the dot product of two vectors
 template<class T>
 inline typename T::value_type dot( const T & lhs, const T & rhs ) { 
