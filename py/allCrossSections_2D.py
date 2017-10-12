@@ -7,7 +7,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 matplotlib.rcParams.update({'font.size': 16})
-      
+  
 with open('../../data/allCrossSection2D.txt', 'r') as fin:
     plane_num = int( fin.readline().split()[1] )
     ply_num = int(fin.readline().split()[1])

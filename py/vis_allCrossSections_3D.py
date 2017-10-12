@@ -42,23 +42,6 @@ with open('../../data/allCrossSection.txt', 'r') as fin:
         plt.savefig("../../data/vis_crossSections/ints_plane%d.png" %i)
         plt.show()
  
-#    for i in range(0, plane_num):
-#        print ( "Display intersections with plane %d ... " %i)
-#        whitespace = fin.readline().split()
-#        center = fin.readline().split()
-#        ax.scatter(float(center[1]), float(center[2]), float(center[3]), color='red')
-#        
-#        for p in range(0,ply_num):
-#            its_num = int(fin.readline().split()[1])
-#            c = "C" + str(p)
-#            for j in range(0, its_num):
-#                pos = [float(val) for val in fin.readline().strip().split(' ')]                
-#                ax.scatter(pos[0], pos[1], pos[2], alpha=0.5, color='blue')
-#
-#        #ax.view_init(azim=10., elev=10)
-#        #plt.savefig("../../data/vis_crossSections/ints_plane%d.png" %i)
-#        plt.tight_layout()
-#        plt.show() 
         
 
           
