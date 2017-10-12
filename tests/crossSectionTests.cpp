@@ -3,8 +3,8 @@
 #include "../crossSection.h"
 
 void linePlaneIntersection_test() {
-	const char* yarnfile = "D:/sandbox/fiberSimulation/yarn_generation_project/results/output00029.txt";
-	const char* curvefile = "avg00029.txt"; // TO DO: why avg is wrong TODO: cleanup input files
+	const char* yarnfile = "../data/output00029.txt";
+	const char* curvefile = "../data/avg00029.txt"; // TO DO: why avg is wrong TODO: cleanup input files
 	CrossSection cs(yarnfile,2, curvefile, 10,5);
 
 	Plane plane;
@@ -18,8 +18,8 @@ void linePlaneIntersection_test() {
 }
 
 void yarnPlaneIntersection_test() {
-	const char* yarnfile = "D:/sandbox/fiberSimulation/yarn_generation_project/results/output00029.txt";
-	const char* curvefile = "avg00029.txt"; 
+	const char* yarnfile = "../data/output00029.txt";
+	const char* curvefile = "../data/avg00029.txt"; 
 	CrossSection cs(yarnfile,2, curvefile, 10,5);
 
 	Plane plane;
@@ -40,7 +40,7 @@ void yarnPlaneIntersection_test() {
 	plyItersect ply_its = itsList[0];
 	//write for only one ply
 	FILE *fout;
-	if (fopen_s(&fout, "crossSection.txt", "wt") == 0) {
+	if (fopen_s(&fout, "../data/crossSection.txt", "wt") == 0) {
 		fprintf_s(fout, "%d \n", ply_its.size());
 		// First write the yarn-center
 		fprintf_s(fout, "%.4lf %.4lf %.4lf \n", plane.point[0], plane.point[1], plane.point[2]);
@@ -52,12 +52,12 @@ void yarnPlaneIntersection_test() {
 }
 
 void bildPlanes_test() {
-	const char* yarnfile = "D:/sandbox/fiberSimulation/yarn_generation_project/results/output00029.txt";
-	const char* curvefile = "avg00029.txt";
+	const char* yarnfile = "../data/output00029.txt";
+	const char* curvefile = "../data/avg00029.txt";
 	const int num_planes = 1000;
 	CrossSection cs(yarnfile,2, curvefile, 10, num_planes);
 	FILE *fout;
-	if (fopen_s(&fout, "test_planes.txt", "wt") == 0) {
+	if (fopen_s(&fout, "../data/test_planes.txt", "wt") == 0) {
 		fprintf_s(fout, "%d \n", num_planes);
 		for (int i = 0; i < num_planes; i++) {
 			Plane plane;
@@ -69,12 +69,12 @@ void bildPlanes_test() {
 }
 
 void allPlanesIntersections_test() {
-	const char* yarnfile = "D:/sandbox/fiberSimulation/yarn_generation_project/results/output00029.txt";
-	const char* curvefile = "avg00029.txt"; // TO DO: why avg is wrong TODO: cleanup input files
-	CrossSection cs(yarnfile,2, curvefile, 10, 5);
+	const char* yarnfile = "../data/output00029.txt";
+	const char* curvefile = "../data/avg00029.txt"; // TO DO: why avg is wrong TODO: cleanup input files
+	CrossSection cs(yarnfile,2, curvefile, 100, 1000);
 	std::vector<yarnIntersect> itsLists;
 	cs.allPlanesIntersections(itsLists);
-	std::cout << "intersections lists size: " << itsLists.size() << std::endl;
+	//std::cout << "intersections lists size: " << itsLists.size() << std::endl;
 
-	cs.write_PlanesIntersections("allCrossSection.txt",itsLists);
+	cs.write_PlanesIntersections("../data/allCrossSection.txt",itsLists);
 }

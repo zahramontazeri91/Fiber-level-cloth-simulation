@@ -48,13 +48,9 @@ int main(int argc, const char **argv) {
 	//linePlaneIntersection_test();
 	//yarnPlaneIntersection_test();
 	//bildPlanes_test();
-	allPlanesIntersections_test(); //ASSERTION: not normalize normal
-
-
-
-	while (1);
-
+	allPlanesIntersections_test(); 
 #endif
 
+	std::system("pause");
 	return 0;
 }

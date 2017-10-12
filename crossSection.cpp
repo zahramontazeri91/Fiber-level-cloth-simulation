@@ -60,7 +60,7 @@ bool CrossSection::yarnPlaneIntersection(const Plane &plane, yarnIntersect &itsL
 					isIntrsct = true;
 					itsList[p].push_back(its);
 					if (hitFiberNum)
-						std::cout << "Fiber " << f << " intersects " << hitFiberNum << " times! \n";
+						std::cout << "Fiber " << f << " intersects " << hitFiberNum + 1 << " times with the plane! \n";
 					hitFiberNum++;
 				}
 			}
@@ -113,4 +113,5 @@ void CrossSection::write_PlanesIntersections(const char* filename, std::vector<y
 		}
 		fclose(fout);
 	}
+	std::cout << "Intersections are written to the file successfully! \n\n ";
 }
