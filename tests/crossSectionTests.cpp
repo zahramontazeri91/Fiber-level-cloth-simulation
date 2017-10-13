@@ -3,8 +3,8 @@
 #include "../crossSection.h"
 
 void linePlaneIntersection_test() {
-	const char* yarnfile = "../data/output00029.txt";
-	const char* curvefile = "../data/frame00029_avg.txt"; // TO DO: why avg is wrong TODO: cleanup input files
+	const char* yarnfile = "../data/gen_yarn_f1.txt";
+	const char* curvefile = "../data/frame00029_avg.txt";
 	CrossSection cs(yarnfile,2, curvefile, 10,5);
 
 	Plane plane;
@@ -18,7 +18,7 @@ void linePlaneIntersection_test() {
 }
 
 void yarnPlaneIntersection_test() {
-	const char* yarnfile = "../data/output00029.txt";
+	const char* yarnfile = "../data/gen_yarn_f1.txt";
 	const char* curvefile = "../data/frame00029_avg.txt"; 
 	CrossSection cs(yarnfile,2, curvefile, 10,5);
 
@@ -52,7 +52,7 @@ void yarnPlaneIntersection_test() {
 }
 
 void buildPlanes_test() {
-	const char* yarnfile = "../data/output00029.txt";
+	const char* yarnfile = "../data/gen_yarn_f1.txt";
 	const char* curvefile = "../data/frame00029_avg.txt";
 	const int num_planes = 1000;
 	CrossSection cs(yarnfile,2, curvefile, 10, num_planes);
@@ -69,7 +69,7 @@ void buildPlanes_test() {
 }
 
 void allPlanesIntersections_test() {
-	const char* yarnfile = "../data/output00029.txt"; //For procedural yarn
+	const char* yarnfile = "../data/gen_yarn_f1.txt"; //For procedural yarn
 	//const char* yarnfile = "../data/frame00001_scaled.txt"; //For simulated yarn
 	const char* curvefile = "../data/frame00001_avg.txt"; 
 	CrossSection cs(yarnfile,2, curvefile, 100, 1000);
@@ -97,9 +97,9 @@ void project2Plane_test() {
 }
 
 void write_PlanesIntersections2D_test() {
-	const char* yarnfile = "../data/gen_yarn_f29.txt"; //For procedural yarn
+	const char* yarnfile = "../data/gen_yarn_f1.txt"; //For procedural yarn
 	//const char* yarnfile = "../data/frame00001_scaled.txt"; //For simulated yarn
-	const char* curvefile = "../data/frame00029_avg.txt"; 
+	const char* curvefile = "../data/frame00001_avg.txt"; 
 	CrossSection cs(yarnfile, 2, curvefile, 100, 1000);
 	std::vector<yarnIntersect> itsLists;
 	cs.allPlanesIntersections(itsLists);

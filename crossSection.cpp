@@ -75,7 +75,8 @@ bool CrossSection::yarnPlaneIntersection(const Plane &plane, yarnIntersect &itsL
 					hitFiberNum++;
 				}
 			}
-			itsList[p].push_back(closest_its);
+			if (hitFiberNum)
+				itsList[p].push_back(closest_its);
 		}
 	}
 	if (isIntrsct)
