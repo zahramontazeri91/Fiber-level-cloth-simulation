@@ -110,7 +110,7 @@ void CrossSection::write_PlanesIntersections3D(const char* filename, std::vector
 	FILE *fout;
 	if (fopen_s(&fout, filename, "wt") == 0) {
 
-		fprintf_s(fout, "plane_num: %d \n", m_planesList.size());
+		fprintf_s(fout, "plane_num: %d \n", itsLists.size());
 		fprintf_s(fout, "ply_num: %d \n", ply_num);
 		fprintf_s(fout, "\n");
 
@@ -153,7 +153,7 @@ void CrossSection::write_PlanesIntersections2D(const char* filename, std::vector
 	FILE *fout;
 	if (fopen_s(&fout, filename, "wt") == 0) {
 
-		fprintf_s(fout, "plane_num: %d \n", m_planesList.size());
+		fprintf_s(fout, "plane_num: %d \n", itsLists.size());
 		fprintf_s(fout, "ply_num: %d \n", ply_num);
 		fprintf_s(fout, "\n");
 

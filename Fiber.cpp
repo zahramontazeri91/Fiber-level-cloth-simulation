@@ -36,11 +36,14 @@ namespace Fiber {
 		std::ifstream fin;
 		if (yarnfile != NULL)
 			fin.open(yarnfile);
-		
+
+		const int num_of_cores = omp_get_num_procs();
+
 		std::string line;
 		std::getline(fin, line);
 		int fiber_num = atoi(line.c_str()) / ply_num;
 		this->plys.resize(ply_num);
+#pragma omp parallel for num_threads(num_of_cores) 
 		for (int p = 0; p < ply_num; ++p) {
 			this->plys[p].fibers.resize(fiber_num);
 			for (int f = 0; f < fiber_num; ++f) {
@@ -391,8 +394,7 @@ namespace Fiber {
 		for (int i = 0; i < ply_num; i++)
 			total_fiber_num += this->plys[i].fibers.size(); 
 		std::ofstream fout(filename);
-		//fout << total_fiber_num << std::endl; //generated yarn format should be same as simulated yarn 
-
+		fout << total_fiber_num << std::endl; //TODO : generated yarn format should be same as simulated yarn 
 		for (int i = 0; i < ply_num; i++) {
 			int fiber_num = this->plys[i].fibers.size();
 			for (int f = 0; f < fiber_num; f++) {
