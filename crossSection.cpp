@@ -95,14 +95,18 @@ bool CrossSection::allPlanesIntersections(std::vector<yarnIntersect> &itsLists) 
 			itsLists.push_back(itsList);
 		}
 	}
+
 	if (isIntrsct)
 		return true;
 	return false;
 }
 
 void CrossSection::write_PlanesIntersections3D(const char* filename, std::vector<yarnIntersect> &itsLists) {
+
+	if (m_planesList.size() != itsLists.size())
+		std::cout << itsLists.size() << " out of " << m_planesList.size()  << " many planes had intersections! \n";
+	
 	const int ply_num = m_yarn.plys.size();
-	assert(! (m_planesList.size()-itsLists.size()) );
 	FILE *fout;
 	if (fopen_s(&fout, filename, "wt") == 0) {
 
@@ -110,7 +114,7 @@ void CrossSection::write_PlanesIntersections3D(const char* filename, std::vector
 		fprintf_s(fout, "ply_num: %d \n", ply_num);
 		fprintf_s(fout, "\n");
 
-		for (int cs = 0; cs < m_planesList.size(); ++cs) { //for each plane
+		for (int cs = 0; cs < itsLists.size() ; ++cs) { //for each plane //TODO: why -1?
 			/* First write the yarn-center */
 			fprintf_s(fout, "center: %.4lf %.4lf %.4lf \n", m_planesList[cs].point[0], m_planesList[cs].point[1], m_planesList[cs].point[2]);
 			/* Then all the intersections for each ply */
@@ -142,8 +146,10 @@ void CrossSection::project2Plane (const vec3f& P3d, const Plane& plane, vec2f& P
 }
 
 void CrossSection::write_PlanesIntersections2D(const char* filename, std::vector<yarnIntersect> &itsLists) {
+	if (m_planesList.size() != itsLists.size())
+		std::cout << itsLists.size() << " out of " << m_planesList.size() << " many planes had intersections! \n";
+
 	const int ply_num = m_yarn.plys.size();
-	assert(!(m_planesList.size() - itsLists.size()));
 	FILE *fout;
 	if (fopen_s(&fout, filename, "wt") == 0) {
 
@@ -151,7 +157,7 @@ void CrossSection::write_PlanesIntersections2D(const char* filename, std::vector
 		fprintf_s(fout, "ply_num: %d \n", ply_num);
 		fprintf_s(fout, "\n");
 
-		for (int cs = 0; cs < m_planesList.size(); ++cs) { //for each plane
+		for (int cs = 0; cs < itsLists.size(); ++cs) { //for each plane
 			Plane plane;
 			get_plane(cs, plane);
 			/* First write the yarn-center */

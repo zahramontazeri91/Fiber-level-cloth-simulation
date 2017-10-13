@@ -35,8 +35,8 @@ with open('../../data/allCrossSection.txt', 'r') as fin:
             for j in range(0, its_num):
                 pos = [float(val) for val in fin.readline().strip().split(' ')]
                 ax.scatter(pos[0], pos[1], pos[2], alpha=0.5,  s=10, color = c )      
-        ax.set_xlim3d(-0.2,0.2)
-        ax.set_ylim3d(-0.2,0.2)
+        ax.set_xlim3d(-0.1,0.1)
+        ax.set_ylim3d(-0.1,0.1)
         ax.set_zlim3d(-8,8)
         ax.view_init(azim=0., elev=0)
         # Turn off tick labels

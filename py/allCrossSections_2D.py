@@ -36,5 +36,8 @@ with open('../../data/allCrossSection2D.txt', 'r') as fin:
                 Y.append(pos[1])
             plt.scatter(X, Y, alpha=0.5, color = c)
         plt.tick_params(axis='both', which='major', labelsize=8)
+        # set axes range
+        plt.xlim(-.1,.1)
+        plt.ylim(-.1,.1)
         plt.savefig("../../data/vis_crossSections/ints_plane%d.png" %i)
         plt.show()  
