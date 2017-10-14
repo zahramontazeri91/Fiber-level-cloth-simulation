@@ -2,6 +2,8 @@
 #include "crossSectionTests.h"
 #include "../crossSection.h"
 
+using namespace std;
+
 void linePlaneIntersection_test() {
 	const char* yarnfile = "../data/gen_yarn_f1.txt";
 	const char* curvefile = "../data/frame00029_avg.txt";
@@ -106,4 +108,16 @@ void write_PlanesIntersections2D_test() {
 	std::cout << "intersections lists size: " << itsLists.size() << std::endl;
 
 	cs.write_PlanesIntersections2D("../data/allCrossSection2D.txt", itsLists);
+}
+
+void extractCompressParam_test() {
+	const char* yarnfile = "../data/gen_yarn_f1.txt"; //For procedural yarn
+	//const char* yarnfile = "../data/frame00001_scaled.txt"; //For simulated yarn
+	const char* curvefile = "../data/frame00001_avg.txt";
+	CrossSection cs(yarnfile, 2, curvefile, 100, 1000);
+	std::vector<yarnIntersect> itsLists;
+	cs.allPlanesIntersections(itsLists);
+	cs.write_PlanesIntersections2D("../data/allCrossSection2D.txt", itsLists);
+
+	cs.extractCompressParam("../data/allCrossSection2D.txt");
 }

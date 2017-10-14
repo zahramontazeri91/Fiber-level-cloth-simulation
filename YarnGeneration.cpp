@@ -45,12 +45,14 @@ int main(int argc, const char **argv) {
 #else
     //hermiteTest1();
     //hermiteTest2();
+
 	//linePlaneIntersection_test();
 	//yarnPlaneIntersection_test();
 	//bildPlanes_test();
 	//allPlanesIntersections_test(); 
 	//project2Plane_test();
-	write_PlanesIntersections2D_test();
+	//write_PlanesIntersections2D_test();
+	extractCompressParam_test();
 
 #endif
 

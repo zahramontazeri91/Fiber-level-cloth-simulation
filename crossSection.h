@@ -2,6 +2,7 @@
 #ifndef _CROSS_SECTION_H_
 #define _CROSS_SECTION_H_
 
+#include <opencv2/opencv.hpp>
 #include "hermiteCurve.h"
 #include "Fiber.h"
 
@@ -35,6 +36,8 @@ public:
 	inline void get_plane(const int i, Plane &plane) {
 		plane = m_planesList[i];
 	}
+	double getOrientation(const std::vector<cv::Point> &pts, cv::Point &center, cv::Point &p1, cv::Point &p2);
+	void extractCompressParam(const char* filename);
 
 protected:
 	HermiteCurve m_curve;
