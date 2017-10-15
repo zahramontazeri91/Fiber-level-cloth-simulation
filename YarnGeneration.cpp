@@ -52,7 +52,8 @@ int main(int argc, const char **argv) {
 	//allPlanesIntersections_test(); 
 	//project2Plane_test();
 	//write_PlanesIntersections2D_test();
-	extractCompressParam_test();
+	getOrientation_test();
+	//extractCompressParam_test();
 
 #endif
 

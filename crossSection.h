@@ -2,14 +2,16 @@
 #ifndef _CROSS_SECTION_H_
 #define _CROSS_SECTION_H_
 
-#include <opencv2/opencv.hpp>
+#include <opencv2/opencv.hpp> //TODO: move this to cpp
 #include "hermiteCurve.h"
 #include "Fiber.h"
 
 #define epsilon std::numeric_limits<float>::epsilon()
 
-typedef std::vector<vec3f> plyItersect;				//Plane intersection with each of the plane
-typedef std::vector<plyItersect> yarnIntersect;		//Plane intersection with whole yarn
+typedef std::vector<vec3f> plyItersect;				     //Plane intersection with each of the plys
+typedef std::vector<plyItersect> yarnIntersect;		     //Plane intersection with whole yarn
+typedef std::vector<vec2f> plyItersect2D;				     //Plane intersection with each of the plys in 2D
+typedef std::vector<plyItersect2D> yarnIntersect2D;		     //Plane intersection with whole yarn in 2D
 
 
 struct Plane {
@@ -17,6 +19,14 @@ struct Plane {
 	vec3f normal;    //spline tangent
 	vec3f binormal;  //spline normal  //TODO: check if this should be spline binormal!
 	vec3f point;
+};
+
+struct Ellipse {
+	Ellipse() : center(vec2f(0.f)), longP(vec2f(0.f)), shortP(vec2f(0.f)) {}
+	vec2f center;
+	vec2f longP;
+	vec2f shortP;
+	float angle;
 };
 
 class CrossSection {
@@ -31,13 +41,13 @@ public:
 	bool yarnPlaneIntersection (const Plane &plane, yarnIntersect &itsList);
 	bool allPlanesIntersections (std::vector<yarnIntersect> &itsLists);
 	void write_PlanesIntersections3D(const char* filename, std::vector<yarnIntersect> &itsLists);
-	void write_PlanesIntersections2D(const char* filename, std::vector<yarnIntersect> &itsLists);
+	void write_PlanesIntersections2D(const char* filename, std::vector<yarnIntersect> &itsLists, std::vector<yarnIntersect2D> &allPlaneIntersect);
 	void project2Plane(const vec3f& P3d, const Plane& plane, vec2f& P2d);
 	inline void get_plane(const int i, Plane &plane) {
 		plane = m_planesList[i];
 	}
-	double getOrientation(const std::vector<cv::Point> &pts, cv::Point &center, cv::Point &p1, cv::Point &p2);
-	void extractCompressParam(const char* filename);
+	double getOrientation(const yarnIntersect2D &pts, vec2f &center, vec2f &p1, vec2f &p2);
+	void extractCompressParam(const std::vector<yarnIntersect2D> &allPlaneIntersect, std::vector<Ellipse> &ellipses, const char* filename);
 
 protected:
 	HermiteCurve m_curve;

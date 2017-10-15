@@ -84,7 +84,7 @@ namespace Fiber {
 	public:
 		std::vector<Ply> plys;
 
-		/* Define a set of parameters needed for compression*/
+		/* Define a set of parameters needed for compression*/    //TODO: unify this with the other crossSection/Elllipse Struct
 		struct compress {
 			float z;
 			float theta;
