@@ -49,7 +49,7 @@ public:
 	}
 	void getOrientation(const yarnIntersect2D &pts, Ellipse &ellipse);
 	void extractCompressParam(const std::vector<yarnIntersect2D> &allPlaneIntersect, std::vector<Ellipse> &ellipses, const char* filename);
-	void CrossSection::minAreaEllipse(const yarnIntersect2D &pts, const Ellipse &ellipse, Ellipse &minEllips);
+	void CrossSection::minAreaEllipse(const yarnIntersect2D &pts, const Ellipse &ellipse, Ellipse &minEllipse);
 
 protected:
 	HermiteCurve m_curve;

@@ -233,7 +233,7 @@ void CrossSection::getOrientation(const yarnIntersect2D &pts, Ellipse &ellipse)
 	ellipse.shortR = length(p2 - ellipse.center);
 }
 
-void CrossSection::minAreaEllipse(const yarnIntersect2D &pts, const Ellipse &ellipse, Ellipse &minEllips) {
+void CrossSection::minAreaEllipse(const yarnIntersect2D &pts, const Ellipse &ellipse, Ellipse &minEllipse) {
 	//Find the total number of points for all plys
 	int sz = 0;
 	for (int p = 0; p < pts.size(); ++p)
@@ -249,30 +249,59 @@ void CrossSection::minAreaEllipse(const yarnIntersect2D &pts, const Ellipse &ell
 		}
 	}
 	//check the percentage of covered dataPoints
-	float Rx = ellipse.longR;
-	float Ry = ellipse.shortR;
-	int insidePnt = 0;
-	for (int i = 0; i < sz; ++i) {
-		float x = data_pts[i].x;
-		float y = data_pts[i].y;
-		float t = (x - ellipse.center.x)*(x - ellipse.center.x) / (Rx*Rx) + (y - ellipse.center.y)*(y - ellipse.center.y) / (Ry*Ry);
-		if (t <= 1)
-			insidePnt++;
-	}
-	std::cout << static_cast<float> (insidePnt) / static_cast<float> (sz) << std::endl;
+	const float Rx = ellipse.longR;
+	const float Ry = ellipse.shortR;
+	vec2f cnt = ellipse.center;
+	const float stepX = Rx * 0.01;
+	const float stepY = Ry * 0.01;	
 	
+	float minArea = std::numeric_limits<float>::max();
+	int kk = 0;
+	const int num_of_cores = omp_get_num_procs();
+#pragma omp parallel for num_threads(num_of_cores)
+	float rx = 0.5 * Rx;
+	while (rx <= 2.0 * Rx) {
+		float ry = 0.5 * Ry;
+		while (ry <= 2.0 * Ry) {
+			kk++;
+			int insidePnt = 0;
+			for (int i = 0; i < sz; ++i) {
+				float x = data_pts[i].x;
+				float y = data_pts[i].y;
+				float t = std::pow(std::cos(ellipse.angle)*(x - cnt.x) + std::sin(ellipse.angle)*(y - cnt.y), 2) / std::pow(rx, 2);
+				t += std::pow(std::sin(ellipse.angle)*(x - cnt.x) - std::cos(ellipse.angle)*(y - cnt.y), 2) / std::pow(ry, 2);
+				if (t <= 1)
+					insidePnt++;
+			}
+			float percent = static_cast<float> (insidePnt) / static_cast<float> (sz);
+			float area = rx * ry * pi;
+			
+			if (percent > 0.95 && area < minArea) {
+				minArea = area;
+				minEllipse.longR = rx;
+				minEllipse.shortR = ry;
+			}
+			ry += stepY;
+		} // end for ry
+		rx += stepX;
+	} //end for rx
+
+	minEllipse.center = ellipse.center;
+	minEllipse.angle = ellipse.angle;
+
+	//std::cout << ellipse.longR << "  " << ellipse.shortR << " ***** " << minEllipse.longR << "  " << minEllipse.shortR << std::endl;
 }
 void CrossSection::extractCompressParam(const std::vector<yarnIntersect2D> &allPlaneIntersect, std::vector<Ellipse> &ellipses, const char* compressFile) {
 	//TO DO: write compress.txt
 	for (int i = 0; i < allPlaneIntersect.size(); ++i)
 	{
 		Ellipse ell;
-		getOrientation(allPlaneIntersect[i], ell);		
+		getOrientation(allPlaneIntersect[i], ell);	
 		
 		Ellipse minEll;
 		minAreaEllipse(allPlaneIntersect[i], ell, minEll);
-
-		ellipses.push_back(ell);
+		
+		ellipses.push_back(minEll);
 	}
 	std::cout << "Compression parameters for each cross-sections are written to the file! \n";
 }
