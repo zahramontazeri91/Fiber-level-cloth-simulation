@@ -37,7 +37,7 @@ void yarnPlaneIntersection_test() {
 	yarnIntersect itsList;
 	bool b = cs.yarnPlaneIntersection(plane, itsList);
 
-	std::cout << itsList[0].size() << std::endl;
+	//std::cout << itsList[0].size() << std::endl;
 
 	plyItersect ply_its = itsList[0];
 	//write for only one ply
@@ -108,7 +108,7 @@ void write_PlanesIntersections2D_test() {
 	std::cout << "intersections lists size: " << itsLists.size() << std::endl;
 
 	std::vector<yarnIntersect2D> allPlaneIntersect;
-	cs.write_PlanesIntersections2D("../data/allCrossSection2D.txt", itsLists, allPlaneIntersect);
+	cs.write_PlanesIntersections2D(itsLists, allPlaneIntersect);
 	std::cout << "number of intersected planes: " << allPlaneIntersect.size() << std::endl;
 
 	//write the 2D intersections for tetsting
@@ -141,10 +141,10 @@ void getOrientation_test() {
 	std::vector<yarnIntersect> itsLists;
 	cs.allPlanesIntersections(itsLists);
 	std::vector<yarnIntersect2D> allPlaneIntersect;
-	cs.write_PlanesIntersections2D("../data/allCrossSection2D.txt", itsLists, allPlaneIntersect);
+	cs.write_PlanesIntersections2D(itsLists, allPlaneIntersect);
 
 	Ellipse e;
-	cs.getOrientation(allPlaneIntersect[5], e.center, e.longP, e.shortP);
+	cs.getOrientation(allPlaneIntersect[5], e);
 	FILE *fout;
 	if (fopen_s(&fout, "../data/pca_test.txt", "wt") == 0) {
 		for (int p = 0; p < allPlaneIntersect[5].size(); ++p) {
@@ -155,21 +155,20 @@ void getOrientation_test() {
 		}
 		fprintf_s(fout, "\n");
 		fprintf_s(fout, "%.4f %.4f \n", e.center.x, e.center.y);
-		fprintf_s(fout, "%.4f %.4f \n", e.longP.x, e.longP.y);
-		fprintf_s(fout, "%.4f %.4f \n", e.shortP.x, e.shortP.y);
+		fprintf_s(fout, "%.4f %.4f %.4f \n", e.longR, e.shortR, e.angle);
 		fprintf_s(fout, "\n");
 		fclose(fout);
 	}
 }
 void extractCompressParam_test() {
-	const char* yarnfile = "../data/gen_yarn_f1.txt"; //For procedural yarn
-	//const char* yarnfile = "../data/frame00001_scaled.txt"; //For simulated yarn
-	const char* curvefile = "../data/frame00001_avg.txt";
+	//const char* yarnfile = "../data/gen_yarn_f1.txt"; //For procedural yarn
+	const char* yarnfile = "../data/frame00029_scaled.txt"; //For simulated yarn
+	const char* curvefile = "../data/frame00029_avg.txt";
 	CrossSection cs(yarnfile, 2, curvefile, 100, 1000);
 	std::vector<yarnIntersect> itsLists;
 	cs.allPlanesIntersections(itsLists);
 	std::vector<yarnIntersect2D> allPlaneIntersect;
-	cs.write_PlanesIntersections2D("../data/allCrossSection2D.txt", itsLists, allPlaneIntersect);
+	cs.write_PlanesIntersections2D(itsLists, allPlaneIntersect);
 
 	std::vector<Ellipse> ellipses;
 	cs.extractCompressParam(allPlaneIntersect, ellipses, "compress.txt");
@@ -178,11 +177,30 @@ void extractCompressParam_test() {
 	FILE *fout;
 	if (fopen_s(&fout, "../data/orientation.txt", "wt") == 0 ) {
 		for (int i = 0; i < ellipses.size(); ++i) {
-			fprintf_s(fout, "%.6f %.6f \n", ellipses[i].center.x, ellipses[i].center.y);
-			fprintf_s(fout, "%.6f %.6f \n", ellipses[i].longP.x, ellipses[i].longP.y);
-			fprintf_s(fout, "%.6f %.6f \n", ellipses[i].shortP.x, ellipses[i].shortP.y);
+			fprintf_s(fout, "%.4f %.4f \n", ellipses[i].center.x, ellipses[i].center.y);
+			fprintf_s(fout, "%.4f %.4f %.4f \n", ellipses[i].longR, ellipses[i].shortR, ellipses[i].angle);
 			fprintf_s(fout, "\n");
 		}
 		fclose(fout);
 	}
+
+
+	//write the 2D intersections for tetsting
+	//FILE *fout;
+	if (fopen_s(&fout, "../data/allCrossSection2D_test.txt", "wt") == 0) {
+		fprintf_s(fout, "plane_num: %d \n", allPlaneIntersect.size());
+		fprintf_s(fout, "ply_num: %d \n", allPlaneIntersect[0].size());
+		fprintf_s(fout, "\n");
+		for (int i = 0; i < allPlaneIntersect.size(); ++i) { //number of planes
+			for (int p = 0; p < allPlaneIntersect[i].size(); ++p) { //number of plys
+				fprintf_s(fout, "ply_fiber_num: %d \n", allPlaneIntersect[i][p].size());
+				for (int j = 0; j < allPlaneIntersect[i][p].size(); ++j) { //number of intersections
+					fprintf_s(fout, "%.4f %.4f \n", allPlaneIntersect[i][p][j].x, allPlaneIntersect[i][p][j].y);
+				}
+			}
+			fprintf_s(fout, "\n");
+		}
+		fclose(fout);
+	}
+
 }
