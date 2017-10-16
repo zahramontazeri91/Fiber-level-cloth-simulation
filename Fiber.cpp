@@ -287,18 +287,27 @@ namespace Fiber {
 		if (filename != NULL)
 			fin.open(filename);
 
-		std::string line;
+		////// TODO: romove card harding!
+		const float first_z = this->plys[0].fibers[0].vertices[0].z;
+		const float last_z = this->plys[0].fibers[0].vertices[this->plys[0].fibers[0].vertices.size() - 1].z;
+		const float total_length_z = last_z - first_z;
 
+		std::string line;
 		std::vector<compress> compress_params;
+		std::getline(fin, line);
+		const int plane_num = atof( line.c_str() );
+		int planeId = 0;
 		while (std::getline(fin, line)) {
 			compress param;
 			std::vector<std::string> splits = split(line, ' ');
-
-			param.z = atof( splits[0].c_str() );
-			param.theta = atof( splits[1].c_str() );
-			param.ellipse_long = atof( splits[2].c_str() );
-			param.ellipse_short = atof( splits[3].c_str() );
+			//find corresponding z: //TODO: remove z
+			param.z = (static_cast<float>(planeId) / static_cast<float>(plane_num) )*total_length_z + first_z;
+			std::cout << planeId << " " << param.z << std::endl;
+			param.ellipse_long = atof( splits[0].c_str() );
+			param.ellipse_short = atof( splits[1].c_str() );
+			param.theta = atof(splits[2].c_str());
 			compress_params.push_back(param);
+			planeId++;
 		}
 		
 		// change the yarn cross-sections

@@ -108,7 +108,7 @@ void write_PlanesIntersections2D_test() {
 	std::cout << "intersections lists size: " << itsLists.size() << std::endl;
 
 	std::vector<yarnIntersect2D> allPlaneIntersect;
-	cs.write_PlanesIntersections2D(itsLists, allPlaneIntersect);
+	cs.PlanesIntersections2D(itsLists, allPlaneIntersect);
 	std::cout << "number of intersected planes: " << allPlaneIntersect.size() << std::endl;
 
 	//write the 2D intersections for tetsting
@@ -141,7 +141,7 @@ void getOrientation_test() {
 	std::vector<yarnIntersect> itsLists;
 	cs.allPlanesIntersections(itsLists);
 	std::vector<yarnIntersect2D> allPlaneIntersect;
-	cs.write_PlanesIntersections2D(itsLists, allPlaneIntersect);
+	cs.PlanesIntersections2D(itsLists, allPlaneIntersect);
 
 	Ellipse e;
 	cs.getOrientation(allPlaneIntersect[5], e);
@@ -168,7 +168,7 @@ void extractCompressParam_test() {
 	std::vector<yarnIntersect> itsLists;
 	cs.allPlanesIntersections(itsLists);
 	std::vector<yarnIntersect2D> allPlaneIntersect;
-	cs.write_PlanesIntersections2D(itsLists, allPlaneIntersect);
+	cs.PlanesIntersections2D(itsLists, allPlaneIntersect);
 
 	std::vector<Ellipse> ellipses;
 	cs.extractCompressParam(allPlaneIntersect, ellipses, "compress.txt");

@@ -147,7 +147,7 @@ void CrossSection::project2Plane (const vec3f& P3d, const Plane& plane, vec2f& P
 	
 }
 
-void CrossSection::write_PlanesIntersections2D(std::vector<yarnIntersect> &itsLists, std::vector<yarnIntersect2D> &allPlaneIntersect) {
+void CrossSection::PlanesIntersections2D(std::vector<yarnIntersect> &itsLists, std::vector<yarnIntersect2D> &allPlaneIntersect) {
 	// TODO: no need to this text file. remove it
 	if (m_planesList.size() != itsLists.size())
 		std::cout << itsLists.size() << " out of " << m_planesList.size() << " many planes had intersections! \n";
@@ -249,8 +249,14 @@ void CrossSection::minAreaEllipse(const yarnIntersect2D &pts, const Ellipse &ell
 		}
 	}
 	//check the percentage of covered dataPoints
-	const float Rx = ellipse.longR;
-	const float Ry = ellipse.shortR;
+	float Rx = ellipse.longR;
+	float Ry = ellipse.shortR;
+	if (!ellipse.shortR) 
+		Rx = epsilon;
+
+	if (!ellipse.longR) 
+		Ry = epsilon;
+
 	vec2f cnt = ellipse.center;
 	const float stepX = Rx * 0.01;
 	const float stepY = Ry * 0.01;	
@@ -259,10 +265,11 @@ void CrossSection::minAreaEllipse(const yarnIntersect2D &pts, const Ellipse &ell
 	int kk = 0;
 	const int num_of_cores = omp_get_num_procs();
 #pragma omp parallel for num_threads(num_of_cores)
+	// Search for all ellipses between R/2 to 3R/3 to speed up
 	float rx = 0.5 * Rx;
-	while (rx <= 2.0 * Rx) {
+	while (rx <= 1.5 * Rx) {
 		float ry = 0.5 * Ry;
-		while (ry <= 2.0 * Ry) {
+		while (ry <= 1.5 * Ry) {
 			kk++;
 			int insidePnt = 0;
 			for (int i = 0; i < sz; ++i) {
@@ -289,10 +296,12 @@ void CrossSection::minAreaEllipse(const yarnIntersect2D &pts, const Ellipse &ell
 	minEllipse.center = ellipse.center;
 	minEllipse.angle = ellipse.angle;
 
-	//std::cout << ellipse.longR << "  " << ellipse.shortR << " ***** " << minEllipse.longR << "  " << minEllipse.shortR << std::endl;
+	assert(minEllipse.shortR && "Ellipse length is zero");
+	assert(minEllipse.longR && "Ellipse length is zero");
+
 }
 void CrossSection::extractCompressParam(const std::vector<yarnIntersect2D> &allPlaneIntersect, std::vector<Ellipse> &ellipses, const char* compressFile) {
-	//TO DO: write compress.txt
+
 	for (int i = 0; i < allPlaneIntersect.size(); ++i)
 	{
 		Ellipse ell;
@@ -303,5 +312,18 @@ void CrossSection::extractCompressParam(const std::vector<yarnIntersect2D> &allP
 		
 		ellipses.push_back(minEll);
 	}
+
+	//write to compress.txt (a, b , alpha)
+
+	FILE * fout;
+	if (fopen_s(&fout, compressFile, "wt") == 0) {
+		fprintf_s(fout, "%d \n", allPlaneIntersect.size());
+		for (int i = 0; i < allPlaneIntersect.size(); ++i)
+		{
+			fprintf_s(fout, "%.4f %.4f %.4f \n", ellipses[i].longR, ellipses[i].shortR, ellipses[i].angle);
+		}
+		fclose(fout);
+	}
+
 	std::cout << "Compression parameters for each cross-sections are written to the file! \n";
 }

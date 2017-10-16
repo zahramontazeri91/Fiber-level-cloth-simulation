@@ -6,13 +6,13 @@
 #include "tests/crossSectionTests.h"
 
 int main(int argc, const char **argv) {
-#if 0
+#if 1
     
 	Fiber::Yarn yarn;
 	yarn.parse("config.txt");
 	yarn.yarn_simulate();
-	//yarn.compress_yarn("compress.txt");
-	yarn.curve_yarn("curve_f29.txt");
+	yarn.compress_yarn("compress.txt");
+	yarn.curve_yarn("frame00029_avg.txt");
 	yarn.write_yarn("gen_yarn_f29.txt");
     
 
