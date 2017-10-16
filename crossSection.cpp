@@ -30,14 +30,13 @@ bool CrossSection::linePlaneIntersection(const vec3f &start, const vec3f &end, c
 	if (!dot(dir, (plane.normal)))
 		return false;
 
-	double t = dot(plane.normal, (plane.point - start)) / dot(plane.normal, dir);
+	const double t = dot(plane.normal, (plane.point - start)) / dot(plane.normal, dir);
 	vec3f hit = start + t*dir;
 	// return only if it's within the segment
-	if (dot(normalize(start - hit), normalize(end - hit)) == -1) {
+	if (t <= 1.0 && t >= 0.0) {
 		its = hit;
 		return true;
 	}
-
 	return false;
 }
 
@@ -64,11 +63,10 @@ bool CrossSection::yarnPlaneIntersection(const Plane &plane, yarnIntersect &itsL
 				vec3f its(0.f);
 				if (linePlaneIntersection(start, end, plane, its) ) {
 					if (hitFiberNum) {
+						hitFiberNum++;
 						float dist = nv::distance(its, plane.point); //distance between the fiber and the center
 						if (dist < min_dist)
 							closest_its = its;
-						else 
-							break;
 						//std::cout << "Ply " << p << ", fiber " << f << " intersects " << hitFiberNum + 1 << " times with the plane! \n";
 					}
 					isIntrsct = true;
@@ -296,8 +294,8 @@ void CrossSection::minAreaEllipse(const yarnIntersect2D &pts, const Ellipse &ell
 	minEllipse.center = ellipse.center;
 	minEllipse.angle = ellipse.angle;
 
-	assert(minEllipse.shortR && "Ellipse length is zero");
-	assert(minEllipse.longR && "Ellipse length is zero");
+	//assert(minEllipse.shortR && "Ellipse length is zero");
+	//assert(minEllipse.longR && "Ellipse length is zero");
 
 }
 void CrossSection::extractCompressParam(const std::vector<yarnIntersect2D> &allPlaneIntersect, std::vector<Ellipse> &ellipses, const char* compressFile) {

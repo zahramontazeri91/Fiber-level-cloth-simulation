@@ -6,40 +6,35 @@
 #include "tests/crossSectionTests.h"
 
 int main(int argc, const char **argv) {
-#if 1
-    
-	Fiber::Yarn yarn;
-	yarn.parse("config.txt");
-	yarn.yarn_simulate();
-	yarn.compress_yarn("compress.txt");
-	yarn.curve_yarn("frame00029_avg.txt");
-	yarn.write_yarn("gen_yarn_f29.txt");
-    
+#if 0
 
-  //  if ( argc != 3 ) {
-  //      printf("Usage: YarnGeneration [task file] [output file]\n");
-		//return 1;
-  //  }
+    if ( argc != 3 ) {
+        printf("Usage: YarnGeneration [task file] [output file]\n");
+		std::system("pause");
+		return 1;
+    }
 
-  //  std::ifstream fin(argv[1]);
-  //  if ( fin.is_open() ) {
-  //      std::cout << "Using task file: \"" << argv[1] << "\"." << std::endl;
+    std::ifstream fin(argv[1]);
+	if (fin.is_open()) {
+		std::cout << "Using task file: \"" << argv[1] << "\"." << std::endl;
 
-  //      Fiber::Yarn yarn;
+		Fiber::Yarn yarn;
 
-  //      std::string command, fname;
-  //      fin >> fname;
-  //      yarn.parse(fname.c_str());
-  //      yarn.yarn_simulate();
+		std::string command, fname;
+		fin >> fname;
+		yarn.parse(fname.c_str());
+		yarn.yarn_simulate();
 
-  //      while ( fin >> command >> fname )
-  //          if ( command == "COMPRESS" )
-  //              yarn.compress_yarn(fname.c_str());
-  //          else if ( command == "CURVE" )
-  //              yarn.curve_yarn(fname.c_str());
+		while (fin >> command >> fname)
+			if (command == "COMPRESS")
+				;// yarn.compress_yarn(fname.c_str());
+			else if (command == "CURVE")
+				yarn.curve_yarn(fname.c_str());
 
-  //      yarn.write_yarn(argv[2]);
-  //  }
+		yarn.write_yarn(argv[2]);
+	}
+	else
+		std::cout << "File wasn't found! \n";
 
 
 #else

@@ -288,9 +288,10 @@ namespace Fiber {
 			fin.open(filename);
 
 		////// TODO: romove card harding!
-		const float first_z = this->plys[0].fibers[0].vertices[0].z;
-		const float last_z = this->plys[0].fibers[0].vertices[this->plys[0].fibers[0].vertices.size() - 1].z;
-		const float total_length_z = last_z - first_z;
+		//const float first_z = this->plys[0].fibers[0].vertices[0].z;
+		//const float last_z = this->plys[0].fibers[0].vertices[this->plys[0].fibers[0].vertices.size() - 1].z;
+		//const float total_length_z = last_z - first_z;
+		//std::cout << total_length_z << std::endl;
 
 		std::string line;
 		std::vector<compress> compress_params;
@@ -301,8 +302,9 @@ namespace Fiber {
 			compress param;
 			std::vector<std::string> splits = split(line, ' ');
 			//find corresponding z: //TODO: remove z
-			param.z = (static_cast<float>(planeId) / static_cast<float>(plane_num) )*total_length_z + first_z;
-			std::cout << planeId << " " << param.z << std::endl;
+			//param.z = (static_cast<float>(planeId) / static_cast<float>(plane_num) )*total_length_z + first_z;
+			param.z = 0.0; /////
+
 			param.ellipse_long = atof( splits[0].c_str() );
 			param.ellipse_short = atof( splits[1].c_str() );
 			param.theta = atof(splits[2].c_str());

@@ -113,7 +113,7 @@ void write_PlanesIntersections2D_test() {
 
 	//write the 2D intersections for tetsting
 	FILE *fout;
-	if (fopen_s(&fout, "../data/allCrossSection2D_test.txt", "wt") == 0) {
+	if (fopen_s(&fout, "../data/allCrossSection2D.txt", "wt") == 0) {
 		fprintf_s(fout, "plane_num: %d \n", allPlaneIntersect.size());
 		fprintf_s(fout, "ply_num: %d \n", allPlaneIntersect[0].size());
 		fprintf_s(fout, "\n");
@@ -135,7 +135,7 @@ void write_PlanesIntersections2D_test() {
 
 void getOrientation_test() {
 	const char* yarnfile = "../data/gen_yarn_f1.txt"; //For procedural yarn
-													  //const char* yarnfile = "../data/frame00001_scaled.txt"; //For simulated yarn
+	//const char* yarnfile = "../data/frame00001_scaled.txt"; //For simulated yarn
 	const char* curvefile = "../data/frame00001_avg.txt";
 	CrossSection cs(yarnfile, 2, curvefile, 100, 1000);
 	std::vector<yarnIntersect> itsLists;
@@ -187,7 +187,7 @@ void extractCompressParam_test() {
 
 	//write the 2D intersections for tetsting
 	//FILE *fout;
-	if (fopen_s(&fout, "../data/allCrossSection2D_test.txt", "wt") == 0) {
+	if (fopen_s(&fout, "../data/allCrossSection2D.txt", "wt") == 0) {
 		fprintf_s(fout, "plane_num: %d \n", allPlaneIntersect.size());
 		fprintf_s(fout, "ply_num: %d \n", allPlaneIntersect[0].size());
 		fprintf_s(fout, "\n");
