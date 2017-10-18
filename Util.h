@@ -70,6 +70,14 @@ static bool coin_flip() {
 	return rand01() > .5f;
 }
 
+/* rotate the vector by angle in radian*/
+static vec2f rot2D(const vec2f &v, const float angle) {
+	vec2f rotated;
+	rotated.x = v.x * std::cos(angle) - v.y * std::sin(angle);
+	rotated.y = v.x * std::sin(angle) + v.y * std::cos(angle);
+	return rotated;
+}
+
 static void print_vec3f(const vec3f &v, const char *name = NULL) {
 	if (name) {
 		std::cout << name << " " << v.x << " " << v.y << " " << v.z << std::endl;

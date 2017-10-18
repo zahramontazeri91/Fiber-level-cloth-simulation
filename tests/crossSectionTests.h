@@ -11,5 +11,7 @@ void write_PlanesIntersections2D_test();
 void getOrientation_test();
 void extractCompressParam_test();
 
+void compress_yarn_test();
+
 #endif // !__CROSS_SECTION_TEST_H_
 

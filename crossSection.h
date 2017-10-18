@@ -6,13 +6,7 @@
 #include "hermiteCurve.h"
 #include "Fiber.h"
 
-#define epsilon std::numeric_limits<float>::epsilon()
-
-typedef std::vector<vec3f> plyItersect;				     //Plane intersection with each of the plys
-typedef std::vector<plyItersect> yarnIntersect;		     //Plane intersection with whole yarn
-typedef std::vector<vec2f> plyItersect2D;				     //Plane intersection with each of the plys in 2D
-typedef std::vector<plyItersect2D> yarnIntersect2D;		     //Plane intersection with whole yarn in 2D
-
+#define EPS std::numeric_limits<float>::epsilon()
 
 struct Plane {
 	Plane() : normal(vec3f(0.f)), binormal(vec3f(0.f)), point(vec3f(0.f)) {}
@@ -33,9 +27,12 @@ struct Ellipse {
 class CrossSection {
 public:
 
+	/* constructor for simulated yarn */
 	CrossSection(const char* yarnfile, const int ply_num, const char* curvefile, const int subdiv, const int num_planes) {
 		init(yarnfile, ply_num, curvefile, subdiv, num_planes);
 	}
+	/* constructor for procedural yarn */
+	CrossSection(const Fiber::Yarn &yarn);
 	void init (const char* yarnfile, const int ply_num, const char* curvefile, const int subdiv, const int num_planes);
 	void buildPlanes (const int num_planes);
 	/* Intersection between a segment, defined between start to end, with a plane */
@@ -55,11 +52,14 @@ public:
 		plane = m_planesList[i];
 	}
 	/* For 2D points gathered as an ellipse, return eigen values and eigen vectors in ellipse format */
-	void getOrientation(const yarnIntersect2D &pts, Ellipse &ellipse);
+	void fitEllipse(const yarnIntersect2D &pts, Ellipse &ellipse);
+	void fitCircle(const yarnIntersect2D &pts, float &radius);
 	/* Get ellipse a, b and angle for each cross-section and write it to the file */
 	void extractCompressParam(const std::vector<yarnIntersect2D> &allPlaneIntersect, std::vector<Ellipse> &ellipses, const char* filename);
 	/* Given a ellipse, find the minimum area ellipse that covers 95% of fiber centers (search around the given ellipse) */
 	void CrossSection::minAreaEllipse(const yarnIntersect2D &pts, const Ellipse &ellipse, Ellipse &minEllipse);
+	/* Given a yarn dataStructure, transform it to a vector of cross-sections */
+	void yarn2crossSections(std::vector<yarnIntersect2D> &itsLists);
 
 protected:
 	HermiteCurve m_curve;

@@ -6,7 +6,7 @@
 #include "tests/crossSectionTests.h"
 
 int main(int argc, const char **argv) {
-#if 0
+#if 1
 
     if ( argc != 3 ) {
         printf("Usage: YarnGeneration [task file] [output file]\n");
@@ -27,7 +27,7 @@ int main(int argc, const char **argv) {
 
 		while (fin >> command >> fname)
 			if (command == "COMPRESS")
-				;// yarn.compress_yarn(fname.c_str());
+				yarn.compress_yarn(fname.c_str());
 			else if (command == "CURVE")
 				yarn.curve_yarn(fname.c_str());
 
@@ -49,6 +49,9 @@ int main(int argc, const char **argv) {
 	//write_PlanesIntersections2D_test();
 	//getOrientation_test();
 	extractCompressParam_test();
+
+	compress_yarn_test();
+
 
 #endif
 

@@ -5,6 +5,11 @@
 typedef std::vector<vec3f> fiber_t;
 typedef std::vector<fiber_t> yarn_t;
 
+typedef std::vector<vec3f> plyItersect;				     //Plane intersection with each of the plys
+typedef std::vector<plyItersect> yarnIntersect;		     //Plane intersection with whole yarn
+typedef std::vector<vec2f> plyItersect2D;				     //Plane intersection with each of the plys in 2D
+typedef std::vector<plyItersect2D> yarnIntersect2D;		     //Plane intersection with whole yarn in 2D
+
 namespace Fiber {
 
 	/* Define a fiber */
@@ -86,7 +91,6 @@ namespace Fiber {
 
 		/* Define a set of parameters needed for compression*/    //TODO: unify this with the other crossSection/Elllipse Struct
 		struct compress {
-			float z;
 			float theta;
 			float ellipse_long;
 			float ellipse_short;
@@ -160,6 +164,7 @@ namespace Fiber {
 		void yarn_simulate();
 
 		/* compress yarn with theta, direction, a and b, cross section ellipse param. */
+		void readCompressFile(const char* filename, std::vector<compress> &compress_params);
 		void compress_yarn(const char* filename);
 
 		/* Write simulated data (single yarns) to disk */
@@ -167,5 +172,8 @@ namespace Fiber {
 
 		/* map the straight yarn on a curved spline */
 		void curve_yarn(const char* filename, bool scaleXY = false);
+
+		/* Find the yarn-radius for each cross-section */
+		//void shapeCrossSection(yarnIntersect2D &its, float &rLong, float &rShort);
 	};
 }

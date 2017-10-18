@@ -144,7 +144,7 @@ void getOrientation_test() {
 	cs.PlanesIntersections2D(itsLists, allPlaneIntersect);
 
 	Ellipse e;
-	cs.getOrientation(allPlaneIntersect[5], e);
+	cs.fitEllipse(allPlaneIntersect[5], e);
 	FILE *fout;
 	if (fopen_s(&fout, "../data/pca_test.txt", "wt") == 0) {
 		for (int p = 0; p < allPlaneIntersect[5].size(); ++p) {
@@ -164,7 +164,7 @@ void extractCompressParam_test() {
 	//const char* yarnfile = "../data/gen_yarn_f1.txt"; //For procedural yarn
 	const char* yarnfile = "../data/frame00029_scaled.txt"; //For simulated yarn
 	const char* curvefile = "../data/frame00029_avg.txt";
-	CrossSection cs(yarnfile, 2, curvefile, 100, 1000);
+	CrossSection cs(yarnfile, 2, curvefile, 100, 1526);
 	std::vector<yarnIntersect> itsLists;
 	cs.allPlanesIntersections(itsLists);
 	std::vector<yarnIntersect2D> allPlaneIntersect;
@@ -203,4 +203,14 @@ void extractCompressParam_test() {
 		fclose(fout);
 	}
 
+}
+
+void compress_yarn_test() {
+	Fiber::Yarn yarn;
+
+	yarn.parse("config.txt");
+	yarn.yarn_simulate();
+	yarn.compress_yarn("compress.txt");
+	yarn.curve_yarn("frame00029_avg.txt");
+	yarn.write_yarn("genYarn.txt");
 }

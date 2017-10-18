@@ -1,5 +1,6 @@
 #include "Fiber.h"
 #include "hermiteCurve.h"
+#include "crossSection.h"
 
 namespace Fiber {
 	
@@ -279,39 +280,33 @@ namespace Fiber {
 		}
 	} // yarn_simulate
 
-
-	void Yarn::compress_yarn(const char* filename) {
-		std::cout << "step7: change yarn cross-sections ..." << std::endl;
-		// read the compression parameters file
+	void Yarn::readCompressFile(const char* filename, std::vector<compress> &compress_params) {
 		std::ifstream fin;
 		if (filename != NULL)
 			fin.open(filename);
 
-		////// TODO: romove card harding!
-		//const float first_z = this->plys[0].fibers[0].vertices[0].z;
-		//const float last_z = this->plys[0].fibers[0].vertices[this->plys[0].fibers[0].vertices.size() - 1].z;
-		//const float total_length_z = last_z - first_z;
-		//std::cout << total_length_z << std::endl;
-
 		std::string line;
-		std::vector<compress> compress_params;
 		std::getline(fin, line);
-		const int plane_num = atof( line.c_str() );
+		const int plane_num = atof(line.c_str());
 		int planeId = 0;
 		while (std::getline(fin, line)) {
 			compress param;
 			std::vector<std::string> splits = split(line, ' ');
-			//find corresponding z: //TODO: remove z
-			//param.z = (static_cast<float>(planeId) / static_cast<float>(plane_num) )*total_length_z + first_z;
-			param.z = 0.0; /////
 
-			param.ellipse_long = atof( splits[0].c_str() );
-			param.ellipse_short = atof( splits[1].c_str() );
+			param.ellipse_long = atof(splits[0].c_str());
+			param.ellipse_short = atof(splits[1].c_str());
 			param.theta = atof(splits[2].c_str());
 			compress_params.push_back(param);
 			planeId++;
 		}
-		
+	}
+
+	void Yarn::compress_yarn(const char* filename) {
+		std::cout << "step7: compress yarn cross-sections ..." << std::endl;
+
+		std::vector<compress> compress_params;
+		readCompressFile(filename, compress_params);
+
 		// change the yarn cross-sections
 		const int ply_num = this->plys.size();
 		for (int i = 0; i < ply_num; i++) {
@@ -319,7 +314,11 @@ namespace Fiber {
 			for (int f = 0; f < fiber_num; f++) {
 				Fiber &fiber = this->plys[i].fibers[f];
 				const int vertices_num = this->plys[i].fibers[f].vertices.size();
+				assert(compress_params.size() == vertices_num);
+				
 				for (int v = 0; v < vertices_num; v++) {
+#if 0
+					// in case of interporlation
 					int c = 0; // for interpolation: the z value for the current vertex lies between c-1 and c 
 					for (c = 0; c < compress_params.size(); c++) {
 						if (v*this->z_step_size < compress_params[c].z) break;
@@ -328,24 +327,39 @@ namespace Fiber {
 					// linear interpolation to obtain compress-parameters for this z value:
 					float ratio = (compress_params[c].theta - compress_params[c - 1].theta) / (compress_params[c].z - compress_params[c - 1].z);
 					float theta = ratio * (v*this->z_step_size) + compress_params[c - 1].theta;
+					
 
 					ratio = (compress_params[c].ellipse_long - compress_params[c - 1].ellipse_long) / (compress_params[c].z - compress_params[c - 1].z);
 					float ellipse_long = ratio * (v*this->z_step_size) + compress_params[c - 1].ellipse_long;
+					
 
 					ratio = (compress_params[c].ellipse_short - compress_params[c - 1].ellipse_short) / (compress_params[c].z - compress_params[c - 1].z);
 					float ellipse_short = ratio * (v*this->z_step_size) + compress_params[c - 1].ellipse_short;
-
-					vec3f axis_x(1.0f, 0.f, 0.f);   //because cross sections in world coord. are defined in xy plane. 
+					
+					vec3f axis_x(1.f, 0.f, 0.f), axis_y(0.f, 1.f, 0.f);   //because cross sections in world coord. are defined in xy plane. 
 					const float short_axis_x = axis_x.x * std::cosf(theta) - axis_x.y * std::sinf(theta);
-					const float short_axis_y = axis_x.x * std::cosf(theta) + axis_x.y * std::sinf(theta);
+					const float short_axis_y = axis_y.x * std::cosf(theta) + axis_y.y * std::sinf(theta);
 					vec3f short_axis = vec3f(short_axis_x, short_axis_y, 0.f);
-					vec3f long_axis = vec3f(-short_axis.y, short_axis.x, 0);
+					vec3f long_axis = vec3f(-short_axis.y, short_axis.x, 0); //long axis is perpendicular to short axis
 					float _p_x = nv::dot(fiber.vertices[v], short_axis), _p_y = nv::dot(fiber.vertices[v], long_axis);
+#endif				
+					const float ellipse_long = compress_params[v].ellipse_long;
+					const float ellipse_short = compress_params[v].ellipse_short;
+					const float theta = compress_params[v].theta;
+
+					// rotate points by theta
+					vec2f axis_x(1.f, 0.f), axis_y(0.f, 1.f);   //because cross sections in world coord. are defined in xy plane.
+					vec2f rot_axis_x = rot2D(axis_x, theta );
+					vec2f rot_axis_y = rot2D(axis_y, theta );
+					assert( nv::dot(rot_axis_x, rot_axis_y) == 0 );
+					float _p_x = nv::dot(vec2f(fiber.vertices[v].x, fiber.vertices[v].y), rot_axis_x);
+					float _p_y = nv::dot( vec2f(fiber.vertices[v].x, fiber.vertices[v].y), rot_axis_y);
 
 					// scale the shape of cross section
-					_p_x *= ellipse_short;
-					_p_y *= ellipse_long;
-					vec3f new_p = _p_x * short_axis + _p_y * long_axis;
+					_p_x *= ellipse_short / this->yarn_radius;
+					_p_y *= ellipse_long / this->yarn_radius;
+
+					vec3f new_p = _p_x * rot_axis_x + _p_y * rot_axis_y;
 
 					fiber.vertices[v].x = new_p.x;
 					fiber.vertices[v].y = new_p.y;
@@ -420,5 +434,31 @@ namespace Fiber {
 		fout.close();
 		printf("Writing vertices to file done!\n");
 	}
+	//
+	//void Yarn::shapeCrossSection(yarnIntersect2D &its, float &rLong, float &rShort) {
+
+	//	//Find the total number of points for all plys
+	//	int sz = 0;
+	//	std::vector<vec2f> pnts;
+	//	for (int p = 0; p < its.size(); ++p) {
+	//		sz += its[p].size();
+	//		for (int v = 0; v < its[p].size(); ++v) {
+	//			pnts.push_back( its[p][v] );
+	//		}
+	//	}
+
+
+	//	//find eigen values by projecting the points on eigenVectors
+	//	float max0 = std::numeric_limits<float>::min();
+	//	float max1 = std::numeric_limits<float>::min();
+	//	for (int i = 0; i < sz; ++i) {
+	//		if (std::abs(pnts[i].x) > max0)
+	//			max0 = std::abs(pnts[i].x);
+	//		if (std::abs(pnts[i].y) > max1)
+	//			max1 = std::abs(pnts[i].y);
+	//	}
+	//	rLong = std::max(max0,max1);
+	//	rShort = std::min(max0,max1);
+	//}
 
 } // namespace Fiber

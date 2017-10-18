@@ -1,5 +1,16 @@
 #include "CrossSection.h"
 
+CrossSection::CrossSection(const Fiber::Yarn &yarn) {
+	m_yarn = yarn;
+	m_planesList.resize(yarn.getStepNum());
+	for (int step_id = 0; step_id < m_planesList.size(); step_id++) {
+		const float z = yarn.getStepSize() * (step_id - yarn.getStepNum() / 2.f); // devided by 2 Bcuz yarn lies between neg and pos z
+		m_planesList[step_id].point = vec3f(0.f, 0.f, z);
+		m_planesList[step_id].normal = vec3f(0.f, 0.f, 1.f); //always parallel to xy plane
+		m_planesList[step_id].binormal = vec3f(1.f, 0.f, 0.f);
+	}
+	// no need to initialize m_curve since we already have the cross-section planes
+}
 
 void CrossSection::init(const char* yarnfile, const int ply_num, const char* curvefile, const int seg_subdiv, const int num_planes) {
 	m_yarn.build(yarnfile, ply_num);
@@ -14,7 +25,7 @@ void CrossSection::buildPlanes(const int num_planes) {
 	for (int i = 0; i < num_planes; ++i) {
 		Eigen::Vector3d curve_p = m_curve.eval(i * crossSection_t);
 		Eigen::Vector3d curve_t = m_curve.evalTangent(i * crossSection_t);
-		Eigen::Vector3d curve_n = m_curve.evalNormal(i * crossSection_t); 
+		Eigen::Vector3d curve_n = m_curve.evalNormal(i * crossSection_t);
 		Eigen::Vector3d curve_b = curve_t.cross(curve_n); //need binormal of the plane to project 3D point on the plane
 		Plane plane;
 		plane.point = vec3f(curve_p[0], curve_p[1], curve_p[2]);
@@ -24,6 +35,7 @@ void CrossSection::buildPlanes(const int num_planes) {
 		//std::cout << "plane point: " << plane.point.x << "  " << plane.point.y << "  " << plane.point.z << std::endl;
 	}
 }
+
 
 bool CrossSection::linePlaneIntersection(const vec3f &start, const vec3f &end, const Plane &plane, vec3f &its) {
 	vec3f dir = end - start;
@@ -45,7 +57,7 @@ bool CrossSection::yarnPlaneIntersection(const Plane &plane, yarnIntersect &itsL
 	const int ply_num = m_yarn.plys.size();
 	itsList.resize(ply_num);
 
-	assert( nv::length(plane.normal) - 1.f < epsilon   && "normal vector is not normalized!" );
+	assert( nv::length(plane.normal) - 1.f < EPS   && "normal vector is not normalized!" );
 
 	const int num_of_cores = omp_get_num_procs();
 #pragma omp parallel for num_threads(num_of_cores)
@@ -137,8 +149,8 @@ void CrossSection::project2Plane (const vec3f& P3d, const Plane& plane, vec2f& P
 	vec3f e1 = plane.binormal;
 	vec3f e2 = cross(n, e1);
 
-	assert(nv::length(n) - 1.f < epsilon   && "Normal vector is not normalized!");
-	assert(dot(n, e1) < epsilon );
+	assert(nv::length(n) - 1.f < EPS   && "Normal vector is not normalized!");
+	assert(dot(n, e1) < EPS);
 
 	P2d.x = dot(e1, (P3d -  plane.point));
 	P2d.y = dot(e2, (P3d - plane.point));
@@ -175,7 +187,45 @@ void CrossSection::PlanesIntersections2D(std::vector<yarnIntersect> &itsLists, s
 	std::cout << "Intersections are written to the file successfully! \n\n";
 }
 
-void CrossSection::getOrientation(const yarnIntersect2D &pts, Ellipse &ellipse)
+void CrossSection::fitCircle(const yarnIntersect2D &pts, float &radius)
+{
+	//Find the total number of points for all plys
+	int sz = 0;
+	for (int p = 0; p < pts.size(); ++p)
+		sz += pts[p].size();
+	cv::Mat data_pts(sz, 2, CV_32FC1, cv::Scalar::all(0));
+
+	int c = data_pts.rows;
+	for (int p = 0; p < pts.size(); ++p) {
+		for (int i = 0; i < pts[p].size(); ++i) {
+
+			data_pts.at<float>(c, 0) = pts[p][i].x;
+			data_pts.at<float>(c, 1) = pts[p][i].y;
+			--c;
+		}
+	}
+
+	//Perform PCA analysis
+	cv::PCA pca_analysis(data_pts, cv::Mat(), cv::PCA::DATA_AS_ROW, 2);
+
+	//Store the center of the object
+	vec2f center = vec2f(pca_analysis.mean.at<float>(0, 0), pca_analysis.mean.at<float>(0, 1));
+	//Store the eigenvalues and eigenvectors
+	std::vector<vec2f> eigen_vecs(1);
+	//std::vector<float> eigen_val(1);
+	eigen_vecs[0] = vec2f(pca_analysis.eigenvectors.at<float>(0, 0),
+			pca_analysis.eigenvectors.at<float>(0, 1));
+
+	//find eigen values by projecting the points on eigenVectors
+	float max = std::numeric_limits<float>::min();
+	for (int i = 0; i < data_pts.rows; ++i) {
+		float prj = eigen_vecs[0].x * data_pts.at<float>(i, 0) + eigen_vecs[0].y * data_pts.at<float>(i, 1);
+		if (std::abs(prj) > max)
+			max = std::abs(prj);
+	}
+	radius = max;
+}
+void CrossSection::fitEllipse(const yarnIntersect2D &pts, Ellipse &ellipse)
 {
 	//Find the total number of points for all plys
 	int sz = 0;
@@ -215,14 +265,15 @@ void CrossSection::getOrientation(const yarnIntersect2D &pts, Ellipse &ellipse)
 	float max1 = std::numeric_limits<float>::min();
 	for (int i = 0; i < data_pts.rows; ++i) {
 		float prj0 = eigen_vecs[0].x * data_pts.at<float>(i, 0) + eigen_vecs[0].y * data_pts.at<float>(i, 1);
-		if (prj0 > max0)
-			max0 = prj0;
+		if ( std::abs(prj0) > max0)
+			max0 = std::abs(prj0);
 		float prj1 = eigen_vecs[1].x * data_pts.at<float>(i, 0) + eigen_vecs[1].y * data_pts.at<float>(i, 1);
-		if (prj1 > max1)
-			max1 = prj1;
+		if (std::abs(prj1) > max1)
+			max1 = std::abs(prj1);
 	}
-	eigen_val[0] = max0;
-	eigen_val[1] = max1;
+	// TODO: find the eigen values using eigen vectors
+	eigen_val[0] = std::max(max0,max1); //TODO
+	eigen_val[1] = std::min(max1,max0);
 
 	vec2f p1 = ellipse.center + vec2f(eigen_vecs[0].x * eigen_val[0], eigen_vecs[0].y * eigen_val[0]);
 	vec2f p2 = ellipse.center - vec2f(eigen_vecs[1].x * eigen_val[1], eigen_vecs[1].y * eigen_val[1]);
@@ -247,13 +298,14 @@ void CrossSection::minAreaEllipse(const yarnIntersect2D &pts, const Ellipse &ell
 		}
 	}
 	//check the percentage of covered dataPoints
+	
 	float Rx = ellipse.longR;
 	float Ry = ellipse.shortR;
-	if (!ellipse.shortR) 
-		Rx = epsilon;
-
-	if (!ellipse.longR) 
-		Ry = epsilon;
+	//float threshold = 0.001;  //// TODO
+	//if (!ellipse.shortR) 
+	//	Rx = threshold;
+	//if (!ellipse.longR) 
+	//	Ry = threshold;
 
 	vec2f cnt = ellipse.center;
 	const float stepX = Rx * 0.01;
@@ -280,7 +332,7 @@ void CrossSection::minAreaEllipse(const yarnIntersect2D &pts, const Ellipse &ell
 			}
 			float percent = static_cast<float> (insidePnt) / static_cast<float> (sz);
 			float area = rx * ry * pi;
-			
+
 			if (percent > 0.95 && area < minArea) {
 				minArea = area;
 				minEllipse.longR = rx;
@@ -294,8 +346,12 @@ void CrossSection::minAreaEllipse(const yarnIntersect2D &pts, const Ellipse &ell
 	minEllipse.center = ellipse.center;
 	minEllipse.angle = ellipse.angle;
 
-	//assert(minEllipse.shortR && "Ellipse length is zero");
-	//assert(minEllipse.longR && "Ellipse length is zero");
+	if (!minEllipse.shortR)
+		minEllipse.shortR = Ry;
+	if (!minEllipse.longR)
+		minEllipse.longR = Rx;
+	assert(minEllipse.shortR && "Ellipse length is zero");
+	assert(minEllipse.longR && "Ellipse length is zero");
 
 }
 void CrossSection::extractCompressParam(const std::vector<yarnIntersect2D> &allPlaneIntersect, std::vector<Ellipse> &ellipses, const char* compressFile) {
@@ -303,12 +359,12 @@ void CrossSection::extractCompressParam(const std::vector<yarnIntersect2D> &allP
 	for (int i = 0; i < allPlaneIntersect.size(); ++i)
 	{
 		Ellipse ell;
-		getOrientation(allPlaneIntersect[i], ell);	
+		fitEllipse(allPlaneIntersect[i], ell);
 		
 		Ellipse minEll;
 		minAreaEllipse(allPlaneIntersect[i], ell, minEll);
 		
-		ellipses.push_back(minEll);
+		ellipses.push_back(ell);
 	}
 
 	//write to compress.txt (a, b , alpha)
@@ -324,4 +380,22 @@ void CrossSection::extractCompressParam(const std::vector<yarnIntersect2D> &allP
 	}
 
 	std::cout << "Compression parameters for each cross-sections are written to the file! \n";
+}
+
+void CrossSection::yarn2crossSections(std::vector<yarnIntersect2D> &itsLists) {
+	//first initialize the vectors
+	itsLists.resize(m_planesList.size());
+	for (int i = 0; i < itsLists.size(); ++i)
+		itsLists[i].resize(m_yarn.plys.size());
+
+	//copy the yarn into new dataStructure
+	for (int p = 0; p < m_yarn.plys.size(); ++p) {
+		plyItersect plyIts;
+		for (int f = 0; f < m_yarn.plys[p].fibers.size(); ++f) {
+			for (int v = 0; v < m_yarn.plys[p].fibers[f].vertices.size(); ++v) {
+				itsLists[v][p].push_back(vec2f(m_yarn.plys[p].fibers[f].vertices[v].x,
+					m_yarn.plys[p].fibers[f].vertices[v].y));
+			}
+		}
+	}
 }
