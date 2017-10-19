@@ -28,8 +28,8 @@ class CrossSection {
 public:
 
 	/* constructor for simulated yarn */
-	CrossSection(const char* yarnfile, const int ply_num, const char* curvefile, const int subdiv, const int num_planes) {
-		init(yarnfile, ply_num, curvefile, subdiv, num_planes);
+	CrossSection(const char* yarnfile, const char* curvefile, int ply_num, int plane_num, int subdiv_curve) {
+		init(yarnfile, ply_num, curvefile, subdiv_curve, plane_num);
 	}
 	/* constructor for procedural yarn */
 	CrossSection(const Fiber::Yarn &yarn);

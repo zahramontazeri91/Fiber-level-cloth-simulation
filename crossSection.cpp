@@ -14,6 +14,7 @@ CrossSection::CrossSection(const Fiber::Yarn &yarn) {
 
 void CrossSection::init(const char* yarnfile, const int ply_num, const char* curvefile, const int seg_subdiv, const int num_planes) {
 	m_yarn.build(yarnfile, ply_num);
+	//std::cout << m_yarn.plys[0].fibers[10].vertices[10].x << std::endl;
 	m_curve.init(curvefile, seg_subdiv);
 	buildPlanes(num_planes);
 }

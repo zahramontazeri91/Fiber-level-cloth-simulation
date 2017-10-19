@@ -5,6 +5,8 @@
 #include "tests/hermiteTests.h"
 #include "tests/crossSectionTests.h"
 
+void fittingCompress(const char* yarnfile, const char* curvefile, const char* compressFile, const int ply_num, const int plane_num, const int subdiv_curve);
+
 int main(int argc, const char **argv) {
 #if 1
 
@@ -19,17 +21,24 @@ int main(int argc, const char **argv) {
 		std::cout << "Using task file: \"" << argv[1] << "\"." << std::endl;
 
 		Fiber::Yarn yarn;
+		std::string command, configFILE, simulatedFILE, 
+			curveFILE, compressFILE;
 
-		std::string command, fname;
-		fin >> fname;
-		yarn.parse(fname.c_str());
+		fin >> configFILE;
+		yarn.parse(configFILE.c_str());
 		yarn.yarn_simulate();
 
-		while (fin >> command >> fname)
-			if (command == "COMPRESS")
-				yarn.compress_yarn(fname.c_str());
-			else if (command == "CURVE")
-				yarn.curve_yarn(fname.c_str());
+		fin >> command >> simulatedFILE >> curveFILE >> compressFILE;
+		if (command == "FITTING")
+			fittingCompress(simulatedFILE.c_str(), curveFILE.c_str(), compressFILE.c_str(), yarn.getPlyNum(), yarn.getStepNum(), 100);
+
+		fin >> command >> compressFILE;
+		if (command == "COMPRESS")
+			yarn.compress_yarn(compressFILE.c_str());
+
+		fin >> command >> curveFILE;
+		if (command == "CURVE")
+			yarn.curve_yarn(curveFILE.c_str());
 
 		yarn.write_yarn(argv[2]);
 	}
@@ -51,10 +60,19 @@ int main(int argc, const char **argv) {
 	extractCompressParam_test();
 
 	compress_yarn_test();
-
-
 #endif
 
 	std::system("pause");
 	return 0;
+}
+
+void fittingCompress(const char* yarnfile, const char* curvefile, const char* compressFile, const int ply_num, const int plane_num, const int subdiv_curve) {
+	CrossSection cs(yarnfile, curvefile, ply_num, plane_num, subdiv_curve);
+	std::vector<yarnIntersect> itsLists;
+	cs.allPlanesIntersections(itsLists);
+	std::vector<yarnIntersect2D> allPlaneIntersect;
+	cs.PlanesIntersections2D(itsLists, allPlaneIntersect);
+
+	std::vector<Ellipse> ellipses;
+	cs.extractCompressParam(allPlaneIntersect, ellipses, compressFile);
 }
