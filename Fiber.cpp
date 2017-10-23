@@ -229,7 +229,7 @@ namespace Fiber {
 				fiber.init_theta = theta;
 				fiber.init_migration_theta = migration_theta;
 				fiber.init_vertex = this->plys[i].base_center +
-					vec3f(radius * std::cosf(theta), radius * std::sinf(theta), 0);
+					vec3f(radius * std::cosf(theta), radius * std::sinf(theta), 0);  
 			}
 		}
 
@@ -359,7 +359,7 @@ namespace Fiber {
 					_p_x *= ellipse_short / this->yarn_radius;
 					_p_y *= ellipse_long / this->yarn_radius;
 
-					vec3f new_p = _p_x * rot_axis_x + _p_y * rot_axis_y;
+					vec3f new_p = _p_x * rot_axis_x + _p_y * rot_axis_y; // z = 0 since z value doesn't change 
 
 					fiber.vertices[v].x = new_p.x;
 					fiber.vertices[v].y = new_p.y;

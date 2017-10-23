@@ -16,15 +16,16 @@ import math
 with open('../../data/allCrossSection2D.txt', 'r') as fin:
     plane_num = int( fin.readline().split()[1] )
     ply_num = int(fin.readline().split()[1])
+
     
     with open('../../data/orientation.txt','r') as fv: 
         for i in range(0, plane_num):
             print ( "Display intersections with plane %d ... " %i)
             whitespace = fin.readline().split()
-            #center = fin.readline().split()  #Because center is always in the middle
+    
             X = []
             Y = []
-            plt.scatter(0.0,0.0, alpha=1.0, color = 'red', s = 100)
+            plt.scatter(0.0,0.0, alpha=1.0, color = 'red', s = 100) #Because center is always in the middle
             
             # draw ellipse
             cntr = fv.readline().split()
@@ -43,7 +44,10 @@ with open('../../data/allCrossSection2D.txt', 'r') as fin:
                 its_num = int(fin.readline().split()[1])
                 X = []
                 Y = []
+                
                 c = "C" + str(p)
+                plyCenter = fin.readline().split() 
+                plt.scatter(plyCenter[1], plyCenter[2], alpha=0.8, color = 'red', zorder=200)
                 for j in range(0, its_num):
                     pos = [float(val) for val in fin.readline().strip().split(' ')]                
                     X.append(pos[0])

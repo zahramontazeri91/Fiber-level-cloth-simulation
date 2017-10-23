@@ -21,7 +21,7 @@ void CrossSection::init(const char* yarnfile, const int ply_num, const char* cur
 
 void CrossSection::buildPlanes(const int num_planes) {
 	const double curveLen = m_curve.totalLength();
-	const double crossSectionLen = curveLen / static_cast<double>(num_planes - 1);
+	const double crossSectionLen = curveLen / static_cast<double>(num_planes - 1); //place plane at the very ends as well
 	const double crossSection_t = m_curve.arcLengthInvApprox(crossSectionLen);
 	for (int i = 0; i < num_planes; ++i) {
 		Eigen::Vector3d curve_p = m_curve.eval(i * crossSection_t);
@@ -116,8 +116,8 @@ bool CrossSection::allPlanesIntersections(std::vector<yarnIntersect> &itsLists) 
 
 void CrossSection::write_PlanesIntersections3D(const char* filename, std::vector<yarnIntersect> &itsLists) {
 
-	if (m_planesList.size() != itsLists.size())
-		std::cout << itsLists.size() << " out of " << m_planesList.size()  << " many planes had intersections! \n";
+	assert(m_planesList.size() == itsLists.size() );
+		//std::cout << itsLists.size() << " out of " << m_planesList.size()  << " many planes had intersections! \n";
 	
 	const int ply_num = m_yarn.plys.size();
 	FILE *fout;
@@ -397,6 +397,66 @@ void CrossSection::yarn2crossSections(std::vector<yarnIntersect2D> &itsLists) {
 				itsLists[v][p].push_back(vec2f(m_yarn.plys[p].fibers[f].vertices[v].x,
 					m_yarn.plys[p].fibers[f].vertices[v].y));
 			}
+		}
+	}
+}
+
+void CrossSection::deCompressYarn(const std::vector<yarnIntersect2D> &planeIts, std::vector<Ellipse> &ellipses, std::vector<yarnIntersect2D> &deCompressPlaneIts) {
+	deCompressPlaneIts.resize(planeIts.size() );
+	for (int i = 0; i < planeIts.size(); ++i) // number of planes
+	{
+		deCompressPlaneIts[i].resize(planeIts[i].size() );
+		for (int p = 0; p < planeIts[i].size(); ++p) // number of plys
+		{
+			deCompressPlaneIts[i][p].resize(planeIts[i][p].size() );
+			for (int v = 0; v < planeIts[i][p].size(); ++v) // number of intersections
+			{				
+				vec2f its = planeIts[i][p][v];
+
+				const float ellipse_long = ellipses[i].longR;
+				const float ellipse_short = ellipses[i].shortR;
+				const float theta = ellipses[i].angle;
+
+				// rotate points by neg theta
+				vec2f axis_x(1.f, 0.f), axis_y(0.f, 1.f);   //because cross sections in world coord. are defined in xy plane.
+				vec2f rot_axis_x = rot2D(axis_x, -1.f * theta);
+				vec2f rot_axis_y = rot2D(axis_y, -1.f * theta);
+				assert(nv::dot(rot_axis_x, rot_axis_y) == 0);
+				float _p_x = nv::dot(vec2f(its.x, its.y), rot_axis_x);
+				float _p_y = nv::dot(vec2f(its.x, its.y), rot_axis_y);
+
+				// scale the shape of cross section
+				_p_x *= 0.0286676 / ellipse_long;
+				_p_y *= 0.0286676 / ellipse_short;
+
+				vec2f new_p = _p_x * rot_axis_x + _p_y * rot_axis_y;
+
+				deCompressPlaneIts[i][p][v] = vec2f(new_p.x, new_p.y);
+			}
+		}
+	}
+}
+
+void CrossSection::extractPlyTwist(const std::vector<yarnIntersect2D> &allPlaneIntersect, std::vector<std::vector<float>> &helixRad, std::vector<std::vector<float>> &helixTheta) {
+
+	helixRad.resize(allPlaneIntersect.size());
+	helixTheta.resize(allPlaneIntersect.size());
+	for (int i = 0; i < allPlaneIntersect.size(); ++i ) { // all planes	
+		//first find the yarn center
+		vec2f yarnCntr = vec2f(m_planesList[i].point.x, m_planesList[i].point.y);
+
+		int ply_num = allPlaneIntersect[i].size();
+		for (int p=0; p<ply_num; ++p ) { // all plys
+			vec2f plyCntr(0.f);
+			for (int v = 0; v < allPlaneIntersect[i][p].size(); ++v) { // ply intersections
+				plyCntr += allPlaneIntersect[i][p][v];
+			}
+			plyCntr /= static_cast<float>(allPlaneIntersect[i][p].size());
+			vec2f plyVec = plyCntr - yarnCntr;
+			float radius = std::sqrt ( std::pow(plyVec.x, 2.0) + std::pow(plyVec.y, 2.0) );
+			float theta = atan2(plyVec.y, plyVec.x) - 2 * pi * static_cast<float>(i) / allPlaneIntersect.size();
+			helixRad[i].push_back(radius);
+			helixTheta[i].push_back(theta);
 		}
 	}
 }

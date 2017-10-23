@@ -26,11 +26,14 @@ int main(int argc, const char **argv) {
 
 		fin >> configFILE;
 		yarn.parse(configFILE.c_str());
-		yarn.yarn_simulate();
 
+		// Fitting step 
 		fin >> command >> simulatedFILE >> curveFILE >> compressFILE;
 		if (command == "FITTING")
 			fittingCompress(simulatedFILE.c_str(), curveFILE.c_str(), compressFILE.c_str(), yarn.getPlyNum(), yarn.getStepNum(), 100);
+
+		// Procedural step
+		yarn.yarn_simulate();
 
 		fin >> command >> compressFILE;
 		if (command == "COMPRESS")
@@ -57,9 +60,10 @@ int main(int argc, const char **argv) {
 	//project2Plane_test();
 	//write_PlanesIntersections2D_test();
 	//getOrientation_test();
-	extractCompressParam_test();
+	//extractCompressParam_test();
 
-	compress_yarn_test();
+	//compress_yarn_test();
+	ply_centers_test();
 #endif
 
 	std::system("pause");
@@ -70,6 +74,7 @@ void fittingCompress(const char* yarnfile, const char* curvefile, const char* co
 	CrossSection cs(yarnfile, curvefile, ply_num, plane_num, subdiv_curve);
 	std::vector<yarnIntersect> itsLists;
 	cs.allPlanesIntersections(itsLists);
+
 	std::vector<yarnIntersect2D> allPlaneIntersect;
 	cs.PlanesIntersections2D(itsLists, allPlaneIntersect);
 

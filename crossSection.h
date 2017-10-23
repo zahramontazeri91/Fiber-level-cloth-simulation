@@ -60,7 +60,10 @@ public:
 	void CrossSection::minAreaEllipse(const yarnIntersect2D &pts, const Ellipse &ellipse, Ellipse &minEllipse);
 	/* Given a yarn dataStructure, transform it to a vector of cross-sections */
 	void yarn2crossSections(std::vector<yarnIntersect2D> &itsLists);
-
+	/* de-compress simulated yarn */
+	void deCompressYarn(const std::vector<yarnIntersect2D> &PlaneIts, std::vector<Ellipse> &ellipses, std::vector<yarnIntersect2D> &deCompressPlaneIts);
+	/* get R and theta for ply-centers*/
+	void extractPlyTwist(const std::vector<yarnIntersect2D> &allPlaneIntersect, std::vector<std::vector<float>> &helixRad, std::vector<std::vector<float>> &helixTheta);
 protected:
 	HermiteCurve m_curve;
 	Fiber::Yarn m_yarn;
