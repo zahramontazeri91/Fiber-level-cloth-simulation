@@ -82,7 +82,7 @@ namespace Fiber {
 				assert(this->plys.size());
 				for (int i = 0; i < this->plys.size(); i++) {
 					int fiber_num = atoi(splits[1].c_str());
-					this->plys[i].fibers.resize(fiber_num);
+					this->plys[i].fibers.resize(fiber_num + 1); //add one fiber for ply-center 
 				}
 			}
 			else if (p_name == "z_step_size:") {
@@ -209,7 +209,9 @@ namespace Fiber {
 		std::cout << "step2: initial plys centers ... \n";
 		const int ply_num = this->plys.size();
 		for (int i = 0; i < ply_num; i++) {
-			float angle = 2 * pi * i / ply_num;
+			float angle = 2 * pi * i / ply_num; // place ply centers in a circle with radius yarn-radius/2 
+			
+		//TODO: this works well for 2-ply yarn only. How about 5-ply yarn?
 			this->plys[i].base_theta = angle;
 			this->plys[i].base_center = vec3f(base_radius / 2 * std::cosf(angle), base_radius / 2 * std::sinf(angle), 0);
 		}
@@ -218,7 +220,7 @@ namespace Fiber {
 
 		std::cout << "step3: initial plys locations ... \n";
 		for (int i = 0; i < ply_num; i++) {
-			const int fiber_num = this->plys[i].fibers.size();
+			const int fiber_num = this->plys[i].fibers.size(); 
 #pragma omp parallel for num_threads(num_of_cores) 
 			for (int f = 0; f < fiber_num; f++) {
 				Fiber &fiber = this->plys[i].fibers[f];
@@ -237,7 +239,31 @@ namespace Fiber {
 #pragma omp parallel for num_threads(num_of_cores) 
 		for (int i = 0; i < ply_num; i++) {
 			const int fiber_num = this->plys[i].fibers.size();
-			for (int f = 0; f < fiber_num; f++) {
+			/* generate ply-center as fiber_0 */
+			Fiber &fiber = this->plys[i].fibers[0];
+			fiber.clear(); //clear the vertices list 
+			for (int step_id = 0; step_id < this->z_step_num; step_id++) {
+				const float z = this->z_step_size * (step_id - this->z_step_num / 2.f); // devided by 2 Bcuz yarn lies between neg and pos z
+				//const float fiber_theta = this->plys[i].clock_wise ? -z * 2 * pi / this->plys[i].alpha : z * 2 * pi / this->plys[i].alpha;
+				const float yarn_theta = this->clock_wise ? -z * 2 * pi / this->yarn_alpha : z * 2 * pi / this->yarn_alpha;
+				float local_x, local_y, world_x, world_y;
+
+				// 1. translate positions to rotate around yarn center (use yarn_theta)
+				float world_x_before_ply_rotation = this->plys[i].base_center.x;
+				float world_y_before_ply_rotation = this->plys[i].base_center.y;
+				// 2. rotate positions around yarn center [x' y'] = [cos sin; -sin cos][x y]
+				world_x = world_x_before_ply_rotation * std::cosf(yarn_theta) - world_y_before_ply_rotation * std::sinf(yarn_theta);
+				world_y = world_y_before_ply_rotation * std::cosf(yarn_theta) + world_x_before_ply_rotation * std::sinf(yarn_theta);
+
+				vec3f verIn = vec3f(world_x, world_y, z), verOut;
+				verOut = verIn;
+
+				this->aabb_procedural.grow(verOut);
+				if (this->aabb_micro_ct.in(verOut))
+					fiber.vertices.push_back(verOut);
+			}
+			// generate all fibers around ply-center
+			for (int f = 1; f < fiber_num; f++) { //starts from index 1 because index0 is reserved for ply-center
 				Fiber &fiber = this->plys[i].fibers[f];
 				fiber.clear(); //clear the vertices list 
 				for (int step_id = 0; step_id < this->z_step_num; step_id++) {
@@ -263,11 +289,16 @@ namespace Fiber {
 					local_y = local_p.y;
 
 					// 1. translate positions to rotate around yarn center (use yarn_theta)
-					float world_x_before_ply_rotation = local_x + this->plys[i].base_center.x;
-					float world_y_before_ply_rotation = local_y + this->plys[i].base_center.y;
+					//float world_x_before_ply_rotation = local_x + this->plys[i].base_center.x;
+					//float world_y_before_ply_rotation = local_y + this->plys[i].base_center.y;
+
 					// 2. rotate positions [x' y'] = [cos sin; -sin cos][x y]
-					world_x = world_x_before_ply_rotation * std::cosf(yarn_theta) - world_y_before_ply_rotation * std::sinf(yarn_theta);
-					world_y = world_y_before_ply_rotation * std::cosf(yarn_theta) + world_x_before_ply_rotation * std::sinf(yarn_theta);
+					//world_x = world_x_before_ply_rotation * std::cosf(yarn_theta) - world_y_before_ply_rotation * std::sinf(yarn_theta);
+					//world_y = world_y_before_ply_rotation * std::cosf(yarn_theta) + world_x_before_ply_rotation * std::sinf(yarn_theta);				
+
+					// translate it to ply-center
+					world_x = local_x + this->plys[i].fibers[0].vertices[step_id].x;
+					world_y = local_y + this->plys[i].fibers[0].vertices[step_id].y;
 
 					vec3f verIn = vec3f(world_x, world_y, z), verOut;
 					verOut = verIn;

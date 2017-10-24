@@ -1,5 +1,5 @@
 config.txt
-FITTING frame00001_scaled.txt frame00001_avg.txt compress.txt
+FITTING frame00029_scaled.txt frame00029_avg.txt compress.txt
 COMPRESS compress.txt
-CURVE frame00001_avg.txt
+CURVE frame00029_avg.txt
 

@@ -25,7 +25,7 @@ with open('../../data/allCrossSection2D.txt', 'r') as fin:
     
             X = []
             Y = []
-            plt.scatter(0.0,0.0, alpha=1.0, color = 'red', s = 100) #Because center is always in the middle
+#            plt.scatter(0.0,0.0, alpha=1.0, color = 'red', s = 100) #Because center is always in the middle
             
             # draw ellipse
             cntr = fv.readline().split()
@@ -47,11 +47,14 @@ with open('../../data/allCrossSection2D.txt', 'r') as fin:
                 
                 c = "C" + str(p)
                 plyCenter = fin.readline().split() 
-                plt.scatter(plyCenter[1], plyCenter[2], alpha=0.8, color = 'red', zorder=200)
+#                plt.scatter(plyCenter[1], plyCenter[2], alpha=0.8, color = 'red', zorder=200)
                 for j in range(0, its_num):
                     pos = [float(val) for val in fin.readline().strip().split(' ')]                
-                    X.append(pos[0])
-                    Y.append(pos[1])
+                    if j==0:
+                        plt.scatter(pos[0],pos[1], alpha=0.8, color = 'r',zorder=200) # first fiber for each ply is the ply-center
+                    else:
+                        X.append(pos[0])
+                        Y.append(pos[1])
                 plt.scatter(X, Y, alpha=0.8, color = c)
             
             

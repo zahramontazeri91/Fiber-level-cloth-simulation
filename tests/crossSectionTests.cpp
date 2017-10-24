@@ -99,9 +99,9 @@ void project2Plane_test() {
 }
 
 void write_PlanesIntersections2D_test() {
-	//const char* yarnfile = "gen_yarn_f1.txt"; //For procedural yarn
-	const char* yarnfile = "frame00029_scaled.txt"; //For simulated yarn
-	const char* curvefile = "frame00029_avg.txt"; 
+	const char* yarnfile = "genYarn.txt"; //For procedural yarn
+	//const char* yarnfile = "frame00029_scaled.txt"; //For simulated yarn
+	const char* curvefile = "frame00001_avg.txt"; 
 	CrossSection cs(yarnfile, curvefile, 2, 1526, 100);
 	std::vector<yarnIntersect> itsLists;
 	cs.allPlanesIntersections(itsLists);
@@ -235,8 +235,8 @@ void compress_yarn_test() {
 }
 
 void ply_centers_test() {
-	//const char* yarnfile = "genYarn_1_wo.txt"; //For procedural yarn
-	const char* yarnfile = "frame00001_scaled.txt"; //For simulated yarn
+	const char* yarnfile = "genYarn.txt"; //For procedural yarn
+	//const char* yarnfile = "frame00001_scaled.txt"; //For simulated yarn
 	const char* curvefile = "frame00001_avg.txt";
 	CrossSection cs(yarnfile, curvefile, 2, 1526, 100);
 	std::vector<yarnIntersect> itsLists;
@@ -248,8 +248,8 @@ void ply_centers_test() {
 	cs.extractCompressParam(allPlaneIntersect, ellipses, "compress.txt");
 	// Decompress simulated yarn
 	std::vector<yarnIntersect2D> deCompressPlaneIntersect;
-	cs.deCompressYarn(allPlaneIntersect, ellipses, deCompressPlaneIntersect);
-	allPlaneIntersect = deCompressPlaneIntersect;
+	//cs.deCompressYarn(allPlaneIntersect, ellipses, deCompressPlaneIntersect);
+	//allPlaneIntersect = deCompressPlaneIntersect;
 
 	//extract ply-centers helix parameter
 	std::vector<std::vector<float>> helixRad;
@@ -269,7 +269,7 @@ void ply_centers_test() {
 	//}
 
 	// write the plycenters
-	if (fopen_s(&fout, "../data/plyCenters_simul.txt", "wt") == 0) {
+	if (fopen_s(&fout, "../data/plyCenters_proc.txt", "wt") == 0) {
 		const int ignorPlanes = 0.1 * allPlaneIntersect.size(); // crop the first and last 10% of the yarn
 
 		fprintf_s(fout, "plane_num: %d \n", allPlaneIntersect.size() - 2*ignorPlanes);
@@ -295,5 +295,8 @@ void ply_centers_test() {
 		}
 		fclose(fout);
 	}
+}					
+
+void plyCenterAdded_test() {
 
 }

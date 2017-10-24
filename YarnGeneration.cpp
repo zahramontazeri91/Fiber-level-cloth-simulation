@@ -36,12 +36,12 @@ int main(int argc, const char **argv) {
 		yarn.yarn_simulate();
 
 		fin >> command >> compressFILE;
-		if (command == "COMPRESS")
-			yarn.compress_yarn(compressFILE.c_str());
+		//if (command == "COMPRESS")
+			//yarn.compress_yarn(compressFILE.c_str());
 
 		fin >> command >> curveFILE;
-		if (command == "CURVE")
-			yarn.curve_yarn(curveFILE.c_str());
+		//if (command == "CURVE")
+			//yarn.curve_yarn(curveFILE.c_str());
 
 		yarn.write_yarn(argv[2]);
 	}
@@ -58,12 +58,12 @@ int main(int argc, const char **argv) {
 	//bildPlanes_test();
 	//allPlanesIntersections_test(); 
 	//project2Plane_test();
-	//write_PlanesIntersections2D_test();
+	write_PlanesIntersections2D_test();
 	//getOrientation_test();
 	//extractCompressParam_test();
 
 	//compress_yarn_test();
-	ply_centers_test();
+	//ply_centers_test();
 #endif
 
 	std::system("pause");
