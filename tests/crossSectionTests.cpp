@@ -228,15 +228,15 @@ void compress_yarn_test() {
 	Fiber::Yarn yarn;
 
 	yarn.parse("config.txt");
-	yarn.yarn_simulate();
+	yarn.yarn_simulate("plyCenter.txt");
 	yarn.compress_yarn("compress.txt");
 	yarn.curve_yarn("frame00029_avg.txt");
 	yarn.write_yarn("genYarn.txt");
 }
 
 void ply_centers_test() {
-	const char* yarnfile = "genYarn.txt"; //For procedural yarn
-	//const char* yarnfile = "frame00001_scaled.txt"; //For simulated yarn
+	//const char* yarnfile = "genYarn.txt"; //For procedural yarn
+	const char* yarnfile = "frame00001_scaled.txt"; //For simulated yarn
 	const char* curvefile = "frame00001_avg.txt";
 	CrossSection cs(yarnfile, curvefile, 2, 1526, 100);
 	std::vector<yarnIntersect> itsLists;
@@ -254,7 +254,7 @@ void ply_centers_test() {
 	//extract ply-centers helix parameter
 	std::vector<std::vector<float>> helixRad;
 	std::vector<std::vector<float>> helixTheta;
-	cs.extractPlyTwist(allPlaneIntersect, helixRad, helixTheta);
+	cs.extractPlyTwist(allPlaneIntersect, "plyCenter.txt"); //todo
 
 	FILE *fout;
 	//write ellipses to file for testing
@@ -297,6 +297,3 @@ void ply_centers_test() {
 	}
 }					
 
-void plyCenterAdded_test() {
-
-}

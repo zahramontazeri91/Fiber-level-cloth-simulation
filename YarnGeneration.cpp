@@ -22,18 +22,18 @@ int main(int argc, const char **argv) {
 
 		Fiber::Yarn yarn;
 		std::string command, configFILE, simulatedFILE, 
-			curveFILE, compressFILE;
+			curveFILE, compressFILE, plyCenterFILE;
 
 		fin >> configFILE;
 		yarn.parse(configFILE.c_str());
 
 		// Fitting step 
-		fin >> command >> simulatedFILE >> curveFILE >> compressFILE;
+		fin >> command >> simulatedFILE >> curveFILE >> compressFILE >> plyCenterFILE;
 		if (command == "FITTING")
 			fittingCompress(simulatedFILE.c_str(), curveFILE.c_str(), compressFILE.c_str(), yarn.getPlyNum(), yarn.getStepNum(), 100);
 
 		// Procedural step
-		yarn.yarn_simulate();
+		yarn.yarn_simulate(plyCenterFILE.c_str());
 
 		fin >> command >> compressFILE;
 		//if (command == "COMPRESS")
@@ -58,12 +58,12 @@ int main(int argc, const char **argv) {
 	//bildPlanes_test();
 	//allPlanesIntersections_test(); 
 	//project2Plane_test();
-	write_PlanesIntersections2D_test();
+	//write_PlanesIntersections2D_test();
 	//getOrientation_test();
 	//extractCompressParam_test();
 
 	//compress_yarn_test();
-	//ply_centers_test();
+	ply_centers_test();
 #endif
 
 	std::system("pause");

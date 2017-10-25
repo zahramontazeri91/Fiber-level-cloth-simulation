@@ -14,7 +14,7 @@ void extractCompressParam_test();
 void compress_yarn_test();
 
 void ply_centers_test();
-void plyCenterAdded_test();
+
 
 #endif // !__CROSS_SECTION_TEST_H_
 

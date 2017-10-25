@@ -437,10 +437,13 @@ void CrossSection::deCompressYarn(const std::vector<yarnIntersect2D> &planeIts, 
 	}
 }
 
-void CrossSection::extractPlyTwist(const std::vector<yarnIntersect2D> &allPlaneIntersect, std::vector<std::vector<float>> &helixRad, std::vector<std::vector<float>> &helixTheta) {
+void CrossSection::extractPlyTwist(const std::vector<yarnIntersect2D> &allPlaneIntersect, const char *plyCenterFile) {
+	std::vector<std::vector<float>> helixRad;
+	std::vector<std::vector<float>> helixTheta;
 
 	helixRad.resize(allPlaneIntersect.size());
 	helixTheta.resize(allPlaneIntersect.size());
+	std::ofstream fout(plyCenterFile);
 	for (int i = 0; i < allPlaneIntersect.size(); ++i ) { // all planes	
 		//first find the yarn center
 		vec2f yarnCntr = vec2f(m_planesList[i].point.x, m_planesList[i].point.y);
@@ -453,10 +456,14 @@ void CrossSection::extractPlyTwist(const std::vector<yarnIntersect2D> &allPlaneI
 			}
 			plyCntr /= static_cast<float>(allPlaneIntersect[i][p].size());
 			vec2f plyVec = plyCntr - yarnCntr;
+			
+			fout << plyVec.x << " " << plyVec.y << '\n';
+			
 			float radius = std::sqrt ( std::pow(plyVec.x, 2.0) + std::pow(plyVec.y, 2.0) );
 			float theta = atan2(plyVec.y, plyVec.x) - 2 * pi * static_cast<float>(i) / allPlaneIntersect.size();
 			helixRad[i].push_back(radius);
 			helixTheta[i].push_back(theta);
 		}
 	}
+	fout.close();
 }

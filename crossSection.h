@@ -63,7 +63,8 @@ public:
 	/* de-compress simulated yarn */
 	void deCompressYarn(const std::vector<yarnIntersect2D> &PlaneIts, std::vector<Ellipse> &ellipses, std::vector<yarnIntersect2D> &deCompressPlaneIts);
 	/* get R and theta for ply-centers*/
-	void extractPlyTwist(const std::vector<yarnIntersect2D> &allPlaneIntersect, std::vector<std::vector<float>> &helixRad, std::vector<std::vector<float>> &helixTheta);
+	void extractPlyTwist(const std::vector<yarnIntersect2D> &allPlaneIntersect, const char *plyCenterFile);
+
 protected:
 	HermiteCurve m_curve;
 	Fiber::Yarn m_yarn;

@@ -200,7 +200,7 @@ namespace Fiber {
 	Yarn::~Yarn() {}
 
 
-	void Yarn::yarn_simulate() {
+	void Yarn::yarn_simulate(const char *plyCenterFile) {
 
 		std::cout << "step1: yarn center ...\n";
 		const float base_radius = this->yarn_radius;
@@ -236,16 +236,42 @@ namespace Fiber {
 		}
 
 		std::cout << "step4-5-6: rotate ply-centers around yarn-center and fibers around ply-centers and apply the compression ... \n";
-#pragma omp parallel for num_threads(num_of_cores) 
+#pragma omp parallel for num_threads(num_of_cores)
+		std::ifstream fin;
+		fin.open(plyCenterFile);
+
+		/* initialize first fiber for each ply as the ply-center */
+		for (int step_id = 0; step_id < this->z_step_num; step_id++) {
+			for (int i = 0; i < ply_num; i++) {
+				const float z = this->z_step_size * (step_id - this->z_step_num / 2.f); // devided by 2 Bcuz yarn lies between neg and pos z
+				std::string line;
+				std::getline(fin, line);
+				std::vector<std::string> splits = split(line, ' ');
+				float world_x = atof(splits[0].c_str());
+				float world_y = atof(splits[1].c_str());
+
+				vec3f verIn = vec3f(world_x, world_y, z), verOut;
+				verOut = verIn;
+
+				this->aabb_procedural.grow(verOut);
+				if (this->aabb_micro_ct.in(verOut))
+					this->plys[i].fibers[0].vertices.push_back(verOut);
+			}
+		}
+		fin.close();
+
 		for (int i = 0; i < ply_num; i++) {
 			const int fiber_num = this->plys[i].fibers.size();
+#if 0
 			/* generate ply-center as fiber_0 */
 			Fiber &fiber = this->plys[i].fibers[0];
 			fiber.clear(); //clear the vertices list 
+			
 			for (int step_id = 0; step_id < this->z_step_num; step_id++) {
 				const float z = this->z_step_size * (step_id - this->z_step_num / 2.f); // devided by 2 Bcuz yarn lies between neg and pos z
 				//const float fiber_theta = this->plys[i].clock_wise ? -z * 2 * pi / this->plys[i].alpha : z * 2 * pi / this->plys[i].alpha;
 				const float yarn_theta = this->clock_wise ? -z * 2 * pi / this->yarn_alpha : z * 2 * pi / this->yarn_alpha;
+				
 				float local_x, local_y, world_x, world_y;
 
 				// 1. translate positions to rotate around yarn center (use yarn_theta)
@@ -262,6 +288,8 @@ namespace Fiber {
 				if (this->aabb_micro_ct.in(verOut))
 					fiber.vertices.push_back(verOut);
 			}
+#endif
+			
 			// generate all fibers around ply-center
 			for (int f = 1; f < fiber_num; f++) { //starts from index 1 because index0 is reserved for ply-center
 				Fiber &fiber = this->plys[i].fibers[f];
@@ -296,7 +324,7 @@ namespace Fiber {
 					//world_x = world_x_before_ply_rotation * std::cosf(yarn_theta) - world_y_before_ply_rotation * std::sinf(yarn_theta);
 					//world_y = world_y_before_ply_rotation * std::cosf(yarn_theta) + world_x_before_ply_rotation * std::sinf(yarn_theta);				
 
-					// translate it to ply-center
+					// translate it to ply-center (fiber_0)
 					world_x = local_x + this->plys[i].fibers[0].vertices[step_id].x;
 					world_y = local_y + this->plys[i].fibers[0].vertices[step_id].y;
 
