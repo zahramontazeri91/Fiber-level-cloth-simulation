@@ -5,8 +5,8 @@
 #include "tests/hermiteTests.h"
 #include "tests/crossSectionTests.h"
 
-void fittingCompress(const char* yarnfile, const char* curvefile, const char* compressFile, const int ply_num, const int plane_num, const int subdiv_curve);
-
+void fittingPlyCenter(CrossSection & cs, const char* compressFile, const char* plyCenterFile);
+void fittingCompress(CrossSection & cs, const char* compressFile);
 int main(int argc, const char **argv) {
 #if 1
 
@@ -29,19 +29,22 @@ int main(int argc, const char **argv) {
 
 		// Fitting step 
 		fin >> command >> simulatedFILE >> curveFILE >> compressFILE >> plyCenterFILE;
-		if (command == "FITTING")
-			fittingCompress(simulatedFILE.c_str(), curveFILE.c_str(), compressFILE.c_str(), yarn.getPlyNum(), yarn.getStepNum(), 100);
-
+		if (command == "FITTING") {
+			CrossSection cs(simulatedFILE.c_str(), curveFILE.c_str(), yarn.getPlyNum(), yarn.getStepNum(), 100);
+			fittingCompress(cs, compressFILE.c_str() );
+			fittingPlyCenter(cs, compressFILE.c_str(), plyCenterFILE.c_str() );
+		}
 		// Procedural step
 		yarn.yarn_simulate(plyCenterFILE.c_str());
+		//yarn.yarn_simulate();
 
 		fin >> command >> compressFILE;
-		//if (command == "COMPRESS")
-			//yarn.compress_yarn(compressFILE.c_str());
+		if (command == "COMPRESS")
+			yarn.compress_yarn(compressFILE.c_str());
 
 		fin >> command >> curveFILE;
-		//if (command == "CURVE")
-			//yarn.curve_yarn(curveFILE.c_str());
+		if (command == "CURVE")
+			yarn.curve_yarn(curveFILE.c_str());
 
 		yarn.write_yarn(argv[2]);
 	}
@@ -66,12 +69,11 @@ int main(int argc, const char **argv) {
 	ply_centers_test();
 #endif
 
-	std::system("pause");
+	//std::system("pause"); //add breakpoint instead
 	return 0;
 }
 
-void fittingCompress(const char* yarnfile, const char* curvefile, const char* compressFile, const int ply_num, const int plane_num, const int subdiv_curve) {
-	CrossSection cs(yarnfile, curvefile, ply_num, plane_num, subdiv_curve);
+void fittingCompress(CrossSection & cs, const char* compressFile) {
 	std::vector<yarnIntersect> itsLists;
 	cs.allPlanesIntersections(itsLists);
 
@@ -80,4 +82,21 @@ void fittingCompress(const char* yarnfile, const char* curvefile, const char* co
 
 	std::vector<Ellipse> ellipses;
 	cs.extractCompressParam(allPlaneIntersect, ellipses, compressFile);
+}
+
+void fittingPlyCenter(CrossSection & cs, const char* compressFile, const char* plyCenterFile )
+{
+	std::vector<yarnIntersect> itsLists;
+	cs.allPlanesIntersections(itsLists);
+	std::vector<yarnIntersect2D> allPlaneIntersect;
+	cs.PlanesIntersections2D(itsLists, allPlaneIntersect);
+	//TODO: move cs to main() and only pass it to these two functions
+	std::vector<Ellipse> ellipses;
+	cs.extractCompressParam(allPlaneIntersect, ellipses, compressFile);
+	// Decompress simulated yarn
+	std::vector<yarnIntersect2D> deCompressPlaneIntersect;
+	cs.deCompressYarn(allPlaneIntersect, ellipses, deCompressPlaneIntersect);
+
+	//extract ply-centers helix positions
+	cs.extractPlyTwist(deCompressPlaneIntersect, plyCenterFile);
 }

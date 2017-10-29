@@ -211,7 +211,6 @@ namespace Fiber {
 		for (int i = 0; i < ply_num; i++) {
 			float angle = 2 * pi * i / ply_num; // place ply centers in a circle with radius yarn-radius/2 
 			
-		//TODO: this works well for 2-ply yarn only. How about 5-ply yarn?
 			this->plys[i].base_theta = angle;
 			this->plys[i].base_center = vec3f(base_radius / 2 * std::cosf(angle), base_radius / 2 * std::sinf(angle), 0);
 		}
@@ -257,41 +256,113 @@ namespace Fiber {
 				if (this->aabb_micro_ct.in(verOut))
 					this->plys[i].fibers[0].vertices.push_back(verOut);
 			}
+			std::string whitespace;
+			std::getline(fin, whitespace);
 		}
 		fin.close();
 
 		for (int i = 0; i < ply_num; i++) {
-			const int fiber_num = this->plys[i].fibers.size();
-#if 0
-			/* generate ply-center as fiber_0 */
-			Fiber &fiber = this->plys[i].fibers[0];
-			fiber.clear(); //clear the vertices list 
-			
-			for (int step_id = 0; step_id < this->z_step_num; step_id++) {
-				const float z = this->z_step_size * (step_id - this->z_step_num / 2.f); // devided by 2 Bcuz yarn lies between neg and pos z
-				//const float fiber_theta = this->plys[i].clock_wise ? -z * 2 * pi / this->plys[i].alpha : z * 2 * pi / this->plys[i].alpha;
-				const float yarn_theta = this->clock_wise ? -z * 2 * pi / this->yarn_alpha : z * 2 * pi / this->yarn_alpha;
-				
-				float local_x, local_y, world_x, world_y;
-
-				// 1. translate positions to rotate around yarn center (use yarn_theta)
-				float world_x_before_ply_rotation = this->plys[i].base_center.x;
-				float world_y_before_ply_rotation = this->plys[i].base_center.y;
-				// 2. rotate positions around yarn center [x' y'] = [cos sin; -sin cos][x y]
-				world_x = world_x_before_ply_rotation * std::cosf(yarn_theta) - world_y_before_ply_rotation * std::sinf(yarn_theta);
-				world_y = world_y_before_ply_rotation * std::cosf(yarn_theta) + world_x_before_ply_rotation * std::sinf(yarn_theta);
-
-				vec3f verIn = vec3f(world_x, world_y, z), verOut;
-				verOut = verIn;
-
-				this->aabb_procedural.grow(verOut);
-				if (this->aabb_micro_ct.in(verOut))
-					fiber.vertices.push_back(verOut);
-			}
-#endif
-			
+			const int fiber_num = this->plys[i].fibers.size();			
 			// generate all fibers around ply-center
 			for (int f = 1; f < fiber_num; f++) { //starts from index 1 because index0 is reserved for ply-center
+				Fiber &fiber = this->plys[i].fibers[f];
+				fiber.clear(); //clear the vertices list 
+				for (int step_id = 0; step_id < this->z_step_num; step_id++) {
+					const float z = this->z_step_size * (step_id - this->z_step_num / 2.f); // devided by 2 Bcuz yarn lies between neg and pos z
+					const float fiber_theta = this->plys[i].clock_wise ? -z * 2 * pi / this->plys[i].alpha : z * 2 * pi / this->plys[i].alpha;
+					////const float fiber_theta = 0.00001;
+					const float yarn_theta = this->clock_wise ? -z * 2 * pi / this->yarn_alpha : z * 2 * pi / this->yarn_alpha;
+					float local_x, local_y, world_x, world_y;
+
+					// std::cout << "step5: generate ply after fiber migration ... \n";
+					// translate positions to rotate around ply center (use fiber_theta)
+					this->plys[i].helixXYZ(fiber.init_radius, fiber.init_theta, fiber_theta, use_migration, fiber.init_migration_theta, local_x, local_y);
+
+					// std::cout << "step5: eliptical compression ... \n";
+					vec3f short_axis = nv::normalize(this->plys[i].base_center), long_axis = vec3f(-short_axis.y, short_axis.x, 0);
+					// short axis is [ply-center - 0] because its a vector pointing to origin starting at first cross section, the long axis is perpendicular to this.
+					vec3f local_p = vec3f(local_x, local_y, 0.f);
+					float _local_x = nv::dot(local_p, short_axis), _local_y = nv::dot(local_p, long_axis);
+					// scale the shape of cross section
+					_local_x *= this->plys[i].ellipse_short;
+					_local_y *= this->plys[i].ellipse_long;
+					local_p = _local_x * short_axis + _local_y * long_axis;
+					local_x = local_p.x;
+					local_y = local_p.y;			
+
+					// translate it to ply-center (fiber_0)
+					float plyCenter_x = this->plys[i].fibers[0].vertices[step_id].x;
+					float plyCenter_y = this->plys[i].fibers[0].vertices[step_id].y;
+					world_x = local_x + plyCenter_x;
+					world_y = local_y + plyCenter_y;
+
+					vec3f verIn = vec3f(world_x, world_y, z), verOut;
+					verOut = verIn;
+
+					this->aabb_procedural.grow(verOut);
+					if (this->aabb_micro_ct.in(verOut))
+						fiber.vertices.push_back(verOut);
+				}
+			}
+		}
+
+		// for debuging:
+		FILE *fout;
+		if (fopen_s(&fout, "../data/plyCenter_proc.txt", "wt") == 0) {
+			for (int step_id = 0; step_id < this->z_step_num; step_id++) {
+				for (int i = 0; i < ply_num; i++) {
+					fprintf_s(fout, "%f %f\n", this->plys[i].fibers[0].vertices[step_id].x, this->plys[i].fibers[0].vertices[step_id].y);
+				}
+				fprintf_s(fout, "\n");
+			}
+			fclose(fout);
+		}
+
+	} // yarn_simulate
+
+	void Yarn::yarn_simulate() {
+
+		std::cout << "step1: yarn center ...\n";
+		const float base_radius = this->yarn_radius;
+		this->aabb_procedural.reset();
+
+		std::cout << "step2: initial plys centers ... \n";
+		const int ply_num = this->plys.size();
+		for (int i = 0; i < ply_num; i++) {
+			float angle = 2 * pi * i / ply_num; // place ply centers in a circle with radius yarn-radius/2 
+
+												//TODO: this works well for 2-ply yarn only. How about 5-ply yarn?
+			this->plys[i].base_theta = angle;
+			this->plys[i].base_center = vec3f(base_radius / 2 * std::cosf(angle), base_radius / 2 * std::sinf(angle), 0);
+		}
+
+		const int num_of_cores = omp_get_num_procs();
+
+		std::cout << "step3: initial plys locations ... \n";
+		for (int i = 0; i < ply_num; i++) {
+			const int fiber_num = this->plys[i].fibers.size();
+#pragma omp parallel for num_threads(num_of_cores) 
+			for (int f = 0; f < fiber_num; f++) {
+				Fiber &fiber = this->plys[i].fibers[f];
+				float radius = this->plys[i].sampleR();
+				float theta = 2 * pi * (float)rand() / (RAND_MAX);
+				float migration_theta = 2 * pi * (float)rand() / (RAND_MAX);
+				fiber.init_radius = radius;
+				fiber.init_theta = theta;
+				fiber.init_migration_theta = migration_theta;
+				fiber.init_vertex = this->plys[i].base_center +
+					vec3f(radius * std::cosf(theta), radius * std::sinf(theta), 0);
+			}
+		}
+
+		std::cout << "step4-5-6: rotate ply-centers around yarn-center and fibers around ply-centers and apply the compression ... \n";
+#pragma omp parallel for num_threads(num_of_cores)
+
+		for (int i = 0; i < ply_num; i++) {
+			const int fiber_num = this->plys[i].fibers.size();
+
+			// generate all fibers around ply-center
+			for (int f = 0; f < fiber_num; f++) {
 				Fiber &fiber = this->plys[i].fibers[f];
 				fiber.clear(); //clear the vertices list 
 				for (int step_id = 0; step_id < this->z_step_num; step_id++) {
@@ -317,16 +388,12 @@ namespace Fiber {
 					local_y = local_p.y;
 
 					// 1. translate positions to rotate around yarn center (use yarn_theta)
-					//float world_x_before_ply_rotation = local_x + this->plys[i].base_center.x;
-					//float world_y_before_ply_rotation = local_y + this->plys[i].base_center.y;
+					float world_x_before_ply_rotation = local_x + this->plys[i].base_center.x;
+					float world_y_before_ply_rotation = local_y + this->plys[i].base_center.y;
 
 					// 2. rotate positions [x' y'] = [cos sin; -sin cos][x y]
-					//world_x = world_x_before_ply_rotation * std::cosf(yarn_theta) - world_y_before_ply_rotation * std::sinf(yarn_theta);
-					//world_y = world_y_before_ply_rotation * std::cosf(yarn_theta) + world_x_before_ply_rotation * std::sinf(yarn_theta);				
-
-					// translate it to ply-center (fiber_0)
-					world_x = local_x + this->plys[i].fibers[0].vertices[step_id].x;
-					world_y = local_y + this->plys[i].fibers[0].vertices[step_id].y;
+					world_x = world_x_before_ply_rotation * std::cosf(yarn_theta) - world_y_before_ply_rotation * std::sinf(yarn_theta);
+					world_y = world_y_before_ply_rotation * std::cosf(yarn_theta) + world_x_before_ply_rotation * std::sinf(yarn_theta);				
 
 					vec3f verIn = vec3f(world_x, world_y, z), verOut;
 					verOut = verIn;
@@ -373,9 +440,11 @@ namespace Fiber {
 			for (int f = 0; f < fiber_num; f++) {
 				Fiber &fiber = this->plys[i].fibers[f];
 				const int vertices_num = this->plys[i].fibers[f].vertices.size();
-				assert(compress_params.size() == vertices_num);
-				
+				//assert(compress_params.size() == vertices_num);
+				//std::cout << compress_params.size() << " " <<  vertices_num << std::endl;
+				//while (1);
 				for (int v = 0; v < vertices_num; v++) {
+					
 #if 0
 					// in case of interporlation
 					int c = 0; // for interpolation: the z value for the current vertex lies between c-1 and c 

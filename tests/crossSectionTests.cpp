@@ -71,8 +71,8 @@ void buildPlanes_test() {
 }
 
 void allPlanesIntersections_test() {
-	const char* yarnfile = "genYarn_1.txt"; //For procedural yarn
-	//const char* yarnfile = "frame00001_scaled.txt"; //For simulated yarn
+	//const char* yarnfile = "genYarn_1.txt"; //For procedural yarn
+	const char* yarnfile = "frame00001_scaled.txt"; //For simulated yarn
 	const char* curvefile = "frame00001_avg.txt"; 
 	CrossSection cs(yarnfile, curvefile, 2, 10000, 100);
 	std::vector<yarnIntersect> itsLists;
@@ -192,7 +192,8 @@ void extractCompressParam_test() {
 	if (fopen_s(&fout, "../data/orientation.txt", "wt") == 0 ) {
 		for (int i = 0; i < ellipses.size(); ++i) {
 			fprintf_s(fout, "%.4f %.4f \n", ellipses[i].center.x, ellipses[i].center.y);
-			fprintf_s(fout, "%.4f %.4f %.4f \n", ellipses[i].longR, ellipses[i].shortR, ellipses[i].angle);
+			//fprintf_s(fout, "%.4f %.4f %.4f \n", ellipses[i].longR, ellipses[i].shortR, ellipses[i].angle);
+			fprintf_s(fout, "%.4f %.4f %.4f \n", 0.0286676, 0.0286676, ellipses[i].angle);
 			fprintf_s(fout, "\n");
 		}
 		fclose(fout);
@@ -235,9 +236,9 @@ void compress_yarn_test() {
 }
 
 void ply_centers_test() {
-	//const char* yarnfile = "genYarn.txt"; //For procedural yarn
-	const char* yarnfile = "frame00001_scaled.txt"; //For simulated yarn
-	const char* curvefile = "frame00001_avg.txt";
+	const char* yarnfile = "genYarn.txt"; //For procedural yarn
+	//const char* yarnfile = "frame00029_scaled.txt"; //For simulated yarn
+	const char* curvefile = "frame00029_avg.txt";
 	CrossSection cs(yarnfile, curvefile, 2, 1526, 100);
 	std::vector<yarnIntersect> itsLists;
 	cs.allPlanesIntersections(itsLists);
@@ -252,8 +253,6 @@ void ply_centers_test() {
 	//allPlaneIntersect = deCompressPlaneIntersect;
 
 	//extract ply-centers helix parameter
-	std::vector<std::vector<float>> helixRad;
-	std::vector<std::vector<float>> helixTheta;
 	cs.extractPlyTwist(allPlaneIntersect, "plyCenter.txt"); //todo
 
 	FILE *fout;
@@ -269,7 +268,7 @@ void ply_centers_test() {
 	//}
 
 	// write the plycenters
-	if (fopen_s(&fout, "../data/plyCenters_proc.txt", "wt") == 0) {
+	if (fopen_s(&fout, "../data/allCrossSection2D.txt", "wt") == 0) {
 		const int ignorPlanes = 0.1 * allPlaneIntersect.size(); // crop the first and last 10% of the yarn
 
 		fprintf_s(fout, "plane_num: %d \n", allPlaneIntersect.size() - 2*ignorPlanes);
@@ -278,18 +277,17 @@ void ply_centers_test() {
 		
 		for (int i = ignorPlanes; i < allPlaneIntersect.size() - ignorPlanes; ++i) { //number of planes
 			for (int p = 0; p < allPlaneIntersect[i].size(); ++p) { //number of plys
-				//fprintf_s(fout, "ply_fiber_num: %d \n", allPlaneIntersect[i][p].size());
+				fprintf_s(fout, "ply_fiber_num: %d \n", allPlaneIntersect[i][p].size());
 				vec2f plyCenter(0.f);
 				for (int j = 0; j < allPlaneIntersect[i][p].size(); ++j) { //number of intersections
 					plyCenter += allPlaneIntersect[i][p][j];
 				}
 				plyCenter /= allPlaneIntersect[i][p].size();
 				fprintf_s(fout, "plyCenter: %.4lf %.4lf \n", plyCenter.x, plyCenter.y);
-				fprintf_s(fout, "plyHelix: %.4lf %.4lf \n", helixRad[i][p], helixTheta[i][p]);
 				
-				//for (int j = 0; j < allPlaneIntersect[i][p].size(); ++j) { //number of intersections
-					//fprintf_s(fout, "%.4f %.4f \n", allPlaneIntersect[i][p][j].x, allPlaneIntersect[i][p][j].y);
-				//}
+				for (int j = 0; j < allPlaneIntersect[i][p].size(); ++j) { //number of intersections
+					fprintf_s(fout, "%.4f %.4f \n", allPlaneIntersect[i][p][j].x, allPlaneIntersect[i][p][j].y);
+				}
 			}
 			fprintf_s(fout, "\n");
 		}

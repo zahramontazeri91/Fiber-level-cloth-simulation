@@ -35,10 +35,11 @@ with open('../../data/allCrossSection2D.txt', 'r') as fin:
             height = 2.0 * float(param[1])
             angle = math.degrees(float(param[2]))
             ax = plt.subplot(111, aspect='equal')
+            #angle = angle,
             ell = Ellipse((float(cntr[0]),float(cntr[1])), 
-                          width, height, alpha=0.3, 
-                          angle = angle, facecolor = 'yellow' )  
-            ax.add_artist(ell)
+                          2*0.0286676, 2*0.0286676, alpha=0.3, 
+                          facecolor = 'yellow' )  
+            #ax.add_artist(ell)
             
             for p in range(0,ply_num):    
                 its_num = int(fin.readline().split()[1])
@@ -47,12 +48,15 @@ with open('../../data/allCrossSection2D.txt', 'r') as fin:
                 
                 c = "C" + str(p)
                 plyCenter = fin.readline().split() 
-#                plt.scatter(plyCenter[1], plyCenter[2], alpha=0.8, color = 'red', zorder=200)
+                #plt.scatter(plyCenter[1], plyCenter[2], alpha=0.8, color = 'red', zorder=200)
                 for j in range(0, its_num):
                     pos = [float(val) for val in fin.readline().strip().split(' ')]                
-                    if j==0:
-                        plt.scatter(pos[0],pos[1], alpha=0.8, color = 'r',zorder=200) # first fiber for each ply is the ply-center
-                    else:
+                    #if j==0:
+                        #plt.scatter(pos[0],pos[1], alpha=0.8, color = 'r',zorder=200) # first fiber for each ply is the ply-center
+                    #if j==1 and p==0:
+                        #plt.scatter(pos[0],pos[1], alpha=0.8, color = 'black',zorder=200)
+                    #else:
+                    if p == 0:
                         X.append(pos[0])
                         Y.append(pos[1])
                 plt.scatter(X, Y, alpha=0.8, color = c)

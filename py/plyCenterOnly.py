@@ -19,13 +19,13 @@ with open('../genYarn.txt', 'r') as fin:
 #        for j in range(vrtx_num/4, vrtx_num*3/4):               
             pos = [float(val) for val in fin.readline().strip().split(' ')]
             
-            if i==0 or i==81: #plot only ply-center
+            if i==0 or i==80: #plot only ply-center
                 if j>700 and j<900 :
                     fiber[cnt, :] = pos
                     cnt = cnt+1
             if i==0:
                 c='red'
-            if i==81:
+            if i==80:
                 c='blue'
 
         ax.plot(fiber[:, 0], fiber[:, 1], fiber[:, 2], alpha=0.5, color =c)

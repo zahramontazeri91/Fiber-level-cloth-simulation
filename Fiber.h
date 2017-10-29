@@ -162,6 +162,7 @@ namespace Fiber {
 
 		/* Simulate yarn */
 		void yarn_simulate(const char *plyCenter);
+		void yarn_simulate();
 
 		/* compress yarn with theta, direction, a and b, cross section ellipse param. */
 		void readCompressFile(const char* filename, std::vector<compress> &compress_params);

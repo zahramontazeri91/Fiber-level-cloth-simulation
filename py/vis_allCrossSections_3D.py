@@ -24,7 +24,7 @@ with open('../../data/allCrossSection.txt', 'r') as fin:
 #        ax = fig.gca(projection='3d')
 #        ax.set_aspect('equal', 'datalim')
 
-#        print ( "Display intersections with plane %d ... " %i)
+        print ( "Display intersections with plane %d ... " %i)
         whitespace = fin.readline().split()
         center = fin.readline().split()
         ax.scatter(float(center[1]), float(center[2]), float(center[3]), s=50, color='red')
