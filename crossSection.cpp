@@ -448,6 +448,7 @@ void CrossSection::extractPlyTwist(const std::vector<yarnIntersect2D> &allPlaneI
 	std::ofstream fout(plyCenterFile);
 	for (int i = 0; i < allPlaneIntersect.size(); ++i ) { // all planes	
 		//first find the yarn center
+		//No need to yarnCenter because planes are generated using their center point
 		//vec2f yarnCntr = vec2f(m_planesList[i].point.x, m_planesList[i].point.y);
 
 		int ply_num = allPlaneIntersect[i].size();

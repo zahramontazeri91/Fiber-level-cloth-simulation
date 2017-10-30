@@ -13,7 +13,7 @@ with open('../genYarn.txt', 'r') as fin:
     for i in range(0, fiber_num): 
 
         vrtx_num = int(fin.readline())
-        fiber = np.zeros((199, 3))
+        fiber = np.zeros((199, 3)) #between 700 to 900
         cnt = 0
         for j in range(0, vrtx_num): 
 #        for j in range(vrtx_num/4, vrtx_num*3/4):               
@@ -35,5 +35,5 @@ with open('../genYarn.txt', 'r') as fin:
 plt.xlim(-.05,.05)
 plt.ylim(-0.05, 0.05)
 #plt.zlim(-4.05, 4.05)
-plt.savefig("../../data/vis_crossSections/plyCenter.png")
+plt.savefig("../../data/vis_crossSections/29_plyCenter.png")
 plt.show()

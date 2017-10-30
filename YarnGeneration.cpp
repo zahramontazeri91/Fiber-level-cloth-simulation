@@ -12,7 +12,6 @@ int main(int argc, const char **argv) {
 
     if ( argc != 3 ) {
         printf("Usage: YarnGeneration [task file] [output file]\n");
-		std::system("pause");
 		return 1;
     }
 
@@ -35,7 +34,10 @@ int main(int argc, const char **argv) {
 			fittingPlyCenter(cs, compressFILE.c_str(), plyCenterFILE.c_str() );
 		}
 		// Procedural step
-		yarn.yarn_simulate(plyCenterFILE.c_str());
+		fin >> command >> compressFILE;
+		if (command == "SIMULATE")
+			yarn.yarn_simulate(plyCenterFILE.c_str());
+		/// generate yarn without 
 		//yarn.yarn_simulate();
 
 		fin >> command >> compressFILE;
@@ -64,7 +66,7 @@ int main(int argc, const char **argv) {
 	//write_PlanesIntersections2D_test();
 	//getOrientation_test();
 	//extractCompressParam_test();
-
+	
 	//compress_yarn_test();
 	ply_centers_test();
 #endif

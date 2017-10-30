@@ -7,7 +7,7 @@ hairs_path = "../../../hairs"
 
 vrtx_num = 0
 
-for h in range (1,30): #iterate over all hair frames
+for h in range (29,30): #iterate over all hair frames
     if h<10: 
         frame_num = 'frame0000' + str(h)
     else:
@@ -24,10 +24,10 @@ for h in range (1,30): #iterate over all hair frames
             list_fibers.append(next_n_lines)
     
     fiber_num = len(list_fibers)
-    yarn_file = open(hairs_path + '/scaledHairs/' + frame_num + '_scaled.txt','w') 
+    yarn_file = open(hairs_path + '/scaledHairs/' + frame_num + '_scaled_1ply.txt','w') 
     
-    yarn_file.write( '%s \n' % str(fiber_num) )     
-    for f in range (0,fiber_num):
+    yarn_file.write( '%s \n' % str(fiber_num/2) )     
+    for f in range (0,fiber_num/2):
         yarn_file.write( '%s \n' % str(vrtx_num) )  
         for v in range (0,vrtx_num):
             scale_x = float(list_fibers[f][v].split()[0])*0.25 

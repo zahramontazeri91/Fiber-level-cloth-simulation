@@ -236,9 +236,9 @@ void compress_yarn_test() {
 }
 
 void ply_centers_test() {
-	const char* yarnfile = "genYarn.txt"; //For procedural yarn
-	//const char* yarnfile = "frame00029_scaled.txt"; //For simulated yarn
-	const char* curvefile = "frame00029_avg.txt";
+	//const char* yarnfile = "genYarn.txt"; //For procedural yarn
+	const char* yarnfile = "frame00029_scaled.txt"; //For simulated yarn
+	const char* curvefile = "frame00001_avg.txt";
 	CrossSection cs(yarnfile, curvefile, 2, 1526, 100);
 	std::vector<yarnIntersect> itsLists;
 	cs.allPlanesIntersections(itsLists);
