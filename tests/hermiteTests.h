@@ -4,5 +4,6 @@
 
 void hermiteTest1(); // Testing curve geometry
 void hermiteTest2(); // Testing curve arc length
+void hermiteTest3(); // Testing curve geometry with specified normals
 
 #endif

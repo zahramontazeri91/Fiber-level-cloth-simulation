@@ -70,8 +70,10 @@ int main(int argc, const char **argv) {
 	
 	//compress_yarn_test();
 	//ply_centers_test();
-
+<<<<<<< HEAD
 	extractNormals();
+=======
+>>>>>>> a2ebcba610973da02e9d58dfa9a0981b3de16070
 #endif
 
 	//std::system("pause"); //add breakpoint instead

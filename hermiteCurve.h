@@ -16,6 +16,7 @@ public:
 
 	void init(const char* filename, int subdiv = 10);
     void init(const std::vector<Eigen::Vector3d> &pts, int subdiv = 10);
+    void init(const std::vector<Eigen::Vector3d> &pts, const std::vector<Eigen::Vector3d> &norms, int subdiv = 10);
 
 	Eigen::Vector3d eval(double t) const;
 	Eigen::Vector3d evalTangent(double t, bool normalize = true) const;
@@ -52,6 +53,8 @@ public:
 	int findSegId(double curve_length) const;
 
 protected:
+    void initPoints(const std::vector<Eigen::Vector3d> &pts);
+
     int m_spline_seg;
 	std::vector<HermiteSpline> m_splines;
 

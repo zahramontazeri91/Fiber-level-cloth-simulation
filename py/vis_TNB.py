@@ -12,6 +12,7 @@ ax = fig.gca(projection='3d')
 # data = np.loadtxt('../junk_single.txt')
 data = np.loadtxt('../../data/junk_multiple.txt')
 
+
 n = data.shape[0]
 L = 0.25
 
