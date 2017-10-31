@@ -8,7 +8,7 @@
 void fittingPlyCenter(CrossSection & cs, const char* compressFile, const char* plyCenterFile);
 void fittingCompress(CrossSection & cs, const char* compressFile);
 int main(int argc, const char **argv) {
-#if 1
+#if 0
 
     if ( argc != 3 ) {
         printf("Usage: YarnGeneration [task file] [output file]\n");
@@ -37,7 +37,7 @@ int main(int argc, const char **argv) {
 		fin >> command >> compressFILE;
 		if (command == "SIMULATE")
 			yarn.yarn_simulate(plyCenterFILE.c_str());
-		/// generate yarn without 
+		///generate yarn without given ply-center
 		//yarn.yarn_simulate();
 
 		fin >> command >> compressFILE;
@@ -68,7 +68,8 @@ int main(int argc, const char **argv) {
 	//extractCompressParam_test();
 	
 	//compress_yarn_test();
-	ply_centers_test();
+	//ply_centers_test();
+	extractNormals();
 #endif
 
 	//std::system("pause"); //add breakpoint instead
@@ -84,6 +85,10 @@ void fittingCompress(CrossSection & cs, const char* compressFile) {
 
 	std::vector<Ellipse> ellipses;
 	cs.extractCompressParam(allPlaneIntersect, ellipses, compressFile);
+
+	//extract spline normals
+	std::vector<vec3f> normals;
+	cs.extractNormals(ellipses, normals);
 }
 
 void fittingPlyCenter(CrossSection & cs, const char* compressFile, const char* plyCenterFile )

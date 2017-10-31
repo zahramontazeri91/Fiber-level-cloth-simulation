@@ -186,9 +186,8 @@ void extractCompressParam_test() {
 	cs.deCompressYarn(allPlaneIntersect, ellipses, deCompressPlaneIntersect);
 
 	//write ellipses to file for testing
-	FILE *fout;
 	// NOTE: don't rewrite for the procedural case, use simulated compress parameters to validate the compression
-
+	FILE *fout;
 	if (fopen_s(&fout, "../data/orientation.txt", "wt") == 0 ) {
 		for (int i = 0; i < ellipses.size(); ++i) {
 			fprintf_s(fout, "%.4f %.4f \n", ellipses[i].center.x, ellipses[i].center.y);
@@ -200,7 +199,7 @@ void extractCompressParam_test() {
 	}
 
 	//write the 2D intersections for tetsting
-	//FILE *fout;
+	
 	if (fopen_s(&fout, "../data/allCrossSection2D.txt", "wt") == 0) {
 		fprintf_s(fout, "plane_num: %d \n", deCompressPlaneIntersect.size());
 		fprintf_s(fout, "ply_num: %d \n", deCompressPlaneIntersect[0].size());
@@ -295,3 +294,49 @@ void ply_centers_test() {
 	}
 }					
 
+void extractNormals()
+{
+	const char* yarnfile = "frame00029_scaled.txt"; //For simulated yarn
+	const char* curvefile = "frame00029_avg.txt";
+	CrossSection cs(yarnfile, curvefile, 2, 1526, 100);
+	std::vector<yarnIntersect> itsLists;
+	cs.allPlanesIntersections(itsLists);
+	std::vector<yarnIntersect2D> allPlaneIntersect;
+	cs.PlanesIntersections2D(itsLists, allPlaneIntersect);
+
+	std::vector<Ellipse> ellipses;
+	cs.extractCompressParam(allPlaneIntersect, ellipses, "compress.txt");
+
+
+	//extract spline normals
+	std::vector<vec3f> normals;
+	cs.extractNormals(ellipses, normals);
+	FILE *fout;
+	if (fopen_s(&fout, "../data/normals.txt", "wt") == 0) {
+		for (int i = 0; i < ellipses.size(); ++i) {
+			fprintf_s(fout, "%.4f %.4f %.4f \n", normals[i].x, normals[i].y, normals[i].z);
+			fprintf_s(fout, "\n");
+		}
+		fclose(fout);
+	}
+	// Testing entire curve
+	{
+		HermiteCurve curve = cs.get_curve();
+		const int n = 1526; //normals.size()
+		Eigen::Vector3d vtx[n], tang[n], norm[n];
+		//curve.output(n, vtx, tang, norm);
+		FILE *fout;
+		if (fopen_s(&fout, "../data/junk_multiple.txt", "wt") == 0) {
+			for (int i = 0; i < n; ++i) {
+				Plane plane;
+				cs.get_plane(i, plane);
+				if (i % 10 == 0) {
+					fprintf_s(fout, "%.4lf %.4lf %.4lf ", plane.point.x, plane.point.y, plane.point.z); //curve point
+					fprintf_s(fout, "%.4lf %.4lf %.4lf ", plane.normal.x, plane.normal.y, plane.normal.z); //curve tang
+					fprintf_s(fout, "%.4lf %.4lf %.4lf\n", normals[i].x, normals[i].y, normals[i].z); //curve normal: read from file
+				}
+			}
+			fclose(fout);
+		}
+	}
+}

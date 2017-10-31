@@ -12,7 +12,7 @@ struct Plane {
 	Plane() : normal(vec3f(0.f)), binormal(vec3f(0.f)), point(vec3f(0.f)) {}
 	vec3f normal;    //spline tangent
 	vec3f binormal;  //spline normal  //TODO: check if this should be spline binormal!
-	vec3f point;
+	vec3f point;     //plane center
 };
 
 
@@ -47,6 +47,8 @@ public:
 	void PlanesIntersections2D(std::vector<yarnIntersect> &itsLists, std::vector<yarnIntersect2D> &allPlaneIntersect);
 	/* Project a 3D point to a 2D plane */
 	void project2Plane(const vec3f& P3d, const Plane& plane, vec2f& P2d);
+	/* project 2D coord back to world */
+	void planeIts2world(Plane &plane, vec2f &plane_point, vec3f &world_point);
 	/* Return the ith plane */
 	inline void get_plane(const int i, Plane &plane) {
 		plane = m_planesList[i];
@@ -56,6 +58,8 @@ public:
 	void fitCircle(const yarnIntersect2D &pts, float &radius);
 	/* Get ellipse a, b and angle for each cross-section and write it to the file */
 	void extractCompressParam(const std::vector<yarnIntersect2D> &allPlaneIntersect, std::vector<Ellipse> &ellipses, const char* filename);
+	/* Extract normal vectors for the curve using fitted ellipse for each plane intersection */
+	void extractNormals(std::vector<Ellipse> &ellipses, std::vector<vec3f> &normals);
 	/* Given a ellipse, find the minimum area ellipse that covers 95% of fiber centers (search around the given ellipse) */
 	void CrossSection::minAreaEllipse(const yarnIntersect2D &pts, const Ellipse &ellipse, Ellipse &minEllipse);
 	/* Given a yarn dataStructure, transform it to a vector of cross-sections */
@@ -64,6 +68,10 @@ public:
 	void deCompressYarn(const std::vector<yarnIntersect2D> &PlaneIts, std::vector<Ellipse> &ellipses, std::vector<yarnIntersect2D> &deCompressPlaneIts);
 	/* get R and theta for ply-centers*/
 	void extractPlyTwist(const std::vector<yarnIntersect2D> &allPlaneIntersect, const char *plyCenterFile);
+	/* return m_curve */
+	HermiteCurve get_curve() {
+		return m_curve;
+	}
 
 protected:
 	HermiteCurve m_curve;

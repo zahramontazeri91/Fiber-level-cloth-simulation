@@ -3,18 +3,19 @@ import matplotlib
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 matplotlib.rcParams.update({'font.size': 16})
+import matplotlib.patches as mpatches
 
-fig = plt.figure()
+fig = plt.figure(figsize=(10,20))
 ax = fig.gca(projection='3d')
-ax.set_aspect('equal')
+#ax.set_aspect('equal')
 
 # data = np.loadtxt('../junk_single.txt')
-data = np.loadtxt('../junk_multiple.txt')
+data = np.loadtxt('../../data/junk_multiple.txt')
 
 n = data.shape[0]
 L = 0.25
 
-ax.plot(data[:, 0], data[:, 1], data[:, 2], color='black', linewidth=5.0)
+ax.plot(data[:, 0], data[:, 1], data[:, 2], color='black', linewidth=1.0)
 for i in range(0, n):
     tang = data[i, 3 : 6]
     tang /= np.linalg.norm(tang)
@@ -49,5 +50,14 @@ Zb = 0.5*max_range*np.mgrid[-1:2:2,-1:2:2,-1:2:2][2].flatten() + mid[2]
 for xb, yb, zb in zip(Xb, Yb, Zb):
    ax.plot([xb], [yb], [zb], 'w')
 
-plt.tight_layout()
+#plt.tight_layout()
+red = mpatches.Patch(color='red', label='tangents')
+blue = mpatches.Patch(color='blue', label='normals')
+green = mpatches.Patch(color='green', label='binormals')
+
+plt.legend(handles=[red, green, blue],prop={'size': 15}) 
+ax.view_init(azim=-30., elev=10)
+plt.xlim(-.5,.5)
+plt.ylim(-.5,.5)
+plt.savefig("../../data/vis_crossSections/frame29_hermite.png" )
 plt.show()

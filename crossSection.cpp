@@ -383,6 +383,46 @@ void CrossSection::extractCompressParam(const std::vector<yarnIntersect2D> &allP
 	std::cout << "Compression parameters for each cross-sections are written to the file! \n";
 }
 
+void CrossSection::planeIts2world(Plane &plane, vec2f &plane_point, vec3f &world_point) {
+	//Finding 3D coord of a point of the plane having its 2D: inverse of project2plane()
+	vec3f n = plane.normal;
+	vec3f e1 = plane.binormal;
+	vec3f e2 = cross(n, e1);
+
+	vec3f local(plane_point.x, plane_point.y, 0.f); //as the point exists on the plane
+	//world = [e1 e2 n] * local
+	//local = [e1; e2; n] * world
+	world_point.x = dot(vec3f(e1.x, e2.x, n.x), local) + plane.point.x;
+	world_point.y = dot(vec3f(e1.y, e2.y, n.y), local) + plane.point.y;
+	world_point.z = dot(vec3f(e1.z, e2.z, n.z), local) + plane.point.z;
+	//note that order of the axis matches with the project2plane()
+
+}
+
+void CrossSection::extractNormals(std::vector<Ellipse> &ellipses, std::vector<vec3f> &normals) {
+	for (int i = 0; i < m_planesList.size(); ++i) {
+		//rotate plane.e1=[1,0] by theta in the plane to obtain ellipse-short-axis
+		vec2f p2D(cos(ellipses[i].angle), sin(ellipses[i].angle));
+		//now project it to world coord
+		vec3f end3D;
+		planeIts2world(m_planesList[i], p2D, end3D);
+		vec3f start3D = m_planesList[i].point;
+		//note that ellipse center is same as plane.point
+		vec3f normal = end3D - start3D;
+		assert(nv::length(normal) - 1.f < EPS   && "Normal vector is not normalized!");
+		normals.push_back(normal);
+	}
+	/*
+	//test planeIts2world
+	Plane plane;
+	plane.point = vec3f(1.f,1.f,5.f);
+	plane.normal = vec3f(0, 0, 1.f);
+	vec2f p2(1.f, 1.f);
+	vec3f p3;
+	planeIts2world(plane, p2, p3);
+	std::cout << p3.x << "  " << p3.y << "  " << p3.z << std::endl;*/
+}
+
 void CrossSection::yarn2crossSections(std::vector<yarnIntersect2D> &itsLists) {
 	//first initialize the vectors
 	itsLists.resize(m_planesList.size());
@@ -471,3 +511,4 @@ void CrossSection::extractPlyTwist(const std::vector<yarnIntersect2D> &allPlaneI
 	}
 	fout.close();
 }
+
