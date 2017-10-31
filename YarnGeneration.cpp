@@ -57,6 +57,7 @@ int main(int argc, const char **argv) {
 #else
     //hermiteTest1();
     //hermiteTest2();
+    hermiteTest3();
 
 	//linePlaneIntersection_test();
 	//yarnPlaneIntersection_test();
@@ -68,7 +69,7 @@ int main(int argc, const char **argv) {
 	//extractCompressParam_test();
 	
 	//compress_yarn_test();
-	ply_centers_test();
+	//ply_centers_test();
 #endif
 
 	//std::system("pause"); //add breakpoint instead

@@ -42,7 +42,8 @@ public:
         init(spline.p0, spline.p1, spline.m0, spline.m1);
     }
 
-    void build(int subdiv, Eigen::Vector3d norm0 = Eigen::Vector3d::Zero());
+    void build(int subdiv, Eigen::Vector3d norm0 = Eigen::Vector3d::Zero(),
+        Eigen::Vector3d norm1 = Eigen::Vector3d::Zero());
 
 	/* get the position for some given 0 <= t <= 1*/
     inline Eigen::Vector3d eval(double t) const

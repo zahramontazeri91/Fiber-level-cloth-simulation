@@ -9,7 +9,7 @@ ax = fig.gca(projection='3d')
 ax.set_aspect('equal')
 
 # data = np.loadtxt('../junk_single.txt')
-data = np.loadtxt('../junk_multiple.txt')
+data = np.loadtxt('../junk_multiple_2.txt')
 
 n = data.shape[0]
 L = 0.25
