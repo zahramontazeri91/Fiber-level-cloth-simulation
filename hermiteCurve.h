@@ -15,6 +15,7 @@ public:
     }
 
 	void init(const char* filename, int subdiv = 10);
+	void init(const char* pntsFILE, const char* normsFILE, int subdiv = 10);
     void init(const std::vector<Eigen::Vector3d> &pts, int subdiv = 10);
     void init(const std::vector<Eigen::Vector3d> &pts, const std::vector<Eigen::Vector3d> &norms, int subdiv = 10);
 

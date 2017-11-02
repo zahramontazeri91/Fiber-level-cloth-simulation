@@ -16,6 +16,26 @@ void HermiteCurve::init(const char* filename, int subdiv) {
     init(pts, subdiv);
 }
 
+void HermiteCurve::init(const char* pntsFILE, const char* normsFILE, int subdiv) {
+	// import the points
+	assert(pntsFILE);
+	std::ifstream fin(pntsFILE);
+	assert(!fin.fail());
+	int n;
+	fin >> n;
+	std::vector<Eigen::Vector3d> pts(n);
+	for (int i = 0; i < n; ++i) fin >> pts[i][0] >> pts[i][1] >> pts[i][2];
+
+	// import the normals 
+	assert(normsFILE);
+	std::ifstream fin2(normsFILE);
+	assert(!fin2.fail());
+	fin2 >> n;
+	std::vector<Eigen::Vector3d> norms(n);
+	for (int i = 0; i < n; ++i) fin2 >> norms[i][0] >> norms[i][1] >> norms[i][2];
+
+	init(pts, norms, subdiv);
+}
 
 void HermiteCurve::init(const std::vector<Eigen::Vector3d> &pts, int subdiv) //subdiv for each segment
 {

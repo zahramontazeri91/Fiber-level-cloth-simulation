@@ -6,7 +6,8 @@
 #include "tests/crossSectionTests.h"
 
 void fittingPlyCenter(CrossSection & cs, const char* compressFile, const char* plyCenterFile);
-void fittingCompress(CrossSection & cs, const char* compressFile);
+void fittingCompress(CrossSection & cs, const char* compressFile, const char* pntsFile, const char* normsFile);
+
 int main(int argc, const char **argv) {
 #if 0
 
@@ -20,33 +21,33 @@ int main(int argc, const char **argv) {
 		std::cout << "Using task file: \"" << argv[1] << "\"." << std::endl;
 
 		Fiber::Yarn yarn;
-		std::string command, configFILE, simulatedFILE, 
-			curveFILE, compressFILE, plyCenterFILE;
+		std::string command, configFILE, simulatedFILE,
+			cntrYarnFILE, curvePnts, curveNorms, compressFILE, plyCenterFILE;
 
 		fin >> configFILE;
 		yarn.parse(configFILE.c_str());
 
 		// Fitting step 
-		fin >> command >> simulatedFILE >> curveFILE >> compressFILE >> plyCenterFILE;
+		fin >> command >> simulatedFILE >> cntrYarnFILE >> curvePnts >> curveNorms >> compressFILE >> plyCenterFILE;
 		if (command == "FITTING") {
-			CrossSection cs(simulatedFILE.c_str(), curveFILE.c_str(), yarn.getPlyNum(), yarn.getStepNum(), 100);
-			fittingCompress(cs, compressFILE.c_str() );
-			fittingPlyCenter(cs, compressFILE.c_str(), plyCenterFILE.c_str() );
+			CrossSection cs(simulatedFILE.c_str(), cntrYarnFILE.c_str(), yarn.getPlyNum(), yarn.getStepNum(), 100);
+			fittingCompress(cs, compressFILE.c_str(), curvePnts.c_str(), curveNorms.c_str());
+			fittingPlyCenter(cs, compressFILE.c_str(), plyCenterFILE.c_str());
 		}
 		// Procedural step
 		fin >> command >> compressFILE;
 		if (command == "SIMULATE")
 			yarn.yarn_simulate(plyCenterFILE.c_str());
-		///generate yarn without given ply-center
+		//uncomment if generate yarn without given ply-center
 		//yarn.yarn_simulate();
 
 		fin >> command >> compressFILE;
-		if (command == "COMPRESS")
-			yarn.compress_yarn(compressFILE.c_str());
+		//if (command == "COMPRESS")
+			//yarn.compress_yarn(compressFILE.c_str());
 
-		fin >> command >> curveFILE;
+		fin >> command >> curvePnts >> curveNorms;
 		if (command == "CURVE")
-			yarn.curve_yarn(curveFILE.c_str());
+			yarn.curve_yarn(cntrYarnFILE.c_str(), curveNorms.c_str()); //TODO:this doesn't work unless use cntrYarnFile
 
 		yarn.write_yarn(argv[2]);
 	}
@@ -57,12 +58,12 @@ int main(int argc, const char **argv) {
 #else
     //hermiteTest1();
     //hermiteTest2();
-    hermiteTest3();
+    //hermiteTest3();
 
 	//linePlaneIntersection_test();
 	//yarnPlaneIntersection_test();
 	//bildPlanes_test();
-	//allPlanesIntersections_test(); 
+	allPlanesIntersections_test(); 
 	//project2Plane_test();
 	//write_PlanesIntersections2D_test();
 	//getOrientation_test();
@@ -71,14 +72,15 @@ int main(int argc, const char **argv) {
 	//compress_yarn_test();
 	//ply_centers_test();
 
-	extractNormals();
+	//extractNormals();
 #endif
 
 	//std::system("pause"); //add breakpoint instead
 	return 0;
 }
 
-void fittingCompress(CrossSection & cs, const char* compressFile) {
+
+void fittingCompress(CrossSection & cs, const char* compressFile, const char* pntsFile, const char* normsFile) {
 	std::vector<yarnIntersect> itsLists;
 	cs.allPlanesIntersections(itsLists);
 
@@ -90,7 +92,7 @@ void fittingCompress(CrossSection & cs, const char* compressFile) {
 
 	//extract spline normals
 	std::vector<vec3f> normals;
-	cs.extractNormals(ellipses, normals);
+	cs.extractNormals(ellipses, normals, pntsFile, normsFile);
 }
 
 void fittingPlyCenter(CrossSection & cs, const char* compressFile, const char* plyCenterFile )

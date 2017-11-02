@@ -129,10 +129,11 @@ void CrossSection::write_PlanesIntersections3D(const char* filename, std::vector
 
 		for (int cs = 0; cs < itsLists.size() ; ++cs) { //for each plane //TODO: why -1?
 			/* First write the yarn-center */
-			fprintf_s(fout, "center: %.4lf %.4lf %.4lf \n", m_planesList[cs].point[0], m_planesList[cs].point[1], m_planesList[cs].point[2]);
+			//fprintf_s(fout, "center: %.4lf %.4lf %.4lf \n", m_planesList[cs].point[0], m_planesList[cs].point[1], m_planesList[cs].point[2]);
 			/* Then all the intersections for each ply */
 			for (int p = 0; p < ply_num; ++p) { //for each ply 
 				fprintf_s(fout, "ply_fiber_num: %d \n", itsLists[cs][p].size());
+				fprintf_s(fout, "plyCenter: %.4lf %.4lf %.4lf \n", itsLists[cs][p][0].x, itsLists[cs][p][0].y, itsLists[cs][p][0].z);
 				for (int j = 0; j < itsLists[cs][p].size(); ++j) { //for each intersected fiber
 					vec3f fiberIts = itsLists[cs][p][j];
 					fprintf_s(fout, "%.4lf %.4lf %.4lf \n", fiberIts.x, fiberIts.y, fiberIts.z);
@@ -147,11 +148,11 @@ void CrossSection::write_PlanesIntersections3D(const char* filename, std::vector
 
 void CrossSection::project2Plane (const vec3f& P3d, const Plane& plane, vec2f& P2d) {
 	vec3f n = plane.normal;
-	vec3f e1 = plane.binormal;
-	vec3f e2 = cross(n, e1);
+	vec3f e2 = plane.binormal;
+	vec3f e1 = cross(n, e2);
 
 	assert(nv::length(n) - 1.f < EPS   && "Normal vector is not normalized!");
-	assert(dot(n, e1) < EPS);
+	assert(dot(n, e2) < EPS);
 
 	P2d.x = dot(e1, (P3d -  plane.point));
 	P2d.y = dot(e2, (P3d - plane.point));
@@ -386,8 +387,9 @@ void CrossSection::extractCompressParam(const std::vector<yarnIntersect2D> &allP
 void CrossSection::planeIts2world(Plane &plane, vec2f &plane_point, vec3f &world_point) {
 	//Finding 3D coord of a point of the plane having its 2D: inverse of project2plane()
 	vec3f n = plane.normal;
-	vec3f e1 = plane.binormal;
-	vec3f e2 = cross(n, e1);
+	//2D coord would be ratated if we switch the ordering
+	vec3f e2 = plane.binormal;
+	vec3f e1 = cross(n, e2);
 
 	vec3f local(plane_point.x, plane_point.y, 0.f); //as the point exists on the plane
 	//world = [e1 e2 n] * local
@@ -399,28 +401,32 @@ void CrossSection::planeIts2world(Plane &plane, vec2f &plane_point, vec3f &world
 
 }
 
-void CrossSection::extractNormals(std::vector<Ellipse> &ellipses, std::vector<vec3f> &normals) {
-	for (int i = 0; i < m_planesList.size(); ++i) {
-		//rotate plane.e1=[1,0] by theta in the plane to obtain ellipse-short-axis
-		vec2f p2D(cos(ellipses[i].angle), sin(ellipses[i].angle));
-		//now project it to world coord
-		vec3f end3D;
-		planeIts2world(m_planesList[i], p2D, end3D);
-		vec3f start3D = m_planesList[i].point;
-		//note that ellipse center is same as plane.point
-		vec3f normal = end3D - start3D;
-		assert(nv::length(normal) - 1.f < EPS   && "Normal vector is not normalized!");
-		normals.push_back(normal);
+void CrossSection::extractNormals(std::vector<Ellipse> &ellipses, std::vector<vec3f> &normals, const char* pntsFile, const char* normsFile) {
+	FILE *fout1;
+	FILE *fout2;
+	if (fopen_s(&fout1, pntsFile, "wt") == 0) {
+		if (fopen_s(&fout2, normsFile, "wt") == 0) {
+			fprintf_s(fout1, "%d\n", m_planesList.size());
+			fprintf_s(fout2, "%d\n", m_planesList.size());
+			for (int i = 0; i < m_planesList.size(); ++i) {
+				//rotate plane.e1=[1,0] by theta in the plane to obtain ellipse-short-axis
+				vec2f p2D(cos(ellipses[i].angle ), sin(ellipses[i].angle ));
+				//now project it to world coord
+				vec3f end3D;
+				planeIts2world(m_planesList[i], p2D, end3D);
+				vec3f start3D = m_planesList[i].point;
+				//note that ellipse center is same as plane.point
+				vec3f normal = end3D - start3D;
+				assert(nv::length(normal) - 1.f < HERMITE_EPS   && "Normal vector is not normalized!");
+				normals.push_back(normal);
+				fprintf_s(fout1, "%.6f %.6f %.6f \n", m_planesList[i].point.x, m_planesList[i].point.y, m_planesList[i].point.z);
+				fprintf_s(fout2, "%.6f %.6f %.6f \n", normal.x, normal.y, normal.z);
+
+			}
+		}
+		fclose(fout2);
 	}
-	/*
-	//test planeIts2world
-	Plane plane;
-	plane.point = vec3f(1.f,1.f,5.f);
-	plane.normal = vec3f(0, 0, 1.f);
-	vec2f p2(1.f, 1.f);
-	vec3f p3;
-	planeIts2world(plane, p2, p3);
-	std::cout << p3.x << "  " << p3.y << "  " << p3.z << std::endl;*/
+	fclose(fout1);
 }
 
 void CrossSection::yarn2crossSections(std::vector<yarnIntersect2D> &itsLists) {
