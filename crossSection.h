@@ -9,9 +9,10 @@
 #define EPS std::numeric_limits<float>::epsilon()
 
 struct Plane {
-	Plane() : normal(vec3f(0.f)), binormal(vec3f(0.f)), point(vec3f(0.f)) {}
-	vec3f normal;    //spline tangent
-	vec3f binormal;  //spline normal  //TODO: check if this should be spline binormal!
+	Plane() : n(vec3f(0.f)), e1(vec3f(0.f)), e2(vec3f(0.f)), point(vec3f(0.f)) {}
+	vec3f n;		 //spline tangent
+	vec3f e1;		 //long ellipse axis //TODO: check if this should be spline binormal!
+	vec3f e2;		 //short ellipse axis
 	vec3f point;     //plane center
 };
 
@@ -32,13 +33,15 @@ public:
 		init(yarnfile, ply_num, curvefile, subdiv_curve, plane_num);
 	}
 	/* constructor for procedural yarn */
-	CrossSection(const Fiber::Yarn &yarn);
+	CrossSection(const Fiber::Yarn &yarn); //TODO: no need
 	void init (const char* yarnfile, const int ply_num, const char* curvefile, const int subdiv, const int num_planes);
 	void buildPlanes (const int num_planes);
 	/* Intersection between a segment, defined between start to end, with a plane */
 	bool linePlaneIntersection (const vec3f &start, const vec3f &end, const Plane &plane, vec3f &its);
 	/* Intersection between the yarn (multiple plys) and a plane, Results will be stored in a vector< vector<vec3f> >  */
 	bool yarnPlaneIntersection (const Plane &plane, yarnIntersect &itsList);
+	/* find ply-centers by finding the averaging the ply intersections as an array of plyCenters for each cross-sectional plane */
+	void allPlyCenters(std::vector<std::vector<vec3f>> plyCenters);
 	/* Intersection between the yarn and all of the planes */
 	bool allPlanesIntersections (std::vector<yarnIntersect> &itsLists);
 	/* Write 3d points of the cross-sections with all planes to a file */
@@ -68,6 +71,8 @@ public:
 	void deCompressYarn(const std::vector<yarnIntersect2D> &PlaneIts, std::vector<Ellipse> &ellipses, std::vector<yarnIntersect2D> &deCompressPlaneIts);
 	/* get R and theta for ply-centers*/
 	void extractPlyTwist(const std::vector<yarnIntersect2D> &allPlaneIntersect, const char *plyCenterFile);
+	
+
 	/* return m_curve */
 	HermiteCurve get_curve() {
 		return m_curve;

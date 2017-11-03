@@ -9,7 +9,7 @@ void fittingPlyCenter(CrossSection & cs, const char* compressFile, const char* p
 void fittingCompress(CrossSection & cs, const char* compressFile, const char* pntsFile, const char* normsFile);
 
 int main(int argc, const char **argv) {
-#if 0
+#if 1
 
     if ( argc != 3 ) {
         printf("Usage: YarnGeneration [task file] [output file]\n");
@@ -39,11 +39,11 @@ int main(int argc, const char **argv) {
 		if (command == "SIMULATE")
 			yarn.yarn_simulate(plyCenterFILE.c_str());
 		//uncomment if generate yarn without given ply-center
-		//yarn.yarn_simulate();
+			//yarn.yarn_simulate();
 
 		fin >> command >> compressFILE;
-		//if (command == "COMPRESS")
-			//yarn.compress_yarn(compressFILE.c_str());
+		if (command == "COMPRESS")
+			yarn.compress_yarn(compressFILE.c_str());
 
 		fin >> command >> curvePnts >> curveNorms;
 		if (command == "CURVE")
@@ -63,11 +63,13 @@ int main(int argc, const char **argv) {
 	//linePlaneIntersection_test();
 	//yarnPlaneIntersection_test();
 	//bildPlanes_test();
-	allPlanesIntersections_test(); 
+	
+	//allPlanesIntersections_test(); 
 	//project2Plane_test();
 	//write_PlanesIntersections2D_test();
 	//getOrientation_test();
-	//extractCompressParam_test();
+	
+	extractCompressParam_test();
 	
 	//compress_yarn_test();
 	//ply_centers_test();

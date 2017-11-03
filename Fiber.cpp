@@ -311,7 +311,7 @@ namespace Fiber {
 		if (fopen_s(&fout, "../data/plyCenter_proc.txt", "wt") == 0) {
 			for (int step_id = 0; step_id < this->z_step_num; step_id++) {
 				for (int i = 0; i < ply_num; i++) {
-					fprintf_s(fout, "%f %f\n", this->plys[i].fibers[0].vertices[step_id].x, this->plys[i].fibers[0].vertices[step_id].y);
+					fprintf_s(fout, "%.6f %.6f\n", this->plys[i].fibers[0].vertices[step_id].x, this->plys[i].fibers[0].vertices[step_id].y);
 				}
 				fprintf_s(fout, "\n");
 			}
@@ -502,8 +502,8 @@ namespace Fiber {
 	
 		/* use hermite spline multiple segments */
         HermiteCurve curve;
-        //curve.init(pntsFile);
-		curve.init(pntsFile, normsFile);
+        curve.init(pntsFile);
+		//curve.init(pntsFile, normsFile);
 
         double zMin = std::numeric_limits<double>::max(), zMax = std::numeric_limits<double>::lowest();
         for ( const auto &ply : plys )

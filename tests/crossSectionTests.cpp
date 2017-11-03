@@ -10,7 +10,7 @@ void linePlaneIntersection_test() {
 	CrossSection cs(yarnfile, curvefile, 2, 1526, 100);
 
 	Plane plane;
-	plane.normal = vec3f(1, 0, 0);
+	plane.n = vec3f(1, 0, 0);
 	plane.point = vec3f(0, 0, 0);
 	vec3f its(0.f);
 	vec3f start(1, 0, 0);
@@ -31,7 +31,7 @@ void yarnPlaneIntersection_test() {
 	//plane.normal = vec3f(-0.0316426, -0.304221,  0.952076);
 	//plane.point = vec3f(0,0, plane0.point.z);
 
-	std::cout << plane.normal.x << "  " << plane.normal.y << "  " << plane.normal.z << std::endl;
+	std::cout << plane.n.x << "  " << plane.n.y << "  " << plane.n.z << std::endl;
 	std::cout << plane.point.x << "  " << plane.point.y << "  " << plane.point.z << std::endl;
 
 	yarnIntersect itsList;
@@ -64,15 +64,15 @@ void buildPlanes_test() {
 		for (int i = 0; i < num_planes; i++) {
 			Plane plane;
 			cs.get_plane(i, plane);
-			fprintf_s(fout, "%.4lf %.4lf %.4lf \n", plane.normal.x, plane.normal.y, plane.normal.z);
+			fprintf_s(fout, "%.4lf %.4lf %.4lf \n", plane.n.x, plane.n.y, plane.n.z);
 		}
 		fclose(fout);
 	}
 }
 
 void allPlanesIntersections_test() {
-	const char* yarnfile = "genYarn.txt"; //For procedural yarn
-	//const char* yarnfile = "frame00001_scaled.txt"; //For simulated yarn
+	//const char* yarnfile = "genYarn.txt"; //For procedural yarn
+	const char* yarnfile = "frame00029_scaled.txt"; //For simulated yarn
 	const char* curvefile = "frame00029_avg.txt"; 
 	CrossSection cs(yarnfile, curvefile, 2, 1526, 100);
 	std::vector<yarnIntersect> itsLists;
@@ -142,8 +142,8 @@ void write_PlanesIntersections2D_test() {
 }
 
 void getOrientation_test() {
-	const char* yarnfile = "gen_yarn_f1.txt"; //For procedural yarn
-	//const char* yarnfile = "frame00001_scaled.txt"; //For simulated yarn
+	//const char* yarnfile = "gen_yarn_f1.txt"; //For procedural yarn
+	const char* yarnfile = "frame00001_scaled.txt"; //For simulated yarn
 	const char* curvefile = "frame00001_avg.txt";
 	CrossSection cs(yarnfile, curvefile, 2, 1526, 100);
 	std::vector<yarnIntersect> itsLists;
@@ -173,8 +173,9 @@ void extractCompressParam_test() {
 	 write avg of each ply */
 	/* ply-center procedural:
 	read generated-yarn and write fiber[0] */
-	const char* yarnfile = "genYarn.txt"; //For procedural yarn
-	//const char* yarnfile = "frame00029_scaled.txt"; //For simulated yarn
+
+	//const char* yarnfile = "genYarn.txt"; //For procedural yarn
+	const char* yarnfile = "frame00029_scaled.txt"; //For simulated yarn
 	const char* curvefile = "frame00029_avg.txt";
 	CrossSection cs(yarnfile, curvefile, 2, 1526, 100);
 	std::vector<yarnIntersect> itsLists;
@@ -186,9 +187,9 @@ void extractCompressParam_test() {
 	cs.extractCompressParam(allPlaneIntersect, ellipses, "compress.txt");
 
 	// Decompress simulated yarn
-	//std::vector<yarnIntersect2D> deCompressPlaneIntersect;
-	//cs.deCompressYarn(allPlaneIntersect, ellipses, deCompressPlaneIntersect);
-	//allPlaneIntersect = deCompressPlaneIntersect;
+	std::vector<yarnIntersect2D> deCompressPlaneIntersect;
+	cs.deCompressYarn(allPlaneIntersect, ellipses, deCompressPlaneIntersect);
+	allPlaneIntersect = deCompressPlaneIntersect;
 
 	//write ellipses to file for testing
 	// NOTE: don't rewrite for the procedural case, use simulated compress parameters to validate the compression
@@ -217,8 +218,8 @@ void extractCompressParam_test() {
 					plyCenter += allPlaneIntersect[i][p][j];
 				}
 				plyCenter /= allPlaneIntersect[i][p].size();
-				//fprintf_s(fout, "plyCenter: %.4lf %.4lf \n", plyCenter.x, plyCenter.y); // ******* simulated **********
-				fprintf_s(fout, "plyCenter: %.4lf %.4lf \n", allPlaneIntersect[i][p][0].x, allPlaneIntersect[i][p][0].y); // ****** Procedural ********
+				fprintf_s(fout, "plyCenter: %.4lf %.4lf \n", plyCenter.x, plyCenter.y); // ******* simulated **********
+				//fprintf_s(fout, "plyCenter: %.4lf %.4lf \n", allPlaneIntersect[i][p][0].x, allPlaneIntersect[i][p][0].y); // ****** Procedural ********
 				for (int j = 0; j < allPlaneIntersect[i][p].size(); ++j) { //number of intersections
 					fprintf_s(fout, "%.4f %.4f \n", allPlaneIntersect[i][p][j].x, allPlaneIntersect[i][p][j].y);
 				}
@@ -327,7 +328,7 @@ void extractNormals()
 				cs.get_plane(i, plane);
 				if (i % 10 == 0) {
 					fprintf_s(fout, "%.4lf %.4lf %.4lf ", plane.point.x, plane.point.y, plane.point.z); //curve point
-					fprintf_s(fout, "%.4lf %.4lf %.4lf ", plane.normal.x, plane.normal.y, plane.normal.z); //curve tang
+					fprintf_s(fout, "%.4lf %.4lf %.4lf ", plane.n.x, plane.n.y, plane.n.z); //curve tang
 					fprintf_s(fout, "%.4lf %.4lf %.4lf\n", normals[i].x, normals[i].y, normals[i].z); //curve normal: read from file
 				}
 			}

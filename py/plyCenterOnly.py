@@ -13,7 +13,8 @@ with open('../genYarn.txt', 'r') as fin:
     for i in range(0, fiber_num): 
 
         vrtx_num = int(fin.readline())
-        fiber = np.zeros((199, 3)) #between 700 to 900
+        #fiber = np.zeros((199, 3)) #between 700 to 900
+        fiber = np.zeros((199, 3)) 
         cnt = 0
         for j in range(0, vrtx_num): 
 #        for j in range(vrtx_num/4, vrtx_num*3/4):               

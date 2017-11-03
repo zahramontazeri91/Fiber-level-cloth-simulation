@@ -1,13 +1,14 @@
 #include "CrossSection.h"
 
-CrossSection::CrossSection(const Fiber::Yarn &yarn) {
+CrossSection::CrossSection(const Fiber::Yarn &yarn) { /// TODO: no need to this
 	m_yarn = yarn;
 	m_planesList.resize(yarn.getStepNum());
 	for (int step_id = 0; step_id < m_planesList.size(); step_id++) {
 		const float z = yarn.getStepSize() * (step_id - yarn.getStepNum() / 2.f); // devided by 2 Bcuz yarn lies between neg and pos z
 		m_planesList[step_id].point = vec3f(0.f, 0.f, z);
-		m_planesList[step_id].normal = vec3f(0.f, 0.f, 1.f); //always parallel to xy plane
-		m_planesList[step_id].binormal = vec3f(1.f, 0.f, 0.f);
+		m_planesList[step_id].n = vec3f(0.f, 0.f, 1.f); //always parallel to xy plane
+		m_planesList[step_id].e1 = vec3f(1.f, 0.f, 0.f);
+		m_planesList[step_id].e2 = vec3f(0.f, 1.f, 0.f);
 	}
 	// no need to initialize m_curve since we already have the cross-section planes
 }
@@ -23,27 +24,39 @@ void CrossSection::buildPlanes(const int num_planes) {
 	const double curveLen = m_curve.totalLength();
 	const double crossSectionLen = curveLen / static_cast<double>(num_planes - 1); //place plane at the very ends as well
 	const double crossSection_t = m_curve.arcLengthInvApprox(crossSectionLen);
+	m_planesList.resize(num_planes);
 	for (int i = 0; i < num_planes; ++i) {
 		Eigen::Vector3d curve_p = m_curve.eval(i * crossSection_t);
 		Eigen::Vector3d curve_t = m_curve.evalTangent(i * crossSection_t);
-		Eigen::Vector3d curve_n = m_curve.evalNormal(i * crossSection_t);
-		Eigen::Vector3d curve_b = curve_t.cross(curve_n); //need binormal of the plane to project 3D point on the plane
-		Plane plane;
-		plane.point = vec3f(curve_p[0], curve_p[1], curve_p[2]);
-		plane.normal = vec3f(curve_t[0], curve_t[1], curve_t[2]);
-		plane.binormal = vec3f(curve_b[0], curve_b[1], curve_b[2]);
-		m_planesList.push_back(plane);
-		//std::cout << "plane point: " << plane.point.x << "  " << plane.point.y << "  " << plane.point.z << std::endl;
+		/* need binormal and normal of the plane to project 3D points on the plane */
+		Eigen::Vector3d curve_n = m_curve.evalNormal(i * crossSection_t); //short axis
+		Eigen::Vector3d curve_b = curve_t.cross(curve_n); //long axis
+		m_planesList[i].point = vec3f(curve_p[0], curve_p[1], curve_p[2]);
+		m_planesList[i].n     = vec3f(curve_t[0], curve_t[1], curve_t[2]);
+		m_planesList[i].e1    = vec3f(curve_b[0], curve_b[1], curve_b[2]);
+		m_planesList[i].e2 = cross(m_planesList[i].n, m_planesList[i].e1);
+
+		assert(dot(m_planesList[i].n, m_planesList[i].e1) < EPS);
+		//assert(dot(plane.n, plane.e2) < EPS);
+		//assert(dot(plane.e1, plane.e2) < EPS);
 	}
+
+	std::vector<std::vector<vec3f>> plyCenters;
+	allPlyCenters(plyCenters);
+	// Define inplane 2D coord using the direction from yarn-center to intersection of first ply-center 
+	//for (int i = 0; i < num_planes; ++i) {
+		
+	//}
+
 }
 
 
 bool CrossSection::linePlaneIntersection(const vec3f &start, const vec3f &end, const Plane &plane, vec3f &its) {
 	vec3f dir = end - start;
-	if (!dot(dir, (plane.normal)))
+	if (!dot(dir, (plane.n)))
 		return false;
 
-	const double t = dot(plane.normal, (plane.point - start)) / dot(plane.normal, dir);
+	const double t = dot(plane.n, (plane.point - start)) / dot(plane.n, dir);
 	vec3f hit = start + t*dir;
 	// return only if it's within the segment
 	if (t <= 1.0 && t >= 0.0) {
@@ -58,7 +71,7 @@ bool CrossSection::yarnPlaneIntersection(const Plane &plane, yarnIntersect &itsL
 	const int ply_num = m_yarn.plys.size();
 	itsList.resize(ply_num);
 
-	assert( nv::length(plane.normal) - 1.f < EPS   && "normal vector is not normalized!" );
+	assert( nv::length(plane.n) - 1.f < EPS   && "normal vector is not normalized!" );
 
 	const int num_of_cores = omp_get_num_procs();
 #pragma omp parallel for num_threads(num_of_cores)
@@ -114,6 +127,36 @@ bool CrossSection::allPlanesIntersections(std::vector<yarnIntersect> &itsLists) 
 	return false;
 }
 
+void CrossSection::allPlyCenters(std::vector<std::vector<vec3f>> plyCenters) {
+
+	std::vector<yarnIntersect> itsLists;
+	allPlanesIntersections(itsLists);
+
+	const int plane_num = itsLists.size();
+	plyCenters.resize(plane_num); //number of planes
+	for (int i = 0; i < plane_num; ++i) { //plane num
+		const int ply_num = itsLists[i].size();
+		plyCenters[i].resize(ply_num);
+		for (int p = 0; p < ply_num; ++p) { //ply num
+			const int fiber_num = itsLists[i][p].size();
+			for (int v = 0; v < fiber_num; ++v) { // fiber-centers num
+				plyCenters[i][p] += itsLists[i][p][v];
+			}
+			plyCenters[i][p] /= fiber_num;
+		}
+	}
+
+	//for testing:
+	/*FILE *fout;
+	if (fopen_s(&fout, "../data/test_plyCenter.txt", "wt") == 0) {
+		fprintf_s(fout, "%d\n", plane_num);
+		for (int i = 0; i < plane_num; ++i) {
+			fprintf_s(fout, "%.4f %.4f %.4f \n", plyCenters[i][0].x, plyCenters[i][0].y, plyCenters[i][0].z);
+		}
+		fclose(fout);
+	}*/
+}
+
 void CrossSection::write_PlanesIntersections3D(const char* filename, std::vector<yarnIntersect> &itsLists) {
 
 	assert(m_planesList.size() == itsLists.size() );
@@ -147,11 +190,12 @@ void CrossSection::write_PlanesIntersections3D(const char* filename, std::vector
 }
 
 void CrossSection::project2Plane (const vec3f& P3d, const Plane& plane, vec2f& P2d) {
-	vec3f n = plane.normal;
-	vec3f e2 = plane.binormal;
-	vec3f e1 = cross(n, e2);
+	vec3f n = plane.n;
+	vec3f e1 = plane.e1;
+	vec3f e2 = plane.e2;
 
 	assert(nv::length(n) - 1.f < EPS   && "Normal vector is not normalized!");
+	assert(dot(n, e1) < EPS);
 	assert(dot(n, e2) < EPS);
 
 	P2d.x = dot(e1, (P3d -  plane.point));
@@ -386,10 +430,10 @@ void CrossSection::extractCompressParam(const std::vector<yarnIntersect2D> &allP
 
 void CrossSection::planeIts2world(Plane &plane, vec2f &plane_point, vec3f &world_point) {
 	//Finding 3D coord of a point of the plane having its 2D: inverse of project2plane()
-	vec3f n = plane.normal;
+	vec3f n = plane.n;
 	//2D coord would be ratated if we switch the ordering
-	vec3f e2 = plane.binormal;
-	vec3f e1 = cross(n, e2);
+	vec3f e1 = plane.e1;
+	vec3f e2 = plane.e2;
 
 	vec3f local(plane_point.x, plane_point.y, 0.f); //as the point exists on the plane
 	//world = [e1 e2 n] * local
@@ -505,8 +549,18 @@ void CrossSection::extractPlyTwist(const std::vector<yarnIntersect2D> &allPlaneI
 			}
 			plyCntr /= static_cast<float>(allPlaneIntersect[i][p].size());
 			//vec2f plyVec = plyCntr - yarnCntr;
-			
-			fout << plyCntr.x << " " << plyCntr.y << '\n';
+
+			/* transform plyCenters in e1-e2 coord to xy plane */
+			// project e1 to ex, and e2 to ey with no translation
+			vec3f n = m_planesList[i].n;
+			vec3f e1 = m_planesList[i].e1;
+			vec3f e2 = m_planesList[i].e2;
+			vec2f plyCntr_rot(0.f);
+			plyCntr_rot.x = dot(vec2f(e1.x, e2.x), plyCntr);
+			plyCntr_rot.y = dot(vec2f(e1.y, e2.y), plyCntr);
+
+
+			fout << plyCntr_rot.x << " " << plyCntr_rot.y << '\n';
 			
 			//float radius = std::sqrt ( std::pow(plyVec.x, 2.0) + std::pow(plyVec.y, 2.0) );
 			//float theta = atan2(plyVec.y, plyVec.x) - 2 * pi * static_cast<float>(i) / allPlaneIntersect.size();
