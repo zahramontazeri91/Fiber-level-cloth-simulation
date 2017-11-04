@@ -61,10 +61,6 @@ public:
 	void extractCompressParam(const std::vector<yarnIntersect2D> &allPlaneIntersect, std::vector<Ellipse> &ellipses, const char* filename);
 	/* Extract normal vectors for the curve using fitted ellipse for each plane intersection */
 	void extractNormals(std::vector<Ellipse> &ellipses, std::vector<vec3f> &normals, const char* pntsFile, const char* normsFile);
-	/* Given a ellipse, find the minimum area ellipse that covers 95% of fiber centers (search around the given ellipse) */
-	void CrossSection::minAreaEllipse(const yarnIntersect2D &pts, const Ellipse &ellipse, Ellipse &minEllipse);
-	/* Given a yarn dataStructure, transform it to a vector of cross-sections */
-	void yarn2crossSections(std::vector<yarnIntersect2D> &itsLists);
 	/* de-compress simulated yarn */
 	void deCompressYarn(const std::vector<yarnIntersect2D> &PlaneIts, std::vector<Ellipse> &ellipses, std::vector<yarnIntersect2D> &deCompressPlaneIts);
 	/* get R and theta for ply-centers*/

@@ -153,8 +153,8 @@ void write_PlanesIntersections2D_test() {
 
 void getOrientation_test() {
 	//const char* yarnfile = "gen_yarn_f1.txt"; //For procedural yarn
-	const char* yarnfile = "frame00001_scaled.txt"; //For simulated yarn
-	const char* curvefile = "frame00001_avg.txt";
+	const char* yarnfile = "frame00029scaled.txt"; //For simulated yarn
+	const char* curvefile = "frame00029avg.txt";
 	CrossSection cs(yarnfile, curvefile, 2, 1526, 100);
 	std::vector<yarnIntersect> itsLists;
 	cs.allPlanesIntersections(itsLists);
@@ -197,18 +197,21 @@ void extractCompressParam_test() {
 	cs.extractCompressParam(allPlaneIntersect, ellipses, "compress.txt");
 
 	// Decompress simulated yarn
-	std::vector<yarnIntersect2D> deCompressPlaneIntersect;
-	cs.deCompressYarn(allPlaneIntersect, ellipses, deCompressPlaneIntersect);
-	allPlaneIntersect = deCompressPlaneIntersect;
+	//std::vector<yarnIntersect2D> deCompressPlaneIntersect;
+	//cs.deCompressYarn(allPlaneIntersect, ellipses, deCompressPlaneIntersect);
+	//allPlaneIntersect = deCompressPlaneIntersect;
 
 	//write ellipses to file for testing
 	// NOTE: don't rewrite for the procedural case, use simulated compress parameters to validate the compression
 	FILE *fout;
 	if (fopen_s(&fout, "../data/orientation.txt", "wt") == 0 ) {
 		for (int i = 0; i < ellipses.size(); ++i) {
+			if (i == 54 || i == 59)
+				std::cout << i << "  " << ellipses[i].angle << std::endl;
+
 			fprintf_s(fout, "%.4f %.4f \n", ellipses[i].center.x, ellipses[i].center.y);
-			//fprintf_s(fout, "%.4f %.4f %.4f \n", ellipses[i].longR, ellipses[i].shortR, ellipses[i].angle);
-			fprintf_s(fout, "%.4f %.4f %.4f \n", 0.0286676, 0.0286676, ellipses[i].angle);
+			fprintf_s(fout, "%.4f %.4f %.4f \n", ellipses[i].longR, ellipses[i].shortR, ellipses[i].angle);
+			//fprintf_s(fout, "%.4f %.4f %.4f \n", 0.0286676, 0.0286676, ellipses[i].angle);
 			fprintf_s(fout, "\n");
 		}
 		fclose(fout);

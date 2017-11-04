@@ -37,8 +37,8 @@ with open('../../data/allCrossSection2D.txt', 'r') as fin:
             ax = plt.subplot(111, aspect='equal')
             #angle = angle,
             ell = Ellipse((float(cntr[0]),float(cntr[1])), 
-                          2*0.0286676, 2*0.0286676, alpha=0.3, 
-                          facecolor = 'yellow' )  
+                          width, height, angle = angle, 
+                          alpha=0.3, facecolor = 'yellow' )  
             ax.add_artist(ell)
             
             for p in range(0,ply_num):    

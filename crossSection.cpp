@@ -304,7 +304,6 @@ void CrossSection::fitEllipse(const yarnIntersect2D &pts, Ellipse &ellipse)
 	int c = data_pts.rows;
 	for (int p = 0; p < pts.size(); ++p) {
 		for (int i = 0; i < pts[p].size(); ++i) {
-
 			data_pts.at<float>(c, 0) = pts[p][i].x;
 			data_pts.at<float>(c, 1) = pts[p][i].y;
 			--c;
@@ -340,16 +339,27 @@ void CrossSection::fitEllipse(const yarnIntersect2D &pts, Ellipse &ellipse)
 			max1 = std::abs(prj1);
 	}
 	// TODO: find the eigen values using eigen vectors
-	eigen_val[0] = std::max(max0,max1); //TODO
+	eigen_val[0] = std::max(max0,max1);
 	eigen_val[1] = std::min(max1,max0);
 
 	vec2f p1 = ellipse.center + vec2f(eigen_vecs[0].x * eigen_val[0], eigen_vecs[0].y * eigen_val[0]);
 	vec2f p2 = ellipse.center - vec2f(eigen_vecs[1].x * eigen_val[1], eigen_vecs[1].y * eigen_val[1]);
+	//to map angle between -pi/2 to pi/2
 	ellipse.angle = atan2(eigen_vecs[0].y, eigen_vecs[0].x); // orientation in radians
+
+	if (std::abs(ellipse.angle) > pi/2.f) { 
+		if (ellipse.angle < 0) 
+			ellipse.angle = pi - std::abs(ellipse.angle) ;
+		else 
+			ellipse.angle = ellipse.angle - pi;
+	}
+
 	ellipse.longR = length(p1 - ellipse.center);
 	ellipse.shortR = length(p2 - ellipse.center);
 }
 
+#if 0
+/* Given a ellipse, find the minimum area ellipse that covers 95% of fiber centers (search around the given ellipse) */
 void CrossSection::minAreaEllipse(const yarnIntersect2D &pts, const Ellipse &ellipse, Ellipse &minEllipse) {
 	//Find the total number of points for all plys
 	int sz = 0;
@@ -420,8 +430,9 @@ void CrossSection::minAreaEllipse(const yarnIntersect2D &pts, const Ellipse &ell
 		minEllipse.longR = Rx;
 	assert(minEllipse.shortR && "Ellipse length is zero");
 	assert(minEllipse.longR && "Ellipse length is zero");
-
 }
+#endif
+
 void CrossSection::extractCompressParam(const std::vector<yarnIntersect2D> &allPlaneIntersect, std::vector<Ellipse> &ellipses, const char* compressFile) {
 
 	for (int i = 0; i < allPlaneIntersect.size(); ++i)
@@ -429,14 +440,13 @@ void CrossSection::extractCompressParam(const std::vector<yarnIntersect2D> &allP
 		Ellipse ell;
 		fitEllipse(allPlaneIntersect[i], ell);
 		
-		Ellipse minEll;
-		minAreaEllipse(allPlaneIntersect[i], ell, minEll);
+		//Ellipse minEll;
+		//minAreaEllipse(allPlaneIntersect[i], ell, minEll);
 		
 		ellipses.push_back(ell);
 	}
 
 	//write to compress.txt (a, b , alpha)
-
 	FILE * fout;
 	if (fopen_s(&fout, compressFile, "wt") == 0) {
 		fprintf_s(fout, "%d \n", allPlaneIntersect.size());
@@ -453,18 +463,16 @@ void CrossSection::extractCompressParam(const std::vector<yarnIntersect2D> &allP
 void CrossSection::planeIts2world(Plane &plane, vec2f &plane_point, vec3f &world_point) {
 	//Finding 3D coord of a point of the plane having its 2D: inverse of project2plane()
 	vec3f n = plane.n;
-	//2D coord would be ratated if we switch the ordering
 	vec3f e1 = plane.e1;
 	vec3f e2 = plane.e2;
 
 	vec3f local(plane_point.x, plane_point.y, 0.f); //as the point exists on the plane
-	//world = [e1 e2 n] * local
-	//local = [e1; e2; n] * world
+	/*world = [e1 e2 n] * local
+	local = [e1; e2; n] * world*/
 	world_point.x = dot(vec3f(e1.x, e2.x, n.x), local) + plane.point.x;
 	world_point.y = dot(vec3f(e1.y, e2.y, n.y), local) + plane.point.y;
 	world_point.z = dot(vec3f(e1.z, e2.z, n.z), local) + plane.point.z;
 	//note that order of the axis matches with the project2plane()
-
 }
 
 void CrossSection::extractNormals(std::vector<Ellipse> &ellipses, std::vector<vec3f> &normals, const char* pntsFile, const char* normsFile) {
@@ -495,6 +503,8 @@ void CrossSection::extractNormals(std::vector<Ellipse> &ellipses, std::vector<ve
 	fclose(fout1);
 }
 
+#if 0
+/* Given a yarn dataStructure, transform it to a vector of cross-sections */
 void CrossSection::yarn2crossSections(std::vector<yarnIntersect2D> &itsLists) {
 	//first initialize the vectors
 	itsLists.resize(m_planesList.size());
@@ -512,6 +522,7 @@ void CrossSection::yarn2crossSections(std::vector<yarnIntersect2D> &itsLists) {
 		}
 	}
 }
+#endif 
 
 void CrossSection::deCompressYarn(const std::vector<yarnIntersect2D> &planeIts, std::vector<Ellipse> &ellipses, std::vector<yarnIntersect2D> &deCompressPlaneIts) {
 	deCompressPlaneIts.resize(planeIts.size() );
@@ -526,12 +537,11 @@ void CrossSection::deCompressYarn(const std::vector<yarnIntersect2D> &planeIts, 
 				vec2f its = planeIts[i][p][v];
 
 				const float ellipse_long = ellipses[i].longR;
-				const float ellipse_short = ellipses[i].shortR;
-				
+				const float ellipse_short = ellipses[i].shortR;			
 				const float theta = ellipses[i].angle;
 
 				// rotate points by neg theta
-				vec2f rot_axis_x(1.f, 0.f), rot_axis_y(0.f, 1.f);   //rotated the axis by -theta
+				vec2f rot_axis_x(1.f, 0.f), rot_axis_y(0.f, 1.f);  
 				//vec2f rot_axis_x = rot2D(axis_x, -1.f * theta);
 				//vec2f rot_axis_y = rot2D(axis_y, -1.f * theta);
 				//assert(nv::dot(rot_axis_x, rot_axis_y) == 0);

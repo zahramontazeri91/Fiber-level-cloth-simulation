@@ -66,10 +66,10 @@ int main(int argc, const char **argv) {
 	
 	//allPlanesIntersections_test(); 
 	//project2Plane_test();
-	write_PlanesIntersections2D_test();
+	//write_PlanesIntersections2D_test();
 	//getOrientation_test();
 	
-	//extractCompressParam_test();
+	extractCompressParam_test();
 	
 	//compress_yarn_test();
 	//ply_centers_test();
@@ -106,6 +106,7 @@ void fittingPlyCenter(CrossSection & cs, const char* compressFile, const char* p
 	//TODO: move cs to main() and only pass it to these two functions
 	std::vector<Ellipse> ellipses;
 	cs.extractCompressParam(allPlaneIntersect, ellipses, compressFile);
+
 	// Decompress simulated yarn
 	std::vector<yarnIntersect2D> deCompressPlaneIntersect;
 	cs.deCompressYarn(allPlaneIntersect, ellipses, deCompressPlaneIntersect);
