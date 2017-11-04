@@ -197,9 +197,9 @@ void extractCompressParam_test() {
 	cs.extractCompressParam(allPlaneIntersect, ellipses, "compress.txt");
 
 	// Decompress simulated yarn
-	//std::vector<yarnIntersect2D> deCompressPlaneIntersect;
-	//cs.deCompressYarn(allPlaneIntersect, ellipses, deCompressPlaneIntersect);
-	//allPlaneIntersect = deCompressPlaneIntersect;
+	std::vector<yarnIntersect2D> deCompressPlaneIntersect;
+	cs.deCompressYarn(allPlaneIntersect, ellipses, deCompressPlaneIntersect);
+	allPlaneIntersect = deCompressPlaneIntersect;
 
 	//write ellipses to file for testing
 	// NOTE: don't rewrite for the procedural case, use simulated compress parameters to validate the compression

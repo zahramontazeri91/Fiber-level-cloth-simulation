@@ -346,14 +346,12 @@ void CrossSection::fitEllipse(const yarnIntersect2D &pts, Ellipse &ellipse)
 	vec2f p2 = ellipse.center - vec2f(eigen_vecs[1].x * eigen_val[1], eigen_vecs[1].y * eigen_val[1]);
 	//to map angle between -pi/2 to pi/2
 	ellipse.angle = atan2(eigen_vecs[0].y, eigen_vecs[0].x); // orientation in radians
-
 	if (std::abs(ellipse.angle) > pi/2.f) { 
 		if (ellipse.angle < 0) 
 			ellipse.angle = pi - std::abs(ellipse.angle) ;
 		else 
 			ellipse.angle = ellipse.angle - pi;
 	}
-
 	ellipse.longR = length(p1 - ellipse.center);
 	ellipse.shortR = length(p2 - ellipse.center);
 }
@@ -538,24 +536,38 @@ void CrossSection::deCompressYarn(const std::vector<yarnIntersect2D> &planeIts, 
 
 				const float ellipse_long = ellipses[i].longR;
 				const float ellipse_short = ellipses[i].shortR;			
-				const float theta = ellipses[i].angle;
+				const float ellipse_theta = ellipses[i].angle;
 
-				// rotate points by neg theta
-				vec2f rot_axis_x(1.f, 0.f), rot_axis_y(0.f, 1.f);  
-				//vec2f rot_axis_x = rot2D(axis_x, -1.f * theta);
-				//vec2f rot_axis_y = rot2D(axis_y, -1.f * theta);
-				//assert(nv::dot(rot_axis_x, rot_axis_y) == 0);
-				float _p_x = nv::dot(vec2f(its.x, its.y), rot_axis_x);
-				float _p_y = nv::dot(vec2f(its.x, its.y), rot_axis_y);
+				//obtain ellipse axis
+				const vec2f ellipse_axis_long = vec2f(cos(ellipse_theta), sin(ellipse_theta));
+				const vec2f ellipse_axis_short = vec2f(-sin(ellipse_theta), cos(ellipse_theta));
+				//project points on ellipse axis
+				float _p_long = nv::dot(its, ellipse_axis_long);
+				float _p_short = nv::dot(its, ellipse_axis_short);
+				//apply the decompression
+				_p_long *= 0.0286676 / ellipse_long;
+				_p_short *= 0.0286676 / ellipse_short;
+				vec2f _p_ellipse(_p_long, _p_short);
+				//go back to e1-e2 space from ellipse space
+				float _p_x = nv::dot(vec2f(ellipse_axis_long.x, ellipse_axis_short.x), _p_ellipse);
+				float _p_y = nv::dot(vec2f(ellipse_axis_long.y, ellipse_axis_short.y), _p_ellipse);
 
-				// scale the shape of cross section
-				// TODO: scale to yarn.radius()
-				_p_x *= 0.0286676 / ellipse_long;
-				_p_y *= 0.0286676 / ellipse_short;
+				//// rotate points by neg theta
+				//vec2f rot_axis_x(1.f, 0.f), rot_axis_y(0.f, 1.f);  
+				////vec2f rot_axis_x = rot2D(axis_x, -1.f * theta);
+				////vec2f rot_axis_y = rot2D(axis_y, -1.f * theta);
+				////assert(nv::dot(rot_axis_x, rot_axis_y) == 0);
+				//float _p_x = nv::dot(vec2f(its.x, its.y), rot_axis_x);
+				//float _p_y = nv::dot(vec2f(its.x, its.y), rot_axis_y);
 
-				vec2f new_p = _p_x * rot_axis_x + _p_y * rot_axis_y;
+				//// scale the shape of cross section
+				//// TODO: scale to yarn.radius()
+				//_p_x *= 0.0286676 / ellipse_long;
+				//_p_y *= 0.0286676 / ellipse_short;
 
-				deCompressPlaneIts[i][p][v] = vec2f(new_p.x, new_p.y);
+				//vec2f new_p = _p_x * rot_axis_x + _p_y * rot_axis_y;
+
+				deCompressPlaneIts[i][p][v] = vec2f(_p_x, _p_y);
 			}
 		}
 	}
