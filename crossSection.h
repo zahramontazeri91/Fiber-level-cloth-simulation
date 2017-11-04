@@ -31,9 +31,8 @@ public:
 	/* constructor for simulated yarn */
 	CrossSection(const char* yarnfile, const char* curvefile, int ply_num, int plane_num, int subdiv_curve) {
 		init(yarnfile, ply_num, curvefile, subdiv_curve, plane_num);
-	}
-	/* constructor for procedural yarn */
-	CrossSection(const Fiber::Yarn &yarn); //TODO: no need
+	}	
+
 	void init (const char* yarnfile, const int ply_num, const char* curvefile, const int subdiv, const int num_planes);
 	void buildPlanes (const int num_planes);
 	/* Intersection between a segment, defined between start to end, with a plane */
@@ -41,7 +40,7 @@ public:
 	/* Intersection between the yarn (multiple plys) and a plane, Results will be stored in a vector< vector<vec3f> >  */
 	bool yarnPlaneIntersection (const Plane &plane, yarnIntersect &itsList);
 	/* find ply-centers by finding the averaging the ply intersections as an array of plyCenters for each cross-sectional plane */
-	void allPlyCenters(std::vector<std::vector<vec3f>> plyCenters);
+	void allPlyCenters(std::vector<std::vector<vec3f>> &plyCenters);
 	/* Intersection between the yarn and all of the planes */
 	bool allPlanesIntersections (std::vector<yarnIntersect> &itsLists);
 	/* Write 3d points of the cross-sections with all planes to a file */
@@ -58,7 +57,6 @@ public:
 	}
 	/* For 2D points gathered as an ellipse, return eigen values and eigen vectors in ellipse format */
 	void fitEllipse(const yarnIntersect2D &pts, Ellipse &ellipse);
-	void fitCircle(const yarnIntersect2D &pts, float &radius);
 	/* Get ellipse a, b and angle for each cross-section and write it to the file */
 	void extractCompressParam(const std::vector<yarnIntersect2D> &allPlaneIntersect, std::vector<Ellipse> &ellipses, const char* filename);
 	/* Extract normal vectors for the curve using fitted ellipse for each plane intersection */

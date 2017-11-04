@@ -10,8 +10,8 @@ ax = fig.gca(projection='3d')
 #ax.set_aspect('equal')
 
 # data = np.loadtxt('../junk_single.txt')
-data = np.loadtxt('../../data/junk_multiple.txt')
-
+data = np.loadtxt('../../data/test_planeCoord.txt')
+#cntr.x cntr.y cntr.z tg.x tg.y tg.z norm.x norm.y norm.z
 
 n = data.shape[0]
 L = 0.25
@@ -57,7 +57,7 @@ blue = mpatches.Patch(color='blue', label='normals')
 green = mpatches.Patch(color='green', label='binormals')
 
 plt.legend(handles=[red, green, blue],prop={'size': 15}) 
-ax.view_init(azim=-30., elev=10)
+ax.view_init(azim=0., elev=0)
 plt.xlim(-.5,.5)
 plt.ylim(-.5,.5)
 plt.savefig("../../data/vis_crossSections/frame29_hermite.png" )

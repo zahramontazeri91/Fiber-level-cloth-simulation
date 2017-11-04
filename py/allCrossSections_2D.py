@@ -46,12 +46,16 @@ with open('../../data/allCrossSection2D.txt', 'r') as fin:
                 X = []
                 Y = []
                 c = "C" + str(p)
+                if p==0: 
+                    centerColor = 'black'
+                else:
+                    centerColor = 'red'
                 plyCenter = fin.readline().split() 
-                #plt.scatter(plyCenter[1], plyCenter[2], alpha=0.8, color = 'red', zorder=200)
+                plt.scatter(plyCenter[1], plyCenter[2], alpha=0.8, color = centerColor, zorder=200)
                 for j in range(0, its_num):
                     pos = [float(val) for val in fin.readline().strip().split(' ')]                
-                    if j==0:
-                        plt.scatter(pos[0],pos[1], alpha=0.8, color = 'r',zorder=200) # first fiber for each ply is the ply-center
+                    #if j==0:
+                        #plt.scatter(pos[0],pos[1], alpha=0.8, color = 'r',zorder=200) # first fiber for each ply is the ply-center
                     #else:
                     X.append(pos[0])
                     Y.append(pos[1])

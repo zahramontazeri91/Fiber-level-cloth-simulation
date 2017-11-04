@@ -5,7 +5,8 @@
 using namespace std;
 
 void linePlaneIntersection_test() {
-	const char* yarnfile = "genYarn_1.txt";
+
+	const char* yarnfile = "genYarn.txt";
 	const char* curvefile = "frame00029_avg.txt";
 	CrossSection cs(yarnfile, curvefile, 2, 1526, 100);
 
@@ -13,10 +14,10 @@ void linePlaneIntersection_test() {
 	plane.n = vec3f(1, 0, 0);
 	plane.point = vec3f(0, 0, 0);
 	vec3f its(0.f);
-	vec3f start(1, 0, 0);
+	vec3f start(1, 2, 0);
 	vec3f end(-1, 0, 0);
 	bool a = cs.linePlaneIntersection(start, end, plane, its);
-	std::cout << " Intersection: " << a << "  " << its << std::endl;
+	std::cout << " Intersection: " << a << "  " << its.x << " " << its.y << " " << its.z << std::endl;
 }
 
 void yarnPlaneIntersection_test() {
@@ -101,11 +102,16 @@ void project2Plane_test() {
 void write_PlanesIntersections2D_test() {
 	const char* yarnfile = "genYarn.txt"; //For procedural yarn
 	//const char* yarnfile = "frame00029_scaled.txt"; //For simulated yarn
-	const char* curvefile = "frame00001_avg.txt"; 
+	const char* curvefile = "frame00029_avg.txt"; 
 	CrossSection cs(yarnfile, curvefile, 2, 1526, 100);
+
 	std::vector<yarnIntersect> itsLists;
 	cs.allPlanesIntersections(itsLists);
 	std::cout << "intersections lists size: " << itsLists.size() << std::endl;
+
+	//std::vector<yarnIntersect2D> deCompressPlaneIntersect;
+	//cs.deCompressYarn(allPlaneIntersect, ellipses, deCompressPlaneIntersect);
+	//allPlaneIntersect = deCompressPlaneIntersect;
 
 	std::vector<yarnIntersect2D> allPlaneIntersect;
 	cs.PlanesIntersections2D(itsLists, allPlaneIntersect);
@@ -114,10 +120,14 @@ void write_PlanesIntersections2D_test() {
 	//write the 2D intersections for tetsting
 	FILE *fout;
 	if (fopen_s(&fout, "../data/allCrossSection2D.txt", "wt") == 0) {
-		fprintf_s(fout, "plane_num: %d \n", allPlaneIntersect.size());
+
+		const int ignorPlanes = 0.1 * allPlaneIntersect.size(); // crop the first and last 10% of the yarn
+		fprintf_s(fout, "plane_num: %d \n", allPlaneIntersect.size() - 2 * ignorPlanes);
 		fprintf_s(fout, "ply_num: %d \n", allPlaneIntersect[0].size());
 		fprintf_s(fout, "\n");
-		for (int i = 0; i < allPlaneIntersect.size(); ++i) { //number of planes
+
+		for (int i = ignorPlanes; i < allPlaneIntersect.size() - ignorPlanes; ++i) { //number of planes
+
 			//Plane plane;
 			//cs.get_plane(i, plane);
 			//fprintf_s(fout, "center: %.4lf %.4lf %.4lf \n", plane.point[0], plane.point[1], plane.point[2]); //center is always 0,0

@@ -1,5 +1,7 @@
 #include "CrossSection.h"
 
+#if 0
+/* constructor for procedural yarn */
 CrossSection::CrossSection(const Fiber::Yarn &yarn) { /// TODO: no need to this
 	m_yarn = yarn;
 	m_planesList.resize(yarn.getStepNum());
@@ -12,6 +14,7 @@ CrossSection::CrossSection(const Fiber::Yarn &yarn) { /// TODO: no need to this
 	}
 	// no need to initialize m_curve since we already have the cross-section planes
 }
+#endif 
 
 void CrossSection::init(const char* yarnfile, const int ply_num, const char* curvefile, const int seg_subdiv, const int num_planes) {
 	m_yarn.build(yarnfile, ply_num);
@@ -33,35 +36,52 @@ void CrossSection::buildPlanes(const int num_planes) {
 		Eigen::Vector3d curve_b = curve_t.cross(curve_n); //long axis
 		m_planesList[i].point = vec3f(curve_p[0], curve_p[1], curve_p[2]);
 		m_planesList[i].n     = vec3f(curve_t[0], curve_t[1], curve_t[2]);
-		m_planesList[i].e1    = vec3f(curve_b[0], curve_b[1], curve_b[2]);
-		m_planesList[i].e2 = cross(m_planesList[i].n, m_planesList[i].e1);
-
-		assert(dot(m_planesList[i].n, m_planesList[i].e1) < EPS);
-		//assert(dot(plane.n, plane.e2) < EPS);
-		//assert(dot(plane.e1, plane.e2) < EPS);
+		//m_planesList[i].e1    = vec3f(curve_b[0], curve_b[1], curve_b[2]);
+		//m_planesList[i].e2 = cross(m_planesList[i].n, m_planesList[i].e1);
+		//assert(dot(m_planesList[i].n, m_planesList[i].e1) < EPS);
 	}
-
 	std::vector<std::vector<vec3f>> plyCenters;
 	allPlyCenters(plyCenters);
 	// Define inplane 2D coord using the direction from yarn-center to intersection of first ply-center 
-	//for (int i = 0; i < num_planes; ++i) {
-		
-	//}
+	for (int i = 0; i < num_planes; ++i) {
+		// plyCenters[i][0] - m_planesList[i].point is too small so its dot product with n doesn't show they are perpendicular
+		// std::cout << dot(e1, m_planesList[i].n) << std::endl;
+		m_planesList[i].e1 = nv::normalize(plyCenters[i][0] - m_planesList[i].point);
+		m_planesList[i].e2 = cross(m_planesList[i].n, m_planesList[i].e1);
+	}
 
+	//testing the e# coord
+	//std::vector<std::vector<vec3f>> plyCenters;
+	//allPlyCenters(plyCenters);
+	//// Define inplane 2D coord using the direction from yarn-center to intersection of first ply-center 
+	//FILE *fout;
+	//if (fopen_s(&fout, "../data/test_planeCoord.txt", "wt") == 0) {
+	//	for (int i = 0; i < num_planes; ++i) {
+	//		if (i % 10 == 0) {
+	//			fprintf_s(fout, "%.4f %.4f %.4f ", m_planesList[i].point.x, m_planesList[i].point.y, m_planesList[i].point.z);
+	//			fprintf_s(fout, "%.4f %.4f %.4f ", m_planesList[i].n.x, m_planesList[i].n.y, m_planesList[i].n.z);
+	//			fprintf_s(fout, "%.4f %.4f %.4f ", m_planesList[i].e1.x, m_planesList[i].e1.y, m_planesList[i].e1.z);
+	//			fprintf_s(fout, "\n");
+	//		}
+	//	}
+	//	fclose(fout);
+	//} 
 }
 
-
 bool CrossSection::linePlaneIntersection(const vec3f &start, const vec3f &end, const Plane &plane, vec3f &its) {
-	vec3f dir = end - start;
-	if (!dot(dir, (plane.n)))
-		return false;
+	const vec3f dir = nv::normalize(end - start);
+	const float t_end = length(end - start);
+	const float denom = dot(plane.n, dir);
+	if (std::abs(denom) > EPS) {
+		vec3f cntrStart = plane.point - start;
+		float t = dot(cntrStart, plane.n) / denom;
+		if (t >= EPS && t <= t_end) {
+			its = start + dir*t;
 
-	const double t = dot(plane.n, (plane.point - start)) / dot(plane.n, dir);
-	vec3f hit = start + t*dir;
-	// return only if it's within the segment
-	if (t <= 1.0 && t >= 0.0) {
-		its = hit;
-		return true;
+			assert(length(its - plane.point) > 1e-6 && "intersection at the plane.point"); //TODO: handle this corner case later 
+			assert(std::abs(dot(its - plane.point, plane.n)) < 1e-6);
+			return true;
+		}
 	}
 	return false;
 }
@@ -87,7 +107,8 @@ bool CrossSection::yarnPlaneIntersection(const Plane &plane, yarnIntersect &itsL
 				vec3f start = m_yarn.plys[p].fibers[f].vertices[v];
 				vec3f end = (m_yarn.plys[p].fibers[f].vertices[v + 1]);
 				vec3f its(0.f);
-				if (linePlaneIntersection(start, end, plane, its) ) {
+				if (linePlaneIntersection(start, end, plane, its) ) {				
+
 					if (hitFiberNum) {
 						hitFiberNum++;
 						float dist = nv::distance(its, plane.point); //distance between the fiber and the center
@@ -127,7 +148,7 @@ bool CrossSection::allPlanesIntersections(std::vector<yarnIntersect> &itsLists) 
 	return false;
 }
 
-void CrossSection::allPlyCenters(std::vector<std::vector<vec3f>> plyCenters) {
+void CrossSection::allPlyCenters(std::vector<std::vector<vec3f>> &plyCenters) {
 
 	std::vector<yarnIntersect> itsLists;
 	allPlanesIntersections(itsLists);
@@ -193,18 +214,15 @@ void CrossSection::project2Plane (const vec3f& P3d, const Plane& plane, vec2f& P
 	vec3f n = plane.n;
 	vec3f e1 = plane.e1;
 	vec3f e2 = plane.e2;
-
-	assert(nv::length(n) - 1.f < EPS   && "Normal vector is not normalized!");
-	assert(dot(n, e1) < EPS);
-	assert(dot(n, e2) < EPS);
-
+	
+	assert(length(e1) - 1.f < 1e-6);
+	assert(length(e2) - 1.f < 1e-6);
+	assert(dot(e1, e2) < EPS);
 	P2d.x = dot(e1, (P3d -  plane.point));
 	P2d.y = dot(e2, (P3d - plane.point));
-	
 }
 
 void CrossSection::PlanesIntersections2D(std::vector<yarnIntersect> &itsLists, std::vector<yarnIntersect2D> &allPlaneIntersect) {
-	// TODO: no need to this text file. remove it
 	if (m_planesList.size() != itsLists.size())
 		std::cout << itsLists.size() << " out of " << m_planesList.size() << " many planes had intersections! \n";
 
@@ -216,6 +234,7 @@ void CrossSection::PlanesIntersections2D(std::vector<yarnIntersect> &itsLists, s
 		/* First write the yarn-center */
 		vec2f center2D;
 		project2Plane(plane.point, plane, center2D);
+		assert (center2D == vec2f(0.f) ) ;
 
 		/* Then all the intersections for each ply */
 		yarnIntersect2D planeProjected;
@@ -233,6 +252,7 @@ void CrossSection::PlanesIntersections2D(std::vector<yarnIntersect> &itsLists, s
 	std::cout << "Intersections are written to the file successfully! \n\n";
 }
 
+#if 0
 void CrossSection::fitCircle(const yarnIntersect2D &pts, float &radius)
 {
 	//Find the total number of points for all plys
@@ -271,6 +291,8 @@ void CrossSection::fitCircle(const yarnIntersect2D &pts, float &radius)
 	}
 	radius = max;
 }
+#endif
+
 void CrossSection::fitEllipse(const yarnIntersect2D &pts, Ellipse &ellipse)
 {
 	//Find the total number of points for all plys
