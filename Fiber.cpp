@@ -305,7 +305,7 @@ namespace Fiber {
 				}
 			}
 		}
-
+		/*
 		// for debuging:
 		FILE *fout;
 		if (fopen_s(&fout, "../data/plyCenter_proc.txt", "wt") == 0) {
@@ -317,7 +317,27 @@ namespace Fiber {
 			}
 			fclose(fout);
 		}
-
+		*/
+		FILE *fout;
+		// for debuging:
+		const int plane_num = this->z_step_num;
+		const int f_num = this->plys[0].fibers.size() - 1; //since the first fiber is the center
+		const int ignorPlanes = 0.1 * plane_num; // crop the first and last 10% of the yarn
+		if (fopen_s(&fout, "../data/allCrossSection2D_proc.txt", "wt") == 0) {
+			fprintf_s(fout, "plane_num: %d \n", plane_num - 2 * ignorPlanes);
+			fprintf_s(fout, "ply_num: %d \n \n", ply_num);
+			for (int step_id = ignorPlanes; step_id < plane_num - ignorPlanes; step_id++) {
+				for (int i = 0; i < ply_num; i++) {
+					fprintf_s(fout, "ply_fiber_num: %d\n", f_num);
+					fprintf_s(fout, "plyCenter: %.4f %.4f\n", this->plys[i].fibers[0].vertices[step_id].x, this->plys[i].fibers[0].vertices[step_id].y);
+					for (int f = 1; f < f_num+1; ++f) {
+						fprintf_s(fout, "%.4f %.4f\n", this->plys[i].fibers[f].vertices[step_id].x, this->plys[i].fibers[f].vertices[step_id].y);
+					}
+				}
+				fprintf_s(fout, "\n");
+			}
+			fclose(fout);
+		}
 	} // yarn_simulate
 
 	void Yarn::yarn_simulate() {
@@ -474,6 +494,7 @@ namespace Fiber {
 					const float ellipse_long = compress_params[v].ellipse_long;
 					const float ellipse_short = compress_params[v].ellipse_short;
 					const float theta = compress_params[v].theta;
+					std::cout << theta * 180.f / pi << std::endl;
 
 					// rotate points by theta
 					vec2f axis_x(1.f, 0.f), axis_y(0.f, 1.f);   //because cross sections in world coord. are defined in xy plane.
@@ -493,6 +514,26 @@ namespace Fiber {
 					fiber.vertices[v].y = new_p.y;
 				}
 			}
+		}
+		// for debuging:
+		FILE *fout;
+		const int plane_num = this->z_step_num;
+		const int f_num = this->plys[0].fibers.size() - 1; //since the first fiber is the center
+		const int ignorPlanes = 0.1 * plane_num; // crop the first and last 10% of the yarn
+		if (fopen_s(&fout, "../data/allCrossSection2D_proc.txt", "wt") == 0) {
+			fprintf_s(fout, "plane_num: %d \n", plane_num - 2 * ignorPlanes);
+			fprintf_s(fout, "ply_num: %d \n \n", ply_num);
+			for (int step_id = ignorPlanes; step_id < plane_num - ignorPlanes; step_id++) {
+				for (int i = 0; i < ply_num; i++) {
+					fprintf_s(fout, "ply_fiber_num: %d\n", f_num);
+					fprintf_s(fout, "plyCenter: %.4f %.4f\n", this->plys[i].fibers[0].vertices[step_id].x, this->plys[i].fibers[0].vertices[step_id].y);
+					for (int f = 1; f < f_num + 1; ++f) {
+						fprintf_s(fout, "%.4f %.4f\n", this->plys[i].fibers[f].vertices[step_id].x, this->plys[i].fibers[f].vertices[step_id].y);
+					}
+				}
+				fprintf_s(fout, "\n");
+			}
+			fclose(fout);
 		}
 	} // compress_yarn
 

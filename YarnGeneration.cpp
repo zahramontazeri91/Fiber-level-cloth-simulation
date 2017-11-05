@@ -9,7 +9,7 @@ void fittingPlyCenter(CrossSection & cs, const char* compressFile, const char* p
 void fittingCompress(CrossSection & cs, const char* compressFile, const char* pntsFile, const char* normsFile);
 
 int main(int argc, const char **argv) {
-#if 0
+#if 1
 
     if ( argc != 3 ) {
         printf("Usage: YarnGeneration [task file] [output file]\n");
@@ -46,8 +46,8 @@ int main(int argc, const char **argv) {
 			yarn.compress_yarn(compressFILE.c_str());
 
 		fin >> command >> curvePnts >> curveNorms;
-		if (command == "CURVE")
-			yarn.curve_yarn(cntrYarnFILE.c_str(), curveNorms.c_str()); //TODO:this doesn't work unless use cntrYarnFile
+		//if (command == "CURVE")
+			//yarn.curve_yarn(cntrYarnFILE.c_str(), curveNorms.c_str()); //TODO:this doesn't work unless use cntrYarnFile
 
 		yarn.write_yarn(argv[2]);
 	}
@@ -69,15 +69,16 @@ int main(int argc, const char **argv) {
 	//write_PlanesIntersections2D_test();
 	//getOrientation_test();
 	
-	extractCompressParam_test();
+	//extractCompressParam_test();
 	
 	//compress_yarn_test();
-	//ply_centers_test();
+	ply_centers_test();
 
 	//extractNormals();
 #endif
 
 	//std::system("pause"); //add breakpoint instead
+
 	return 0;
 }
 
@@ -89,8 +90,12 @@ void fittingCompress(CrossSection & cs, const char* compressFile, const char* pn
 	std::vector<yarnIntersect2D> allPlaneIntersect;
 	cs.PlanesIntersections2D(itsLists, allPlaneIntersect);
 
+	//transfer from e1-e2 to x-y plane
+	std::vector<yarnIntersect2D> xy_Its;
+	cs.transferLocal2XY(allPlaneIntersect, xy_Its);
+
 	std::vector<Ellipse> ellipses;
-	cs.extractCompressParam(allPlaneIntersect, ellipses, compressFile);
+	cs.extractCompressParam(xy_Its, ellipses, compressFile);
 
 	//extract spline normals
 	std::vector<vec3f> normals;
@@ -99,18 +104,26 @@ void fittingCompress(CrossSection & cs, const char* compressFile, const char* pn
 
 void fittingPlyCenter(CrossSection & cs, const char* compressFile, const char* plyCenterFile )
 {
+	//find 3D intersections with plane
 	std::vector<yarnIntersect> itsLists;
 	cs.allPlanesIntersections(itsLists);
+
+	//project 3D intersections in e1-e2 plane
 	std::vector<yarnIntersect2D> allPlaneIntersect;
 	cs.PlanesIntersections2D(itsLists, allPlaneIntersect);
-	//TODO: move cs to main() and only pass it to these two functions
+
+	//fit the ellipse and find the compression param
 	std::vector<Ellipse> ellipses;
 	cs.extractCompressParam(allPlaneIntersect, ellipses, compressFile);
 
-	// Decompress simulated yarn
+	// Decompress simulated yarn e1-e2 space
 	std::vector<yarnIntersect2D> deCompressPlaneIntersect;
 	cs.deCompressYarn(allPlaneIntersect, ellipses, deCompressPlaneIntersect);
 
+	//transfer from e1-e2 to x-y plane
+	std::vector<yarnIntersect2D> xy_Its;
+	cs.transferLocal2XY(deCompressPlaneIntersect, xy_Its);
+
 	//extract ply-centers helix positions
-	cs.extractPlyTwist(deCompressPlaneIntersect, plyCenterFile);
+	cs.extractPlyTwist(xy_Its, plyCenterFile);
 }

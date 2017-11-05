@@ -11,7 +11,7 @@ void write_PlanesIntersections2D_test();
 void getOrientation_test();
 void extractCompressParam_test();
 
-
+void ply_centers_procedural_test();
 void ply_centers_test();
 void extractNormals();
 

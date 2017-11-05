@@ -184,8 +184,8 @@ void extractCompressParam_test() {
 	/* ply-center procedural:
 	read generated-yarn and write fiber[0] */
 
-	//const char* yarnfile = "genYarn.txt"; //For procedural yarn
-	const char* yarnfile = "frame00029_scaled.txt"; //For simulated yarn
+	const char* yarnfile = "genYarn.txt"; //For procedural yarn
+	//const char* yarnfile = "frame00029_scaled.txt"; //For simulated yarn
 	const char* curvefile = "frame00029_avg.txt";
 	CrossSection cs(yarnfile, curvefile, 2, 1526, 100);
 	std::vector<yarnIntersect> itsLists;
@@ -197,9 +197,9 @@ void extractCompressParam_test() {
 	cs.extractCompressParam(allPlaneIntersect, ellipses, "compress.txt");
 
 	// Decompress simulated yarn
-	std::vector<yarnIntersect2D> deCompressPlaneIntersect;
-	cs.deCompressYarn(allPlaneIntersect, ellipses, deCompressPlaneIntersect);
-	allPlaneIntersect = deCompressPlaneIntersect;
+	//std::vector<yarnIntersect2D> deCompressPlaneIntersect;
+	//cs.deCompressYarn(allPlaneIntersect, ellipses, deCompressPlaneIntersect);
+	//allPlaneIntersect = deCompressPlaneIntersect;
 
 	//write ellipses to file for testing
 	// NOTE: don't rewrite for the procedural case, use simulated compress parameters to validate the compression
@@ -231,8 +231,8 @@ void extractCompressParam_test() {
 					plyCenter += allPlaneIntersect[i][p][j];
 				}
 				plyCenter /= allPlaneIntersect[i][p].size();
-				fprintf_s(fout, "plyCenter: %.4lf %.4lf \n", plyCenter.x, plyCenter.y); // ******* simulated **********
-				//fprintf_s(fout, "plyCenter: %.4lf %.4lf \n", allPlaneIntersect[i][p][0].x, allPlaneIntersect[i][p][0].y); // ****** Procedural ********
+				//fprintf_s(fout, "plyCenter: %.4lf %.4lf \n", plyCenter.x, plyCenter.y); // ******* simulated **********
+				fprintf_s(fout, "plyCenter: %.4lf %.4lf \n", allPlaneIntersect[i][p][0].x, allPlaneIntersect[i][p][0].y); // ****** Procedural ********
 				for (int j = 0; j < allPlaneIntersect[i][p].size(); ++j) { //number of intersections
 					fprintf_s(fout, "%.4f %.4f \n", allPlaneIntersect[i][p][j].x, allPlaneIntersect[i][p][j].y);
 				}
@@ -246,22 +246,29 @@ void extractCompressParam_test() {
 void ply_centers_test() {
 	//const char* yarnfile = "genYarn.txt"; //For procedural yarn
 	const char* yarnfile = "frame00029_scaled.txt"; //For simulated yarn
-	const char* curvefile = "frame00001_avg.txt";
+	const char* curvefile = "frame00029_avg.txt";
 	CrossSection cs(yarnfile, curvefile, 2, 1526, 100);
+
 	std::vector<yarnIntersect> itsLists;
 	cs.allPlanesIntersections(itsLists);
+
 	std::vector<yarnIntersect2D> allPlaneIntersect;
 	cs.PlanesIntersections2D(itsLists, allPlaneIntersect);
 
 	std::vector<Ellipse> ellipses;
-	cs.extractCompressParam(allPlaneIntersect, ellipses, "compress.txt");
+	cs.extractCompressParam(allPlaneIntersect, ellipses, "../data/compress.txt");
+	
 	// Decompress simulated yarn
-	std::vector<yarnIntersect2D> deCompressPlaneIntersect;
+	//std::vector<yarnIntersect2D> deCompressPlaneIntersect;
 	//cs.deCompressYarn(allPlaneIntersect, ellipses, deCompressPlaneIntersect);
 	//allPlaneIntersect = deCompressPlaneIntersect;
 
+	//transform from e1-e2 space to x-y space
+	std::vector<yarnIntersect2D> allPlaneIntersect_world;
+	cs.transferLocal2XY(allPlaneIntersect, allPlaneIntersect_world);
+
 	//extract ply-centers helix parameter
-	cs.extractPlyTwist(allPlaneIntersect, "plyCenter.txt"); //todo
+	//cs.extractPlyTwist(allPlaneIntersect, "plyCenter.txt"); //todo
 
 	FILE *fout;
 	//write ellipses to file for testing
@@ -277,24 +284,24 @@ void ply_centers_test() {
 
 	// write the plycenters
 	if (fopen_s(&fout, "../data/allCrossSection2D.txt", "wt") == 0) {
-		const int ignorPlanes = 0.1 * allPlaneIntersect.size(); // crop the first and last 10% of the yarn
+		const int ignorPlanes = 0.1 * allPlaneIntersect_world.size(); // crop the first and last 10% of the yarn
 
-		fprintf_s(fout, "plane_num: %d \n", allPlaneIntersect.size() - 2*ignorPlanes);
-		fprintf_s(fout, "ply_num: %d \n", allPlaneIntersect[0].size());
+		fprintf_s(fout, "plane_num: %d \n", allPlaneIntersect_world.size() - 2*ignorPlanes);
+		fprintf_s(fout, "ply_num: %d \n", allPlaneIntersect_world[0].size());
 		fprintf_s(fout, "\n");
 		
-		for (int i = ignorPlanes; i < allPlaneIntersect.size() - ignorPlanes; ++i) { //number of planes
-			for (int p = 0; p < allPlaneIntersect[i].size(); ++p) { //number of plys
-				fprintf_s(fout, "ply_fiber_num: %d \n", allPlaneIntersect[i][p].size());
+		for (int i = ignorPlanes; i < allPlaneIntersect_world.size() - ignorPlanes; ++i) { //number of planes
+			for (int p = 0; p < allPlaneIntersect_world[i].size(); ++p) { //number of plys
+				fprintf_s(fout, "ply_fiber_num: %d \n", allPlaneIntersect_world[i][p].size());
 				vec2f plyCenter(0.f);
-				for (int j = 0; j < allPlaneIntersect[i][p].size(); ++j) { //number of intersections
-					plyCenter += allPlaneIntersect[i][p][j];
+				for (int j = 0; j < allPlaneIntersect_world[i][p].size(); ++j) { //number of intersections
+					plyCenter += allPlaneIntersect_world[i][p][j];
 				}
-				plyCenter /= allPlaneIntersect[i][p].size();
+				plyCenter /= allPlaneIntersect_world[i][p].size();
 				fprintf_s(fout, "plyCenter: %.4lf %.4lf \n", plyCenter.x, plyCenter.y);
 				
-				for (int j = 0; j < allPlaneIntersect[i][p].size(); ++j) { //number of intersections
-					fprintf_s(fout, "%.4f %.4f \n", allPlaneIntersect[i][p][j].x, allPlaneIntersect[i][p][j].y);
+				for (int j = 0; j < allPlaneIntersect_world[i][p].size(); ++j) { //number of intersections
+					fprintf_s(fout, "%.4f %.4f \n", allPlaneIntersect_world[i][p][j].x, allPlaneIntersect_world[i][p][j].y);
 				}
 			}
 			fprintf_s(fout, "\n");
@@ -302,6 +309,7 @@ void ply_centers_test() {
 		fclose(fout);
 	}
 }					
+
 
 void extractNormals()
 {

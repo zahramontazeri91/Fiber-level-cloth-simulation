@@ -13,7 +13,7 @@ import math
 
 
     
-with open('../../data/allCrossSection2D.txt', 'r') as fin:
+with open('../../data/allCrossSection2D_proc.txt', 'r') as fin:
     plane_num = int( fin.readline().split()[1] )
     ply_num = int(fin.readline().split()[1])
 
@@ -39,10 +39,12 @@ with open('../../data/allCrossSection2D.txt', 'r') as fin:
             ell = Ellipse((float(cntr[0]),float(cntr[1])), 
                           width, height, angle = angle, 
                           alpha=0.3, facecolor = 'yellow' )  
-            ax.add_artist(ell)
+#            ax.add_artist(ell)
             
-            for p in range(0,ply_num):    
+            for p in range(0,ply_num):   
+                
                 its_num = int(fin.readline().split()[1])
+                print(p)
                 X = []
                 Y = []
                 c = "C" + str(p)

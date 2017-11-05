@@ -9,11 +9,11 @@
 #define EPS std::numeric_limits<float>::epsilon()
 
 struct Plane {
-	Plane() : n(vec3f(0.f)), e1(vec3f(0.f)), e2(vec3f(0.f)), point(vec3f(0.f)) {}
-	vec3f n;		 //spline tangent
-	vec3f e1;		 //long ellipse axis //TODO: check if this should be spline binormal!
-	vec3f e2;		 //short ellipse axis
-	vec3f point;     //plane center
+	Plane() : n(vec3f(0.f)), e1(vec3f(0.f)), e2(vec3f(0.f)) {}
+	vec3f n;			 //spline tangent
+	vec3f e1;			 //normalized vector to ply-center for the first ply
+	vec3f e2;			 //perpendicular to e1 and normal
+	vec3f point;         //plane center
 };
 
 
@@ -64,13 +64,20 @@ public:
 	/* de-compress simulated yarn */
 	void deCompressYarn(const std::vector<yarnIntersect2D> &PlaneIts, std::vector<Ellipse> &ellipses, std::vector<yarnIntersect2D> &deCompressPlaneIts);
 	/* get R and theta for ply-centers*/
-	void extractPlyTwist(const std::vector<yarnIntersect2D> &allPlaneIntersect, const char *plyCenterFile);
-	
-
+	void extractPlyTwist(const std::vector<yarnIntersect2D> &decompressPlaneIts, const char *plyCenterFile);
+	/* transfer from e1-e2 space to world x-y space */
+	void transferLocal2XY(const std::vector<yarnIntersect2D> &e1e2_Its, std::vector<yarnIntersect2D> &xy_Its);
 	/* return m_curve */
 	HermiteCurve get_curve() {
 		return m_curve;
 	}
+
+	//for debug:
+	/* constructor for procedural yarn (for debug use) */
+	//CrossSection(const Fiber::Yarn &yarn);
+	/* Given a yarn dataStructure, transform it to a vector of cross-sections (for debug use)*/
+	//void yarn2crossSections(std::vector<yarnIntersect2D> &itsLists);
+
 
 protected:
 	HermiteCurve m_curve;

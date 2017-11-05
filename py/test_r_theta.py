@@ -9,7 +9,7 @@ ax = fig.gca(projection='3d')
 #ax.set_aspect('equal')
 
 #with open('../../data/plyCenter_proc.txt', 'r') as fin:
-with open('../plyCenter.txt', 'r') as fin:
+with open('../../data/plyCenter_proc.txt', 'r') as fin:
     x1=[]
     y1=[]
     x2=[]

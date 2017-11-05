@@ -1,8 +1,8 @@
 #include "CrossSection.h"
 
 #if 0
-/* constructor for procedural yarn */
-CrossSection::CrossSection(const Fiber::Yarn &yarn) { /// TODO: no need to this
+/* constructor for procedural yarn (for debug use) */
+CrossSection::CrossSection(const Fiber::Yarn &yarn) { 
 	m_yarn = yarn;
 	m_planesList.resize(yarn.getStepNum());
 	for (int step_id = 0; step_id < m_planesList.size(); step_id++) {
@@ -14,7 +14,7 @@ CrossSection::CrossSection(const Fiber::Yarn &yarn) { /// TODO: no need to this
 	}
 	// no need to initialize m_curve since we already have the cross-section planes
 }
-#endif 
+#endif
 
 void CrossSection::init(const char* yarnfile, const int ply_num, const char* curvefile, const int seg_subdiv, const int num_planes) {
 	m_yarn.build(yarnfile, ply_num);
@@ -36,7 +36,7 @@ void CrossSection::buildPlanes(const int num_planes) {
 		Eigen::Vector3d curve_b = curve_t.cross(curve_n); //long axis
 		m_planesList[i].point = vec3f(curve_p[0], curve_p[1], curve_p[2]);
 		m_planesList[i].n     = vec3f(curve_t[0], curve_t[1], curve_t[2]);
-		//m_planesList[i].e1    = vec3f(curve_b[0], curve_b[1], curve_b[2]);
+		//m_planesList[i].e1    = vec3f(curve_n[0], curve_n[1], curve_n[2]);
 		//m_planesList[i].e2 = cross(m_planesList[i].n, m_planesList[i].e1);
 		//assert(dot(m_planesList[i].n, m_planesList[i].e1) < EPS);
 	}
@@ -50,7 +50,7 @@ void CrossSection::buildPlanes(const int num_planes) {
 		m_planesList[i].e2 = cross(m_planesList[i].n, m_planesList[i].e1);
 	}
 
-	//testing the e# coord
+	//debug: testing the e# coord
 	//std::vector<std::vector<vec3f>> plyCenters;
 	//allPlyCenters(plyCenters);
 	//// Define inplane 2D coord using the direction from yarn-center to intersection of first ply-center 
@@ -502,14 +502,14 @@ void CrossSection::extractNormals(std::vector<Ellipse> &ellipses, std::vector<ve
 }
 
 #if 0
-/* Given a yarn dataStructure, transform it to a vector of cross-sections */
+/* Given a yarn dataStructure, transform it to a vector of cross-sections (for debug use)*/
 void CrossSection::yarn2crossSections(std::vector<yarnIntersect2D> &itsLists) {
 	//first initialize the vectors
 	itsLists.resize(m_planesList.size());
 	for (int i = 0; i < itsLists.size(); ++i)
 		itsLists[i].resize(m_yarn.plys.size());
 
-	//copy the yarn into new dataStructure
+		//copy the yarn into new dataStructure
 	for (int p = 0; p < m_yarn.plys.size(); ++p) {
 		plyItersect plyIts;
 		for (int f = 0; f < m_yarn.plys[p].fibers.size(); ++f) {
@@ -519,8 +519,8 @@ void CrossSection::yarn2crossSections(std::vector<yarnIntersect2D> &itsLists) {
 			}
 		}
 	}
-}
-#endif 
+} 
+#endif
 
 void CrossSection::deCompressYarn(const std::vector<yarnIntersect2D> &planeIts, std::vector<Ellipse> &ellipses, std::vector<yarnIntersect2D> &deCompressPlaneIts) {
 	deCompressPlaneIts.resize(planeIts.size() );
@@ -552,64 +552,53 @@ void CrossSection::deCompressYarn(const std::vector<yarnIntersect2D> &planeIts, 
 				float _p_x = nv::dot(vec2f(ellipse_axis_long.x, ellipse_axis_short.x), _p_ellipse);
 				float _p_y = nv::dot(vec2f(ellipse_axis_long.y, ellipse_axis_short.y), _p_ellipse);
 
-				//// rotate points by neg theta
-				//vec2f rot_axis_x(1.f, 0.f), rot_axis_y(0.f, 1.f);  
-				////vec2f rot_axis_x = rot2D(axis_x, -1.f * theta);
-				////vec2f rot_axis_y = rot2D(axis_y, -1.f * theta);
-				////assert(nv::dot(rot_axis_x, rot_axis_y) == 0);
-				//float _p_x = nv::dot(vec2f(its.x, its.y), rot_axis_x);
-				//float _p_y = nv::dot(vec2f(its.x, its.y), rot_axis_y);
-
-				//// scale the shape of cross section
-				//// TODO: scale to yarn.radius()
-				//_p_x *= 0.0286676 / ellipse_long;
-				//_p_y *= 0.0286676 / ellipse_short;
-
-				//vec2f new_p = _p_x * rot_axis_x + _p_y * rot_axis_y;
-
 				deCompressPlaneIts[i][p][v] = vec2f(_p_x, _p_y);
 			}
 		}
 	}
 }
 
-void CrossSection::extractPlyTwist(const std::vector<yarnIntersect2D> &allPlaneIntersect, const char *plyCenterFile) {
-	//std::vector<std::vector<float>> helixRad;
-	//std::vector<std::vector<float>> helixTheta;
-	//helixRad.resize(allPlaneIntersect.size());
-	//helixTheta.resize(allPlaneIntersect.size());
+void CrossSection::transferLocal2XY(const std::vector<yarnIntersect2D> &e1e2_Its, std::vector<yarnIntersect2D> &xy_Its) {
+	//initialized the vector with a copy
+	xy_Its = e1e2_Its;
+
+	for (int i = 0; i < e1e2_Its.size(); ++i) { // all planes
+		vec3f n = m_planesList[i].n;
+		vec3f e1 = m_planesList[i].e1;
+		vec3f e2 = m_planesList[i].e2;
+		int ply_num = e1e2_Its[i].size();
+		for (int p = 0; p < ply_num; ++p) { // all plys
+			vec2f plyCntr(0.f);
+			for (int v = 0; v < e1e2_Its[i][p].size(); ++v) { // ply intersections
+				vec2f e1e2_p= e1e2_Its[i][p][v];
+
+				/* transform plyCenters in e1-e2 coord to xy plane */
+				// project e1 to ex, and e2 to ey with no translation
+
+				xy_Its[i][p][v].x = dot(vec2f(e1.x, e2.x), e1e2_p);
+				xy_Its[i][p][v].y = dot(vec2f(e1.y, e2.y), e1e2_p);
+			}
+		}
+	}
+}
+
+void CrossSection::extractPlyTwist(const std::vector<yarnIntersect2D> &decompressPlaneIts, const char *plyCenterFile) {
 
 	std::ofstream fout(plyCenterFile);
-	for (int i = 0; i < allPlaneIntersect.size(); ++i ) { // all planes	
+	for (int i = 0; i < decompressPlaneIts.size(); ++i ) { // all planes	
 		//first find the yarn center
 		//No need to yarnCenter because planes are generated using their center point
 		//vec2f yarnCntr = vec2f(m_planesList[i].point.x, m_planesList[i].point.y);
 
-		int ply_num = allPlaneIntersect[i].size();
+		int ply_num = decompressPlaneIts[i].size();
 		for (int p=0; p<ply_num; ++p ) { // all plys
 			vec2f plyCntr(0.f);
-			for (int v = 0; v < allPlaneIntersect[i][p].size(); ++v) { // ply intersections
-				plyCntr += allPlaneIntersect[i][p][v];
+			for (int v = 0; v < decompressPlaneIts[i][p].size(); ++v) { // ply intersections
+				plyCntr += decompressPlaneIts[i][p][v];
 			}
-			plyCntr /= static_cast<float>(allPlaneIntersect[i][p].size());
-			//vec2f plyVec = plyCntr - yarnCntr;
+			plyCntr /= static_cast<float>(decompressPlaneIts[i][p].size());
 
-			/* transform plyCenters in e1-e2 coord to xy plane */
-			// project e1 to ex, and e2 to ey with no translation
-			vec3f n = m_planesList[i].n;
-			vec3f e1 = m_planesList[i].e1;
-			vec3f e2 = m_planesList[i].e2;
-			vec2f plyCntr_rot(0.f);
-			plyCntr_rot.x = dot(vec2f(e1.x, e2.x), plyCntr);
-			plyCntr_rot.y = dot(vec2f(e1.y, e2.y), plyCntr);
-
-
-			fout << plyCntr_rot.x << " " << plyCntr_rot.y << '\n';
-			
-			//float radius = std::sqrt ( std::pow(plyVec.x, 2.0) + std::pow(plyVec.y, 2.0) );
-			//float theta = atan2(plyVec.y, plyVec.x) - 2 * pi * static_cast<float>(i) / allPlaneIntersect.size();
-			//helixRad[i].push_back(radius);
-			//helixTheta[i].push_back(theta);
+			fout << plyCntr.x << " " << plyCntr.y << '\n';
 		}
 		fout << '\n';
 	}
