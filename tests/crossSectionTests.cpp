@@ -200,7 +200,7 @@ void extractCompressParam_test() {
 	cs.PlanesIntersections2D(itsLists, allPlaneIntersect);
 
 	std::vector<Ellipse> ellipses;
-	cs.extractCompressParam(allPlaneIntersect, ellipses, "compress.txt");
+	cs.extractCompressParam(allPlaneIntersect, ellipses);
 
 	// Decompress simulated yarn
 	//std::vector<yarnIntersect2D> deCompressPlaneIntersect;
@@ -271,7 +271,7 @@ void ply_centers_test() {
 	cs.transferLocal2XY(allPlaneIntersect, allPlaneIntersect_world);
 
 	std::vector<Ellipse> ellipses;
-	cs.extractCompressParam(allPlaneIntersect_world, ellipses, "../data/compress.txt");
+	cs.extractCompressParam(allPlaneIntersect_world, ellipses);
 	allPlaneIntersect = allPlaneIntersect_world;
 
 	//extract ply-centers helix parameter
@@ -330,12 +330,12 @@ void extractNormals()
 	cs.PlanesIntersections2D(itsLists, allPlaneIntersect);
 
 	std::vector<Ellipse> ellipses;
-	cs.extractCompressParam(allPlaneIntersect, ellipses, "compress.txt");
+	cs.extractCompressParam(allPlaneIntersect, ellipses);
 
 
 	//extract spline normals
 	std::vector<vec3f> normals;
-	cs.extractNormals(ellipses, normals,"../data/junk_pnt.txt", "../data/junk_norm.txt");
+	cs.extractNormals(normals,"../data/junk_pnt.txt", "../data/junk_norm.txt");
 	FILE *fout;
 	if (fopen_s(&fout, "../data/normals.txt", "wt") == 0) {
 		for (int i = 0; i < ellipses.size(); ++i) {

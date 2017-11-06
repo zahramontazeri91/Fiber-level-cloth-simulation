@@ -166,6 +166,8 @@ namespace Fiber {
 
 		/* compress yarn with theta, direction, a and b, cross section ellipse param. */
 		void readCompressFile(const char* filename, std::vector<compress> &compress_params);
+		void fitCircle(const yarnIntersect2D &pts, float &radius);
+		void yarn2crossSections(std::vector<yarnIntersect2D> &itsLists);
 		void compress_yarn(const char* filename);
 
 		/* Write simulated data (single yarns) to disk */

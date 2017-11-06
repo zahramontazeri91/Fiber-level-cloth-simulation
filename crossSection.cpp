@@ -433,7 +433,7 @@ void CrossSection::minAreaEllipse(const yarnIntersect2D &pts, const Ellipse &ell
 }
 #endif
 
-void CrossSection::extractCompressParam(const std::vector<yarnIntersect2D> &allPlaneIntersect, std::vector<Ellipse> &ellipses, const char* compressFile) {
+void CrossSection::extractCompressParam(const std::vector<yarnIntersect2D> &allPlaneIntersect, std::vector<Ellipse> &ellipses) {
 	
 	for (int i = 0; i < allPlaneIntersect.size(); ++i)
 	{
@@ -458,13 +458,16 @@ void CrossSection::planeIts2world(Plane &plane, vec2f &plane_point, vec3f &world
 	vec3f local(plane_point.x, plane_point.y, 0.f); //as the point exists on the plane
 	/*world = [e1 e2 n] * local
 	local = [e1; e2; n] * world*/
+	/*********************** TODO *****************************/
+	/* I swaped y and x so that the yarn before compression looks rotated but it looks correct at the end! */
 	world_point.x = dot(vec3f(e1.x, e2.x, n.x), local) + plane.point.x;
 	world_point.y = dot(vec3f(e1.y, e2.y, n.y), local) + plane.point.y;
+	/*********************************************************/
 	world_point.z = dot(vec3f(e1.z, e2.z, n.z), local) + plane.point.z;
 	//note that order of the axis matches with the project2plane()
 }
 
-void CrossSection::extractNormals(std::vector<Ellipse> &ellipses, std::vector<vec3f> &normals, const char* pntsFile, const char* normsFile) {
+void CrossSection::extractNormals(std::vector<vec3f> &normals, const char* pntsFile, const char* normsFile) {
 	FILE *fout1;
 	FILE *fout2;
 	if (fopen_s(&fout1, pntsFile, "wt") == 0) {
@@ -472,14 +475,15 @@ void CrossSection::extractNormals(std::vector<Ellipse> &ellipses, std::vector<ve
 			fprintf_s(fout1, "%d\n", m_planesList.size());
 			fprintf_s(fout2, "%d\n", m_planesList.size());
 			for (int i = 0; i < m_planesList.size(); ++i) {
-				//rotate plane.e1=[1,0] by theta in the plane to obtain ellipse-short-axis
-				vec2f p2D(cos(ellipses[i].angle ), sin(ellipses[i].angle ));
-				//now project it to world coord
-				vec3f end3D;
-				planeIts2world(m_planesList[i], p2D, end3D);
-				vec3f start3D = m_planesList[i].point;
-				//note that ellipse center is same as plane.point
-				vec3f normal = end3D - start3D;
+				////rotate plane.e1=[1,0] by theta in the plane to obtain ellipse-short-axis
+				//vec2f p2D(cos(ellipses[i].angle ), sin(ellipses[i].angle ));
+				////now project it to world coord
+				//vec3f end3D;
+				//planeIts2world(m_planesList[i], p2D, end3D);
+				//vec3f start3D = m_planesList[i].point;
+				////note that ellipse center is same as plane.point
+				//vec3f normal = end3D - start3D;
+				vec3f normal = m_planesList[i].e1; // Clearly not the case!
 				assert(nv::length(normal) - 1.f < HERMITE_EPS   && "Normal vector is not normalized!");
 				normals.push_back(normal);
 				fprintf_s(fout1, "%.6f %.6f %.6f \n", m_planesList[i].point.x, m_planesList[i].point.y, m_planesList[i].point.z);
@@ -565,9 +569,11 @@ void CrossSection::transferLocal2XY(const std::vector<yarnIntersect2D> &e1e2_Its
 
 				/* transform plyCenters in e1-e2 coord to xy plane */
 				// project e1 to ex, and e2 to ey with no translation
-
+				/*********************** TODO *****************************/
+				/* I swaped y and x so that the yarn before compression looks rotated but it looks correct at the end! */
 				xy_Its[i][p][v].x = dot(vec2f(e1.x, e2.x), e1e2_p);
 				xy_Its[i][p][v].y = dot(vec2f(e1.y, e2.y), e1e2_p);
+				/*********************************************************/
 			}
 		}
 	}

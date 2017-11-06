@@ -447,14 +447,84 @@ namespace Fiber {
 		}
 	}
 
+
+	void Yarn::fitCircle(const yarnIntersect2D &pts, float &radius)
+	{
+		//Find the total number of points for all plys
+		int sz = 0;
+		for (int p = 0; p < pts.size(); ++p)
+			sz += pts[p].size();
+		cv::Mat data_pts(sz, 2, CV_32FC1, cv::Scalar::all(0));
+
+		int c = data_pts.rows;
+		for (int p = 0; p < pts.size(); ++p) {
+			for (int i = 0; i < pts[p].size(); ++i) {
+
+				data_pts.at<float>(c, 0) = pts[p][i].x;
+				data_pts.at<float>(c, 1) = pts[p][i].y;
+				--c;
+			}
+		}
+
+		//Perform PCA analysis
+		cv::PCA pca_analysis(data_pts, cv::Mat(), cv::PCA::DATA_AS_ROW, 2);
+
+		//Store the center of the object
+		vec2f center = vec2f(pca_analysis.mean.at<float>(0, 0), pca_analysis.mean.at<float>(0, 1));
+		//Store the eigenvalues and eigenvectors
+		std::vector<vec2f> eigen_vecs(1);
+		//std::vector<float> eigen_val(1);
+		eigen_vecs[0] = vec2f(pca_analysis.eigenvectors.at<float>(0, 0),
+			pca_analysis.eigenvectors.at<float>(0, 1));
+
+		//find eigen values by projecting the points on eigenVectors
+		float max = std::numeric_limits<float>::min();
+		for (int i = 0; i < data_pts.rows; ++i) {
+			float prj = eigen_vecs[0].x * data_pts.at<float>(i, 0) + eigen_vecs[0].y * data_pts.at<float>(i, 1);
+			if (std::abs(prj) > max)
+				max = std::abs(prj);
+		}
+		radius = max;
+	}
+
+
+	void Yarn::yarn2crossSections(std::vector<yarnIntersect2D> &itsLists) {
+		//first initialize the vectors
+		itsLists.resize(this->z_step_num);
+		for (int i = 0; i < itsLists.size(); ++i)
+			itsLists[i].resize(this->plys.size());
+
+		//copy the yarn into new dataStructure
+		for (int p = 0; p < this->plys.size(); ++p) {
+			plyItersect plyIts;
+			for (int f = 0; f < this->plys[p].fibers.size(); ++f) {
+				for (int v = 0; v < this->plys[p].fibers[f].vertices.size(); ++v) {
+					itsLists[v][p].push_back(vec2f(this->plys[p].fibers[f].vertices[v].x,
+						this->plys[p].fibers[f].vertices[v].y));
+				}
+			}
+		}
+	}
+
 	void Yarn::compress_yarn(const char* filename) {
 		std::cout << "step7: compress yarn cross-sections ..." << std::endl;
+		
+		//first find the fitted circle around each cross-section
+		std::vector<float> fitCircleR;
+		const int ply_num = this->plys.size();
+		std::vector<yarnIntersect2D> itsLists;
+		yarn2crossSections(itsLists);
+		for (int i = 0; i < this->z_step_num; ++i) {
+			float radius;
+			fitCircle(itsLists[i], radius);
+			fitCircleR.push_back(radius);
+		}
 
 		std::vector<compress> compress_params;
 		readCompressFile(filename, compress_params);
 
 		// change the yarn cross-sections
-		const int ply_num = this->plys.size();
+		//const int ply_num = this->plys.size();
 		for (int i = 0; i < ply_num; i++) {
 			const int fiber_num = this->plys[i].fibers.size();
 			for (int f = 0; f < fiber_num; f++) {
@@ -464,33 +534,7 @@ namespace Fiber {
 				//std::cout << compress_params.size() << " " <<  vertices_num << std::endl;
 				//while (1);
 				for (int v = 0; v < vertices_num; v++) {
-					
-#if 0
-					// in case of interporlation
-					int c = 0; // for interpolation: the z value for the current vertex lies between c-1 and c 
-					for (c = 0; c < compress_params.size(); c++) {
-						if (v*this->z_step_size < compress_params[c].z) break;
-					}
-
-					// linear interpolation to obtain compress-parameters for this z value:
-					float ratio = (compress_params[c].theta - compress_params[c - 1].theta) / (compress_params[c].z - compress_params[c - 1].z);
-					float theta = ratio * (v*this->z_step_size) + compress_params[c - 1].theta;
-					
-
-					ratio = (compress_params[c].ellipse_long - compress_params[c - 1].ellipse_long) / (compress_params[c].z - compress_params[c - 1].z);
-					float ellipse_long = ratio * (v*this->z_step_size) + compress_params[c - 1].ellipse_long;
-					
-
-					ratio = (compress_params[c].ellipse_short - compress_params[c - 1].ellipse_short) / (compress_params[c].z - compress_params[c - 1].z);
-					float ellipse_short = ratio * (v*this->z_step_size) + compress_params[c - 1].ellipse_short;
-					
-					vec3f axis_x(1.f, 0.f, 0.f), axis_y(0.f, 1.f, 0.f);   //because cross sections in world coord. are defined in xy plane. 
-					const float short_axis_x = axis_x.x * std::cosf(theta) - axis_x.y * std::sinf(theta);
-					const float short_axis_y = axis_y.x * std::cosf(theta) + axis_y.y * std::sinf(theta);
-					vec3f short_axis = vec3f(short_axis_x, short_axis_y, 0.f);
-					vec3f long_axis = vec3f(-short_axis.y, short_axis.x, 0); //long axis is perpendicular to short axis
-					float _p_x = nv::dot(fiber.vertices[v], short_axis), _p_y = nv::dot(fiber.vertices[v], long_axis);
-#endif				
+								
 					const float ellipse_long = compress_params[v].ellipse_long;
 					const float ellipse_short = compress_params[v].ellipse_short;
 					const float ellipse_theta = compress_params[v].theta;
@@ -506,8 +550,8 @@ namespace Fiber {
 					ellipse_p.y = nv::dot(ellipse_axis_short, world_p);
 
 					//apply the scaling 
-					ellipse_p.x *= ellipse_long / this->yarn_radius;
-					ellipse_p.y *= ellipse_short / this->yarn_radius;
+					ellipse_p.x *= ellipse_long / fitCircleR[v];
+					ellipse_p.y *= ellipse_short / fitCircleR[v];
 
 					//transfer back to x-y
 					world_p.x = nv::dot(vec2f(ellipse_axis_long.x, ellipse_axis_short.x), ellipse_p);
@@ -515,23 +559,6 @@ namespace Fiber {
 					
 					fiber.vertices[v].x = world_p.x;
 					fiber.vertices[v].y = world_p.y;
-
-					//// rotate points by theta
-					//vec2f axis_x(1.f, 0.f), axis_y(0.f, 1.f);   //because cross sections in world coord. are defined in xy plane.
-					//vec2f rot_axis_x = rot2D(axis_y, ellipse_theta);
-					//vec2f rot_axis_y = rot2D(axis_x, ellipse_theta);
-					//assert( nv::dot(rot_axis_x, rot_axis_y) == 0 );
-					//float _p_x = nv::dot(vec2f(fiber.vertices[v].x, fiber.vertices[v].y), rot_axis_x);
-					//float _p_y = nv::dot( vec2f(fiber.vertices[v].x, fiber.vertices[v].y), rot_axis_y);
-
-					//// scale the shape of cross section
-					//_p_x *= ellipse_short / this->yarn_radius;
-					//_p_y *= ellipse_long / this->yarn_radius;
-
-					//vec3f new_p = _p_x * rot_axis_x + _p_y * rot_axis_y; // z = 0 since z value doesn't change 
-
-					//fiber.vertices[v].x = new_p.x;
-					//fiber.vertices[v].y = new_p.y;
 				}
 			}
 		}
