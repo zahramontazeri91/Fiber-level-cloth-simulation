@@ -5,7 +5,7 @@
 #include "tests/hermiteTests.h"
 #include "tests/crossSectionTests.h"
 
-void fittingPlyCenter(CrossSection & cs, const char* compressFile, const char* plyCenterFile);
+void fittingPlyCenter(CrossSection & cs, const char* plyCenterFile);
 void fittingCompress(CrossSection & cs, const char* compressFile, const char* pntsFile, const char* normsFile);
 
 int main(int argc, const char **argv) {
@@ -32,10 +32,10 @@ int main(int argc, const char **argv) {
 		if (command == "FITTING") {
 			CrossSection cs(simulatedFILE.c_str(), cntrYarnFILE.c_str(), yarn.getPlyNum(), yarn.getStepNum(), 100);
 			fittingCompress(cs, compressFILE.c_str(), curvePnts.c_str(), curveNorms.c_str());
-			fittingPlyCenter(cs, compressFILE.c_str(), plyCenterFILE.c_str());
+			fittingPlyCenter(cs, plyCenterFILE.c_str());
 		}
 		// Procedural step
-		fin >> command >> compressFILE;
+		fin >> command >> plyCenterFILE;
 		if (command == "SIMULATE")
 			yarn.yarn_simulate(plyCenterFILE.c_str());
 		//uncomment if generate yarn without given ply-center
@@ -46,8 +46,8 @@ int main(int argc, const char **argv) {
 			yarn.compress_yarn(compressFILE.c_str());
 
 		fin >> command >> curvePnts >> curveNorms;
-		//if (command == "CURVE")
-			//yarn.curve_yarn(cntrYarnFILE.c_str(), curveNorms.c_str()); //TODO:this doesn't work unless use cntrYarnFile
+		if (command == "CURVE")
+			yarn.curve_yarn(cntrYarnFILE.c_str(), curveNorms.c_str()); //TODO:this doesn't work unless use cntrYarnFile
 
 		yarn.write_yarn(argv[2]);
 	}
@@ -94,15 +94,25 @@ void fittingCompress(CrossSection & cs, const char* compressFile, const char* pn
 	std::vector<yarnIntersect2D> xy_Its;
 	cs.transferLocal2XY(allPlaneIntersect, xy_Its);
 
+	//find the fitted ellipse parameters
 	std::vector<Ellipse> ellipses;
 	cs.extractCompressParam(xy_Its, ellipses, compressFile);
+
+	FILE *fout;
+	if (fopen_s(&fout, compressFile, "wt") == 0) {
+		fprintf_s(fout, "%d \n", ellipses.size());
+		for (int i = 0; i < ellipses.size(); ++i) {
+			fprintf_s(fout, "%.4f %.4f %.4f \n", ellipses[i].longR, ellipses[i].shortR, ellipses[i].angle);
+		}
+		fclose(fout);
+	}
 
 	//extract spline normals
 	std::vector<vec3f> normals;
 	cs.extractNormals(ellipses, normals, pntsFile, normsFile);
 }
 
-void fittingPlyCenter(CrossSection & cs, const char* compressFile, const char* plyCenterFile )
+void fittingPlyCenter(CrossSection & cs, const char* plyCenterFile )
 {
 	//find 3D intersections with plane
 	std::vector<yarnIntersect> itsLists;
@@ -114,7 +124,7 @@ void fittingPlyCenter(CrossSection & cs, const char* compressFile, const char* p
 
 	//fit the ellipse and find the compression param
 	std::vector<Ellipse> ellipses;
-	cs.extractCompressParam(allPlaneIntersect, ellipses, compressFile);
+	cs.extractCompressParam(allPlaneIntersect, ellipses, "compress_temp.txt");
 
 	// Decompress simulated yarn e1-e2 space
 	std::vector<yarnIntersect2D> deCompressPlaneIntersect;

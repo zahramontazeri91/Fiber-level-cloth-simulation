@@ -493,25 +493,45 @@ namespace Fiber {
 #endif				
 					const float ellipse_long = compress_params[v].ellipse_long;
 					const float ellipse_short = compress_params[v].ellipse_short;
-					const float theta = compress_params[v].theta;
-					std::cout << theta * 180.f / pi << std::endl;
+					const float ellipse_theta = compress_params[v].theta;
 
-					// rotate points by theta
-					vec2f axis_x(1.f, 0.f), axis_y(0.f, 1.f);   //because cross sections in world coord. are defined in xy plane.
-					vec2f rot_axis_x = rot2D(axis_x, theta );
-					vec2f rot_axis_y = rot2D(axis_y, theta );
-					assert( nv::dot(rot_axis_x, rot_axis_y) == 0 );
-					float _p_x = nv::dot(vec2f(fiber.vertices[v].x, fiber.vertices[v].y), rot_axis_x);
-					float _p_y = nv::dot( vec2f(fiber.vertices[v].x, fiber.vertices[v].y), rot_axis_y);
+					//obtain ellipse axis
+					const vec2f ellipse_axis_long = vec2f(cos(ellipse_theta), sin(ellipse_theta));
+					const vec2f ellipse_axis_short = vec2f(-sin(ellipse_theta), cos(ellipse_theta));
 
-					// scale the shape of cross section
-					_p_x *= ellipse_short / this->yarn_radius;
-					_p_y *= ellipse_long / this->yarn_radius;
+					//transfer from x-y space to ellipse space
+					vec2f world_p(fiber.vertices[v].x, fiber.vertices[v].y);
+					vec2f ellipse_p(0.f);
+					ellipse_p.x = nv::dot(ellipse_axis_long, world_p);
+					ellipse_p.y = nv::dot(ellipse_axis_short, world_p);
 
-					vec3f new_p = _p_x * rot_axis_x + _p_y * rot_axis_y; // z = 0 since z value doesn't change 
+					//apply the scaling 
+					ellipse_p.x *= ellipse_long / this->yarn_radius;
+					ellipse_p.y *= ellipse_short / this->yarn_radius;
 
-					fiber.vertices[v].x = new_p.x;
-					fiber.vertices[v].y = new_p.y;
+					//transfer back to x-y
+					world_p.x = nv::dot(vec2f(ellipse_axis_long.x, ellipse_axis_short.x), ellipse_p);
+					world_p.y = nv::dot(vec2f(ellipse_axis_long.y, ellipse_axis_short.y), ellipse_p);
+					
+					fiber.vertices[v].x = world_p.x;
+					fiber.vertices[v].y = world_p.y;
+
+					//// rotate points by theta
+					//vec2f axis_x(1.f, 0.f), axis_y(0.f, 1.f);   //because cross sections in world coord. are defined in xy plane.
+					//vec2f rot_axis_x = rot2D(axis_y, ellipse_theta);
+					//vec2f rot_axis_y = rot2D(axis_x, ellipse_theta);
+					//assert( nv::dot(rot_axis_x, rot_axis_y) == 0 );
+					//float _p_x = nv::dot(vec2f(fiber.vertices[v].x, fiber.vertices[v].y), rot_axis_x);
+					//float _p_y = nv::dot( vec2f(fiber.vertices[v].x, fiber.vertices[v].y), rot_axis_y);
+
+					//// scale the shape of cross section
+					//_p_x *= ellipse_short / this->yarn_radius;
+					//_p_y *= ellipse_long / this->yarn_radius;
+
+					//vec3f new_p = _p_x * rot_axis_x + _p_y * rot_axis_y; // z = 0 since z value doesn't change 
+
+					//fiber.vertices[v].x = new_p.x;
+					//fiber.vertices[v].y = new_p.y;
 				}
 			}
 		}
@@ -520,7 +540,7 @@ namespace Fiber {
 		const int plane_num = this->z_step_num;
 		const int f_num = this->plys[0].fibers.size() - 1; //since the first fiber is the center
 		const int ignorPlanes = 0.1 * plane_num; // crop the first and last 10% of the yarn
-		if (fopen_s(&fout, "../data/allCrossSection2D_proc.txt", "wt") == 0) {
+		if (fopen_s(&fout, "../data/allCrossSection2D_compress.txt", "wt") == 0) {
 			fprintf_s(fout, "plane_num: %d \n", plane_num - 2 * ignorPlanes);
 			fprintf_s(fout, "ply_num: %d \n \n", ply_num);
 			for (int step_id = ignorPlanes; step_id < plane_num - ignorPlanes; step_id++) {
@@ -534,6 +554,17 @@ namespace Fiber {
 				fprintf_s(fout, "\n");
 			}
 			fclose(fout);
+		}
+		FILE *fout1;
+		//write ellipses to file for testing
+		if (fopen_s(&fout1, "../data/orientation_compress.txt", "wt") == 0) {
+			const int ignorPlanes = 0.1 * plane_num; // crop the first and last 10% of the yarn
+			for (int i = ignorPlanes; i < compress_params.size() - ignorPlanes; ++i) {
+				fprintf_s(fout1, "%.4f %.4f \n", 0.f, 0.f);
+				fprintf_s(fout1, "%.4f %.4f %.4f \n", compress_params[i].ellipse_long, compress_params[i].ellipse_short, compress_params[i].theta);
+				fprintf_s(fout1, "\n");
+			}
+			fclose(fout1);
 		}
 	} // compress_yarn
 

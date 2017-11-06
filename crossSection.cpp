@@ -252,7 +252,6 @@ void CrossSection::PlanesIntersections2D(std::vector<yarnIntersect> &itsLists, s
 	std::cout << "Intersections are written to the file successfully! \n\n";
 }
 
-#if 0
 void CrossSection::fitCircle(const yarnIntersect2D &pts, float &radius)
 {
 	//Find the total number of points for all plys
@@ -291,7 +290,6 @@ void CrossSection::fitCircle(const yarnIntersect2D &pts, float &radius)
 	}
 	radius = max;
 }
-#endif
 
 void CrossSection::fitEllipse(const yarnIntersect2D &pts, Ellipse &ellipse)
 {
@@ -309,12 +307,14 @@ void CrossSection::fitEllipse(const yarnIntersect2D &pts, Ellipse &ellipse)
 			--c;
 		}
 	}
-	
+
 	//Perform PCA analysis
 	cv::PCA pca_analysis(data_pts, cv::Mat(), cv::PCA::DATA_AS_ROW, 2);
 
 	//Store the center of the object
 	ellipse.center = vec2f(pca_analysis.mean.at<float>(0, 0), pca_analysis.mean.at<float>(0, 1));
+	
+
 	//Store the eigenvalues and eigenvectors
 	std::vector<vec2f> eigen_vecs(2);
 	std::vector<float> eigen_val(2);
@@ -352,8 +352,10 @@ void CrossSection::fitEllipse(const yarnIntersect2D &pts, Ellipse &ellipse)
 		else 
 			ellipse.angle = ellipse.angle - pi;
 	}
+
 	ellipse.longR = length(p1 - ellipse.center);
 	ellipse.shortR = length(p2 - ellipse.center);
+
 }
 
 #if 0
@@ -432,27 +434,16 @@ void CrossSection::minAreaEllipse(const yarnIntersect2D &pts, const Ellipse &ell
 #endif
 
 void CrossSection::extractCompressParam(const std::vector<yarnIntersect2D> &allPlaneIntersect, std::vector<Ellipse> &ellipses, const char* compressFile) {
-
+	
 	for (int i = 0; i < allPlaneIntersect.size(); ++i)
 	{
 		Ellipse ell;
 		fitEllipse(allPlaneIntersect[i], ell);
-		
+
 		//Ellipse minEll;
 		//minAreaEllipse(allPlaneIntersect[i], ell, minEll);
 		
 		ellipses.push_back(ell);
-	}
-
-	//write to compress.txt (a, b , alpha)
-	FILE * fout;
-	if (fopen_s(&fout, compressFile, "wt") == 0) {
-		fprintf_s(fout, "%d \n", allPlaneIntersect.size());
-		for (int i = 0; i < allPlaneIntersect.size(); ++i)
-		{
-			fprintf_s(fout, "%.4f %.4f %.4f \n", ellipses[i].longR, ellipses[i].shortR, ellipses[i].angle);
-		}
-		fclose(fout);
 	}
 
 	std::cout << "Compression parameters for each cross-sections are written to the file! \n";
