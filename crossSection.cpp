@@ -252,44 +252,6 @@ void CrossSection::PlanesIntersections2D(std::vector<yarnIntersect> &itsLists, s
 	std::cout << "Intersections are written to the file successfully! \n\n";
 }
 
-void CrossSection::fitCircle(const yarnIntersect2D &pts, float &radius)
-{
-	//Find the total number of points for all plys
-	int sz = 0;
-	for (int p = 0; p < pts.size(); ++p)
-		sz += pts[p].size();
-	cv::Mat data_pts(sz, 2, CV_32FC1, cv::Scalar::all(0));
-
-	int c = data_pts.rows;
-	for (int p = 0; p < pts.size(); ++p) {
-		for (int i = 0; i < pts[p].size(); ++i) {
-
-			data_pts.at<float>(c, 0) = pts[p][i].x;
-			data_pts.at<float>(c, 1) = pts[p][i].y;
-			--c;
-		}
-	}
-
-	//Perform PCA analysis
-	cv::PCA pca_analysis(data_pts, cv::Mat(), cv::PCA::DATA_AS_ROW, 2);
-
-	//Store the center of the object
-	vec2f center = vec2f(pca_analysis.mean.at<float>(0, 0), pca_analysis.mean.at<float>(0, 1));
-	//Store the eigenvalues and eigenvectors
-	std::vector<vec2f> eigen_vecs(1);
-	//std::vector<float> eigen_val(1);
-	eigen_vecs[0] = vec2f(pca_analysis.eigenvectors.at<float>(0, 0),
-			pca_analysis.eigenvectors.at<float>(0, 1));
-
-	//find eigen values by projecting the points on eigenVectors
-	float max = std::numeric_limits<float>::min();
-	for (int i = 0; i < data_pts.rows; ++i) {
-		float prj = eigen_vecs[0].x * data_pts.at<float>(i, 0) + eigen_vecs[0].y * data_pts.at<float>(i, 1);
-		if (std::abs(prj) > max)
-			max = std::abs(prj);
-	}
-	radius = max;
-}
 
 void CrossSection::fitEllipse(const yarnIntersect2D &pts, Ellipse &ellipse)
 {
@@ -467,7 +429,7 @@ void CrossSection::planeIts2world(Plane &plane, vec2f &plane_point, vec3f &world
 	//note that order of the axis matches with the project2plane()
 }
 
-void CrossSection::extractNormals(std::vector<vec3f> &normals, const char* pntsFile, const char* normsFile) {
+void CrossSection::extractNormals(std::vector<Ellipse> &ellipses, std::vector<vec3f> &normals, const char* pntsFile, const char* normsFile) {
 	FILE *fout1;
 	FILE *fout2;
 	if (fopen_s(&fout1, pntsFile, "wt") == 0) {
@@ -475,15 +437,16 @@ void CrossSection::extractNormals(std::vector<vec3f> &normals, const char* pntsF
 			fprintf_s(fout1, "%d\n", m_planesList.size());
 			fprintf_s(fout2, "%d\n", m_planesList.size());
 			for (int i = 0; i < m_planesList.size(); ++i) {
-				////rotate plane.e1=[1,0] by theta in the plane to obtain ellipse-short-axis
-				//vec2f p2D(cos(ellipses[i].angle ), sin(ellipses[i].angle ));
-				////now project it to world coord
-				//vec3f end3D;
-				//planeIts2world(m_planesList[i], p2D, end3D);
-				//vec3f start3D = m_planesList[i].point;
-				////note that ellipse center is same as plane.point
+				//rotate plane.e1=[1,0] by theta in the plane to obtain ellipse-short-axis
+				vec2f p2D(cos(ellipses[i].angle), sin(ellipses[i].angle));
+				//now project it to world coord
+				vec3f end3D;
+				planeIts2world(m_planesList[i], p2D, end3D);
+				vec3f start3D = m_planesList[i].point;
+				//note that ellipse center is same as plane.point
 				//vec3f normal = end3D - start3D;
-				vec3f normal = m_planesList[i].e1; // Clearly not the case!
+				// vec3f normal = m_planesList[i].e1; clearly not the case
+				vec3f normal(1.f, 0.f, 0.f);
 				assert(nv::length(normal) - 1.f < HERMITE_EPS   && "Normal vector is not normalized!");
 				normals.push_back(normal);
 				fprintf_s(fout1, "%.6f %.6f %.6f \n", m_planesList[i].point.x, m_planesList[i].point.y, m_planesList[i].point.z);

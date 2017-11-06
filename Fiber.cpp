@@ -601,8 +601,8 @@ namespace Fiber {
 	
 		/* use hermite spline multiple segments */
         HermiteCurve curve;
-        curve.init(pntsFile);
-		//curve.init(pntsFile, normsFile);
+        //curve.init(pntsFile);
+		curve.init(pntsFile, normsFile);
 
         double zMin = std::numeric_limits<double>::max(), zMax = std::numeric_limits<double>::lowest();
         for ( const auto &ply : plys )

@@ -335,7 +335,7 @@ void extractNormals()
 
 	//extract spline normals
 	std::vector<vec3f> normals;
-	cs.extractNormals(normals,"../data/junk_pnt.txt", "../data/junk_norm.txt");
+	cs.extractNormals(ellipses, normals,"../data/junk_pnt.txt", "../data/junk_norm.txt");
 	FILE *fout;
 	if (fopen_s(&fout, "../data/normals.txt", "wt") == 0) {
 		for (int i = 0; i < ellipses.size(); ++i) {

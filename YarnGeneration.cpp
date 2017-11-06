@@ -46,8 +46,8 @@ int main(int argc, const char **argv) {
 			yarn.compress_yarn(compressFILE.c_str());
 
 		fin >> command >> curvePnts >> curveNorms;
-		//if (command == "CURVE")
-			//yarn.curve_yarn(cntrYarnFILE.c_str(), curveNorms.c_str()); //TODO:this doesn't work unless use cntrYarnFile
+		if (command == "CURVE")
+			yarn.curve_yarn(cntrYarnFILE.c_str(), curveNorms.c_str()); //TODO:this doesn't work unless use cntrYarnFile
 
 		yarn.write_yarn(argv[2]);
 	}
@@ -108,8 +108,8 @@ void fittingCompress(CrossSection & cs, const char* compressFile, const char* pn
 	}
 
 	//extract spline normals
-	//std::vector<vec3f> normals;
-	//cs.extractNormals(normals, pntsFile, normsFile);
+	std::vector<vec3f> normals;
+	cs.extractNormals(ellipses, normals, pntsFile, normsFile);
 }
 
 void fittingPlyCenter(CrossSection & cs, const char* plyCenterFile )
