@@ -429,34 +429,28 @@ void CrossSection::planeIts2world(Plane &plane, vec2f &plane_point, vec3f &world
 	//note that order of the axis matches with the project2plane()
 }
 
-void CrossSection::extractNormals(std::vector<Ellipse> &ellipses, std::vector<vec3f> &normals, const char* pntsFile, const char* normsFile) {
-	FILE *fout1;
-	FILE *fout2;
-	if (fopen_s(&fout1, pntsFile, "wt") == 0) {
-		if (fopen_s(&fout2, normsFile, "wt") == 0) {
-			fprintf_s(fout1, "%d\n", m_planesList.size());
-			fprintf_s(fout2, "%d\n", m_planesList.size());
-			for (int i = 0; i < m_planesList.size(); ++i) {
-				//rotate plane.e1=[1,0] by theta in the plane to obtain ellipse-short-axis
-				vec2f p2D(cos(ellipses[i].angle), sin(ellipses[i].angle));
-				//now project it to world coord
-				vec3f end3D;
-				planeIts2world(m_planesList[i], p2D, end3D);
-				vec3f start3D = m_planesList[i].point;
-				//note that ellipse center is same as plane.point
-				//vec3f normal = end3D - start3D;
-				// vec3f normal = m_planesList[i].e1; clearly not the case
-				vec3f normal(1.f, 0.f, 0.f);
-				assert(nv::length(normal) - 1.f < HERMITE_EPS   && "Normal vector is not normalized!");
-				normals.push_back(normal);
-				fprintf_s(fout1, "%.6f %.6f %.6f \n", m_planesList[i].point.x, m_planesList[i].point.y, m_planesList[i].point.z);
-				fprintf_s(fout2, "%.6f %.6f %.6f \n", normal.x, normal.y, normal.z);
+void CrossSection::extractNormals(std::vector<Ellipse> &ellipses, std::vector<vec3f> &normals, const char* normsFile) {
 
-			}
+	FILE *fout;
+	if (fopen_s(&fout, normsFile, "wt") == 0) {
+		fprintf_s(fout, "%d\n", m_planesList.size());
+		for (int i = 0; i < m_planesList.size(); ++i) {
+			//rotate plane.e1=[1,0] by theta in the plane to obtain ellipse-short-axis
+			vec2f p2D(cos(ellipses[i].angle), sin(ellipses[i].angle));
+			//now project it to world coord
+			vec3f end3D;
+			planeIts2world(m_planesList[i], p2D, end3D);
+			vec3f start3D = m_planesList[i].point;
+			//note that ellipse center is same as plane.point
+			vec3f normal = end3D - start3D;
+			// vec3f normal = m_planesList[i].e1; clearly not the case
+			// vec3f normal(1.f, 0.f, 0.f); clearly shaky
+			assert(nv::length(normal) - 1.f < HERMITE_EPS   && "Normal vector is not normalized!");
+			normals.push_back(normal);
+			fprintf_s(fout, "%.6f %.6f %.6f \n", normal.x, normal.y, normal.z);
 		}
-		fclose(fout2);
 	}
-	fclose(fout1);
+	fclose(fout);
 }
 
 #if 0

@@ -6,7 +6,7 @@
 #include "tests/crossSectionTests.h"
 
 void fittingPlyCenter(CrossSection & cs, const char* plyCenterFile);
-void fittingCompress(CrossSection & cs, const char* compressFile, const char* pntsFile, const char* normsFile);
+void fittingCompress(CrossSection & cs, const char* compressFile, const char* normsFile);
 
 int main(int argc, const char **argv) {
 #if 1
@@ -22,16 +22,16 @@ int main(int argc, const char **argv) {
 
 		Fiber::Yarn yarn;
 		std::string command, configFILE, simulatedFILE,
-			cntrYarnFILE, curvePnts, curveNorms, compressFILE, plyCenterFILE;
+			cntrYarnFILE, curveNorms, compressFILE, plyCenterFILE;
 
 		fin >> configFILE;
 		yarn.parse(configFILE.c_str());
 
 		// Fitting step 
-		fin >> command >> simulatedFILE >> cntrYarnFILE >> curvePnts >> curveNorms >> compressFILE >> plyCenterFILE;
+		fin >> command >> simulatedFILE >> cntrYarnFILE >> plyCenterFILE >> compressFILE >> curveNorms;
 		if (command == "FITTING") {
 			CrossSection cs(simulatedFILE.c_str(), cntrYarnFILE.c_str(), yarn.getPlyNum(), yarn.getStepNum(), 100);
-			fittingCompress(cs, compressFILE.c_str(), curvePnts.c_str(), curveNorms.c_str());
+			fittingCompress(cs, compressFILE.c_str(), curveNorms.c_str());
 			fittingPlyCenter(cs, plyCenterFILE.c_str());
 		}
 		// Procedural step
@@ -45,9 +45,9 @@ int main(int argc, const char **argv) {
 		if (command == "COMPRESS")
 			yarn.compress_yarn(compressFILE.c_str());
 
-		fin >> command >> curvePnts >> curveNorms;
+		fin >> command >> curveNorms;
 		if (command == "CURVE")
-			yarn.curve_yarn(cntrYarnFILE.c_str(), curveNorms.c_str()); //TODO:this doesn't work unless use cntrYarnFile
+			yarn.curve_yarn(cntrYarnFILE.c_str(), curveNorms.c_str());
 
 		yarn.write_yarn(argv[2]);
 	}
@@ -83,7 +83,7 @@ int main(int argc, const char **argv) {
 }
 
 
-void fittingCompress(CrossSection & cs, const char* compressFile, const char* pntsFile, const char* normsFile) {
+void fittingCompress(CrossSection & cs, const char* compressFile, const char* normsFile) {
 	std::vector<yarnIntersect> itsLists;
 	cs.allPlanesIntersections(itsLists);
 
@@ -109,7 +109,7 @@ void fittingCompress(CrossSection & cs, const char* compressFile, const char* pn
 
 	//extract spline normals
 	std::vector<vec3f> normals;
-	cs.extractNormals(ellipses, normals, pntsFile, normsFile);
+	cs.extractNormals(ellipses, normals, normsFile);
 }
 
 void fittingPlyCenter(CrossSection & cs, const char* plyCenterFile )
