@@ -71,6 +71,10 @@ public:
 	HermiteCurve get_curve() {
 		return m_curve;
 	}
+	/*For each plane, store the vector from ply-center to all fiber-centers for only first ply */
+	void extractFiberVectors(const std::vector<yarnIntersect2D> &decompressPlaneIts, std::vector<plyItersect2D> &fiberCntrVector);
+	/*find the theta for fiber-centers rotating around the ply-center for each cross section*/
+	void fiberTwisting(const std::vector<yarnIntersect2D> &decompressPlaneIts, std::vector<float> &fiber_theta, const char *fiberTwistFile);
 
 	//for debug:
 	/* constructor for procedural yarn (for debug use) */

@@ -54,7 +54,7 @@ public:
 	int findSegId(double curve_length) const;
 
 	/* Returns reference Frenet frame by -90 (so BNT to NBT) */
-	void getFrame(double t, Eigen::Vector3d &ex, Eigen::Vector3d &ey, Eigen::Vector3d &ez) const;
+	void getRotatedFrame(double t, Eigen::Vector3d &ex, Eigen::Vector3d &ey, Eigen::Vector3d &ez) const;
 
 protected:
     void initPoints(const std::vector<Eigen::Vector3d> &pts);

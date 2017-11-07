@@ -560,4 +560,44 @@ void CrossSection::extractPlyTwist(const std::vector<yarnIntersect2D> &decompres
 	}
 	fout.close();
 }
+void CrossSection::extractFiberVectors(const std::vector<yarnIntersect2D> &decompressPlaneIts, std::vector<plyItersect2D> &fiberCntrVector) {
+	fiberCntrVector.resize(decompressPlaneIts.size());
+	for (int i = 0; i < decompressPlaneIts.size(); ++i) { // all planes	
+		int p = 0; //since fiber-centers in only ply[0] are stable in e1-e2 space 
+		vec2f plyCntr(0.f);
+		for (int v = 0; v < decompressPlaneIts[i][p].size(); ++v) { // ply intersections
+			plyCntr += decompressPlaneIts[i][p][v];
+		}
+		plyCntr /= static_cast<float>(decompressPlaneIts[i][p].size());
+		//Find fiber[0]-plyCenter for each plane
+		for (int v = 0; v < decompressPlaneIts[i][p].size(); ++v) {
+			vec2f fiberVec = decompressPlaneIts[i][p][v] - plyCntr;
+			fiberCntrVector[i].push_back(fiberVec);
+		}
+	}
+}
+void CrossSection::fiberTwisting(const std::vector<yarnIntersect2D> &decompressPlaneIts, std::vector<float> &fiber_theta, const char *fiberTwistFile) {
 
+	std::vector<plyItersect2D> fiberCntrVector;
+	extractFiberVectors(decompressPlaneIts, fiberCntrVector);
+
+	//push theta = 0 for the first plane
+	fiber_theta.push_back(0.f);
+
+	std::ofstream fout(fiberTwistFile);
+	for (int i = 0; i < fiberCntrVector.size() - 1; ++i) { // all planes
+		float theta_avg = 0;
+		const int fiber_num = std::min( fiberCntrVector[i].size(), fiberCntrVector[i+1].size() ); //At the endpoints, next plane might not have as many as the current plane
+		for (int v = 0; v < fiber_num; ++v) { // fiber-centers for each plane
+			//compute the angle between two vec2f
+			float cos = dot(fiberCntrVector[i][v], fiberCntrVector[i + 1][v]) / (length(fiberCntrVector[i + 1][v]) * length(fiberCntrVector[i][v]));
+			if (1.f - cos > 1e-7) // skip the nan that are generated duo to small acos()
+				theta_avg += acos(cos);
+		}
+		
+		theta_avg /= fiber_num;
+		fiber_theta.push_back(theta_avg);
+		fout << theta_avg << '\n';
+	}
+	fout.close();
+}

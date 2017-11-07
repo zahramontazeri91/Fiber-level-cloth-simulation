@@ -7,6 +7,7 @@
 
 void fittingPlyCenter(CrossSection & cs, const char* plyCenterFile);
 void fittingCompress(CrossSection & cs, const char* compressFile, const char* normsFile);
+void fittingFiberTwisting(CrossSection & cs, const char* fiberTwistFile);
 
 int main(int argc, const char **argv) {
 #if 1
@@ -33,11 +34,12 @@ int main(int argc, const char **argv) {
 			CrossSection cs(simulatedFILE.c_str(), cntrYarnFILE.c_str(), yarn.getPlyNum(), yarn.getStepNum(), 100);
 			fittingCompress(cs, compressFILE.c_str(), curveNorms.c_str());
 			fittingPlyCenter(cs, plyCenterFILE.c_str());
+			fittingFiberTwisting(cs, "fiberTwist.txt");
 		}
 		// Procedural step
 		fin >> command >> plyCenterFILE;
 		if (command == "SIMULATE")
-			yarn.yarn_simulate(plyCenterFILE.c_str());
+			yarn.yarn_simulate(plyCenterFILE.c_str(), "fiberTwist.txt");
 		//uncomment if generate yarn without given ply-center
 			//yarn.yarn_simulate();
 
@@ -136,4 +138,32 @@ void fittingPlyCenter(CrossSection & cs, const char* plyCenterFile )
 
 	//extract ply-centers helix positions
 	cs.extractPlyTwist(xy_Its, plyCenterFile);
+}
+
+void fittingFiberTwisting(CrossSection & cs, const char* fiberTwistFile)
+{
+	//find 3D intersections with plane
+	std::vector<yarnIntersect> itsLists;
+	cs.allPlanesIntersections(itsLists);
+
+	//project 3D intersections in e1-e2 plane
+	std::vector<yarnIntersect2D> allPlaneIntersect;
+	cs.PlanesIntersections2D(itsLists, allPlaneIntersect);
+
+	//fit the ellipse and find the compression param
+	std::vector<Ellipse> ellipses;
+	cs.extractCompressParam(allPlaneIntersect, ellipses);
+
+	//Decompress simulated yarn e1-e2 space
+	std::vector<yarnIntersect2D> deCompressPlaneIntersect;
+	cs.deCompressYarn(allPlaneIntersect, ellipses, deCompressPlaneIntersect);
+
+	//
+	std::vector<float> fiber_theta;
+	cs.fiberTwisting(deCompressPlaneIntersect, fiber_theta, fiberTwistFile);
+
+	// no need transfer from e1-e2 to x-y plane because it's only theta
+
+	//extract ply-centers helix positions
+	//cs.extractPlyTwist(xy_Its, plyCenterFile);
 }

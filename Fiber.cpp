@@ -200,7 +200,7 @@ namespace Fiber {
 	Yarn::~Yarn() {}
 
 
-	void Yarn::yarn_simulate(const char *plyCenterFile) {
+	void Yarn::yarn_simulate(const char *plyCenterFile, const char *fiberTwistFile) {
 
 		std::cout << "step1: yarn center ...\n";
 		const float base_radius = this->yarn_radius;
@@ -340,6 +340,7 @@ namespace Fiber {
 		}
 	} // yarn_simulate
 
+#if 0
 	void Yarn::yarn_simulate() {
 
 		std::cout << "step1: yarn center ...\n";
@@ -425,6 +426,7 @@ namespace Fiber {
 			}
 		}
 	} // yarn_simulate
+#endif
 
 	void Yarn::readCompressFile(const char* filename, std::vector<compress> &compress_params) {
 		std::ifstream fin;
@@ -626,17 +628,14 @@ namespace Fiber {
                 for ( auto &vertex : fiber.vertices ) {
                     double len = curveLength*(vertex.z - zMin)/zSpan;
                     double t = curve.arcLengthInvApprox(len);
+
 					// use rotated Frenet frame 
 					Eigen::Vector3d ex, ey, ez;
-					curve.getFrame(t, ex, ey, ez);
+					curve.getRotatedFrame(t, ex, ey, ez);
 
 					Eigen::Vector3d pos = curve.eval(t);
-					Eigen::Vector3d tang = ez; // curve.evalTangent(t);
-					Eigen::Vector3d norm = ex; // curve.evalNormal(t);
-					Eigen::Vector3d binorm = ey; // tang.cross(norm);
-
                     Eigen::Vector3d pos1;
-                    pos1 = pos + xyScale*(static_cast<double>(vertex.x)*norm + static_cast<double>(vertex.y)*binorm);
+                    pos1 = pos + xyScale*(static_cast<double>(vertex.x)*ex + static_cast<double>(vertex.y)*ey);
 
                     vertex.x = static_cast<float>(pos1[0]);
                     vertex.y = static_cast<float>(pos1[1]);
