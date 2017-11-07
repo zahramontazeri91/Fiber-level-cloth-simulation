@@ -601,8 +601,8 @@ namespace Fiber {
 	
 		/* use hermite spline multiple segments */
         HermiteCurve curve;
-        //curve.init(pntsFile);
-		curve.init(pntsFile, normsFile);
+        curve.init(pntsFile);
+		//curve.init(pntsFile, normsFile);
 
         double zMin = std::numeric_limits<double>::max(), zMax = std::numeric_limits<double>::lowest();
         for ( const auto &ply : plys )
@@ -626,9 +626,14 @@ namespace Fiber {
                 for ( auto &vertex : fiber.vertices ) {
                     double len = curveLength*(vertex.z - zMin)/zSpan;
                     double t = curve.arcLengthInvApprox(len);
+					// use rotated Frenet frame 
+					Eigen::Vector3d ex, ey, ez;
+					curve.getFrame(t, ex, ey, ez);
 
-                    Eigen::Vector3d pos = curve.eval(t), tang = curve.evalTangent(t), norm = curve.evalNormal(t);
-                    Eigen::Vector3d binorm = tang.cross(norm);
+					Eigen::Vector3d pos = curve.eval(t);
+					Eigen::Vector3d tang = ez; // curve.evalTangent(t);
+					Eigen::Vector3d norm = ex; // curve.evalNormal(t);
+					Eigen::Vector3d binorm = ey; // tang.cross(norm);
 
                     Eigen::Vector3d pos1;
                     pos1 = pos + xyScale*(static_cast<double>(vertex.x)*norm + static_cast<double>(vertex.y)*binorm);

@@ -108,8 +108,8 @@ void fittingCompress(CrossSection & cs, const char* compressFile, const char* no
 	}
 
 	//extract spline normals
-	std::vector<vec3f> normals;
-	cs.extractNormals(ellipses, normals, normsFile);
+	//std::vector<vec3f> normals;
+	//cs.extractNormals(ellipses, normals, normsFile);
 }
 
 void fittingPlyCenter(CrossSection & cs, const char* plyCenterFile )

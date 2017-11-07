@@ -180,3 +180,9 @@ void HermiteCurve::output(int n, Eigen::Vector3d *bufferPosition,
         if ( bufferNormal ) bufferNormal[i] = evalNormal(t);
     }
 }
+
+void HermiteCurve::getFrame(double t, Eigen::Vector3d &ex, Eigen::Vector3d &ey, Eigen::Vector3d &ez) const {
+	ez = evalTangent(t);
+	ex = evalNormal(t);
+	ey = ex.cross(ez);
+}

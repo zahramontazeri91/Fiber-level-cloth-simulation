@@ -422,12 +422,13 @@ void CrossSection::planeIts2world(Plane &plane, vec2f &plane_point, vec3f &world
 	local = [e1; e2; n] * world*/
 	/*********************** TODO *****************************/
 	/* I swaped y and x so that the yarn before compression looks rotated but it looks correct at the end! */
-	world_point.x = dot(vec3f(e1.x, e2.x, n.x), local) + plane.point.x;
-	world_point.y = dot(vec3f(e1.y, e2.y, n.y), local) + plane.point.y;
+	world_point.y = dot(vec3f(e1.x, e2.x, n.x), local) + plane.point.x;
+	world_point.x = dot(vec3f(e1.y, e2.y, n.y), local) + plane.point.y;
 	/*********************************************************/
 	world_point.z = dot(vec3f(e1.z, e2.z, n.z), local) + plane.point.z;
 	//note that order of the axis matches with the project2plane()
 }
+
 
 void CrossSection::extractNormals(std::vector<Ellipse> &ellipses, std::vector<vec3f> &normals, const char* normsFile) {
 
@@ -452,6 +453,7 @@ void CrossSection::extractNormals(std::vector<Ellipse> &ellipses, std::vector<ve
 	}
 	fclose(fout);
 }
+
 
 #if 0
 /* Given a yarn dataStructure, transform it to a vector of cross-sections (for debug use)*/
@@ -528,8 +530,8 @@ void CrossSection::transferLocal2XY(const std::vector<yarnIntersect2D> &e1e2_Its
 				// project e1 to ex, and e2 to ey with no translation
 				/*********************** TODO *****************************/
 				/* I swaped y and x so that the yarn before compression looks rotated but it looks correct at the end! */
-				xy_Its[i][p][v].x = dot(vec2f(e1.x, e2.x), e1e2_p);
-				xy_Its[i][p][v].y = dot(vec2f(e1.y, e2.y), e1e2_p);
+				xy_Its[i][p][v].y = dot(vec2f(e1.x, e2.x), e1e2_p);
+				xy_Its[i][p][v].x = dot(vec2f(e1.y, e2.y), e1e2_p);
 				/*********************************************************/
 			}
 		}

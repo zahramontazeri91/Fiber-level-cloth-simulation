@@ -344,6 +344,7 @@ void extractNormals()
 		}
 		fclose(fout);
 	}
+
 	// Testing entire curve
 	{
 		HermiteCurve curve = cs.get_curve();
