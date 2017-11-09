@@ -199,7 +199,33 @@ namespace Fiber {
 	Yarn::Yarn() {}
 	Yarn::~Yarn() {}
 
+	void Yarn::assignPlyCenters(const char *plyCenterFile) {
+		std::ifstream fin;
+		fin.open(plyCenterFile);
+		const int ply_num = this->plys.size();
 
+		/* initialize first fiber for each ply as the ply-center */
+		for (int step_id = 0; step_id < this->z_step_num; step_id++) {
+			for (int i = 0; i < ply_num; i++) {
+				const float z = this->z_step_size * (step_id - this->z_step_num / 2.f); // devided by 2 Bcuz yarn lies between neg and pos z
+				std::string line;
+				std::getline(fin, line);
+				std::vector<std::string> splits = split(line, ' ');
+				float world_x = atof(splits[0].c_str());
+				float world_y = atof(splits[1].c_str());
+
+				vec3f verIn = vec3f(world_x, world_y, z), verOut;
+				verOut = verIn;
+
+				this->aabb_procedural.grow(verOut);
+				if (this->aabb_micro_ct.in(verOut))
+					this->plys[i].fibers[0].vertices.push_back(verOut);
+			}
+			std::string whitespace;
+			std::getline(fin, whitespace);
+		}
+		fin.close();
+	}
 	void Yarn::yarn_simulate(const char *plyCenterFile, const char *fiberTwistFile) {
 
 		std::cout << "step1: yarn center ...\n";
@@ -236,30 +262,7 @@ namespace Fiber {
 
 		std::cout << "step4-5-6: rotate ply-centers around yarn-center and fibers around ply-centers and apply the compression ... \n";
 #pragma omp parallel for num_threads(num_of_cores)
-		std::ifstream fin;
-		fin.open(plyCenterFile);
-
-		/* initialize first fiber for each ply as the ply-center */
-		for (int step_id = 0; step_id < this->z_step_num; step_id++) {
-			for (int i = 0; i < ply_num; i++) {
-				const float z = this->z_step_size * (step_id - this->z_step_num / 2.f); // devided by 2 Bcuz yarn lies between neg and pos z
-				std::string line;
-				std::getline(fin, line);
-				std::vector<std::string> splits = split(line, ' ');
-				float world_x = atof(splits[0].c_str());
-				float world_y = atof(splits[1].c_str());
-
-				vec3f verIn = vec3f(world_x, world_y, z), verOut;
-				verOut = verIn;
-
-				this->aabb_procedural.grow(verOut);
-				if (this->aabb_micro_ct.in(verOut))
-					this->plys[i].fibers[0].vertices.push_back(verOut);
-			}
-			std::string whitespace;
-			std::getline(fin, whitespace);
-		}
-		fin.close();
+		assignPlyCenters(plyCenterFile);
 
 		for (int i = 0; i < ply_num; i++) {
 			const int fiber_num = this->plys[i].fibers.size();			
