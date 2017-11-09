@@ -273,7 +273,7 @@ namespace Fiber {
 				for (int step_id = 0; step_id < this->z_step_num; step_id++) {
 					const float z = this->z_step_size * (step_id - this->z_step_num / 2.f); // devided by 2 Bcuz yarn lies between neg and pos z
 					const float fiber_theta = this->plys[i].clock_wise ? -z * 2 * pi / this->plys[i].alpha : z * 2 * pi / this->plys[i].alpha;
-					////const float fiber_theta = 0.00001;
+					
 					const float yarn_theta = this->clock_wise ? -z * 2 * pi / this->yarn_alpha : z * 2 * pi / this->yarn_alpha;
 					float local_x, local_y, world_x, world_y;
 
@@ -644,6 +644,28 @@ namespace Fiber {
                     vertex.y = static_cast<float>(pos1[1]);
                     vertex.z = static_cast<float>(pos1[2]);
                 }
+
+		// for debuging:
+		const int ply_num = this->plys.size();
+		FILE *fout;
+		const int plane_num = this->z_step_num;
+		const int f_num = this->plys[0].fibers.size() - 1; //since the first fiber is the center
+		const int ignorPlanes = 0.1 * plane_num; // crop the first and last 10% of the yarn
+		if (fopen_s(&fout, "../data/allCrossSection2D_curve.txt", "wt") == 0) {
+			fprintf_s(fout, "plane_num: %d \n", plane_num - 2 * ignorPlanes);
+			fprintf_s(fout, "ply_num: %d \n \n", ply_num);
+			for (int step_id = ignorPlanes; step_id < plane_num - ignorPlanes; step_id++) {
+				for (int i = 0; i < ply_num; i++) {
+					fprintf_s(fout, "ply_fiber_num: %d\n", f_num);
+					fprintf_s(fout, "plyCenter: %.4f %.4f\n", this->plys[i].fibers[0].vertices[step_id].x, this->plys[i].fibers[0].vertices[step_id].y);
+					for (int f = 1; f < f_num + 1; ++f) {
+						fprintf_s(fout, "%.4f %.4f\n", this->plys[i].fibers[f].vertices[step_id].x, this->plys[i].fibers[f].vertices[step_id].y);
+					}
+				}
+				fprintf_s(fout, "\n");
+			}
+			fclose(fout);
+		}
 	} // curve_yarn
 
 

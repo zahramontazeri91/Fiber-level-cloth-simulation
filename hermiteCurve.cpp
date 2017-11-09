@@ -182,8 +182,15 @@ void HermiteCurve::output(int n, Eigen::Vector3d *bufferPosition,
 }
 
 void HermiteCurve::getRotatedFrame(double t, Eigen::Vector3d &ex, Eigen::Vector3d &ey, Eigen::Vector3d &ez) const {
-	//rotating Frenet frame by -90 is same as follows:
-	ez = evalTangent(t);
-	ex = evalNormal(t);
-	ey = ex.cross(ez);
+	//rotating Frenet frame by 90 is same as follows:
+	Eigen::Vector3d T = evalTangent(t);
+	Eigen::Vector3d N = evalNormal(t);
+	Eigen::Vector3d B = ez.cross(ex);
+	
+	ez = T;
+	ey = B;
+	ex = -1 * N;
+	assert(ex.norm() - 1.f < 1e-5);
+	assert(ey.norm() - 1.f < 1e-5);
+	assert(ez.norm() - 1.f < 1e-5);
 }

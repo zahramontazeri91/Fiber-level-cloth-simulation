@@ -100,11 +100,15 @@ void fittingCompress(CrossSection & cs, const char* compressFile, const char* no
 	std::vector<Ellipse> ellipses;
 	cs.extractCompressParam(xy_Its, ellipses);
 
+	//simplify the ellipse params
+	std::vector<Ellipse> simple_ellipses;
+	cs.parameterizeEllipses(ellipses, simple_ellipses);
+
 	FILE *fout;
 	if (fopen_s(&fout, compressFile, "wt") == 0) {
-		fprintf_s(fout, "%d \n", ellipses.size());
-		for (int i = 0; i < ellipses.size(); ++i) {
-			fprintf_s(fout, "%.4f %.4f %.4f \n", ellipses[i].longR, ellipses[i].shortR, ellipses[i].angle);
+		fprintf_s(fout, "%d \n", simple_ellipses.size());
+		for (int i = 0; i < simple_ellipses.size(); ++i) {
+			fprintf_s(fout, "%.4f %.4f %.4f \n", simple_ellipses[i].longR, simple_ellipses[i].shortR, simple_ellipses[i].angle);
 		}
 		fclose(fout);
 	}
@@ -128,9 +132,13 @@ void fittingPlyCenter(CrossSection & cs, const char* plyCenterFile )
 	std::vector<Ellipse> ellipses;
 	cs.extractCompressParam(allPlaneIntersect, ellipses);
 
+	//simplify the ellipse params
+	std::vector<Ellipse> simple_ellipses;
+	cs.parameterizeEllipses(ellipses, simple_ellipses);
+
 	// Decompress simulated yarn e1-e2 space
 	std::vector<yarnIntersect2D> deCompressPlaneIntersect;
-	cs.deCompressYarn(allPlaneIntersect, ellipses, deCompressPlaneIntersect);
+	cs.deCompressYarn(allPlaneIntersect, simple_ellipses, deCompressPlaneIntersect);
 
 	//transfer from e1-e2 to x-y plane
 	std::vector<yarnIntersect2D> xy_Its;
@@ -154,9 +162,13 @@ void fittingFiberTwisting(CrossSection & cs, const char* fiberTwistFile)
 	std::vector<Ellipse> ellipses;
 	cs.extractCompressParam(allPlaneIntersect, ellipses);
 
+	//simplify the ellipse params
+	std::vector<Ellipse> simple_ellipses;
+	cs.parameterizeEllipses(ellipses, simple_ellipses);
+
 	//Decompress simulated yarn e1-e2 space
 	std::vector<yarnIntersect2D> deCompressPlaneIntersect;
-	cs.deCompressYarn(allPlaneIntersect, ellipses, deCompressPlaneIntersect);
+	cs.deCompressYarn(allPlaneIntersect, simple_ellipses, deCompressPlaneIntersect);
 
 	//
 	std::vector<float> fiber_theta;

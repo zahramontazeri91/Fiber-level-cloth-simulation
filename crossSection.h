@@ -57,6 +57,8 @@ public:
 	}
 	/* For 2D points gathered as an ellipse, return eigen values and eigen vectors in ellipse format */
 	void fitEllipse(const yarnIntersect2D &pts, Ellipse &ellipse);
+	/* Parameterize the extracted ellipse parameters */
+	void parameterizeEllipses(const std::vector<Ellipse> &ellipses, std::vector<Ellipse> &simple_ellipses);
 	/* Get ellipse a, b and angle for each cross-section and write it to the file */
 	void extractCompressParam(const std::vector<yarnIntersect2D> &allPlaneIntersect, std::vector<Ellipse> &ellipses);
 	/* Extract normal vectors for the curve using fitted ellipse for each plane intersection */

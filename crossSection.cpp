@@ -1,4 +1,5 @@
 #include "CrossSection.h"
+#include "curveFitting.h"
 
 #if 0
 /* constructor for procedural yarn (for debug use) */
@@ -411,6 +412,51 @@ void CrossSection::extractCompressParam(const std::vector<yarnIntersect2D> &allP
 	std::cout << "Compression parameters for each cross-sections are written to the file! \n";
 }
 
+
+void CrossSection::parameterizeEllipses(const std::vector<Ellipse> &ellipses, std::vector<Ellipse> &simple_ellipses) {
+
+	const int ignorPlanes = 0.15 * ellipses.size();
+	float ell_lng_avg = 0.f, ell_shrt_avg = 0.f;
+	float ell_shrt_max = std::numeric_limits<float>::min();
+	for (int i = ignorPlanes; i < ellipses.size() - ignorPlanes; ++i)
+	{
+		if (ellipses[i].shortR > ell_shrt_max)
+			ell_shrt_max = ellipses[i].shortR;
+		ell_lng_avg += ellipses[i].longR;
+		ell_shrt_avg += ellipses[i].shortR;
+	}
+	ell_lng_avg /= (ellipses.size() - 2 * ignorPlanes);
+	ell_shrt_avg /= (ellipses.size() - 2 * ignorPlanes);
+
+
+
+	unsigned int numberOfPoints = ellipses.size();
+	Point2DVector points;
+
+	//for (int i = ignorPlanes; i < ellipses.size() - ignorPlanes; ++i) {
+	//	Eigen::Vector2d point;
+	//	point(0) = i;
+	//	point(1) = ellipses[i].shortR;
+	//	points.push_back(point);
+	//}
+	//Eigen::VectorXd x(1);
+	//x.fill(0.05f);
+	//MyFunctorNumericalDiff functor;
+	//functor.Points = points;
+	//Eigen::LevenbergMarquardt<MyFunctorNumericalDiff> lm(functor);
+	//Eigen::LevenbergMarquardtSpace::Status status = lm.minimize(x);
+
+
+	for (int i = 0; i < ellipses.size(); ++i) {
+		Ellipse ell;
+		ell.longR = ell_lng_avg;
+		ell.shortR = ell_shrt_avg;
+		//std::cout << ell.shortR << std::endl;
+		ell.angle = ellipses[i].angle;
+		simple_ellipses.push_back(ell);
+	}
+}
+
 void CrossSection::planeIts2world(Plane &plane, vec2f &plane_point, vec3f &world_point) {
 	//Finding 3D coord of a point of the plane having its 2D: inverse of project2plane()
 	vec3f n = plane.n;
@@ -420,11 +466,9 @@ void CrossSection::planeIts2world(Plane &plane, vec2f &plane_point, vec3f &world
 	vec3f local(plane_point.x, plane_point.y, 0.f); //as the point exists on the plane
 	/*world = [e1 e2 n] * local
 	local = [e1; e2; n] * world*/
-	/*********************** TODO *****************************/
-	/* I swaped y and x so that the yarn before compression looks rotated but it looks correct at the end! */
+
 	world_point.y = dot(vec3f(e1.x, e2.x, n.x), local) + plane.point.x;
 	world_point.x = dot(vec3f(e1.y, e2.y, n.y), local) + plane.point.y;
-	/*********************************************************/
 	world_point.z = dot(vec3f(e1.z, e2.z, n.z), local) + plane.point.z;
 	//note that order of the axis matches with the project2plane()
 }
@@ -528,11 +572,8 @@ void CrossSection::transferLocal2XY(const std::vector<yarnIntersect2D> &e1e2_Its
 
 				/* transform plyCenters in e1-e2 coord to xy plane */
 				// project e1 to ex, and e2 to ey with no translation
-				/*********************** TODO *****************************/
-				/* I swaped y and x so that the yarn before compression looks rotated but it looks correct at the end! */
 				xy_Its[i][p][v].y = dot(vec2f(e1.x, e2.x), e1e2_p);
 				xy_Its[i][p][v].x = dot(vec2f(e1.y, e2.y), e1e2_p);
-				/*********************************************************/
 			}
 		}
 	}

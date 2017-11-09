@@ -13,7 +13,7 @@ import math
 
 
     
-with open('../../data/allCrossSection2D.txt', 'r') as fin:
+with open('../../data/allCrossSection2D_curve.txt', 'r') as fin:
     plane_num = int( fin.readline().split()[1] )
     ply_num = int(fin.readline().split()[1])
 

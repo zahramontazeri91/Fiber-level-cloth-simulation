@@ -133,6 +133,7 @@
   <ItemGroup>
     <ClInclude Include="crossSection.h" />
     <ClInclude Include="Curve.h" />
+    <ClInclude Include="curveFitting.h" />
     <ClInclude Include="Fiber.h" />
     <ClInclude Include="hermiteCurve.h" />
     <ClInclude Include="hermiteSeg.h" />

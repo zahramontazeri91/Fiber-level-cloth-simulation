@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import math
 
 
-fig, ax = plt.subplots()
+fig, ax = plt.subplots(figsize=(15,5))
 
 lng = []
 shrt = []
@@ -24,9 +24,10 @@ with open('../compress.txt', 'r') as fin:
          compress = fin.readline().split()
          lng.append(float(compress[0]))
          shrt.append(float(compress[1]))
+         print(compress[0])
          theta.append(float(compress[2]))
  
 ind = np.arange(N)     
-#rects = ax.bar(ind, lng, color='r')
-rects = ax.bar(ind, shrt, color='b')
+rects = ax.plot(ind, lng, color='r')
+rects = ax.plot(ind, shrt, color='b')
 plt.show()
