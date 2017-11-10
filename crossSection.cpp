@@ -309,11 +309,8 @@ void CrossSection::fitEllipse(const yarnIntersect2D &pts, Ellipse &ellipse)
 	vec2f p2 = ellipse.center - vec2f(eigen_vecs[1].x * eigen_val[1], eigen_vecs[1].y * eigen_val[1]);
 	//to map angle between -pi/2 to pi/2
 	ellipse.angle = atan2(eigen_vecs[0].y, eigen_vecs[0].x); // orientation in radians
-	if (std::abs(ellipse.angle) > pi/2.f) { 
-		if (ellipse.angle < 0) 
-			ellipse.angle = pi - std::abs(ellipse.angle) ;
-		else 
-			ellipse.angle = ellipse.angle - pi;
+	if (ellipse.angle < 0) {
+		ellipse.angle = pi - std::abs(ellipse.angle);
 	}
 
 	ellipse.longR = length(p1 - ellipse.center);
@@ -421,7 +418,7 @@ void CrossSection::parameterizeEllipses(const std::vector<Ellipse> &ellipses, st
 	{
 		ell_lng_avg += ellipses[i].longR;
 		ell_shrt_avg += ellipses[i].shortR;
-		ell_angle_avg += ellipses[i].angle;
+		ell_angle_avg += std::abs(ellipses[i].angle);
 	}
 	ell_lng_avg /= (ellipses.size() - 2 * ignorPlanes);
 	ell_shrt_avg /= (ellipses.size() - 2 * ignorPlanes);
@@ -449,9 +446,11 @@ void CrossSection::parameterizeEllipses(const std::vector<Ellipse> &ellipses, st
 		Ellipse ell;
 		ell.longR = ell_lng_avg;
 		ell.shortR = ell_shrt_avg;
-		ell.angle = ell_angle_avg ;
+		ell.angle = ellipses[i].angle;
+		//ell.angle = 1.57;
 		simple_ellipses.push_back(ell);
 	}
+	std::cout << ell_angle_avg << "  " << ell_lng_avg  << std::endl;
 }
 
 void CrossSection::planeIts2world(Plane &plane, vec2f &plane_point, vec3f &world_point) {
@@ -464,8 +463,8 @@ void CrossSection::planeIts2world(Plane &plane, vec2f &plane_point, vec3f &world
 	/*world = [e1 e2 n] * local
 	local = [e1; e2; n] * world*/
 
-	world_point.y = dot(vec3f(e1.x, e2.x, n.x), local) + plane.point.x;
-	world_point.x = dot(vec3f(e1.y, e2.y, n.y), local) + plane.point.y;
+	world_point.x = dot(vec3f(e1.x, e2.x, n.x), local) + plane.point.x;
+	world_point.y = dot(vec3f(e1.y, e2.y, n.y), local) + plane.point.y;
 	world_point.z = dot(vec3f(e1.z, e2.z, n.z), local) + plane.point.z;
 	//note that order of the axis matches with the project2plane()
 }
@@ -569,8 +568,8 @@ void CrossSection::transferLocal2XY(const std::vector<yarnIntersect2D> &e1e2_Its
 
 				/* transform plyCenters in e1-e2 coord to xy plane */
 				// project e1 to ex, and e2 to ey with no translation
-				xy_Its[i][p][v].y = dot(vec2f(e1.x, e2.x), e1e2_p);
-				xy_Its[i][p][v].x = dot(vec2f(e1.y, e2.y), e1e2_p);
+				xy_Its[i][p][v].x = dot(vec2f(e1.x, e2.x), e1e2_p);
+				xy_Its[i][p][v].y = dot(vec2f(e1.y, e2.y), e1e2_p);
 			}
 		}
 	}

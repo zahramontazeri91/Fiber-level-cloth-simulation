@@ -102,7 +102,8 @@ void fittingCompress(CrossSection & cs, const char* compressFile, const char* no
 
 	//simplify the ellipse params
 	std::vector<Ellipse> simple_ellipses;
-	cs.parameterizeEllipses(ellipses, simple_ellipses);
+	//cs.parameterizeEllipses(ellipses, simple_ellipses);
+	simple_ellipses = ellipses;
 
 	FILE *fout;
 	if (fopen_s(&fout, compressFile, "wt") == 0) {
@@ -134,7 +135,8 @@ void fittingPlyCenter(CrossSection & cs, const char* plyCenterFile )
 
 	//simplify the ellipse params
 	std::vector<Ellipse> simple_ellipses;
-	cs.parameterizeEllipses(ellipses, simple_ellipses);
+	//cs.parameterizeEllipses(ellipses, simple_ellipses);
+	simple_ellipses = ellipses;
 
 	// Decompress simulated yarn e1-e2 space
 	std::vector<yarnIntersect2D> deCompressPlaneIntersect;
@@ -164,7 +166,8 @@ void fittingFiberTwisting(CrossSection & cs, const char* fiberTwistFile)
 
 	//simplify the ellipse params
 	std::vector<Ellipse> simple_ellipses;
-	cs.parameterizeEllipses(ellipses, simple_ellipses);
+	//cs.parameterizeEllipses(ellipses, simple_ellipses);
+	simple_ellipses = ellipses;
 
 	//Decompress simulated yarn e1-e2 space
 	std::vector<yarnIntersect2D> deCompressPlaneIntersect;
