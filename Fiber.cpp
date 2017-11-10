@@ -226,6 +226,29 @@ namespace Fiber {
 		}
 		fin.close();
 	}
+
+	float Yarn::extractFiberTwist(const char *fiberTwistFile) {
+		std::ifstream fin;
+		if (fiberTwistFile != NULL)
+			fin.open(fiberTwistFile);
+
+		float fiberTwistAVG = 0.f;
+		std::string line;
+		std::getline(fin, line);
+		int plane_num = atoi(line.c_str());
+		const int ignorPlanes = 0.1 * plane_num; // crop the first and last 10% of the yarn
+		int i = 0;
+		for (i = 0; i < plane_num; ++i) {
+			std::getline(fin, line);
+			if (i > ignorPlanes && i < plane_num - ignorPlanes) {
+				float fiberTwist = atof(line.c_str());
+				fiberTwistAVG += fiberTwist;
+			}
+		}
+		fiberTwistAVG /= (plane_num - 2 * ignorPlanes);
+		return fiberTwistAVG;
+	}
+
 	void Yarn::yarn_simulate(const char *plyCenterFile, const char *fiberTwistFile) {
 
 		std::cout << "step1: yarn center ...\n";
@@ -262,7 +285,10 @@ namespace Fiber {
 
 		std::cout << "step4-5-6: rotate ply-centers around yarn-center and fibers around ply-centers and apply the compression ... \n";
 #pragma omp parallel for num_threads(num_of_cores)
+		/* initialize the yarn fibers by assigning the ply-center to the fiber[0]*/
 		assignPlyCenters(plyCenterFile);
+		/* Calculate the fiber twisting by averaging each fiber rotation in two consecutive cross-section and average over all planes */
+		//const float fiber_theta = extractFiberTwist(fiberTwistFile);
 
 		for (int i = 0; i < ply_num; i++) {
 			const int fiber_num = this->plys[i].fibers.size();			

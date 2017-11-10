@@ -416,23 +416,21 @@ void CrossSection::extractCompressParam(const std::vector<yarnIntersect2D> &allP
 void CrossSection::parameterizeEllipses(const std::vector<Ellipse> &ellipses, std::vector<Ellipse> &simple_ellipses) {
 
 	const int ignorPlanes = 0.15 * ellipses.size();
-	float ell_lng_avg = 0.f, ell_shrt_avg = 0.f;
-	float ell_shrt_max = std::numeric_limits<float>::min();
+	float ell_lng_avg = 0.f, ell_shrt_avg = 0.f, ell_angle_avg = 0.f;
 	for (int i = ignorPlanes; i < ellipses.size() - ignorPlanes; ++i)
 	{
-		if (ellipses[i].shortR > ell_shrt_max)
-			ell_shrt_max = ellipses[i].shortR;
 		ell_lng_avg += ellipses[i].longR;
 		ell_shrt_avg += ellipses[i].shortR;
+		ell_angle_avg += ellipses[i].angle;
 	}
 	ell_lng_avg /= (ellipses.size() - 2 * ignorPlanes);
 	ell_shrt_avg /= (ellipses.size() - 2 * ignorPlanes);
+	ell_angle_avg /= (ellipses.size() - 2 * ignorPlanes);
 
 
 
-	unsigned int numberOfPoints = ellipses.size();
-	Point2DVector points;
-
+	//unsigned int numberOfPoints = ellipses.size();
+	//Point2DVector points;
 	//for (int i = ignorPlanes; i < ellipses.size() - ignorPlanes; ++i) {
 	//	Eigen::Vector2d point;
 	//	point(0) = i;
@@ -451,8 +449,7 @@ void CrossSection::parameterizeEllipses(const std::vector<Ellipse> &ellipses, st
 		Ellipse ell;
 		ell.longR = ell_lng_avg;
 		ell.shortR = ell_shrt_avg;
-		//std::cout << ell.shortR << std::endl;
-		ell.angle = ellipses[i].angle;
+		ell.angle = ell_angle_avg ;
 		simple_ellipses.push_back(ell);
 	}
 }
