@@ -188,8 +188,9 @@ void HermiteCurve::getRotatedFrame(double t, Eigen::Vector3d &ex, Eigen::Vector3
 	Eigen::Vector3d B = ez.cross(ex);
 	
 	ez = T;
-	ey = B;
-	ex = -1 * N;
+	ex = -1*N;
+	ey = -1*B;
+
 	assert(ex.norm() - 1.f < 1e-5);
 	assert(ey.norm() - 1.f < 1e-5);
 	assert(ez.norm() - 1.f < 1e-5);

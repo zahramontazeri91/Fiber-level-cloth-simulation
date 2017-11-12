@@ -135,8 +135,8 @@ void fittingPlyCenter(CrossSection & cs, const char* plyCenterFile )
 
 	//simplify the ellipse params
 	std::vector<Ellipse> simple_ellipses;
-	//cs.parameterizeEllipses(ellipses, simple_ellipses);
-	simple_ellipses = ellipses;
+	cs.parameterizeEllipses(ellipses, simple_ellipses);
+	//simple_ellipses = ellipses;
 
 	// Decompress simulated yarn e1-e2 space
 	std::vector<yarnIntersect2D> deCompressPlaneIntersect;

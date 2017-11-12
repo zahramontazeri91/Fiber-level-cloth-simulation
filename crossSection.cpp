@@ -446,11 +446,12 @@ void CrossSection::parameterizeEllipses(const std::vector<Ellipse> &ellipses, st
 		Ellipse ell;
 		ell.longR = ell_lng_avg;
 		ell.shortR = ell_shrt_avg;
-		ell.angle = ellipses[i].angle;
-		//ell.angle = 1.57;
+		if (i > ignorPlanes && i < ellipses.size() - ignorPlanes)
+			ell.angle = ell_angle_avg;
+		else
+			ell.angle = ellipses[i].angle; //since we don't care about the two ends
 		simple_ellipses.push_back(ell);
 	}
-	std::cout << ell_angle_avg << "  " << ell_lng_avg  << std::endl;
 }
 
 void CrossSection::planeIts2world(Plane &plane, vec2f &plane_point, vec3f &world_point) {
@@ -463,8 +464,9 @@ void CrossSection::planeIts2world(Plane &plane, vec2f &plane_point, vec3f &world
 	/*world = [e1 e2 n] * local
 	local = [e1; e2; n] * world*/
 
-	world_point.x = dot(vec3f(e1.x, e2.x, n.x), local) + plane.point.x;
-	world_point.y = dot(vec3f(e1.y, e2.y, n.y), local) + plane.point.y;
+	/******************************************************************/
+	world_point.y = dot(vec3f(e1.x, e2.x, n.x), local) + plane.point.x;
+	world_point.x = dot(vec3f(e1.y, e2.y, n.y), local) + plane.point.y;
 	world_point.z = dot(vec3f(e1.z, e2.z, n.z), local) + plane.point.z;
 	//note that order of the axis matches with the project2plane()
 }
@@ -567,9 +569,10 @@ void CrossSection::transferLocal2XY(const std::vector<yarnIntersect2D> &e1e2_Its
 				vec2f e1e2_p= e1e2_Its[i][p][v];
 
 				/* transform plyCenters in e1-e2 coord to xy plane */
-				// project e1 to ex, and e2 to ey with no translation
-				xy_Its[i][p][v].x = dot(vec2f(e1.x, e2.x), e1e2_p);
-				xy_Its[i][p][v].y = dot(vec2f(e1.y, e2.y), e1e2_p);
+				/****************************************************/
+				// project e2 to ex, and e1 to ey with no translation
+				xy_Its[i][p][v].y = dot(vec2f(e1.x, e2.x), e1e2_p);
+				xy_Its[i][p][v].x = dot(vec2f(e1.y, e2.y), e1e2_p);
 			}
 		}
 	}
@@ -622,7 +625,9 @@ void CrossSection::fiberTwisting(const std::vector<yarnIntersect2D> &decompressP
 	fiber_theta.push_back(0.f);
 
 	std::ofstream fout(fiberTwistFile);
-	for (int i = 0; i < fiberCntrVector.size() - 1; ++i) { // all planes
+	fout << fiberCntrVector.size() << '\n';
+	fout << fiber_theta[0] << '\n';
+	for (int i = 0; i < fiberCntrVector.size() - 1; ++i) { // all planes (-1 because it checks the angle between two consecutive points)
 		float theta_avg = 0;
 		const int fiber_num = std::min( fiberCntrVector[i].size(), fiberCntrVector[i+1].size() ); //At the endpoints, next plane might not have as many as the current plane
 		for (int v = 0; v < fiber_num; ++v) { // fiber-centers for each plane
@@ -634,7 +639,7 @@ void CrossSection::fiberTwisting(const std::vector<yarnIntersect2D> &decompressP
 		
 		theta_avg /= fiber_num;
 		fiber_theta.push_back(theta_avg);
-		fout << theta_avg << '\n';
+		fout << fiber_theta[i+1] << '\n';
 	}
 	fout.close();
 }

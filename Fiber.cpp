@@ -245,7 +245,7 @@ namespace Fiber {
 				fiberTwistAVG += fiberTwist;
 			}
 		}
-		fiberTwistAVG /= (plane_num - 2 * ignorPlanes);
+		fiberTwistAVG /= static_cast<float>(plane_num - 2 * ignorPlanes);
 		return fiberTwistAVG;
 	}
 
@@ -288,7 +288,7 @@ namespace Fiber {
 		/* initialize the yarn fibers by assigning the ply-center to the fiber[0]*/
 		assignPlyCenters(plyCenterFile);
 		/* Calculate the fiber twisting by averaging each fiber rotation in two consecutive cross-section and average over all planes */
-		//const float fiber_theta = extractFiberTwist(fiberTwistFile);
+		const float fiber_theta_avg = extractFiberTwist(fiberTwistFile);
 
 		for (int i = 0; i < ply_num; i++) {
 			const int fiber_num = this->plys[i].fibers.size();			
@@ -299,7 +299,8 @@ namespace Fiber {
 				for (int step_id = 0; step_id < this->z_step_num; step_id++) {
 					const float z = this->z_step_size * (step_id - this->z_step_num / 2.f); // devided by 2 Bcuz yarn lies between neg and pos z
 					const float fiber_theta = this->plys[i].clock_wise ? -z * 2 * pi / this->plys[i].alpha : z * 2 * pi / this->plys[i].alpha;
-					
+					//const float fiber_theta = fiber_theta_avg;
+
 					const float yarn_theta = this->clock_wise ? -z * 2 * pi / this->yarn_alpha : z * 2 * pi / this->yarn_alpha;
 					float local_x, local_y, world_x, world_y;
 
