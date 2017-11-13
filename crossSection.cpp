@@ -608,7 +608,7 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 	assert(!fin.fail());
 	std::ofstream fout(ParameterizePlyCntrFile);
 	assert(!fout.fail());
-	
+
 	for (int i = 0; i < m_planesList.size(); ++i) {
 
 		vec2f plyCntr1(0.f), plyCntr2(0.f);
@@ -619,19 +619,22 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 		float R = length(plyCntr1);
 		float theta = atan2(plyCntr1.y, plyCntr1.x);
 		allR.push_back(R);
-		allTheta.push_back(theta);
-		
+		allTheta.push_back(theta);	
 	}
+
 	// use LM to fit a curve to R and theta
 	const int ignorPlanes = 0.15 *  m_planesList.size();
 	unsigned int numberOfPoints = m_planesList.size();
 	Point2DVector points;
+	float R_avg = 0.f;
 	for (int i = ignorPlanes; i < m_planesList.size() - ignorPlanes; ++i) {
 		Eigen::Vector2d point;
 		point(0) = i;
 		point(1) = allR[i];
 		points.push_back(point);
+		R_avg += allR[i];
 	}
+	R_avg /= static_cast<float>(m_planesList.size() - 2 * ignorPlanes);
 	Eigen::VectorXd x(4);
 	//x.fill(0.05f);
 	x(0) = 0.01;
@@ -648,7 +651,7 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 	for (int i = 0; i < allR.size(); ++i) {
 		float R = x(0) * sin(x(1)*i + x(2)) + x(3);
 		//float R = 0.01 * sin((pi/25.f) * i + 0) + 0.01;
-		fout << R << " " << allTheta[i] << '\n';
+		fout << R_avg << " " << allTheta[i] << '\n';
 	}
 	fout.close();
 }

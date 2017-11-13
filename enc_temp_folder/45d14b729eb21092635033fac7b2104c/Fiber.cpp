@@ -221,6 +221,7 @@ namespace Fiber {
 				float world_x = R * cos(theta + i * 2 * pi / ply_num);
 				float world_y = R * sin(theta + i * 2 * pi / ply_num);
 
+				std::cout << std::sqrt(world_x*world_x + world_y*world_y) << std::endl;
 				vec3f verIn = vec3f(world_x, world_y, z), verOut;
 				verOut = verIn;
 
