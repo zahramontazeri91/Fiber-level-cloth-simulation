@@ -40,8 +40,6 @@ int main(int argc, const char **argv) {
 		fin >> command >> plyCenterFILE;
 		if (command == "SIMULATE")
 			yarn.yarn_simulate(plyCenterFILE.c_str(), "fiberTwist.txt");
-		//uncomment if generate yarn without given ply-center
-			//yarn.yarn_simulate();
 
 		fin >> command >> compressFILE;
 		if (command == "COMPRESS")

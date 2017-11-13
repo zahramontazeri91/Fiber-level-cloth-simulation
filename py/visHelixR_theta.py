@@ -26,8 +26,8 @@ with open('../parameterziePlyCntr.txt', 'r') as fin:
 
 ind = np.arange(N)  
 
-ax.plot([200,200], [0, 0.02], color='black')
-ax.plot([1200,1200], [0, 0.02], color='black')   
+ax.plot([200,200], [0, 0.05], color='black')
+ax.plot([1200,1200], [0, 0.05], color='black')   
 rects = ax.plot(ind, R, color='r')
 plt.savefig("../../data/vis_crossSections/helixR.png")
 

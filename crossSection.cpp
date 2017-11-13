@@ -602,11 +602,13 @@ void CrossSection::extractPlyTwist(const std::vector<yarnIntersect2D> &decompres
 }
 
 void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *ParameterizePlyCntrFile) {
+	std::vector<float> allR;
+	std::vector<float> allTheta;
 	std::ifstream fin(plyCenterFile);
 	assert(!fin.fail());
 	std::ofstream fout(ParameterizePlyCntrFile);
 	assert(!fout.fail());
-	fout << m_planesList.size() << '\n';
+	
 	for (int i = 0; i < m_planesList.size(); ++i) {
 
 		vec2f plyCntr1(0.f), plyCntr2(0.f);
@@ -616,9 +618,37 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 		//find R between yarnCenter and plyCenter[0]
 		float R = length(plyCntr1);
 		float theta = atan2(plyCntr1.y, plyCntr1.x);
+		allR.push_back(R);
+		allTheta.push_back(theta);
+		
+	}
+	// use LM to fit a curve to R and theta
+	const int ignorPlanes = 0.15 *  m_planesList.size();
+	unsigned int numberOfPoints = m_planesList.size();
+	Point2DVector points;
+	for (int i = ignorPlanes; i < m_planesList.size() - ignorPlanes; ++i) {
+		Eigen::Vector2d point;
+		point(0) = i;
+		point(1) = allR[i];
+		points.push_back(point);
+	}
+	Eigen::VectorXd x(4);
+	//x.fill(0.05f);
+	x(0) = 0.01;
+	x(1) = pi / 25.f;
+	x(2) = 0.f;
+	x(3) = 0.01;
 
-		fout << R << " " << theta << '\n';
-		//std::cout << R << " " << theta << std::endl;
+	MyFunctorNumericalDiff functor;
+	functor.Points = points;
+	Eigen::LevenbergMarquardt<MyFunctorNumericalDiff> lm(functor);
+	Eigen::LevenbergMarquardtSpace::Status status = lm.minimize(x);
+
+	fout << m_planesList.size() << '\n';
+	for (int i = 0; i < allR.size(); ++i) {
+		float R = x(0) * sin(x(1)*i + x(2)) + x(3);
+		//float R = 0.01 * sin((pi/25.f) * i + 0) + 0.01;
+		fout << R << " " << allTheta[i] << '\n';
 	}
 	fout.close();
 }

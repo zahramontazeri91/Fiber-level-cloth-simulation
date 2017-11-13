@@ -199,6 +199,38 @@ namespace Fiber {
 	Yarn::Yarn() {}
 	Yarn::~Yarn() {}
 
+	void Yarn::assignParameterizePlyCenters(const char *plyCenterFile) {
+		std::ifstream fin;
+		fin.open(plyCenterFile);
+		const int ply_num = this->plys.size();
+		std::string line;
+		std::getline(fin, line);
+		float plane_num = atoi(line.c_str());
+		/* initialize first fiber for each ply as the ply-center */
+		for (int step_id = 0; step_id < plane_num; step_id++) {
+			const float z = this->z_step_size * (step_id - this->z_step_num / 2.f); // devided by 2 Bcuz yarn lies between neg and pos z
+			std::string line;
+			std::getline(fin, line);
+			std::vector<std::string> splits = split(line, ' ');
+			std::cout << splits[0].c_str() << std::endl;
+			float R = atof(splits[0].c_str());
+			float theta = atof(splits[1].c_str());
+
+			for (int i = 0; i < ply_num; i++) {
+
+				float world_x = R * cos(theta + i * 2 * pi / ply_num);
+				float world_y = R * sin(theta + i * 2 * pi / ply_num);
+				vec3f verIn = vec3f(world_x, world_y, z), verOut;
+				verOut = verIn;
+
+				this->aabb_procedural.grow(verOut);
+				if (this->aabb_micro_ct.in(verOut))
+					this->plys[i].fibers[0].vertices.push_back(verOut);
+			}
+		}
+		fin.close();
+	}
+
 	void Yarn::assignPlyCenters(const char *plyCenterFile) {
 		std::ifstream fin;
 		fin.open(plyCenterFile);
@@ -286,7 +318,8 @@ namespace Fiber {
 		std::cout << "step4-5-6: rotate ply-centers around yarn-center and fibers around ply-centers and apply the compression ... \n";
 #pragma omp parallel for num_threads(num_of_cores)
 		/* initialize the yarn fibers by assigning the ply-center to the fiber[0]*/
-		assignPlyCenters(plyCenterFile);
+		//assignPlyCenters(plyCenterFile);
+		assignParameterizePlyCenters("parameterziePlyCntr.txt");
 		/* Calculate the fiber twisting by averaging each fiber rotation in two consecutive cross-section and average over all planes */
 		const float fiber_theta_avg = extractFiberTwist(fiberTwistFile);
 

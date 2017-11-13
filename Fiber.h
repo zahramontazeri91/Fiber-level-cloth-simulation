@@ -161,6 +161,7 @@ namespace Fiber {
 		void parse(const char *filename = NULL);
 
 		/* Simulate yarn */
+		void assignParameterizePlyCenters(const char *plyCenterFile);
 		void assignPlyCenters(const char *plyCenterFile);
 		float extractFiberTwist(const char *fiberTwistFile);
 		void yarn_simulate(const char *plyCenter, const char *fiberTwistFile);
