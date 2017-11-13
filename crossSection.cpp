@@ -600,6 +600,29 @@ void CrossSection::extractPlyTwist(const std::vector<yarnIntersect2D> &decompres
 	}
 	fout.close();
 }
+
+void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *ParameterizePlyCntrFile) {
+	std::ifstream fin(plyCenterFile);
+	assert(!fin.fail());
+	std::ofstream fout(ParameterizePlyCntrFile);
+	assert(!fout.fail());
+	fout << m_planesList.size() << '\n';
+	for (int i = 0; i < m_planesList.size(); ++i) {
+
+		vec2f plyCntr1(0.f), plyCntr2(0.f);
+		fin >> plyCntr1.x >> plyCntr1.y;
+		fin >> plyCntr2.x >> plyCntr2.y;
+
+		//find R between yarnCenter and plyCenter[0]
+		float R = length(plyCntr1);
+		float theta = atan2(plyCntr1.y, plyCntr1.x);
+
+		fout << R << " " << theta << '\n';
+		//std::cout << R << " " << theta << std::endl;
+	}
+	fout.close();
+}
+
 void CrossSection::extractFiberVectors(const std::vector<yarnIntersect2D> &decompressPlaneIts, std::vector<plyItersect2D> &fiberCntrVector) {
 	fiberCntrVector.resize(decompressPlaneIts.size());
 	for (int i = 0; i < decompressPlaneIts.size(); ++i) { // all planes	

@@ -135,8 +135,8 @@ void fittingPlyCenter(CrossSection & cs, const char* plyCenterFile )
 
 	//simplify the ellipse params
 	std::vector<Ellipse> simple_ellipses;
-	cs.parameterizeEllipses(ellipses, simple_ellipses);
-	//simple_ellipses = ellipses;
+	//cs.parameterizeEllipses(ellipses, simple_ellipses);
+	simple_ellipses = ellipses;
 
 	// Decompress simulated yarn e1-e2 space
 	std::vector<yarnIntersect2D> deCompressPlaneIntersect;
@@ -148,6 +148,9 @@ void fittingPlyCenter(CrossSection & cs, const char* plyCenterFile )
 
 	//extract ply-centers helix positions
 	cs.extractPlyTwist(xy_Its, plyCenterFile);
+
+	//write plyCenters as R and theta and parameterize them
+	cs.parameterizePlyCenter(plyCenterFile, "parameterziePlyCntr.txt");
 }
 
 void fittingFiberTwisting(CrossSection & cs, const char* fiberTwistFile)

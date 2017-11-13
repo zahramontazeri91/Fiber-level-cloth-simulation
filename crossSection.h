@@ -66,6 +66,7 @@ public:
 	/* de-compress simulated yarn */
 	void deCompressYarn(const std::vector<yarnIntersect2D> &PlaneIts, std::vector<Ellipse> &ellipses, std::vector<yarnIntersect2D> &deCompressPlaneIts);
 	/* get R and theta for ply-centers*/
+	void parameterizePlyCenter(const char *plyCenterFile, const char *ParameterizePlyCntrFile);
 	void extractPlyTwist(const std::vector<yarnIntersect2D> &decompressPlaneIts, const char *plyCenterFile);
 	/* transfer from e1-e2 space to world x-y space */
 	void transferLocal2XY(const std::vector<yarnIntersect2D> &e1e2_Its, std::vector<yarnIntersect2D> &xy_Its);

@@ -24,10 +24,12 @@ with open('../compress.txt', 'r') as fin:
          compress = fin.readline().split()
          lng.append(float(compress[0]))
          shrt.append(float(compress[1]))
-         print(compress[0])
          theta.append(float(compress[2]))
  
-ind = np.arange(N)     
+ind = np.arange(N)    
+ax.plot([200,200], [0, 0.06], color='black') 
+ax.plot([1200,1200], [0, 0.06], color='black') 
 rects = ax.plot(ind, lng, color='r')
 rects = ax.plot(ind, shrt, color='b')
+
 plt.show()
