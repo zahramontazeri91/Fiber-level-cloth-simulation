@@ -26,14 +26,14 @@ with open('../parameterziePlyCntr.txt', 'r') as fin:
 
 ind = np.arange(N)  
 
-ax.plot([200,200], [0, 0.05], color='black')
-ax.plot([1200,1200], [0, 0.05], color='black')   
-rects = ax.plot(ind, R, color='r')
-plt.savefig("../../data/vis_crossSections/helixR.png")
+#ax.plot([200,200], [0, 0.05], color='black')
+#ax.plot([1200,1200], [0, 0.05], color='black')   
+#rects = ax.plot(ind, R, color='r')
+#plt.savefig("../../data/vis_crossSections/helixR.png")
 
-#ax.plot([200,200], [-3,3], color='black')
-#ax.plot([1200,1200], [-3,3], color='black')
-#rects = ax.plot(ind, theta, color='b')
-#plt.savefig("../../data/vis_crossSections/helixTheta.png")
+ax.plot([200,200], [-3,3], color='black')
+ax.plot([1200,1200], [-3,3], color='black')
+rects = ax.plot(ind, theta, color='b')
+plt.savefig("../../data/vis_crossSections/helixTheta.png")
 
 plt.show()

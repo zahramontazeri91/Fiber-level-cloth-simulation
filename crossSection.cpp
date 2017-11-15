@@ -617,30 +617,49 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 
 		//find R between yarnCenter and plyCenter[0]
 		float R = length(plyCntr1);
-		float theta = atan2(plyCntr1.y, plyCntr1.x);
+		//float theta = atan2(plyCntr1.y, plyCntr1.x);
+		float theta =  ( (i % 100) * 2.f * pi / 100 ) ;
 		allR.push_back(R);
 		allTheta.push_back(theta);	
 	}
 
-	// use LM to fit a curve to R and theta
+	bool clockwise = false;
 	const int ignorPlanes = 0.15 *  m_planesList.size();
+	std::vector<int> periods;
+	float jump_prev = ignorPlanes;
+	periods.push_back(ignorPlanes); //initialize with starting planeID
+	// to find when jumps are happened
+	for (int i = ignorPlanes; i < m_planesList.size() - ignorPlanes; ++i) {
+		float deltaTheta = std::abs(allTheta[i] - allTheta[i + 1]);
+		if ( deltaTheta > 2*pi - deltaTheta ) {
+			periods.push_back(i - jump_prev);
+			jump_prev = i;
+			if (allTheta[i] - allTheta[i + 1] > 0)
+				clockwise = 0;
+			else 
+				clockwise = 1;		
+		}
+	}
+
+	// use LM to fit a curve to R and theta
+	
 	unsigned int numberOfPoints = m_planesList.size();
 	Point2DVector points;
-	float R_avg = 0.f;
+	float R_avg = 0.f, theta_acc = 0.f;
 	for (int i = ignorPlanes; i < m_planesList.size() - ignorPlanes; ++i) {
+
+		R_avg += allR[i];
+		theta_acc += allTheta[i];
+
 		Eigen::Vector2d point;
 		point(0) = i;
-		point(1) = allR[i];
+		point(1) = theta_acc;
 		points.push_back(point);
-		R_avg += allR[i];
+
 	}
 	R_avg /= static_cast<float>(m_planesList.size() - 2 * ignorPlanes);
-	Eigen::VectorXd x(4);
-	//x.fill(0.05f);
-	x(0) = 0.01;
-	x(1) = pi / 25.f;
-	x(2) = 0.f;
-	x(3) = 0.01;
+	Eigen::VectorXd x(2);
+	x.fill(0.f);
 
 	MyFunctorNumericalDiff functor;
 	functor.Points = points;
@@ -649,9 +668,9 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 
 	fout << m_planesList.size() << '\n';
 	for (int i = 0; i < allR.size(); ++i) {
-		float R = x(0) * sin(x(1)*i + x(2)) + x(3);
-		//float R = 0.01 * sin((pi/25.f) * i + 0) + 0.01;
-		fout << R_avg << " " << allTheta[i] << '\n';
+		//float R = x(0) * sin(x(1)*i + x(2)) + x(3);
+		float theta = x(0) * i + x(1);
+		fout << R_avg << " " <<((i % 100) * 2.f * pi / 100) << '\n';
 	}
 	fout.close();
 }

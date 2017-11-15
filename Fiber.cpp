@@ -360,6 +360,10 @@ namespace Fiber {
 					world_x = local_x + plyCenter_x;
 					world_y = local_y + plyCenter_y;
 
+					//render only the plyCenters
+					//world_x = plyCenter_x;
+					//world_y = plyCenter_y;
+
 					vec3f verIn = vec3f(world_x, world_y, z), verOut;
 					verOut = verIn;
 
