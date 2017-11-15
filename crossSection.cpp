@@ -617,7 +617,7 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 
 		//find R between yarnCenter and plyCenter[0]
 		float R = length(plyCntr1);
-		float theta = atan2(plyCntr1.y, plyCntr1.x);
+		float theta = atan2(plyCntr1.y, plyCntr1.x) + pi ; //map between 0 to 2pi
 		//float theta = ((i % 100) * 2.f * pi / 100);
 		allR.push_back(R);
 		allTheta.push_back(theta);
@@ -640,35 +640,14 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 		}
 	}
 	int period_avg = 0;
-	for (int p = 1; p < periods.size() ; p++) { //we ignor first period because they might not be a complete cycle
+	for (int p = 1; p < periods.size() ; p++)  //we ignor first period because they might not be a complete cycle
 		period_avg += periods[p];
-	}
 	period_avg /= (periods.size() - 1); //because the first cycle is discarded
-
-	// use LM to fit a curve to R and theta
 	
-	unsigned int numberOfPoints = m_planesList.size();
-	Point2DVector points;
-	float R_avg = 0.f, theta_acc = 0.f;
-	for (int i = ignorPlanes; i < m_planesList.size() - ignorPlanes; ++i) {
-
+	float R_avg = 0.f;
+	for (int i = ignorPlanes; i < m_planesList.size() - ignorPlanes; ++i) 
 		R_avg += allR[i];
-		theta_acc += allTheta[i];
-
-		Eigen::Vector2d point;
-		point(0) = i;
-		point(1) = theta_acc;
-		points.push_back(point);
-
-	}
 	R_avg /= static_cast<float>(m_planesList.size() - 2 * ignorPlanes);
-	Eigen::VectorXd x(2);
-	x.fill(0.f);
-
-	MyFunctorNumericalDiff functor;
-	functor.Points = points;
-	Eigen::LevenbergMarquardt<MyFunctorNumericalDiff> lm(functor);
-	Eigen::LevenbergMarquardtSpace::Status status = lm.minimize(x);
 
 	fout << m_planesList.size() << '\n';
 	float theta;

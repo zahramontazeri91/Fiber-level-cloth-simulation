@@ -31,8 +31,8 @@ ind = np.arange(N)
 #rects = ax.plot(ind, R, color='r')
 #plt.savefig("../../data/vis_crossSections/helixR.png")
 
-ax.plot([200,200], [-3,3], color='black')
-ax.plot([1200,1200], [-3,3], color='black')
+ax.plot([200,200], [0,6], color='black')
+ax.plot([1200,1200], [0,6], color='black')
 rects = ax.plot(ind, theta, color='b')
 plt.savefig("../../data/vis_crossSections/helixTheta.png")
 
