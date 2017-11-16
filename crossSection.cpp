@@ -539,16 +539,16 @@ void CrossSection::deCompressYarn(const std::vector<yarnIntersect2D> &planeIts, 
 				const vec2f ellipse_axis_short = vec2f(-sin(ellipse_theta), cos(ellipse_theta));
 				//project points on ellipse axis
 				float _p_long = nv::dot(its, ellipse_axis_long);
-float _p_short = nv::dot(its, ellipse_axis_short);
-//apply the decompression
-_p_long *= 0.0286676 / ellipse_long;
-_p_short *= 0.0286676 / ellipse_short;
-vec2f _p_ellipse(_p_long, _p_short);
-//go back to e1-e2 space from ellipse space
-float _p_x = nv::dot(vec2f(ellipse_axis_long.x, ellipse_axis_short.x), _p_ellipse);
-float _p_y = nv::dot(vec2f(ellipse_axis_long.y, ellipse_axis_short.y), _p_ellipse);
+				float _p_short = nv::dot(its, ellipse_axis_short);
+				//apply the decompression
+				_p_long *= 0.0286676 / ellipse_long;
+				_p_short *= 0.0286676 / ellipse_short;
+				vec2f _p_ellipse(_p_long, _p_short);
+				//go back to e1-e2 space from ellipse space
+				float _p_x = nv::dot(vec2f(ellipse_axis_long.x, ellipse_axis_short.x), _p_ellipse);
+				float _p_y = nv::dot(vec2f(ellipse_axis_long.y, ellipse_axis_short.y), _p_ellipse);
 
-deCompressPlaneIts[i][p][v] = vec2f(_p_x, _p_y);
+				deCompressPlaneIts[i][p][v] = vec2f(_p_x, _p_y);
 			}
 		}
 	}
@@ -617,8 +617,7 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 
 		//find R between yarnCenter and plyCenter[0]
 		float R = length(plyCntr1);
-		float theta = atan2(plyCntr1.y, plyCntr1.x) + pi ; //map between 0 to 2pi
-		//float theta = ((i % 100) * 2.f * pi / 100);
+		float theta = atan2(plyCntr1.y, plyCntr1.x) + pi ; //map between 0 to 2pi (NOTE that we should shift it back at the end ##)
 		allR.push_back(R);
 		allTheta.push_back(theta);
 	}
@@ -634,9 +633,9 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 			periods.push_back(i - jump_prev);
 			jump_prev = i;
 			if (allTheta[i] - allTheta[i + 1] > 0)
-				clockwise = 0;
+				clockwise = 0; //theta gets larger after the jump for ccw
 			else
-				clockwise = 1;
+				clockwise = 1; 
 		}
 	}
 	int period_avg = 0;
@@ -648,14 +647,41 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 	for (int i = ignorPlanes; i < m_planesList.size() - ignorPlanes; ++i) 
 		R_avg += allR[i];
 	R_avg /= static_cast<float>(m_planesList.size() - 2 * ignorPlanes);
+	//now split the point as "below the avg" and "above" and get the avg of the first cluster
+	//Because we are using fix ellipse params and ply-centrs get above the average for ellipse short
+	float R_avg_cluster = 0.f;
+	int avg_cluster_num = 0;
+	for (int i = ignorPlanes; i < m_planesList.size() - ignorPlanes; ++i)
+		if (allR[i] < R_avg) {
+			R_avg_cluster += allR[i];
+			avg_cluster_num++;
+		}
+	R_avg_cluster /= static_cast<float>(avg_cluster_num);
+
+	//unsigned int numberOfPoints = m_planesList.size() - 2 * ignorPlanes;
+	//Point2DVector points;
+	//for (int i = ignorPlanes; i <  m_planesList.size() - ignorPlanes; ++i) {
+	//	Eigen::Vector2d point;
+	//	point(0) = i;
+	//	point(1) = allR[i];
+	//	points.push_back(point);
+	//}
+	//Eigen::VectorXd x(1);
+	//x.fill(0.05f);
+	//MyFunctorNumericalDiff functor;
+	//functor.Points = points;
+	//Eigen::LevenbergMarquardt<MyFunctorNumericalDiff> lm(functor);
+	//Eigen::LevenbergMarquardtSpace::Status status = lm.minimize(x);
+	//std::cout << R_avg << "   " << x(0) << std::endl;
 
 	fout << m_planesList.size() << '\n';
 	float theta;
 	for (int i = 0; i < allR.size(); ++i) {
 		if (clockwise)
-			theta = 2*pi - (i % period_avg) * 2.f * pi / period_avg;
+			theta = 2 * pi - (i % period_avg) * 2.f * pi / period_avg;
 		else 
 			theta = (i % period_avg) * 2.f * pi / period_avg;
+		//TODO: subtract pi because we had shifted all by pi in ##
 		fout << R_avg << " " << theta << '\n';
 	}
 	fout.close();

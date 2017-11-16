@@ -755,6 +755,32 @@ namespace Fiber {
 		}
 		fout.close();
 		printf("Writing vertices to file done!\n");
+
+		//for debugging:
+		std::ofstream fout0("genYarn_ply0.txt");
+		std::ofstream fout1("genYarn_ply1.txt");
+		fout0 << total_fiber_num << std::endl; //TODO : generated yarn format should be same as simulated yarn 
+		fout1 << total_fiber_num << std::endl;
+		for (int i = 0; i < ply_num; i++) {
+			int fiber_num = this->plys[i].fibers.size();
+			for (int f = 0; f < fiber_num; f++) {
+				Fiber &fiber = this->plys[i].fibers[f];
+				int fiber_vertex_num = fiber.vertices.size();
+				if (i==0)
+					fout0 << fiber_vertex_num << std::endl;
+				else
+					fout1 << fiber_vertex_num << std::endl;
+				for (int v = 0; v < fiber_vertex_num; v++) {
+					if (i == 0)
+						fout0 << fiber.vertices[v].x << " " << fiber.vertices[v].y << " " << fiber.vertices[v].z << std::endl;
+					else 
+						fout1 << fiber.vertices[v].x << " " << fiber.vertices[v].y << " " << fiber.vertices[v].z << std::endl;
+				}
+			}
+		}
+		fout0.close();
+		fout1.close();
+
 	}
 	//
 	//void Yarn::shapeCrossSection(yarnIntersect2D &its, float &rLong, float &rShort) {
