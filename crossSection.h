@@ -29,18 +29,18 @@ class CrossSection {
 public:
 
 	/* constructor for simulated yarn */
-	CrossSection(const char* yarnfile, const char* curvefile, int ply_num, int plane_num, int subdiv_curve) {
-		init(yarnfile, ply_num, curvefile, subdiv_curve, plane_num);
+	CrossSection(const char* yarnfile, const char* curvefile, int ply_num, int plane_num, int subdiv_curve, std::vector<yarnIntersect2D> &allPlaneIntersect) {
+		init(yarnfile, ply_num, curvefile, subdiv_curve, plane_num, allPlaneIntersect);
 	}	
 
-	void init (const char* yarnfile, const int ply_num, const char* curvefile, const int subdiv, const int num_planes);
-	void buildPlanes (const int num_planes);
+	void init (const char* yarnfile, const int ply_num, const char* curvefile, const int subdiv, const int num_planes, std::vector<yarnIntersect2D> &allPlaneIntersect);
+	void buildPlanes (const int num_planes, std::vector<yarnIntersect> &itsLists);
 	/* Intersection between a segment, defined between start to end, with a plane */
 	bool linePlaneIntersection (const vec3f &start, const vec3f &end, const Plane &plane, vec3f &its);
 	/* Intersection between the yarn (multiple plys) and a plane, Results will be stored in a vector< vector<vec3f> >  */
 	bool yarnPlaneIntersection (const Plane &plane, yarnIntersect &itsList);
 	/* find ply-centers by finding the averaging the ply intersections as an array of plyCenters for each cross-sectional plane */
-	void allPlyCenters(std::vector<std::vector<vec3f>> &plyCenters);
+	void allPlyCenters(std::vector<std::vector<vec3f>> &plyCenters, std::vector<yarnIntersect> &itsLists);
 	/* Intersection between the yarn and all of the planes */
 	bool allPlanesIntersections (std::vector<yarnIntersect> &itsLists);
 	/* Write 3d points of the cross-sections with all planes to a file */

@@ -17,14 +17,17 @@ CrossSection::CrossSection(const Fiber::Yarn &yarn) {
 }
 #endif
 
-void CrossSection::init(const char* yarnfile, const int ply_num, const char* curvefile, const int seg_subdiv, const int num_planes) {
+void CrossSection::init(const char* yarnfile, const int ply_num, const char* curvefile, 
+	const int seg_subdiv, const int num_planes, std::vector<yarnIntersect2D> &allPlaneIntersect) {
 	m_yarn.build(yarnfile, ply_num);
-	//std::cout << m_yarn.plys[0].fibers[10].vertices[10].x << std::endl;
 	m_curve.init(curvefile, seg_subdiv);
-	buildPlanes(num_planes);
+	std::vector<yarnIntersect> itsLists;
+	buildPlanes(num_planes, itsLists);
+
+	PlanesIntersections2D(itsLists, allPlaneIntersect);
 }
 
-void CrossSection::buildPlanes(const int num_planes) {
+void CrossSection::buildPlanes(const int num_planes, std::vector<yarnIntersect> &itsLists) {
 	const double curveLen = m_curve.totalLength();
 	const double crossSectionLen = curveLen / static_cast<double>(num_planes - 1); //place plane at the very ends as well
 	const double crossSection_t = m_curve.arcLengthInvApprox(crossSectionLen);
@@ -42,11 +45,10 @@ void CrossSection::buildPlanes(const int num_planes) {
 		//assert(dot(m_planesList[i].n, m_planesList[i].e1) < EPS);
 	}
 	std::vector<std::vector<vec3f>> plyCenters;
-	allPlyCenters(plyCenters);
+	allPlyCenters(plyCenters, itsLists);
 	// Define inplane 2D coord using the direction from yarn-center to intersection of first ply-center 
 	for (int i = 0; i < num_planes; ++i) {
 		// plyCenters[i][0] - m_planesList[i].point is too small so its dot product with n doesn't show they are perpendicular
-		// std::cout << dot(e1, m_planesList[i].n) << std::endl;
 		m_planesList[i].e1 = nv::normalize(plyCenters[i][0] - m_planesList[i].point);
 		m_planesList[i].e2 = cross(m_planesList[i].n, m_planesList[i].e1);
 	}
@@ -149,9 +151,8 @@ bool CrossSection::allPlanesIntersections(std::vector<yarnIntersect> &itsLists) 
 	return false;
 }
 
-void CrossSection::allPlyCenters(std::vector<std::vector<vec3f>> &plyCenters) {
+void CrossSection::allPlyCenters(std::vector<std::vector<vec3f>> &plyCenters, std::vector<yarnIntersect> &itsLists) {
 
-	std::vector<yarnIntersect> itsLists;
 	allPlanesIntersections(itsLists);
 
 	const int plane_num = itsLists.size();

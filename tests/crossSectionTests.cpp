@@ -8,7 +8,8 @@ void linePlaneIntersection_test() {
 
 	const char* yarnfile = "genYarn.txt";
 	const char* curvefile = "frame00029_avg.txt";
-	CrossSection cs(yarnfile, curvefile, 2, 1526, 100);
+	std::vector<yarnIntersect2D> allPlaneIntersect;
+	CrossSection cs(yarnfile, curvefile, 2, 1526, 100, allPlaneIntersect);
 
 	Plane plane;
 	plane.n = vec3f(1, 0, 0);
@@ -23,7 +24,8 @@ void linePlaneIntersection_test() {
 void yarnPlaneIntersection_test() {
 	const char* yarnfile = "genYarn_1.txt";
 	const char* curvefile = "frame00029_avg.txt"; 
-	CrossSection cs(yarnfile, curvefile, 2, 1526, 100);
+	std::vector<yarnIntersect2D> allPlaneIntersect;
+	CrossSection cs(yarnfile, curvefile, 2, 1526, 100, allPlaneIntersect);
 
 	Plane plane;
 	cs.get_plane(1, plane);
@@ -58,7 +60,8 @@ void buildPlanes_test() {
 	const char* yarnfile = "genYarn_1.txt";
 	const char* curvefile = "frame00029_avg.txt";
 	const int num_planes = 1000;
-	CrossSection cs(yarnfile, curvefile, 2, 1526, 100);
+	std::vector<yarnIntersect2D> allPlaneIntersect;
+	CrossSection cs(yarnfile, curvefile, 2, 1526, 100, allPlaneIntersect);
 	FILE *fout;
 	if (fopen_s(&fout, "../data/test_planes.txt", "wt") == 0) {
 		fprintf_s(fout, "%d \n", num_planes);
@@ -75,7 +78,8 @@ void allPlanesIntersections_test() {
 	//const char* yarnfile = "genYarn.txt"; //For procedural yarn
 	const char* yarnfile = "frame00029_scaled.txt"; //For simulated yarn
 	const char* curvefile = "frame00029_avg.txt"; 
-	CrossSection cs(yarnfile, curvefile, 2, 1526, 100);
+	std::vector<yarnIntersect2D> allPlaneIntersect;
+	CrossSection cs(yarnfile, curvefile, 2, 1526, 100, allPlaneIntersect);
 	std::vector<yarnIntersect> itsLists;
 	cs.allPlanesIntersections(itsLists);
 	//std::cout << "intersections lists size: " << itsLists.size() << std::endl;
@@ -86,7 +90,8 @@ void allPlanesIntersections_test() {
 void project2Plane_test() {
 	const char* yarnfile = "frame00001_scaled.txt"; //For simulated yarn
 	const char* curvefile = "frame00029_avg.txt"; 
-	CrossSection cs(yarnfile, curvefile, 2, 1526, 100);
+	std::vector<yarnIntersect2D> allPlaneIntersect;
+	CrossSection cs(yarnfile, curvefile, 2, 1526, 100, allPlaneIntersect);
 	std::vector<yarnIntersect> itsLists;
 	cs.allPlanesIntersections(itsLists);
 
@@ -103,18 +108,9 @@ void write_PlanesIntersections2D_test() {
 	const char* yarnfile = "genYarn.txt"; //For procedural yarn
 	//const char* yarnfile = "frame00029_scaled.txt"; //For simulated yarn
 	const char* curvefile = "frame00029_avg.txt"; 
-	CrossSection cs(yarnfile, curvefile, 2, 1526, 100);
-
-	std::vector<yarnIntersect> itsLists;
-	cs.allPlanesIntersections(itsLists);
-	std::cout << "intersections lists size: " << itsLists.size() << std::endl;
-
-	//std::vector<yarnIntersect2D> deCompressPlaneIntersect;
-	//cs.deCompressYarn(allPlaneIntersect, ellipses, deCompressPlaneIntersect);
-	//allPlaneIntersect = deCompressPlaneIntersect;
-
 	std::vector<yarnIntersect2D> allPlaneIntersect;
-	cs.PlanesIntersections2D(itsLists, allPlaneIntersect);
+	CrossSection cs(yarnfile, curvefile, 2, 1526, 100, allPlaneIntersect);
+
 	std::cout << "number of intersected planes: " << allPlaneIntersect.size() << std::endl;
 
 	//write the 2D intersections for tetsting
@@ -155,13 +151,10 @@ void getOrientation_test() {
 	//const char* yarnfile = "gen_yarn_f1.txt"; //For procedural yarn
 	const char* yarnfile = "frame00029_scaled.txt"; //For simulated yarn
 	const char* curvefile = "frame00029_avg.txt";
-	CrossSection cs(yarnfile, curvefile, 2, 1526, 100);
-
-	std::vector<yarnIntersect> itsLists;
-	cs.allPlanesIntersections(itsLists);
-
 	std::vector<yarnIntersect2D> allPlaneIntersect;
-	cs.PlanesIntersections2D(itsLists, allPlaneIntersect);
+	CrossSection cs(yarnfile, curvefile, 2, 1526, 100, allPlaneIntersect);
+
+
 
 	//transfer from e1-e2 to x-y plane
 	std::vector<yarnIntersect2D> xy_Its;
@@ -193,11 +186,9 @@ void extractCompressParam_test() {
 	const char* yarnfile = "genYarn.txt"; //For procedural yarn
 	//const char* yarnfile = "frame00029_scaled.txt"; //For simulated yarn
 	const char* curvefile = "frame00029_avg.txt";
-	CrossSection cs(yarnfile, curvefile, 2, 1526, 100);
-	std::vector<yarnIntersect> itsLists;
-	cs.allPlanesIntersections(itsLists);
 	std::vector<yarnIntersect2D> allPlaneIntersect;
-	cs.PlanesIntersections2D(itsLists, allPlaneIntersect);
+	CrossSection cs(yarnfile, curvefile, 2, 1526, 100, allPlaneIntersect);
+
 
 	std::vector<Ellipse> ellipses;
 	cs.extractCompressParam(allPlaneIntersect, ellipses);
@@ -253,13 +244,10 @@ void ply_centers_test() {
 	//const char* yarnfile = "genYarn.txt"; //For procedural yarn
 	const char* yarnfile = "frame00029_scaled.txt"; //For simulated yarn
 	const char* curvefile = "frame00029_avg.txt";
-	CrossSection cs(yarnfile, curvefile, 2, 1526, 100);
-
-	std::vector<yarnIntersect> itsLists;
-	cs.allPlanesIntersections(itsLists);
-
 	std::vector<yarnIntersect2D> allPlaneIntersect;
-	cs.PlanesIntersections2D(itsLists, allPlaneIntersect);
+	CrossSection cs(yarnfile, curvefile, 2, 1526, 100, allPlaneIntersect);
+
+
 	
 	// Decompress simulated yarn
 	//std::vector<yarnIntersect2D> deCompressPlaneIntersect;
@@ -323,11 +311,9 @@ void extractNormals()
 {
 	const char* yarnfile = "frame00029_scaled.txt"; //For simulated yarn
 	const char* curvefile = "frame00029_avg.txt";
-	CrossSection cs(yarnfile, curvefile, 2, 1526, 100);
-	std::vector<yarnIntersect> itsLists;
-	cs.allPlanesIntersections(itsLists);
 	std::vector<yarnIntersect2D> allPlaneIntersect;
-	cs.PlanesIntersections2D(itsLists, allPlaneIntersect);
+	CrossSection cs(yarnfile, curvefile, 2, 1526, 100, allPlaneIntersect);
+
 
 	std::vector<Ellipse> ellipses;
 	cs.extractCompressParam(allPlaneIntersect, ellipses);

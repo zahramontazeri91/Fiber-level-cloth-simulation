@@ -5,9 +5,9 @@
 #include "tests/hermiteTests.h"
 #include "tests/crossSectionTests.h"
 
-void fittingPlyCenter(CrossSection & cs, const char* plyCenterFile);
-void fittingCompress(CrossSection & cs, const char* compressFile);
-void fittingFiberTwisting(CrossSection & cs, const char* fiberTwistFile);
+void fittingPlyCenter(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const char* plyCenterFile);
+void fittingCompress(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const char* compressFile);
+void fittingFiberTwisting(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const char* fiberTwistFile);
 
 int main(int argc, const char **argv) {
 #if 1
@@ -29,10 +29,11 @@ int main(int argc, const char **argv) {
 		fin >> command >> configFILE >> simulatedFILE >> cntrYarnFILE ;
 		fin >> command >> plyCenterFILE >> compressFILE >> fiberTwistFILE;
 		yarn.parse(configFILE.c_str());
-		CrossSection cs(simulatedFILE.c_str(), cntrYarnFILE.c_str(), yarn.getPlyNum(), yarn.getStepNum(), 100);
-		fittingCompress(cs, compressFILE.c_str());
-		fittingPlyCenter(cs, plyCenterFILE.c_str());
-		fittingFiberTwisting(cs, fiberTwistFILE.c_str());
+		std::vector<yarnIntersect2D> allPlaneIntersect;
+		CrossSection cs(simulatedFILE.c_str(), cntrYarnFILE.c_str(), yarn.getPlyNum(), yarn.getStepNum(), 100, allPlaneIntersect);
+		fittingCompress(cs, allPlaneIntersect, compressFILE.c_str());
+		fittingPlyCenter(cs, allPlaneIntersect, plyCenterFILE.c_str());
+		fittingFiberTwisting(cs, allPlaneIntersect, fiberTwistFILE.c_str());
 
 		// Procedural step
 		yarn.yarn_simulate(plyCenterFILE.c_str(), fiberTwistFILE.c_str());
@@ -72,12 +73,7 @@ int main(int argc, const char **argv) {
 }
 
 
-void fittingCompress(CrossSection & cs, const char* compressFile) {
-	std::vector<yarnIntersect> itsLists;
-	cs.allPlanesIntersections(itsLists);
-
-	std::vector<yarnIntersect2D> allPlaneIntersect;
-	cs.PlanesIntersections2D(itsLists, allPlaneIntersect);
+void fittingCompress(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const char* compressFile) {
 
 	//transfer from e1-e2 to x-y plane
 	std::vector<yarnIntersect2D> xy_Its;
@@ -106,16 +102,8 @@ void fittingCompress(CrossSection & cs, const char* compressFile) {
 	//cs.extractNormals(ellipses, normals, normsFile);
 }
 
-void fittingPlyCenter(CrossSection & cs, const char* plyCenterFile )
+void fittingPlyCenter(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const char* plyCenterFile )
 {
-	//find 3D intersections with plane
-	std::vector<yarnIntersect> itsLists;
-	cs.allPlanesIntersections(itsLists);
-
-	//project 3D intersections in e1-e2 plane
-	std::vector<yarnIntersect2D> allPlaneIntersect;
-	cs.PlanesIntersections2D(itsLists, allPlaneIntersect);
-
 	//fit the ellipse and find the compression param
 	std::vector<Ellipse> ellipses;
 	cs.extractCompressParam(allPlaneIntersect, ellipses);
@@ -137,16 +125,8 @@ void fittingPlyCenter(CrossSection & cs, const char* plyCenterFile )
 	cs.parameterizePlyCenter(plyCenterFile, plyCenterFile);
 }
 
-void fittingFiberTwisting(CrossSection & cs, const char* fiberTwistFile)
+void fittingFiberTwisting(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const char* fiberTwistFile)
 {
-	//find 3D intersections with plane
-	std::vector<yarnIntersect> itsLists;
-	cs.allPlanesIntersections(itsLists);
-
-	//project 3D intersections in e1-e2 plane
-	std::vector<yarnIntersect2D> allPlaneIntersect;
-	cs.PlanesIntersections2D(itsLists, allPlaneIntersect);
-
 	//fit the ellipse and find the compression param
 	std::vector<Ellipse> ellipses;
 	cs.extractCompressParam(allPlaneIntersect, ellipses);
