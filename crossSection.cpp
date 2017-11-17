@@ -81,7 +81,7 @@ bool CrossSection::linePlaneIntersection(const vec3f &start, const vec3f &end, c
 		if (t >= EPS && t <= t_end) {
 			its = start + dir*t;
 
-			assert(length(its - plane.point) > 1e-6 && "intersection at the plane.point"); //TODO: handle this corner case later 
+			assert(length(its - plane.point) > 1e-6 && "intersection exactly at the plane.point"); //TODO: handle this corner case later 
 			assert(std::abs(dot(its - plane.point, plane.n)) < 1e-6);
 			return true;
 		}
@@ -530,7 +530,7 @@ void CrossSection::yarn2crossSections(std::vector<yarnIntersect2D> &itsLists) {
 } 
 #endif
 
-void CrossSection::deCompressYarn(const std::vector<yarnIntersect2D> &planeIts, std::vector<Ellipse> &ellipses, std::vector<yarnIntersect2D> &deCompressPlaneIts) {
+void CrossSection::deCompressYarn(const std::vector<yarnIntersect2D> &planeIts, const float yarn_radius, std::vector<Ellipse> &ellipses, std::vector<yarnIntersect2D> &deCompressPlaneIts) {
 	deCompressPlaneIts.resize(planeIts.size() );
 	for (int i = 0; i < planeIts.size(); ++i) // number of planes
 	{
@@ -553,8 +553,8 @@ void CrossSection::deCompressYarn(const std::vector<yarnIntersect2D> &planeIts, 
 				float _p_long = nv::dot(its, ellipse_axis_long);
 				float _p_short = nv::dot(its, ellipse_axis_short);
 				//apply the decompression
-				_p_long *= 0.0286676 / ellipse_long;
-				_p_short *= 0.0286676 / ellipse_short;
+				_p_long *= yarn_radius / ellipse_long;
+				_p_short *= yarn_radius / ellipse_short;
 				vec2f _p_ellipse(_p_long, _p_short);
 				//go back to e1-e2 space from ellipse space
 				float _p_x = nv::dot(vec2f(ellipse_axis_long.x, ellipse_axis_short.x), _p_ellipse);

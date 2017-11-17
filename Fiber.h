@@ -111,6 +111,9 @@ namespace Fiber {
 		int getPlyNum() const {
 			return this->plys.size();
 		}
+		float getYarnRadius() const {
+			return this->yarn_radius;
+		}
 		float scaleFacFromRadius(
 			const float newYR, const int newN, const float newSS, const float meshScaler
 		)

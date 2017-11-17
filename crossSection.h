@@ -64,7 +64,7 @@ public:
 	/* Extract normal vectors for the curve using fitted ellipse for each plane intersection */
 	void extractNormals(std::vector<Ellipse> &ellipses, std::vector<vec3f> &normals, const char* normsFile);
 	/* de-compress simulated yarn */
-	void deCompressYarn(const std::vector<yarnIntersect2D> &PlaneIts, std::vector<Ellipse> &ellipses, std::vector<yarnIntersect2D> &deCompressPlaneIts);
+	void deCompressYarn(const std::vector<yarnIntersect2D> &PlaneIts, const float yarn_radius, std::vector<Ellipse> &ellipses, std::vector<yarnIntersect2D> &deCompressPlaneIts);
 	/* get R and theta for ply-centers*/
 	void parameterizePlyCenter(const char *plyCenterFile, const char *ParameterizePlyCntrFile);
 	void extractPlyTwist(const std::vector<yarnIntersect2D> &decompressPlaneIts, const char *plyCenterFile);
