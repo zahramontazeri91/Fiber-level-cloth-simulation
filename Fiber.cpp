@@ -332,8 +332,8 @@ namespace Fiber {
 				fiber.clear(); //clear the vertices list 
 				for (int step_id = 0; step_id < this->z_step_num; step_id++) {
 					const float z = this->z_step_size * (step_id - this->z_step_num / 2.f); // devided by 2 Bcuz yarn lies between neg and pos z
-					const float fiber_theta = this->plys[i].clock_wise ? -z * 2 * pi / this->plys[i].alpha : z * 2 * pi / this->plys[i].alpha;
-					//const float fiber_theta = fiber_theta_avg;
+					//const float fiber_theta = this->plys[i].clock_wise ? -z * 2 * pi / this->plys[i].alpha : z * 2 * pi / this->plys[i].alpha;
+					const float fiber_theta = fiber_theta_avg;
 
 					const float yarn_theta = this->clock_wise ? -z * 2 * pi / this->yarn_alpha : z * 2 * pi / this->yarn_alpha;
 					float local_x, local_y, world_x, world_y;
@@ -584,11 +584,16 @@ namespace Fiber {
 		const int ply_num = this->plys.size();
 		std::vector<yarnIntersect2D> itsLists;
 		yarn2crossSections(itsLists);
+		float fitCircleR_avg = 0.f;
 		for (int i = 0; i < this->z_step_num; ++i) {
 			float radius;
 			fitCircle(itsLists[i], radius);
+			fitCircleR_avg += radius;
 			fitCircleR.push_back(radius);
 		}
+		//find avg fitted radius
+		fitCircleR_avg /= static_cast<float> (this->z_step_num);
+		std::cout << "circle : " << fitCircleR_avg << std::endl;
 
 		std::vector<compress> compress_params;
 		readCompressFile(filename, compress_params);
@@ -620,8 +625,8 @@ namespace Fiber {
 					ellipse_p.y = nv::dot(ellipse_axis_short, world_p);
 
 					//apply the scaling 
-					ellipse_p.x *= ellipse_long / fitCircleR[v];
-					ellipse_p.y *= ellipse_short / fitCircleR[v];
+					ellipse_p.x *= ellipse_long / fitCircleR_avg; // fitCircleR[v];
+					ellipse_p.y *= ellipse_short / fitCircleR_avg; // fitCircleR[v];
 
 					//transfer back to x-y
 					world_p.x = nv::dot(vec2f(ellipse_axis_long.x, ellipse_axis_short.x), ellipse_p);

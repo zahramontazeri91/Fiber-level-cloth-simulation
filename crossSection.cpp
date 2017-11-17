@@ -676,24 +676,24 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 		}
 	R_avg_cluster /= static_cast<float>(avg_cluster_num);
 
-	unsigned int numberOfPoints = m_planesList.size() - 2 * ignorPlanes;
-	Point2DVector points;
-	for (int i = ignorPlanes; i <  m_planesList.size() - ignorPlanes; ++i) {
-		Eigen::Vector2d point;
-		point(0) = i;
-		point(1) = allR[i];
-		points.push_back(point);
-	}
-	Eigen::VectorXd x(3);
-	//x.fill(0.05f);
-	x(0) = (R_max - R_min) / 2.f;
-	x(1) = 2.0*pi * 1.0 / static_cast<float>(period_avg);
-	x(2) = (R_max - R_min) / 2.f;
-	MyFunctorNumericalDiff functor;
-	functor.Points = points;
-	Eigen::LevenbergMarquardt<MyFunctorNumericalDiff> lm(functor);
-	//Eigen::LevenbergMarquardtSpace::Status status = lm.minimize(x);
-	std::cout << " period is : " << period_avg << std::endl;
+	//unsigned int numberOfPoints = m_planesList.size() - 2 * ignorPlanes;
+	//Point2DVector points;
+	//for (int i = ignorPlanes; i <  m_planesList.size() - ignorPlanes; ++i) {
+	//	Eigen::Vector2d point;
+	//	point(0) = i;
+	//	point(1) = allR[i];
+	//	points.push_back(point);
+	//}
+	//Eigen::VectorXd x(3);
+	////x.fill(0.05f);
+	//x(0) = (R_max - R_min) / 2.f;
+	//x(1) = 2.0*pi * 1.0 / static_cast<float>(period_avg);
+	//x(2) = (R_max - R_min) / 2.f;
+	//MyFunctorNumericalDiff functor;
+	//functor.Points = points;
+	//Eigen::LevenbergMarquardt<MyFunctorNumericalDiff> lm(functor);
+	////Eigen::LevenbergMarquardtSpace::Status status = lm.minimize(x);
+	//std::cout << " period is : " << period_avg << std::endl;
 
 	std::ofstream fout(ParameterizePlyCntrFile);
 	assert(!fout.fail());
@@ -706,7 +706,7 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 			theta = (i % period_avg) * 2.f * pi / period_avg;
 		//TODO: subtract pi because we had shifted all by pi in ##
 		
-		float fitted_R = x(0) * sin(x(1)*i) + x(2);
+		//float fitted_R = x(0) * sin(x(1)*i) + x(2);
 		//fout << fitted_R << " " << theta << '\n';
 		fout << R_avg_cluster << " " << theta << '\n';
 		//fout << R_avg << " " << theta << '\n'; 

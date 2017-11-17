@@ -140,12 +140,9 @@ void fittingFiberTwisting(CrossSection & cs, std::vector<yarnIntersect2D> &allPl
 	std::vector<yarnIntersect2D> deCompressPlaneIntersect;
 	cs.deCompressYarn(allPlaneIntersect, 0.0286676,simple_ellipses, deCompressPlaneIntersect);
 
-	//
+	//extract twisted angle of each fiber in each cross-section
 	std::vector<float> fiber_theta;
 	cs.fiberTwisting(deCompressPlaneIntersect, fiber_theta, fiberTwistFile);
 
 	// no need transfer from e1-e2 to x-y plane because it's only theta
-
-	//extract ply-centers helix positions
-	//cs.extractPlyTwist(xy_Its, plyCenterFile);
 }
