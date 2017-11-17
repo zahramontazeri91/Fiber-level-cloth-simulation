@@ -1,6 +1,4 @@
-config.txt
-FITTING frame00029_scaled.txt frame00029_avg.txt plyCenter.txt compress.txt curveNorms.txt
-SIMULATE plyCenter.txt
-COMPRESS compress.txt
-CURVE curveNorms.txt
+INPUT config.txt frame00029_scaled.txt frame00029_avg.txt 
+OUTPUT plyCenter.txt compress.txt fiberTwist.txt
+
 

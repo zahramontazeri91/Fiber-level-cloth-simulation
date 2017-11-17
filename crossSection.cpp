@@ -414,38 +414,49 @@ void CrossSection::parameterizeEllipses(const std::vector<Ellipse> &ellipses, st
 
 	const int ignorPlanes = 0.15 * ellipses.size();
 	float ell_lng_avg = 0.f, ell_shrt_avg = 0.f, ell_angle_avg = 0.f;
+	float ell_shrt_min = std::numeric_limits<float>::max();
+	float ell_shrt_max = std::numeric_limits<float>::min();
 	for (int i = ignorPlanes; i < ellipses.size() - ignorPlanes; ++i)
 	{
 		ell_lng_avg += ellipses[i].longR;
 		ell_shrt_avg += ellipses[i].shortR;
 		ell_angle_avg += std::abs(ellipses[i].angle);
+		if (ellipses[i].shortR < ell_shrt_min)
+			ell_shrt_min = ellipses[i].shortR;
+		if (ellipses[i].shortR > ell_shrt_max)
+			ell_shrt_max = ellipses[i].shortR;
 	}
 	ell_lng_avg /= (ellipses.size() - 2 * ignorPlanes);
 	ell_shrt_avg /= (ellipses.size() - 2 * ignorPlanes);
 	ell_angle_avg /= (ellipses.size() - 2 * ignorPlanes);
 
+	unsigned int numberOfPoints = ellipses.size();
+	Point2DVector points;
+	for (int i = ignorPlanes; i < ellipses.size() - ignorPlanes; ++i) {
+		Eigen::Vector2d point;
+		point(0) = i;
+		point(1) = ellipses[i].shortR;
+		points.push_back(point);
+	}
+	Eigen::VectorXd x(3);
+	//x.fill(1.f);
+	x(0) = (ell_shrt_max - ell_shrt_min )/2.f;
+	x(1) = 0.125; // 2.0*pi * 1.0 / 40.0;
+	x(2) = (ell_shrt_max - ell_shrt_min) / 2.f;
 
-
-	//unsigned int numberOfPoints = ellipses.size();
-	//Point2DVector points;
-	//for (int i = ignorPlanes; i < ellipses.size() - ignorPlanes; ++i) {
-	//	Eigen::Vector2d point;
-	//	point(0) = i;
-	//	point(1) = ellipses[i].shortR;
-	//	points.push_back(point);
-	//}
-	//Eigen::VectorXd x(1);
-	//x.fill(0.05f);
-	//MyFunctorNumericalDiff functor;
-	//functor.Points = points;
-	//Eigen::LevenbergMarquardt<MyFunctorNumericalDiff> lm(functor);
-	//Eigen::LevenbergMarquardtSpace::Status status = lm.minimize(x);
-
+	MyFunctorNumericalDiff functor;
+	functor.Points = points;
+	Eigen::LevenbergMarquardt<MyFunctorNumericalDiff> lm(functor);
+	Eigen::LevenbergMarquardtSpace::Status status = lm.minimize(x);
 
 	for (int i = 0; i < ellipses.size(); ++i) {
 		Ellipse ell;
 		ell.longR = ell_lng_avg;
-		ell.shortR = ell_shrt_avg;
+
+		ell.shortR = ellipses[i].shortR;
+		//ell.shortR = x(0) * sin(x(1)*i) + x(2);
+		//ell.shortR = ell_shrt_avg;
+
 		if (i > ignorPlanes && i < ellipses.size() - ignorPlanes)
 			ell.angle = ell_angle_avg;
 		else
@@ -606,9 +617,6 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 	std::vector<float> allTheta;
 	std::ifstream fin(plyCenterFile);
 	assert(!fin.fail());
-	std::ofstream fout(ParameterizePlyCntrFile);
-	assert(!fout.fail());
-
 	for (int i = 0; i < m_planesList.size(); ++i) {
 
 		vec2f plyCntr1(0.f), plyCntr2(0.f);
@@ -621,6 +629,7 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 		allR.push_back(R);
 		allTheta.push_back(theta);
 	}
+	fin.close();
 
 	bool clockwise = false;
 	const int ignorPlanes = 0.15 *  m_planesList.size();
@@ -644,8 +653,16 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 	period_avg /= (periods.size() - 1); //because the first cycle is discarded
 	
 	float R_avg = 0.f;
-	for (int i = ignorPlanes; i < m_planesList.size() - ignorPlanes; ++i) 
+	float R_min = std::numeric_limits<float>::max();
+	float R_max = std::numeric_limits<float>::min();
+	for (int i = ignorPlanes; i < m_planesList.size() - ignorPlanes; ++i) {
 		R_avg += allR[i];
+		if (allR[i] > R_max)
+			R_max = allR[i];
+		if (allR[i] < R_min)
+			R_min = allR[i];
+	}
+
 	R_avg /= static_cast<float>(m_planesList.size() - 2 * ignorPlanes);
 	//now split the point as "below the avg" and "above" and get the avg of the first cluster
 	//Because we are using fix ellipse params and ply-centrs get above the average for ellipse short
@@ -658,22 +675,27 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 		}
 	R_avg_cluster /= static_cast<float>(avg_cluster_num);
 
-	//unsigned int numberOfPoints = m_planesList.size() - 2 * ignorPlanes;
-	//Point2DVector points;
-	//for (int i = ignorPlanes; i <  m_planesList.size() - ignorPlanes; ++i) {
-	//	Eigen::Vector2d point;
-	//	point(0) = i;
-	//	point(1) = allR[i];
-	//	points.push_back(point);
-	//}
-	//Eigen::VectorXd x(1);
+	unsigned int numberOfPoints = m_planesList.size() - 2 * ignorPlanes;
+	Point2DVector points;
+	for (int i = ignorPlanes; i <  m_planesList.size() - ignorPlanes; ++i) {
+		Eigen::Vector2d point;
+		point(0) = i;
+		point(1) = allR[i];
+		points.push_back(point);
+	}
+	Eigen::VectorXd x(3);
 	//x.fill(0.05f);
-	//MyFunctorNumericalDiff functor;
-	//functor.Points = points;
-	//Eigen::LevenbergMarquardt<MyFunctorNumericalDiff> lm(functor);
+	x(0) = (R_max - R_min) / 2.f;
+	x(1) = 2.0*pi * 1.0 / static_cast<float>(period_avg);
+	x(2) = (R_max - R_min) / 2.f;
+	MyFunctorNumericalDiff functor;
+	functor.Points = points;
+	Eigen::LevenbergMarquardt<MyFunctorNumericalDiff> lm(functor);
 	//Eigen::LevenbergMarquardtSpace::Status status = lm.minimize(x);
-	//std::cout << R_avg << "   " << x(0) << std::endl;
+	std::cout << " period is : " << period_avg << std::endl;
 
+	std::ofstream fout(ParameterizePlyCntrFile);
+	assert(!fout.fail());
 	fout << m_planesList.size() << '\n';
 	float theta;
 	for (int i = 0; i < allR.size(); ++i) {
@@ -682,7 +704,11 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 		else 
 			theta = (i % period_avg) * 2.f * pi / period_avg;
 		//TODO: subtract pi because we had shifted all by pi in ##
-		fout << R_avg << " " << theta << '\n';
+		
+		float fitted_R = x(0) * sin(x(1)*i) + x(2);
+		//fout << fitted_R << " " << theta << '\n';
+		fout << R_avg_cluster << " " << theta << '\n';
+		//fout << R_avg << " " << theta << '\n'; 
 	}
 	fout.close();
 }

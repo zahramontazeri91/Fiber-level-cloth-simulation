@@ -43,8 +43,8 @@ struct MyFunctor : Functor<double>
 		for (unsigned int i = 0; i < this->Points.size(); ++i)
 		{
 			//fvec(i) = this->Points[i](1) - (x(0) * this->Points[i](0) + x(1));
-			fvec(i) = this->Points[i](1) - (x(0));
-			//fvec(i) = this->Points[i](1) - (x(0) * sin(x(1)*this->Points[i](0) + x(2)) + x(3)); //for sine-fitting
+			//fvec(i) = this->Points[i](1) - (x(0));
+			fvec(i) = this->Points[i](1) - (x(0) * sin(x(1)*this->Points[i](0)) + x(2) ); //for sine-fitting
 		}
 
 		return 0;
@@ -52,7 +52,7 @@ struct MyFunctor : Functor<double>
 
 	Point2DVector Points;
 
-	int inputs() const { return 1; } // There are two parameters of the model
+	int inputs() const { return 3; } // There are two parameters of the model
 	int values() const { return this->Points.size(); } // The number of observations
 };
 

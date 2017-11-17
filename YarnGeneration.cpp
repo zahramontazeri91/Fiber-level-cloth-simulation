@@ -6,7 +6,7 @@
 #include "tests/crossSectionTests.h"
 
 void fittingPlyCenter(CrossSection & cs, const char* plyCenterFile);
-void fittingCompress(CrossSection & cs, const char* compressFile, const char* normsFile);
+void fittingCompress(CrossSection & cs, const char* compressFile);
 void fittingFiberTwisting(CrossSection & cs, const char* fiberTwistFile);
 
 int main(int argc, const char **argv) {
@@ -22,33 +22,22 @@ int main(int argc, const char **argv) {
 		std::cout << "Using task file: \"" << argv[1] << "\"." << std::endl;
 
 		Fiber::Yarn yarn;
-		std::string command, configFILE, simulatedFILE,
-			cntrYarnFILE, curveNorms, compressFILE, plyCenterFILE;
-
-		fin >> configFILE;
-		yarn.parse(configFILE.c_str());
+		std::string command, configFILE, simulatedFILE, cntrYarnFILE, 
+			compressFILE, plyCenterFILE, fiberTwistFILE;		
 
 		// Fitting step 
-		fin >> command >> simulatedFILE >> cntrYarnFILE >> plyCenterFILE >> compressFILE >> curveNorms;
-		if (command == "FITTING") {
-			CrossSection cs(simulatedFILE.c_str(), cntrYarnFILE.c_str(), yarn.getPlyNum(), yarn.getStepNum(), 100);
-			fittingCompress(cs, compressFILE.c_str(), curveNorms.c_str());
-			fittingPlyCenter(cs, plyCenterFILE.c_str());
-			fittingFiberTwisting(cs, "fiberTwist.txt");
-		}
+		fin >> command >> configFILE >> simulatedFILE >> cntrYarnFILE ;
+		fin >> command >> plyCenterFILE >> compressFILE >> fiberTwistFILE;
+		yarn.parse(configFILE.c_str());
+		CrossSection cs(simulatedFILE.c_str(), cntrYarnFILE.c_str(), yarn.getPlyNum(), yarn.getStepNum(), 100);
+		fittingCompress(cs, compressFILE.c_str());
+		fittingPlyCenter(cs, plyCenterFILE.c_str());
+		fittingFiberTwisting(cs, fiberTwistFILE.c_str());
+
 		// Procedural step
-		fin >> command >> plyCenterFILE;
-		if (command == "SIMULATE")
-			yarn.yarn_simulate(plyCenterFILE.c_str(), "fiberTwist.txt");
-
-		fin >> command >> compressFILE;
-		if (command == "COMPRESS")
-			yarn.compress_yarn(compressFILE.c_str());
-
-		fin >> command >> curveNorms;
-		if (command == "CURVE")
-			yarn.curve_yarn(cntrYarnFILE.c_str(), curveNorms.c_str());
-
+		yarn.yarn_simulate(plyCenterFILE.c_str(), fiberTwistFILE.c_str());
+		yarn.compress_yarn(compressFILE.c_str());
+		yarn.curve_yarn(cntrYarnFILE.c_str());
 		yarn.write_yarn(argv[2]);
 	}
 	else
@@ -79,12 +68,11 @@ int main(int argc, const char **argv) {
 
 	//std::system("pause"); //add breakpoint instead
 
-
 	return 0;
 }
 
 
-void fittingCompress(CrossSection & cs, const char* compressFile, const char* normsFile) {
+void fittingCompress(CrossSection & cs, const char* compressFile) {
 	std::vector<yarnIntersect> itsLists;
 	cs.allPlanesIntersections(itsLists);
 
@@ -101,8 +89,8 @@ void fittingCompress(CrossSection & cs, const char* compressFile, const char* no
 
 	//simplify the ellipse params
 	std::vector<Ellipse> simple_ellipses;
-	cs.parameterizeEllipses(ellipses, simple_ellipses);
-	//simple_ellipses = ellipses;
+	//cs.parameterizeEllipses(ellipses, simple_ellipses);
+	simple_ellipses = ellipses;
 
 	FILE *fout;
 	if (fopen_s(&fout, compressFile, "wt") == 0) {
@@ -146,7 +134,7 @@ void fittingPlyCenter(CrossSection & cs, const char* plyCenterFile )
 	cs.extractPlyTwist(xy_Its, plyCenterFile);
 
 	//write plyCenters as R and theta and parameterize them
-	cs.parameterizePlyCenter(plyCenterFile, "parameterziePlyCntr.txt");
+	cs.parameterizePlyCenter(plyCenterFile, plyCenterFile);
 }
 
 void fittingFiberTwisting(CrossSection & cs, const char* fiberTwistFile)
@@ -165,8 +153,8 @@ void fittingFiberTwisting(CrossSection & cs, const char* fiberTwistFile)
 
 	//simplify the ellipse params
 	std::vector<Ellipse> simple_ellipses;
-	cs.parameterizeEllipses(ellipses, simple_ellipses);
-	//simple_ellipses = ellipses;
+	//cs.parameterizeEllipses(ellipses, simple_ellipses);
+	simple_ellipses = ellipses;
 
 	//Decompress simulated yarn e1-e2 space
 	std::vector<yarnIntersect2D> deCompressPlaneIntersect;
