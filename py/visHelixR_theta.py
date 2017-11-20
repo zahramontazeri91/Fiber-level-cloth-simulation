@@ -16,7 +16,7 @@ fig, ax = plt.subplots(figsize=(15,5))
 
 R = []
 theta = []
-with open('../parameterziePlyCntr.txt', 'r') as fin:
+with open('../plyCenter.txt', 'r') as fin:
     N = int(fin.readline())
     print(N)
     for i in range (0,N):

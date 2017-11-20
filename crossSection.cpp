@@ -454,14 +454,15 @@ void CrossSection::parameterizeEllipses(const std::vector<Ellipse> &ellipses, st
 		Ellipse ell;
 		ell.longR = ell_lng_avg;
 
-		ell.shortR = ellipses[i].shortR;
+		//ell.shortR = ellipses[i].shortR;
 		//ell.shortR = x(0) * sin(x(1)*i) + x(2);
-		//ell.shortR = ell_shrt_avg;
+		ell.shortR = ell_shrt_avg;
 
-		if (i > ignorPlanes && i < ellipses.size() - ignorPlanes)
-			ell.angle = ell_angle_avg;
-		else
-			ell.angle = ellipses[i].angle; //since we don't care about the two ends
+		ell.angle = ell_angle_avg;
+		//if (i > ignorPlanes && i < ellipses.size() - ignorPlanes )
+			//ell.angle = ell_angle_avg;
+		//else
+			//ell.angle = ellipses[i].angle; //since we don't care about the two ends
 		simple_ellipses.push_back(ell);
 	}
 }
@@ -684,11 +685,11 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 	//	point(1) = allR[i];
 	//	points.push_back(point);
 	//}
-	//Eigen::VectorXd x(3);
-	////x.fill(0.05f);
-	//x(0) = (R_max - R_min) / 2.f;
-	//x(1) = 2.0*pi * 1.0 / static_cast<float>(period_avg);
-	//x(2) = (R_max - R_min) / 2.f;
+	Eigen::VectorXd x(3);
+	//x.fill(0.05f);
+	x(0) = (R_max - R_min) / 2.f;
+	x(1) = 2.0*pi / static_cast<float>(period_avg/2.0);
+	x(2) = (R_max - R_min) / 2.f;
 	//MyFunctorNumericalDiff functor;
 	//functor.Points = points;
 	//Eigen::LevenbergMarquardt<MyFunctorNumericalDiff> lm(functor);
@@ -706,9 +707,9 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 			theta = (i % period_avg) * 2.f * pi / period_avg;
 		//TODO: subtract pi because we had shifted all by pi in ##
 		
-		//float fitted_R = x(0) * sin(x(1)*i) + x(2);
+		float fitted_R = x(0) * sin(x(1)*i - period_avg / 4.0) + x(2);
 		//fout << fitted_R << " " << theta << '\n';
-		fout << R_avg_cluster << " " << theta << '\n';
+		fout << allR[i] << " " << allTheta[i] << '\n';
 		//fout << R_avg << " " << theta << '\n'; 
 	}
 	fout.close();

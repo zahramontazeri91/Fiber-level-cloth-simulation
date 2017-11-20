@@ -7,7 +7,7 @@
 
 void fittingPlyCenter(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const float yarn_radius, const char* plyCenterFile);
 void fittingCompress(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const char* compressFile);
-void fittingFiberTwisting(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const char* fiberTwistFile);
+void fittingFiberTwisting(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const float yarn_radius, const char* fiberTwistFile);
 
 int main(int argc, const char **argv) {
 #if 1
@@ -33,7 +33,7 @@ int main(int argc, const char **argv) {
 		CrossSection cs(simulatedFILE.c_str(), cntrYarnFILE.c_str(), yarn.getPlyNum(), yarn.getStepNum(), 100, allPlaneIntersect);
 		fittingCompress(cs, allPlaneIntersect, compressFILE.c_str());
 		fittingPlyCenter(cs, allPlaneIntersect, yarn.getYarnRadius(), plyCenterFILE.c_str());
-		fittingFiberTwisting(cs, allPlaneIntersect, fiberTwistFILE.c_str());
+		fittingFiberTwisting(cs, allPlaneIntersect, yarn.getYarnRadius(), fiberTwistFILE.c_str());
 
 		// Procedural step
 		yarn.yarn_simulate(plyCenterFILE.c_str(), fiberTwistFILE.c_str());
@@ -85,8 +85,8 @@ void fittingCompress(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIn
 
 	//simplify the ellipse params
 	std::vector<Ellipse> simple_ellipses;
-	//cs.parameterizeEllipses(ellipses, simple_ellipses);
-	simple_ellipses = ellipses;
+	cs.parameterizeEllipses(ellipses, simple_ellipses);
+	//simple_ellipses = ellipses;
 
 	FILE *fout;
 	if (fopen_s(&fout, compressFile, "wt") == 0) {
@@ -96,10 +96,6 @@ void fittingCompress(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIn
 		}
 		fclose(fout);
 	}
-
-	//extract spline normals
-	//std::vector<vec3f> normals;
-	//cs.extractNormals(ellipses, normals, normsFile);
 }
 
 void fittingPlyCenter(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const float yarn_radius, const char* plyCenterFile )
@@ -125,7 +121,7 @@ void fittingPlyCenter(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneI
 	cs.parameterizePlyCenter(plyCenterFile, plyCenterFile);
 }
 
-void fittingFiberTwisting(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const char* fiberTwistFile)
+void fittingFiberTwisting(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const float yarn_radius, const char* fiberTwistFile)
 {
 	//fit the ellipse and find the compression param
 	std::vector<Ellipse> ellipses;
@@ -133,12 +129,12 @@ void fittingFiberTwisting(CrossSection & cs, std::vector<yarnIntersect2D> &allPl
 
 	//simplify the ellipse params
 	std::vector<Ellipse> simple_ellipses;
-	//cs.parameterizeEllipses(ellipses, simple_ellipses);
-	simple_ellipses = ellipses;
+	cs.parameterizeEllipses(ellipses, simple_ellipses);
+	//simple_ellipses = ellipses;
 
 	//Decompress simulated yarn e1-e2 space
 	std::vector<yarnIntersect2D> deCompressPlaneIntersect;
-	cs.deCompressYarn(allPlaneIntersect, 0.0286676,simple_ellipses, deCompressPlaneIntersect);
+	cs.deCompressYarn(allPlaneIntersect, yarn_radius,simple_ellipses, deCompressPlaneIntersect);
 
 	//extract twisted angle of each fiber in each cross-section
 	std::vector<float> fiber_theta;
