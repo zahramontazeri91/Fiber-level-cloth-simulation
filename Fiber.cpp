@@ -588,10 +588,17 @@ namespace Fiber {
 		for (int i = 0; i < this->z_step_num; ++i) {
 			float radius;
 			fitCircle(itsLists[i], radius);
+			fitCircleR_avg += radius;
 			fitCircleR.push_back(radius);
 			fitCircleR_avg += radius;
 		}
+<<<<<<< HEAD
 		fitCircleR_avg /= static_cast<float> (this->z_step_num);
+=======
+		//find avg fitted radius
+		fitCircleR_avg /= static_cast<float> (this->z_step_num);
+		std::cout << "circle : " << fitCircleR_avg << std::endl;
+>>>>>>> 4134d5cf648165ddda0182810416e50f9b3ef9fc
 
 		std::vector<compress> compress_params;
 		readCompressFile(filename, compress_params);
@@ -623,8 +630,8 @@ namespace Fiber {
 					ellipse_p.y = nv::dot(ellipse_axis_short, world_p);
 
 					//apply the scaling 
-					ellipse_p.x *= ellipse_long / fitCircleR[v];
-					ellipse_p.y *= ellipse_short / fitCircleR[v];
+					ellipse_p.x *= ellipse_long / fitCircleR_avg; // fitCircleR[v];
+					ellipse_p.y *= ellipse_short / fitCircleR_avg; // fitCircleR[v];
 
 					//transfer back to x-y
 					world_p.x = nv::dot(vec2f(ellipse_axis_long.x, ellipse_axis_short.x), ellipse_p);

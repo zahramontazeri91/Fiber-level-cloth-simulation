@@ -467,6 +467,7 @@ void CrossSection::parameterizeEllipses(const std::vector<Ellipse> &ellipses, st
 		//ell.longR = ellipses[i].longR;
 		ell.longR = ell_lng_avg_clusterL;
 
+<<<<<<< HEAD
 		//ell.shortR = x(0) * sin(x(1)*i) + x(2);
 		ell.shortR = ell_shrt_avg;
 		//ell.shortR = ellipses[i].shortR;
@@ -474,6 +475,17 @@ void CrossSection::parameterizeEllipses(const std::vector<Ellipse> &ellipses, st
 		ell.angle = ell_angle_avg;
 		//ell.angle = ellipses[i].angle;
 
+=======
+		//ell.shortR = ellipses[i].shortR;
+		//ell.shortR = x(0) * sin(x(1)*i) + x(2);
+		ell.shortR = ell_shrt_avg;
+
+		ell.angle = ell_angle_avg;
+		//if (i > ignorPlanes && i < ellipses.size() - ignorPlanes )
+			//ell.angle = ell_angle_avg;
+		//else
+			//ell.angle = ellipses[i].angle; //since we don't care about the two ends
+>>>>>>> 4134d5cf648165ddda0182810416e50f9b3ef9fc
 		simple_ellipses.push_back(ell);
 	}
 }
@@ -638,7 +650,7 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 
 		//find R between yarnCenter and plyCenter[0]
 		float R = length(plyCntr1);
-		float theta = atan2(plyCntr1.y, plyCntr1.x) + pi ; //map between 0 to 2pi (NOTE that we should shift it back at the end ##)
+		float theta = atan2(plyCntr1.y, plyCntr1.x) + pi; //map between 0 to 2pi (NOTE that we should shift it back at the end ##)
 		allR.push_back(R);
 		allTheta.push_back(theta);
 	}
@@ -657,14 +669,15 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 			if (allTheta[i] - allTheta[i + 1] > 0)
 				clockwise = 0; //theta gets larger after the jump for ccw
 			else
-				clockwise = 1; 
+				clockwise = 1;
 		}
 	}
 	int period_avg = 0;
-	for (int p = 1; p < periods.size() ; p++)  //we ignor first period because they might not be a complete cycle
+	for (int p = 1; p < periods.size(); p++)  //we ignor first period because they might not be a complete cycle
 		period_avg += periods[p];
 	period_avg /= (periods.size() - 1); //because the first cycle is discarded
-	
+
+
 	float R_avg = 0.f;
 	float R_min = std::numeric_limits<float>::max();
 	float R_max = std::numeric_limits<float>::min();
@@ -679,10 +692,15 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 	R_avg /= static_cast<float>(m_planesList.size() - 2 * ignorPlanes);
 	//now split the point as "below the avg" and "above" and get the avg of the first cluster
 	//Because we are using fix ellipse params and ply-centrs get above the average for ellipse short
+<<<<<<< HEAD
 	float R_avg_clusterS = 0.f;
 	int avg_cluster_numS = 0;
 	float R_avg_clusterL = 0.f;
 	int avg_cluster_numL = 0;
+=======
+	float R_avg_clusterS = 0.f, R_avg_clusterL = 0.f;
+	int avg_cluster_numS = 0, avg_cluster_numL = 0;
+>>>>>>> 4134d5cf648165ddda0182810416e50f9b3ef9fc
 	for (int i = ignorPlanes; i < m_planesList.size() - ignorPlanes; ++i) {
 		if (allR[i] < R_avg) {
 			R_avg_clusterS += allR[i];
@@ -692,6 +710,7 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 			R_avg_clusterL += allR[i];
 			avg_cluster_numL++;
 		}
+<<<<<<< HEAD
 	}
 	R_avg_clusterS /= static_cast<float>(avg_cluster_numS);
 	R_avg_clusterL /= static_cast<float>(avg_cluster_numL);
@@ -703,29 +722,50 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 		point(0) = i;
 		point(1) = allR[i];
 		points.push_back(point);
+=======
+>>>>>>> 4134d5cf648165ddda0182810416e50f9b3ef9fc
 	}
+	R_avg_clusterS /= static_cast<float>(avg_cluster_numS);
+	R_avg_clusterL /= static_cast<float>(avg_cluster_numL);
+
+	//unsigned int numberOfPoints = m_planesList.size() - 2 * ignorPlanes;
+	//Point2DVector points;
+	//for (int i = ignorPlanes; i <  m_planesList.size() - ignorPlanes; ++i) {
+	//	Eigen::Vector2d point;
+	//	point(0) = i;
+	//	point(1) = allR[i];
+	//	points.push_back(point);
+	//}
 	Eigen::VectorXd x(3);
 	//x.fill(0.05f);
 	x(0) = (R_max - R_min) / 2.f;
-	x(1) = 2.0*pi * 1.0 / static_cast<float>(period_avg);
+	x(1) = 2.0*pi / static_cast<float>(period_avg/2.0);
 	x(2) = (R_max - R_min) / 2.f;
-	MyFunctorNumericalDiff functor;
-	functor.Points = points;
-	Eigen::LevenbergMarquardt<MyFunctorNumericalDiff> lm(functor);
-	//Eigen::LevenbergMarquardtSpace::Status status = lm.minimize(x);
-	std::cout << " period is : " << period_avg << std::endl;
+	//MyFunctorNumericalDiff functor;
+	//functor.Points = points;
+	//Eigen::LevenbergMarquardt<MyFunctorNumericalDiff> lm(functor);
+	////Eigen::LevenbergMarquardtSpace::Status status = lm.minimize(x);
+	//std::cout << " period is : " << period_avg << std::endl;
 
 	std::ofstream fout(ParameterizePlyCntrFile);
 	assert(!fout.fail());
 	fout << m_planesList.size() << '\n';
 	float theta;
 	for (int i = 0; i < allR.size(); ++i) {
-		if (clockwise)
+		if (clockwise) {
+			//if (i % period_avg == 0)
+			//	theta = 2 * pi;
+			//else if (i % period_avg == period_avg - 1)
+			//	theta = 0.f;
+			//else
+			//	theta = 2 * pi - pi - (i % period_avg) * pi / (2.f*period_avg);
 			theta = 2 * pi - (i % period_avg) * 2.f * pi / period_avg;
+		}
 		else 
 			theta = (i % period_avg) * 2.f * pi / period_avg;
 		//TODO: subtract pi because we had shifted all by pi in ##
 		
+<<<<<<< HEAD
 		const float mag = (R_avg - R_avg_clusterS) / 2.f;
 		const float R_ = mag * sin(2.f * (theta - pi / 4.f - 1.5697)) + mag + R_avg_clusterS;
 
@@ -733,6 +773,19 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 		//fout << allR[i] << " " << allTheta[i] << '\n';
 		fout << R_avg_clusterS << " " << theta << '\n';
 		//fout << R_avg << " " << theta << '\n'; 
+=======
+
+		/* use the relation between theta[i] and compression parameters to find R */
+		//std::cout << R_min << " " << R_avg_clusterS << " " << R_avg << " " << R_avg_clusterL << " " << R_max << std::endl;
+		theta += pi / 2.f;
+		const float mag = ( R_avg_clusterL - R_avg_clusterS) / 2.f;
+		float R_ = mag * sin(2.f * (theta - pi / 4.f - 1.5697) ) + mag + R_min;
+
+		//float fitted_R = x(0) * sin(x(1)*i - period_avg ) + x(2);
+		//fout << fitted_R << " " << theta << '\n';
+		//fout << allR[i] << " " << allTheta[i] << '\n';
+		fout << R_ << " " << theta << '\n';
+>>>>>>> 4134d5cf648165ddda0182810416e50f9b3ef9fc
 	}
 	fout.close();
 }
