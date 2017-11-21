@@ -3,7 +3,7 @@
 #include "crossSection.h"
 
 namespace Fiber {
-	
+
 	float Ply::fiberDistribution(float R) {
 		float eTerm = (e - std::powf(e, R / R_max)) / (e - 1);
 		float pR = (1 - 2 * epsilon) * std::powf(eTerm, beta) + epsilon;
@@ -292,7 +292,7 @@ namespace Fiber {
 		const int ply_num = this->plys.size();
 		for (int i = 0; i < ply_num; i++) {
 			float angle = 2 * pi * i / ply_num; // place ply centers in a circle with radius yarn-radius/2 
-			
+
 			this->plys[i].base_theta = angle;
 			this->plys[i].base_center = vec3f(base_radius / 2 * std::cosf(angle), base_radius / 2 * std::sinf(angle), 0);
 		}
@@ -301,18 +301,18 @@ namespace Fiber {
 
 		std::cout << "step3: initial plys locations ... \n";
 		for (int i = 0; i < ply_num; i++) {
-			const int fiber_num = this->plys[i].fibers.size(); 
+			const int fiber_num = this->plys[i].fibers.size();
 #pragma omp parallel for num_threads(num_of_cores) 
 			for (int f = 0; f < fiber_num; f++) {
 				Fiber &fiber = this->plys[i].fibers[f];
-				float radius = this->plys[i].sampleR();			
+				float radius = this->plys[i].sampleR();
 				float theta = 2 * pi * (float)rand() / (RAND_MAX);
 				float migration_theta = 2 * pi * (float)rand() / (RAND_MAX);
 				fiber.init_radius = radius;
 				fiber.init_theta = theta;
 				fiber.init_migration_theta = migration_theta;
 				fiber.init_vertex = this->plys[i].base_center +
-					vec3f(radius * std::cosf(theta), radius * std::sinf(theta), 0);  
+					vec3f(radius * std::cosf(theta), radius * std::sinf(theta), 0);
 			}
 		}
 
@@ -325,14 +325,14 @@ namespace Fiber {
 		const float fiber_theta_avg = extractFiberTwist(fiberTwistFile);
 
 		for (int i = 0; i < ply_num; i++) {
-			const int fiber_num = this->plys[i].fibers.size();			
+			const int fiber_num = this->plys[i].fibers.size();
 			// generate all fibers around ply-center
 			for (int f = 1; f < fiber_num; f++) { //starts from index 1 because index0 is reserved for ply-center
 				Fiber &fiber = this->plys[i].fibers[f];
 				fiber.clear(); //clear the vertices list 
 				for (int step_id = 0; step_id < this->z_step_num; step_id++) {
 					const float z = this->z_step_size * (step_id - this->z_step_num / 2.f); // devided by 2 Bcuz yarn lies between neg and pos z
-					//const float fiber_theta = this->plys[i].clock_wise ? -z * 2 * pi / this->plys[i].alpha : z * 2 * pi / this->plys[i].alpha;
+																							//const float fiber_theta = this->plys[i].clock_wise ? -z * 2 * pi / this->plys[i].alpha : z * 2 * pi / this->plys[i].alpha;
 					const float fiber_theta = fiber_theta_avg;
 
 					const float yarn_theta = this->clock_wise ? -z * 2 * pi / this->yarn_alpha : z * 2 * pi / this->yarn_alpha;
@@ -352,7 +352,7 @@ namespace Fiber {
 					_local_y *= this->plys[i].ellipse_long;
 					local_p = _local_x * short_axis + _local_y * long_axis;
 					local_x = local_p.x;
-					local_y = local_p.y;			
+					local_y = local_p.y;
 
 					// translate it to ply-center (fiber_0)
 					float plyCenter_x = this->plys[i].fibers[0].vertices[step_id].x;
@@ -377,13 +377,13 @@ namespace Fiber {
 		// for debuging:
 		FILE *fout;
 		if (fopen_s(&fout, "../data/plyCenter_proc.txt", "wt") == 0) {
-			for (int step_id = 0; step_id < this->z_step_num; step_id++) {
-				for (int i = 0; i < ply_num; i++) {
-					fprintf_s(fout, "%.6f %.6f\n", this->plys[i].fibers[0].vertices[step_id].x, this->plys[i].fibers[0].vertices[step_id].y);
-				}
-				fprintf_s(fout, "\n");
-			}
-			fclose(fout);
+		for (int step_id = 0; step_id < this->z_step_num; step_id++) {
+		for (int i = 0; i < ply_num; i++) {
+		fprintf_s(fout, "%.6f %.6f\n", this->plys[i].fibers[0].vertices[step_id].x, this->plys[i].fibers[0].vertices[step_id].y);
+		}
+		fprintf_s(fout, "\n");
+		}
+		fclose(fout);
 		}
 		*/
 		FILE *fout;
@@ -398,7 +398,7 @@ namespace Fiber {
 				for (int i = 0; i < ply_num; i++) {
 					fprintf_s(fout, "ply_fiber_num: %d\n", f_num);
 					fprintf_s(fout, "plyCenter: %.4f %.4f\n", this->plys[i].fibers[0].vertices[step_id].x, this->plys[i].fibers[0].vertices[step_id].y);
-					for (int f = 1; f < f_num+1; ++f) {
+					for (int f = 1; f < f_num + 1; ++f) {
 						fprintf_s(fout, "%.4f %.4f\n", this->plys[i].fibers[f].vertices[step_id].x, this->plys[i].fibers[f].vertices[step_id].y);
 					}
 				}
@@ -482,7 +482,7 @@ namespace Fiber {
 
 					// 2. rotate positions [x' y'] = [cos sin; -sin cos][x y]
 					world_x = world_x_before_ply_rotation * std::cosf(yarn_theta) - world_y_before_ply_rotation * std::sinf(yarn_theta);
-					world_y = world_y_before_ply_rotation * std::cosf(yarn_theta) + world_x_before_ply_rotation * std::sinf(yarn_theta);				
+					world_y = world_y_before_ply_rotation * std::cosf(yarn_theta) + world_x_before_ply_rotation * std::sinf(yarn_theta);
 
 					vec3f verIn = vec3f(world_x, world_y, z), verOut;
 					verOut = verIn;
@@ -578,7 +578,7 @@ namespace Fiber {
 
 	void Yarn::compress_yarn(const char* filename) {
 		std::cout << "step7: compress yarn cross-sections ..." << std::endl;
-		
+
 		//first find the fitted circle around each cross-section
 		std::vector<float> fitCircleR;
 		const int ply_num = this->plys.size();
@@ -588,17 +588,10 @@ namespace Fiber {
 		for (int i = 0; i < this->z_step_num; ++i) {
 			float radius;
 			fitCircle(itsLists[i], radius);
-			fitCircleR_avg += radius;
 			fitCircleR.push_back(radius);
 			fitCircleR_avg += radius;
 		}
-<<<<<<< HEAD
 		fitCircleR_avg /= static_cast<float> (this->z_step_num);
-=======
-		//find avg fitted radius
-		fitCircleR_avg /= static_cast<float> (this->z_step_num);
-		std::cout << "circle : " << fitCircleR_avg << std::endl;
->>>>>>> 4134d5cf648165ddda0182810416e50f9b3ef9fc
 
 		std::vector<compress> compress_params;
 		readCompressFile(filename, compress_params);
@@ -614,7 +607,7 @@ namespace Fiber {
 				//std::cout << compress_params.size() << " " <<  vertices_num << std::endl;
 				//while (1);
 				for (int v = 0; v < vertices_num; v++) {
-								
+
 					const float ellipse_long = compress_params[v].ellipse_long;
 					const float ellipse_short = compress_params[v].ellipse_short;
 					const float ellipse_theta = compress_params[v].theta;
@@ -630,13 +623,13 @@ namespace Fiber {
 					ellipse_p.y = nv::dot(ellipse_axis_short, world_p);
 
 					//apply the scaling 
-					ellipse_p.x *= ellipse_long / fitCircleR_avg; // fitCircleR[v];
-					ellipse_p.y *= ellipse_short / fitCircleR_avg; // fitCircleR[v];
+					ellipse_p.x *= ellipse_long / fitCircleR[v];
+					ellipse_p.y *= ellipse_short / fitCircleR[v];
 
 					//transfer back to x-y
 					world_p.x = nv::dot(vec2f(ellipse_axis_long.x, ellipse_axis_short.x), ellipse_p);
 					world_p.y = nv::dot(vec2f(ellipse_axis_long.y, ellipse_axis_short.y), ellipse_p);
-					
+
 					fiber.vertices[v].x = world_p.x;
 					fiber.vertices[v].y = world_p.y;
 				}
@@ -678,47 +671,47 @@ namespace Fiber {
 
 	void Yarn::curve_yarn(const char* pntsFile, bool scaleXY) {
 		std::cout << "step8: map the straight yarn to the spline curve ..." << std::endl;
-	
+
 		/* use hermite spline multiple segments */
-        HermiteCurve curve;
-        curve.init(pntsFile);
+		HermiteCurve curve;
+		curve.init(pntsFile);
 		//curve.init(pntsFile, normsFile);
 
-        double zMin = std::numeric_limits<double>::max(), zMax = std::numeric_limits<double>::lowest();
-        for ( const auto &ply : plys )
-            for ( const auto &fiber : ply.fibers )
-                for ( const auto &vertex : fiber.vertices ) {
-                    zMin = std::min(zMin, static_cast<double>(vertex.z));
-                    zMax = std::max(zMax, static_cast<double>(vertex.z));
-                }
-        double zSpan = zMax - zMin;
-        double curveLength = curve.totalLength();
-        double xyScale = 1.0;
+		double zMin = std::numeric_limits<double>::max(), zMax = std::numeric_limits<double>::lowest();
+		for (const auto &ply : plys)
+			for (const auto &fiber : ply.fibers)
+				for (const auto &vertex : fiber.vertices) {
+					zMin = std::min(zMin, static_cast<double>(vertex.z));
+					zMax = std::max(zMax, static_cast<double>(vertex.z));
+				}
+		double zSpan = zMax - zMin;
+		double curveLength = curve.totalLength();
+		double xyScale = 1.0;
 
-        printf("  zMin: %.4lf, zMax: %.4lf, zSpan: %.4lf\n", zMin, zMax, zSpan);
-        printf("  Curve length: %.4lf", curveLength);
-        if ( scaleXY )
-            printf(" (scale: %.4lf)", xyScale = curveLength/zSpan);
-        putchar('\n');
+		printf("  zMin: %.4lf, zMax: %.4lf, zSpan: %.4lf\n", zMin, zMax, zSpan);
+		printf("  Curve length: %.4lf", curveLength);
+		if (scaleXY)
+			printf(" (scale: %.4lf)", xyScale = curveLength / zSpan);
+		putchar('\n');
 
-        for ( auto &ply : plys )
-            for ( auto &fiber : ply.fibers )
-                for ( auto &vertex : fiber.vertices ) {
-                    double len = curveLength*(vertex.z - zMin)/zSpan;
-                    double t = curve.arcLengthInvApprox(len);
+		for (auto &ply : plys)
+			for (auto &fiber : ply.fibers)
+				for (auto &vertex : fiber.vertices) {
+					double len = curveLength*(vertex.z - zMin) / zSpan;
+					double t = curve.arcLengthInvApprox(len);
 
 					// use rotated Frenet frame 
 					Eigen::Vector3d ex, ey, ez;
 					curve.getRotatedFrame(t, ex, ey, ez);
 
 					Eigen::Vector3d pos = curve.eval(t);
-                    Eigen::Vector3d pos1;
-                    pos1 = pos + xyScale*(static_cast<double>(vertex.x)*ex + static_cast<double>(vertex.y)*ey);
+					Eigen::Vector3d pos1;
+					pos1 = pos + xyScale*(static_cast<double>(vertex.x)*ex + static_cast<double>(vertex.y)*ey);
 
-                    vertex.x = static_cast<float>(pos1[0]);
-                    vertex.y = static_cast<float>(pos1[1]);
-                    vertex.z = static_cast<float>(pos1[2]);
-                }
+					vertex.x = static_cast<float>(pos1[0]);
+					vertex.y = static_cast<float>(pos1[1]);
+					vertex.z = static_cast<float>(pos1[2]);
+				}
 
 		// for debuging:
 		const int ply_num = this->plys.size();
@@ -749,7 +742,7 @@ namespace Fiber {
 		printf("Writing vertices ...\n");
 		int total_fiber_num = 0, ply_num = this->plys.size();
 		for (int i = 0; i < ply_num; i++)
-			total_fiber_num += this->plys[i].fibers.size(); 
+			total_fiber_num += this->plys[i].fibers.size();
 		std::ofstream fout(filename);
 		fout << total_fiber_num << std::endl; //TODO : generated yarn format should be same as simulated yarn 
 		for (int i = 0; i < ply_num; i++) {
@@ -776,14 +769,14 @@ namespace Fiber {
 			for (int f = 0; f < fiber_num; f++) {
 				Fiber &fiber = this->plys[i].fibers[f];
 				int fiber_vertex_num = fiber.vertices.size();
-				if (i==0)
+				if (i == 0)
 					fout0 << fiber_vertex_num << std::endl;
 				else
 					fout1 << fiber_vertex_num << std::endl;
 				for (int v = 0; v < fiber_vertex_num; v++) {
 					if (i == 0)
 						fout0 << fiber.vertices[v].x << " " << fiber.vertices[v].y << " " << fiber.vertices[v].z << std::endl;
-					else 
+					else
 						fout1 << fiber.vertices[v].x << " " << fiber.vertices[v].y << " " << fiber.vertices[v].z << std::endl;
 				}
 			}

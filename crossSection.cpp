@@ -3,7 +3,7 @@
 
 #if 0
 /* constructor for procedural yarn (for debug use) */
-CrossSection::CrossSection(const Fiber::Yarn &yarn) { 
+CrossSection::CrossSection(const Fiber::Yarn &yarn) {
 	m_yarn = yarn;
 	m_planesList.resize(yarn.getStepNum());
 	for (int step_id = 0; step_id < m_planesList.size(); step_id++) {
@@ -17,7 +17,7 @@ CrossSection::CrossSection(const Fiber::Yarn &yarn) {
 }
 #endif
 
-void CrossSection::init(const char* yarnfile, const int ply_num, const char* curvefile, 
+void CrossSection::init(const char* yarnfile, const int ply_num, const char* curvefile,
 	const int seg_subdiv, const int num_planes, std::vector<yarnIntersect2D> &allPlaneIntersect) {
 	m_yarn.build(yarnfile, ply_num);
 	m_curve.init(curvefile, seg_subdiv);
@@ -39,7 +39,7 @@ void CrossSection::buildPlanes(const int num_planes, std::vector<yarnIntersect> 
 		Eigen::Vector3d curve_n = m_curve.evalNormal(i * crossSection_t); //short axis
 		Eigen::Vector3d curve_b = curve_t.cross(curve_n); //long axis
 		m_planesList[i].point = vec3f(curve_p[0], curve_p[1], curve_p[2]);
-		m_planesList[i].n     = vec3f(curve_t[0], curve_t[1], curve_t[2]);
+		m_planesList[i].n = vec3f(curve_t[0], curve_t[1], curve_t[2]);
 		//m_planesList[i].e1    = vec3f(curve_n[0], curve_n[1], curve_n[2]);
 		//m_planesList[i].e2 = cross(m_planesList[i].n, m_planesList[i].e1);
 		//assert(dot(m_planesList[i].n, m_planesList[i].e1) < EPS);
@@ -94,7 +94,7 @@ bool CrossSection::yarnPlaneIntersection(const Plane &plane, yarnIntersect &itsL
 	const int ply_num = m_yarn.plys.size();
 	itsList.resize(ply_num);
 
-	assert( nv::length(plane.n) - 1.f < EPS   && "normal vector is not normalized!" );
+	assert(nv::length(plane.n) - 1.f < EPS   && "normal vector is not normalized!");
 
 	const int num_of_cores = omp_get_num_procs();
 #pragma omp parallel for num_threads(num_of_cores)
@@ -110,7 +110,7 @@ bool CrossSection::yarnPlaneIntersection(const Plane &plane, yarnIntersect &itsL
 				vec3f start = m_yarn.plys[p].fibers[f].vertices[v];
 				vec3f end = (m_yarn.plys[p].fibers[f].vertices[v + 1]);
 				vec3f its(0.f);
-				if (linePlaneIntersection(start, end, plane, its) ) {				
+				if (linePlaneIntersection(start, end, plane, its)) {
 
 					if (hitFiberNum) {
 						hitFiberNum++;
@@ -172,19 +172,19 @@ void CrossSection::allPlyCenters(std::vector<std::vector<vec3f>> &plyCenters, st
 	//for testing:
 	/*FILE *fout;
 	if (fopen_s(&fout, "../data/test_plyCenter.txt", "wt") == 0) {
-		fprintf_s(fout, "%d\n", plane_num);
-		for (int i = 0; i < plane_num; ++i) {
-			fprintf_s(fout, "%.4f %.4f %.4f \n", plyCenters[i][0].x, plyCenters[i][0].y, plyCenters[i][0].z);
-		}
-		fclose(fout);
+	fprintf_s(fout, "%d\n", plane_num);
+	for (int i = 0; i < plane_num; ++i) {
+	fprintf_s(fout, "%.4f %.4f %.4f \n", plyCenters[i][0].x, plyCenters[i][0].y, plyCenters[i][0].z);
+	}
+	fclose(fout);
 	}*/
 }
 
 void CrossSection::write_PlanesIntersections3D(const char* filename, std::vector<yarnIntersect> &itsLists) {
 
-	assert(m_planesList.size() == itsLists.size() );
-		//std::cout << itsLists.size() << " out of " << m_planesList.size()  << " many planes had intersections! \n";
-	
+	assert(m_planesList.size() == itsLists.size());
+	//std::cout << itsLists.size() << " out of " << m_planesList.size()  << " many planes had intersections! \n";
+
 	const int ply_num = m_yarn.plys.size();
 	FILE *fout;
 	if (fopen_s(&fout, filename, "wt") == 0) {
@@ -193,10 +193,10 @@ void CrossSection::write_PlanesIntersections3D(const char* filename, std::vector
 		fprintf_s(fout, "ply_num: %d \n", ply_num);
 		fprintf_s(fout, "\n");
 
-		for (int cs = 0; cs < itsLists.size() ; ++cs) { //for each plane //TODO: why -1?
-			/* First write the yarn-center */
-			//fprintf_s(fout, "center: %.4lf %.4lf %.4lf \n", m_planesList[cs].point[0], m_planesList[cs].point[1], m_planesList[cs].point[2]);
-			/* Then all the intersections for each ply */
+		for (int cs = 0; cs < itsLists.size(); ++cs) { //for each plane //TODO: why -1?
+													   /* First write the yarn-center */
+													   //fprintf_s(fout, "center: %.4lf %.4lf %.4lf \n", m_planesList[cs].point[0], m_planesList[cs].point[1], m_planesList[cs].point[2]);
+													   /* Then all the intersections for each ply */
 			for (int p = 0; p < ply_num; ++p) { //for each ply 
 				fprintf_s(fout, "ply_fiber_num: %d \n", itsLists[cs][p].size());
 				fprintf_s(fout, "plyCenter: %.4lf %.4lf %.4lf \n", itsLists[cs][p][0].x, itsLists[cs][p][0].y, itsLists[cs][p][0].z);
@@ -212,15 +212,15 @@ void CrossSection::write_PlanesIntersections3D(const char* filename, std::vector
 	std::cout << "Intersections are written to the file successfully! \n\n";
 }
 
-void CrossSection::project2Plane (const vec3f& P3d, const Plane& plane, vec2f& P2d) {
+void CrossSection::project2Plane(const vec3f& P3d, const Plane& plane, vec2f& P2d) {
 	vec3f n = plane.n;
 	vec3f e1 = plane.e1;
 	vec3f e2 = plane.e2;
-	
+
 	assert(length(e1) - 1.f < 1e-6);
 	assert(length(e2) - 1.f < 1e-6);
 	assert(dot(e1, e2) < EPS);
-	P2d.x = dot(e1, (P3d -  plane.point));
+	P2d.x = dot(e1, (P3d - plane.point));
 	P2d.y = dot(e2, (P3d - plane.point));
 }
 
@@ -236,7 +236,7 @@ void CrossSection::PlanesIntersections2D(std::vector<yarnIntersect> &itsLists, s
 		/* First write the yarn-center */
 		vec2f center2D;
 		project2Plane(plane.point, plane, center2D);
-		assert (center2D == vec2f(0.f) ) ;
+		assert(center2D == vec2f(0.f));
 
 		/* Then all the intersections for each ply */
 		yarnIntersect2D planeProjected;
@@ -261,8 +261,8 @@ void CrossSection::fitEllipse(const yarnIntersect2D &pts, Ellipse &ellipse)
 	int sz = 0;
 	for (int p = 0; p < pts.size(); ++p)
 		sz += pts[p].size();
-	cv::Mat data_pts (sz, 2, CV_32FC1, cv::Scalar::all(0));
-	
+	cv::Mat data_pts(sz, 2, CV_32FC1, cv::Scalar::all(0));
+
 	int c = data_pts.rows;
 	for (int p = 0; p < pts.size(); ++p) {
 		for (int i = 0; i < pts[p].size(); ++i) {
@@ -277,7 +277,7 @@ void CrossSection::fitEllipse(const yarnIntersect2D &pts, Ellipse &ellipse)
 
 	//Store the center of the object
 	ellipse.center = vec2f(pca_analysis.mean.at<float>(0, 0), pca_analysis.mean.at<float>(0, 1));
-	
+
 
 	//Store the eigenvalues and eigenvectors
 	std::vector<vec2f> eigen_vecs(2);
@@ -296,15 +296,15 @@ void CrossSection::fitEllipse(const yarnIntersect2D &pts, Ellipse &ellipse)
 	float max1 = std::numeric_limits<float>::min();
 	for (int i = 0; i < data_pts.rows; ++i) {
 		float prj0 = eigen_vecs[0].x * data_pts.at<float>(i, 0) + eigen_vecs[0].y * data_pts.at<float>(i, 1);
-		if ( std::abs(prj0) > max0)
+		if (std::abs(prj0) > max0)
 			max0 = std::abs(prj0);
 		float prj1 = eigen_vecs[1].x * data_pts.at<float>(i, 0) + eigen_vecs[1].y * data_pts.at<float>(i, 1);
 		if (std::abs(prj1) > max1)
 			max1 = std::abs(prj1);
 	}
 	// TODO: find the eigen values using eigen vectors
-	eigen_val[0] = std::max(max0,max1);
-	eigen_val[1] = std::min(max1,max0);
+	eigen_val[0] = std::max(max0, max1);
+	eigen_val[1] = std::min(max1, max0);
 
 	vec2f p1 = ellipse.center + vec2f(eigen_vecs[0].x * eigen_val[0], eigen_vecs[0].y * eigen_val[0]);
 	vec2f p2 = ellipse.center - vec2f(eigen_vecs[1].x * eigen_val[1], eigen_vecs[1].y * eigen_val[1]);
@@ -326,7 +326,7 @@ void CrossSection::minAreaEllipse(const yarnIntersect2D &pts, const Ellipse &ell
 	int sz = 0;
 	for (int p = 0; p < pts.size(); ++p)
 		sz += pts[p].size();
-	std::vector<vec2f> data_pts (sz) ;
+	std::vector<vec2f> data_pts(sz);
 
 	int c = 0;
 	for (int p = 0; p < pts.size(); ++p) {
@@ -337,7 +337,7 @@ void CrossSection::minAreaEllipse(const yarnIntersect2D &pts, const Ellipse &ell
 		}
 	}
 	//check the percentage of covered dataPoints
-	
+
 	float Rx = ellipse.longR;
 	float Ry = ellipse.shortR;
 	//float threshold = 0.001;  //// TODO
@@ -348,8 +348,8 @@ void CrossSection::minAreaEllipse(const yarnIntersect2D &pts, const Ellipse &ell
 
 	vec2f cnt = ellipse.center;
 	const float stepX = Rx * 0.01;
-	const float stepY = Ry * 0.01;	
-	
+	const float stepY = Ry * 0.01;
+
 	float minArea = std::numeric_limits<float>::max();
 	int kk = 0;
 	const int num_of_cores = omp_get_num_procs();
@@ -395,7 +395,7 @@ void CrossSection::minAreaEllipse(const yarnIntersect2D &pts, const Ellipse &ell
 #endif
 
 void CrossSection::extractCompressParam(const std::vector<yarnIntersect2D> &allPlaneIntersect, std::vector<Ellipse> &ellipses) {
-	
+
 	for (int i = 0; i < allPlaneIntersect.size(); ++i)
 	{
 		Ellipse ell;
@@ -403,7 +403,7 @@ void CrossSection::extractCompressParam(const std::vector<yarnIntersect2D> &allP
 
 		//Ellipse minEll;
 		//minAreaEllipse(allPlaneIntersect[i], ell, minEll);
-		
+
 		ellipses.push_back(ell);
 	}
 
@@ -452,7 +452,7 @@ void CrossSection::parameterizeEllipses(const std::vector<Ellipse> &ellipses, st
 	}
 	Eigen::VectorXd x(3);
 	//x.fill(1.f);
-	x(0) = (ell_shrt_max - ell_shrt_min )/2.f;
+	x(0) = (ell_shrt_max - ell_shrt_min) / 2.f;
 	x(1) = 0.125; // 2.0*pi * 1.0 / 40.0;
 	x(2) = (ell_shrt_max - ell_shrt_min) / 2.f;
 
@@ -467,7 +467,6 @@ void CrossSection::parameterizeEllipses(const std::vector<Ellipse> &ellipses, st
 		//ell.longR = ellipses[i].longR;
 		ell.longR = ell_lng_avg_clusterL;
 
-<<<<<<< HEAD
 		//ell.shortR = x(0) * sin(x(1)*i) + x(2);
 		ell.shortR = ell_shrt_avg;
 		//ell.shortR = ellipses[i].shortR;
@@ -475,17 +474,6 @@ void CrossSection::parameterizeEllipses(const std::vector<Ellipse> &ellipses, st
 		ell.angle = ell_angle_avg;
 		//ell.angle = ellipses[i].angle;
 
-=======
-		//ell.shortR = ellipses[i].shortR;
-		//ell.shortR = x(0) * sin(x(1)*i) + x(2);
-		ell.shortR = ell_shrt_avg;
-
-		ell.angle = ell_angle_avg;
-		//if (i > ignorPlanes && i < ellipses.size() - ignorPlanes )
-			//ell.angle = ell_angle_avg;
-		//else
-			//ell.angle = ellipses[i].angle; //since we don't care about the two ends
->>>>>>> 4134d5cf648165ddda0182810416e50f9b3ef9fc
 		simple_ellipses.push_back(ell);
 	}
 }
@@ -497,10 +485,10 @@ void CrossSection::planeIts2world(Plane &plane, vec2f &plane_point, vec3f &world
 	vec3f e2 = plane.e2;
 
 	vec3f local(plane_point.x, plane_point.y, 0.f); //as the point exists on the plane
-	/*world = [e1 e2 n] * local
-	local = [e1; e2; n] * world*/
+													/*world = [e1 e2 n] * local
+													local = [e1; e2; n] * world*/
 
-	/******************************************************************/
+													/******************************************************************/
 	world_point.y = dot(vec3f(e1.x, e2.x, n.x), local) + plane.point.x;
 	world_point.x = dot(vec3f(e1.y, e2.y, n.y), local) + plane.point.y;
 	world_point.z = dot(vec3f(e1.z, e2.z, n.z), local) + plane.point.z;
@@ -541,7 +529,7 @@ void CrossSection::yarn2crossSections(std::vector<yarnIntersect2D> &itsLists) {
 	for (int i = 0; i < itsLists.size(); ++i)
 		itsLists[i].resize(m_yarn.plys.size());
 
-		//copy the yarn into new dataStructure
+	//copy the yarn into new dataStructure
 	for (int p = 0; p < m_yarn.plys.size(); ++p) {
 		plyItersect plyIts;
 		for (int f = 0; f < m_yarn.plys[p].fibers.size(); ++f) {
@@ -551,23 +539,23 @@ void CrossSection::yarn2crossSections(std::vector<yarnIntersect2D> &itsLists) {
 			}
 		}
 	}
-} 
+}
 #endif
 
 void CrossSection::deCompressYarn(const std::vector<yarnIntersect2D> &planeIts, const float yarn_radius, std::vector<Ellipse> &ellipses, std::vector<yarnIntersect2D> &deCompressPlaneIts) {
-	deCompressPlaneIts.resize(planeIts.size() );
+	deCompressPlaneIts.resize(planeIts.size());
 	for (int i = 0; i < planeIts.size(); ++i) // number of planes
 	{
-		deCompressPlaneIts[i].resize(planeIts[i].size() );
+		deCompressPlaneIts[i].resize(planeIts[i].size());
 		for (int p = 0; p < planeIts[i].size(); ++p) // number of plys
 		{
-			deCompressPlaneIts[i][p].resize(planeIts[i][p].size() );
+			deCompressPlaneIts[i][p].resize(planeIts[i][p].size());
 			for (int v = 0; v < planeIts[i][p].size(); ++v) // number of intersections
-			{				
+			{
 				vec2f its = planeIts[i][p][v];
 
 				const float ellipse_long = ellipses[i].longR;
-				const float ellipse_short = ellipses[i].shortR;			
+				const float ellipse_short = ellipses[i].shortR;
 				const float ellipse_theta = ellipses[i].angle;
 
 				//obtain ellipse axis
@@ -618,9 +606,9 @@ void CrossSection::extractPlyTwist(const std::vector<yarnIntersect2D> &decompres
 
 	std::ofstream fout(plyCenterFile);
 	for (int i = 0; i < decompressPlaneIts.size(); ++i) { // all planes	
-		//first find the yarn center
-		//No need to yarnCenter because planes are generated using their center point
-		//vec2f yarnCntr = vec2f(m_planesList[i].point.x, m_planesList[i].point.y);
+														  //first find the yarn center
+														  //No need to yarnCenter because planes are generated using their center point
+														  //vec2f yarnCntr = vec2f(m_planesList[i].point.x, m_planesList[i].point.y);
 
 		int ply_num = decompressPlaneIts[i].size();
 		for (int p = 0; p < ply_num; ++p) { // all plys
@@ -660,7 +648,7 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 	const int ignorPlanes = 0.15 *  m_planesList.size();
 	std::vector<int> periods;
 	float jump_prev = ignorPlanes; //initialize with starting planeID
-	// to find when jumps are happened
+								   // to find when jumps are happened
 	for (int i = ignorPlanes; i < m_planesList.size() - ignorPlanes; ++i) {
 		float deltaTheta = std::abs(allTheta[i] - allTheta[i + 1]);
 		if (deltaTheta > 2 * pi - deltaTheta) {
@@ -677,7 +665,6 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 		period_avg += periods[p];
 	period_avg /= (periods.size() - 1); //because the first cycle is discarded
 
-
 	float R_avg = 0.f;
 	float R_min = std::numeric_limits<float>::max();
 	float R_max = std::numeric_limits<float>::min();
@@ -692,15 +679,10 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 	R_avg /= static_cast<float>(m_planesList.size() - 2 * ignorPlanes);
 	//now split the point as "below the avg" and "above" and get the avg of the first cluster
 	//Because we are using fix ellipse params and ply-centrs get above the average for ellipse short
-<<<<<<< HEAD
 	float R_avg_clusterS = 0.f;
 	int avg_cluster_numS = 0;
 	float R_avg_clusterL = 0.f;
 	int avg_cluster_numL = 0;
-=======
-	float R_avg_clusterS = 0.f, R_avg_clusterL = 0.f;
-	int avg_cluster_numS = 0, avg_cluster_numL = 0;
->>>>>>> 4134d5cf648165ddda0182810416e50f9b3ef9fc
 	for (int i = ignorPlanes; i < m_planesList.size() - ignorPlanes; ++i) {
 		if (allR[i] < R_avg) {
 			R_avg_clusterS += allR[i];
@@ -710,62 +692,40 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 			R_avg_clusterL += allR[i];
 			avg_cluster_numL++;
 		}
-<<<<<<< HEAD
 	}
 	R_avg_clusterS /= static_cast<float>(avg_cluster_numS);
 	R_avg_clusterL /= static_cast<float>(avg_cluster_numL);
 
 	unsigned int numberOfPoints = m_planesList.size() - 2 * ignorPlanes;
 	Point2DVector points;
-	for (int i = ignorPlanes; i <  m_planesList.size() - ignorPlanes; ++i) {
+	for (int i = ignorPlanes; i < m_planesList.size() - ignorPlanes; ++i) {
 		Eigen::Vector2d point;
 		point(0) = i;
 		point(1) = allR[i];
 		points.push_back(point);
-=======
->>>>>>> 4134d5cf648165ddda0182810416e50f9b3ef9fc
 	}
-	R_avg_clusterS /= static_cast<float>(avg_cluster_numS);
-	R_avg_clusterL /= static_cast<float>(avg_cluster_numL);
-
-	//unsigned int numberOfPoints = m_planesList.size() - 2 * ignorPlanes;
-	//Point2DVector points;
-	//for (int i = ignorPlanes; i <  m_planesList.size() - ignorPlanes; ++i) {
-	//	Eigen::Vector2d point;
-	//	point(0) = i;
-	//	point(1) = allR[i];
-	//	points.push_back(point);
-	//}
 	Eigen::VectorXd x(3);
 	//x.fill(0.05f);
 	x(0) = (R_max - R_min) / 2.f;
-	x(1) = 2.0*pi / static_cast<float>(period_avg/2.0);
+	x(1) = 2.0*pi * 1.0 / static_cast<float>(period_avg);
 	x(2) = (R_max - R_min) / 2.f;
-	//MyFunctorNumericalDiff functor;
-	//functor.Points = points;
-	//Eigen::LevenbergMarquardt<MyFunctorNumericalDiff> lm(functor);
-	////Eigen::LevenbergMarquardtSpace::Status status = lm.minimize(x);
-	//std::cout << " period is : " << period_avg << std::endl;
+	MyFunctorNumericalDiff functor;
+	functor.Points = points;
+	Eigen::LevenbergMarquardt<MyFunctorNumericalDiff> lm(functor);
+	//Eigen::LevenbergMarquardtSpace::Status status = lm.minimize(x);
+	std::cout << " period is : " << period_avg << std::endl;
 
 	std::ofstream fout(ParameterizePlyCntrFile);
 	assert(!fout.fail());
 	fout << m_planesList.size() << '\n';
 	float theta;
 	for (int i = 0; i < allR.size(); ++i) {
-		if (clockwise) {
-			//if (i % period_avg == 0)
-			//	theta = 2 * pi;
-			//else if (i % period_avg == period_avg - 1)
-			//	theta = 0.f;
-			//else
-			//	theta = 2 * pi - pi - (i % period_avg) * pi / (2.f*period_avg);
+		if (clockwise)
 			theta = 2 * pi - (i % period_avg) * 2.f * pi / period_avg;
-		}
-		else 
+		else
 			theta = (i % period_avg) * 2.f * pi / period_avg;
 		//TODO: subtract pi because we had shifted all by pi in ##
-		
-<<<<<<< HEAD
+
 		const float mag = (R_avg - R_avg_clusterS) / 2.f;
 		const float R_ = mag * sin(2.f * (theta - pi / 4.f - 1.5697)) + mag + R_avg_clusterS;
 
@@ -773,19 +733,6 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 		//fout << allR[i] << " " << allTheta[i] << '\n';
 		fout << R_avg_clusterS << " " << theta << '\n';
 		//fout << R_avg << " " << theta << '\n'; 
-=======
-
-		/* use the relation between theta[i] and compression parameters to find R */
-		//std::cout << R_min << " " << R_avg_clusterS << " " << R_avg << " " << R_avg_clusterL << " " << R_max << std::endl;
-		theta += pi / 2.f;
-		const float mag = ( R_avg_clusterL - R_avg_clusterS) / 2.f;
-		float R_ = mag * sin(2.f * (theta - pi / 4.f - 1.5697) ) + mag + R_min;
-
-		//float fitted_R = x(0) * sin(x(1)*i - period_avg ) + x(2);
-		//fout << fitted_R << " " << theta << '\n';
-		//fout << allR[i] << " " << allTheta[i] << '\n';
-		fout << R_ << " " << theta << '\n';
->>>>>>> 4134d5cf648165ddda0182810416e50f9b3ef9fc
 	}
 	fout.close();
 }
@@ -819,17 +766,17 @@ void CrossSection::fiberTwisting(const std::vector<yarnIntersect2D> &decompressP
 	fout << fiber_theta[0] << '\n';
 	for (int i = 0; i < fiberCntrVector.size() - 1; ++i) { // all planes (-1 because it checks the angle between two consecutive points)
 		float theta_avg = 0;
-		const int fiber_num = std::min( fiberCntrVector[i].size(), fiberCntrVector[i+1].size() ); //At the endpoints, next plane might not have as many as the current plane
+		const int fiber_num = std::min(fiberCntrVector[i].size(), fiberCntrVector[i + 1].size()); //At the endpoints, next plane might not have as many as the current plane
 		for (int v = 0; v < fiber_num; ++v) { // fiber-centers for each plane
-			//compute the angle between two vec2f
+											  //compute the angle between two vec2f
 			float cos = dot(fiberCntrVector[i][v], fiberCntrVector[i + 1][v]) / (length(fiberCntrVector[i + 1][v]) * length(fiberCntrVector[i][v]));
 			if (1.f - cos > 1e-7) // skip the nan that are generated duo to small acos()
 				theta_avg += acos(cos);
 		}
-		
+
 		theta_avg /= fiber_num;
 		fiber_theta.push_back(theta_avg);
-		fout << fiber_theta[i+1] << '\n';
+		fout << fiber_theta[i + 1] << '\n';
 	}
 	fout.close();
 }
