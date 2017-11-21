@@ -431,6 +431,17 @@ void CrossSection::parameterizeEllipses(const std::vector<Ellipse> &ellipses, st
 	ell_shrt_avg /= (ellipses.size() - 2 * ignorPlanes);
 	ell_angle_avg /= (ellipses.size() - 2 * ignorPlanes);
 
+	float ell_lng_avg_clusterL = 0.f;
+	int ell_lng_avg_clusterL_num = 0;
+	for (int i = ignorPlanes; i < ellipses.size() - ignorPlanes; ++i)
+	{
+		if (ellipses[i].longR > ell_lng_avg) {
+			ell_lng_avg_clusterL += ellipses[i].longR;
+			ell_lng_avg_clusterL_num++;
+		}
+	}
+	ell_lng_avg_clusterL /= static_cast<float>(ell_lng_avg_clusterL_num);
+
 	unsigned int numberOfPoints = ellipses.size();
 	Point2DVector points;
 	for (int i = ignorPlanes; i < ellipses.size() - ignorPlanes; ++i) {
@@ -452,16 +463,17 @@ void CrossSection::parameterizeEllipses(const std::vector<Ellipse> &ellipses, st
 
 	for (int i = 0; i < ellipses.size(); ++i) {
 		Ellipse ell;
-		ell.longR = ell_lng_avg;
+		//ell.longR = ell_lng_avg;
+		//ell.longR = ellipses[i].longR;
+		ell.longR = ell_lng_avg_clusterL;
 
-		ell.shortR = ellipses[i].shortR;
 		//ell.shortR = x(0) * sin(x(1)*i) + x(2);
-		//ell.shortR = ell_shrt_avg;
+		ell.shortR = ell_shrt_avg;
+		//ell.shortR = ellipses[i].shortR;
 
-		if (i > ignorPlanes && i < ellipses.size() - ignorPlanes)
-			ell.angle = ell_angle_avg;
-		else
-			ell.angle = ellipses[i].angle; //since we don't care about the two ends
+		ell.angle = ell_angle_avg;
+		//ell.angle = ellipses[i].angle;
+
 		simple_ellipses.push_back(ell);
 	}
 }
@@ -667,14 +679,22 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 	R_avg /= static_cast<float>(m_planesList.size() - 2 * ignorPlanes);
 	//now split the point as "below the avg" and "above" and get the avg of the first cluster
 	//Because we are using fix ellipse params and ply-centrs get above the average for ellipse short
-	float R_avg_cluster = 0.f;
-	int avg_cluster_num = 0;
-	for (int i = ignorPlanes; i < m_planesList.size() - ignorPlanes; ++i)
+	float R_avg_clusterS = 0.f;
+	int avg_cluster_numS = 0;
+	float R_avg_clusterL = 0.f;
+	int avg_cluster_numL = 0;
+	for (int i = ignorPlanes; i < m_planesList.size() - ignorPlanes; ++i) {
 		if (allR[i] < R_avg) {
-			R_avg_cluster += allR[i];
-			avg_cluster_num++;
+			R_avg_clusterS += allR[i];
+			avg_cluster_numS++;
 		}
-	R_avg_cluster /= static_cast<float>(avg_cluster_num);
+		else {
+			R_avg_clusterL += allR[i];
+			avg_cluster_numL++;
+		}
+	}
+	R_avg_clusterS /= static_cast<float>(avg_cluster_numS);
+	R_avg_clusterL /= static_cast<float>(avg_cluster_numL);
 
 	unsigned int numberOfPoints = m_planesList.size() - 2 * ignorPlanes;
 	Point2DVector points;
@@ -706,9 +726,12 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 			theta = (i % period_avg) * 2.f * pi / period_avg;
 		//TODO: subtract pi because we had shifted all by pi in ##
 		
+		const float mag = (R_avg - R_avg_clusterS) / 2.f;
+		const float R_ = mag * sin(2.f * (theta - pi / 4.f - 1.5697)) + mag + R_avg_clusterS;
+
 		float fitted_R = x(0) * sin(x(1)*i) + x(2);
-		//fout << fitted_R << " " << theta << '\n';
-		fout << R_avg_cluster << " " << theta << '\n';
+		//fout << allR[i] << " " << allTheta[i] << '\n';
+		fout << R_avg_clusterS << " " << theta << '\n';
 		//fout << R_avg << " " << theta << '\n'; 
 	}
 	fout.close();

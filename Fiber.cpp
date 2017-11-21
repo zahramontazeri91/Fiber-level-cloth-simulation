@@ -332,8 +332,8 @@ namespace Fiber {
 				fiber.clear(); //clear the vertices list 
 				for (int step_id = 0; step_id < this->z_step_num; step_id++) {
 					const float z = this->z_step_size * (step_id - this->z_step_num / 2.f); // devided by 2 Bcuz yarn lies between neg and pos z
-					const float fiber_theta = this->plys[i].clock_wise ? -z * 2 * pi / this->plys[i].alpha : z * 2 * pi / this->plys[i].alpha;
-					//const float fiber_theta = fiber_theta_avg;
+					//const float fiber_theta = this->plys[i].clock_wise ? -z * 2 * pi / this->plys[i].alpha : z * 2 * pi / this->plys[i].alpha;
+					const float fiber_theta = fiber_theta_avg;
 
 					const float yarn_theta = this->clock_wise ? -z * 2 * pi / this->yarn_alpha : z * 2 * pi / this->yarn_alpha;
 					float local_x, local_y, world_x, world_y;
@@ -584,11 +584,14 @@ namespace Fiber {
 		const int ply_num = this->plys.size();
 		std::vector<yarnIntersect2D> itsLists;
 		yarn2crossSections(itsLists);
+		float fitCircleR_avg = 0.f;
 		for (int i = 0; i < this->z_step_num; ++i) {
 			float radius;
 			fitCircle(itsLists[i], radius);
 			fitCircleR.push_back(radius);
+			fitCircleR_avg += radius;
 		}
+		fitCircleR_avg /= static_cast<float> (this->z_step_num);
 
 		std::vector<compress> compress_params;
 		readCompressFile(filename, compress_params);

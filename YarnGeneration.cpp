@@ -69,6 +69,9 @@ int main(int argc, const char **argv) {
 
 	//std::system("pause"); //add breakpoint instead
 
+
+
+
 	return 0;
 }
 
@@ -85,8 +88,8 @@ void fittingCompress(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIn
 
 	//simplify the ellipse params
 	std::vector<Ellipse> simple_ellipses;
-	//cs.parameterizeEllipses(ellipses, simple_ellipses);
-	simple_ellipses = ellipses;
+	cs.parameterizeEllipses(ellipses, simple_ellipses);
+	//simple_ellipses = ellipses;
 
 	FILE *fout;
 	if (fopen_s(&fout, compressFile, "wt") == 0) {
@@ -133,8 +136,8 @@ void fittingFiberTwisting(CrossSection & cs, std::vector<yarnIntersect2D> &allPl
 
 	//simplify the ellipse params
 	std::vector<Ellipse> simple_ellipses;
-	//cs.parameterizeEllipses(ellipses, simple_ellipses);
-	simple_ellipses = ellipses;
+	cs.parameterizeEllipses(ellipses, simple_ellipses);
+	//simple_ellipses = ellipses;
 
 	//Decompress simulated yarn e1-e2 space
 	std::vector<yarnIntersect2D> deCompressPlaneIntersect;
