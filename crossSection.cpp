@@ -714,6 +714,7 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 			//else if (i % period_avg == period_avg - 1)
 			//	theta = 0.f;
 			//else
+			//	theta = 2 * pi - pi - (i % period_avg) * pi / (2.f*period_avg);
 			theta = 2 * pi - (i % period_avg) * 2.f * pi / period_avg;
 		}
 		else 
@@ -722,10 +723,12 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 		
 
 		/* use the relation between theta[i] and compression parameters to find R */
-		const float mag = (R_avg_clusterL - R_avg_clusterS) / 2.f;
-		float R_ = mag * sin(2.f * (theta - pi / 4.f - 1.5697) ) + mag + R_min ;
+		//std::cout << R_min << " " << R_avg_clusterS << " " << R_avg << " " << R_avg_clusterL << " " << R_max << std::endl;
+		theta += pi / 2.f;
+		const float mag = ( R_avg_clusterL - R_avg_clusterS) / 2.f;
+		float R_ = mag * sin(2.f * (theta - pi / 4.f - 1.5697) ) + mag + R_min;
 
-		float fitted_R = x(0) * sin(x(1)*i - period_avg ) + x(2);
+		//float fitted_R = x(0) * sin(x(1)*i - period_avg ) + x(2);
 		//fout << fitted_R << " " << theta << '\n';
 		//fout << allR[i] << " " << allTheta[i] << '\n';
 		fout << R_ << " " << theta << '\n';
