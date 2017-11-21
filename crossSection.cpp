@@ -155,6 +155,9 @@ void CrossSection::allPlyCenters(std::vector<std::vector<vec3f>> &plyCenters, st
 
 	allPlanesIntersections(itsLists);
 
+	const int num_of_cores = omp_get_num_procs();
+#pragma omp parallel for num_threads(num_of_cores)
+
 	const int plane_num = itsLists.size();
 	plyCenters.resize(plane_num); //number of planes
 	for (int i = 0; i < plane_num; ++i) { //plane num
@@ -184,6 +187,8 @@ void CrossSection::write_PlanesIntersections3D(const char* filename, std::vector
 
 	assert(m_planesList.size() == itsLists.size());
 	//std::cout << itsLists.size() << " out of " << m_planesList.size()  << " many planes had intersections! \n";
+	const int num_of_cores = omp_get_num_procs();
+#pragma omp parallel for num_threads(num_of_cores)
 
 	const int ply_num = m_yarn.plys.size();
 	FILE *fout;
@@ -193,10 +198,8 @@ void CrossSection::write_PlanesIntersections3D(const char* filename, std::vector
 		fprintf_s(fout, "ply_num: %d \n", ply_num);
 		fprintf_s(fout, "\n");
 
-		for (int cs = 0; cs < itsLists.size(); ++cs) { //for each plane //TODO: why -1?
-													   /* First write the yarn-center */
-													   //fprintf_s(fout, "center: %.4lf %.4lf %.4lf \n", m_planesList[cs].point[0], m_planesList[cs].point[1], m_planesList[cs].point[2]);
-													   /* Then all the intersections for each ply */
+		for (int cs = 0; cs < itsLists.size(); ++cs) { 
+			/* write all the intersections for each ply */
 			for (int p = 0; p < ply_num; ++p) { //for each ply 
 				fprintf_s(fout, "ply_fiber_num: %d \n", itsLists[cs][p].size());
 				fprintf_s(fout, "plyCenter: %.4lf %.4lf %.4lf \n", itsLists[cs][p][0].x, itsLists[cs][p][0].y, itsLists[cs][p][0].z);
@@ -229,6 +232,8 @@ void CrossSection::PlanesIntersections2D(std::vector<yarnIntersect> &itsLists, s
 		std::cout << itsLists.size() << " out of " << m_planesList.size() << " many planes had intersections! \n";
 
 	const int ply_num = m_yarn.plys.size();
+	const int num_of_cores = omp_get_num_procs();
+#pragma omp parallel for num_threads(num_of_cores)
 
 	for (int cs = 0; cs < itsLists.size(); ++cs) { //for each plane
 		Plane plane;
@@ -442,32 +447,12 @@ void CrossSection::parameterizeEllipses(const std::vector<Ellipse> &ellipses, st
 	}
 	ell_lng_avg_clusterL /= static_cast<float>(ell_lng_avg_clusterL_num);
 
-	unsigned int numberOfPoints = ellipses.size();
-	Point2DVector points;
-	for (int i = ignorPlanes; i < ellipses.size() - ignorPlanes; ++i) {
-		Eigen::Vector2d point;
-		point(0) = i;
-		point(1) = ellipses[i].shortR;
-		points.push_back(point);
-	}
-	Eigen::VectorXd x(3);
-	//x.fill(1.f);
-	x(0) = (ell_shrt_max - ell_shrt_min) / 2.f;
-	x(1) = 0.125; // 2.0*pi * 1.0 / 40.0;
-	x(2) = (ell_shrt_max - ell_shrt_min) / 2.f;
-
-	MyFunctorNumericalDiff functor;
-	functor.Points = points;
-	Eigen::LevenbergMarquardt<MyFunctorNumericalDiff> lm(functor);
-	Eigen::LevenbergMarquardtSpace::Status status = lm.minimize(x);
-
 	for (int i = 0; i < ellipses.size(); ++i) {
 		Ellipse ell;
 		//ell.longR = ell_lng_avg;
 		//ell.longR = ellipses[i].longR;
 		ell.longR = ell_lng_avg_clusterL;
 
-		//ell.shortR = x(0) * sin(x(1)*i) + x(2);
 		ell.shortR = ell_shrt_avg;
 		//ell.shortR = ellipses[i].shortR;
 
@@ -485,17 +470,19 @@ void CrossSection::planeIts2world(Plane &plane, vec2f &plane_point, vec3f &world
 	vec3f e2 = plane.e2;
 
 	vec3f local(plane_point.x, plane_point.y, 0.f); //as the point exists on the plane
-													/*world = [e1 e2 n] * local
-													local = [e1; e2; n] * world*/
 
-													/******************************************************************/
+	/*world = [e1 e2 n] * local
+	local = [e1; e2; n] * world*/
+
+
+	// ****** e1 maps to y and e2 maps to x *********
 	world_point.y = dot(vec3f(e1.x, e2.x, n.x), local) + plane.point.x;
 	world_point.x = dot(vec3f(e1.y, e2.y, n.y), local) + plane.point.y;
 	world_point.z = dot(vec3f(e1.z, e2.z, n.z), local) + plane.point.z;
 	//note that order of the axis matches with the project2plane()
 }
 
-
+#if 0
 void CrossSection::extractNormals(std::vector<Ellipse> &ellipses, std::vector<vec3f> &normals, const char* normsFile) {
 
 	FILE *fout;
@@ -519,6 +506,7 @@ void CrossSection::extractNormals(std::vector<Ellipse> &ellipses, std::vector<ve
 	}
 	fclose(fout);
 }
+#endif
 
 
 #if 0
@@ -543,6 +531,8 @@ void CrossSection::yarn2crossSections(std::vector<yarnIntersect2D> &itsLists) {
 #endif
 
 void CrossSection::deCompressYarn(const std::vector<yarnIntersect2D> &planeIts, const float yarn_radius, std::vector<Ellipse> &ellipses, std::vector<yarnIntersect2D> &deCompressPlaneIts) {
+	const int num_of_cores = omp_get_num_procs();
+#pragma omp parallel for num_threads(num_of_cores)
 	deCompressPlaneIts.resize(planeIts.size());
 	for (int i = 0; i < planeIts.size(); ++i) // number of planes
 	{
@@ -581,7 +571,8 @@ void CrossSection::deCompressYarn(const std::vector<yarnIntersect2D> &planeIts, 
 void CrossSection::transferLocal2XY(const std::vector<yarnIntersect2D> &e1e2_Its, std::vector<yarnIntersect2D> &xy_Its) {
 	//initialized the vector with a copy
 	xy_Its = e1e2_Its;
-
+	const int num_of_cores = omp_get_num_procs();
+#pragma omp parallel for num_threads(num_of_cores)
 	for (int i = 0; i < e1e2_Its.size(); ++i) { // all planes
 		vec3f n = m_planesList[i].n;
 		vec3f e1 = m_planesList[i].e1;
@@ -603,13 +594,10 @@ void CrossSection::transferLocal2XY(const std::vector<yarnIntersect2D> &e1e2_Its
 }
 
 void CrossSection::extractPlyTwist(const std::vector<yarnIntersect2D> &decompressPlaneIts, const char *plyCenterFile) {
-
+	const int num_of_cores = omp_get_num_procs();
+#pragma omp parallel for num_threads(num_of_cores)
 	std::ofstream fout(plyCenterFile);
 	for (int i = 0; i < decompressPlaneIts.size(); ++i) { // all planes	
-														  //first find the yarn center
-														  //No need to yarnCenter because planes are generated using their center point
-														  //vec2f yarnCntr = vec2f(m_planesList[i].point.x, m_planesList[i].point.y);
-
 		int ply_num = decompressPlaneIts[i].size();
 		for (int p = 0; p < ply_num; ++p) { // all plys
 			vec2f plyCntr(0.f);
@@ -696,25 +684,6 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 	R_avg_clusterS /= static_cast<float>(avg_cluster_numS);
 	R_avg_clusterL /= static_cast<float>(avg_cluster_numL);
 
-	unsigned int numberOfPoints = m_planesList.size() - 2 * ignorPlanes;
-	Point2DVector points;
-	for (int i = ignorPlanes; i < m_planesList.size() - ignorPlanes; ++i) {
-		Eigen::Vector2d point;
-		point(0) = i;
-		point(1) = allR[i];
-		points.push_back(point);
-	}
-	Eigen::VectorXd x(3);
-	//x.fill(0.05f);
-	x(0) = (R_max - R_min) / 2.f;
-	x(1) = 2.0*pi * 1.0 / static_cast<float>(period_avg);
-	x(2) = (R_max - R_min) / 2.f;
-	MyFunctorNumericalDiff functor;
-	functor.Points = points;
-	Eigen::LevenbergMarquardt<MyFunctorNumericalDiff> lm(functor);
-	//Eigen::LevenbergMarquardtSpace::Status status = lm.minimize(x);
-	std::cout << " period is : " << period_avg << std::endl;
-
 	std::ofstream fout(ParameterizePlyCntrFile);
 	assert(!fout.fail());
 	fout << m_planesList.size() << '\n';
@@ -726,10 +695,9 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 			theta = (i % period_avg) * 2.f * pi / period_avg;
 		//TODO: subtract pi because we had shifted all by pi in ##
 
-		const float mag = (R_avg - R_avg_clusterS) / 2.f;
-		const float R_ = mag * sin(2.f * (theta - pi / 4.f - 1.5697)) + mag + R_avg_clusterS;
+		//const float mag = (R_avg - R_avg_clusterS) / 2.f;
+		//const float R_ = mag * sin(2.f * (theta - pi / 4.f - 1.5697)) + mag + R_avg_clusterS;
 
-		float fitted_R = x(0) * sin(x(1)*i) + x(2);
 		//fout << allR[i] << " " << allTheta[i] << '\n';
 		fout << R_avg_clusterS << " " << theta << '\n';
 		//fout << R_avg << " " << theta << '\n'; 
@@ -739,6 +707,8 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 
 void CrossSection::extractFiberVectors(const std::vector<yarnIntersect2D> &decompressPlaneIts, std::vector<plyItersect2D> &fiberCntrVector) {
 	fiberCntrVector.resize(decompressPlaneIts.size());
+	const int num_of_cores = omp_get_num_procs();
+#pragma omp parallel for num_threads(num_of_cores)
 	for (int i = 0; i < decompressPlaneIts.size(); ++i) { // all planes	
 		int p = 0; //since fiber-centers in only ply[0] are stable in e1-e2 space 
 		vec2f plyCntr(0.f);
@@ -764,11 +734,13 @@ void CrossSection::fiberTwisting(const std::vector<yarnIntersect2D> &decompressP
 	std::ofstream fout(fiberTwistFile);
 	fout << fiberCntrVector.size() << '\n';
 	fout << fiber_theta[0] << '\n';
+	const int num_of_cores = omp_get_num_procs();
+#pragma omp parallel for num_threads(num_of_cores)
 	for (int i = 0; i < fiberCntrVector.size() - 1; ++i) { // all planes (-1 because it checks the angle between two consecutive points)
 		float theta_avg = 0;
 		const int fiber_num = std::min(fiberCntrVector[i].size(), fiberCntrVector[i + 1].size()); //At the endpoints, next plane might not have as many as the current plane
 		for (int v = 0; v < fiber_num; ++v) { // fiber-centers for each plane
-											  //compute the angle between two vec2f
+			//compute the angle between two vec2f
 			float cos = dot(fiberCntrVector[i][v], fiberCntrVector[i + 1][v]) / (length(fiberCntrVector[i + 1][v]) * length(fiberCntrVector[i][v]));
 			if (1.f - cos > 1e-7) // skip the nan that are generated duo to small acos()
 				theta_avg += acos(cos);

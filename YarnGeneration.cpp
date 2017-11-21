@@ -7,7 +7,7 @@
 
 void fittingPlyCenter(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const float yarn_radius, const char* plyCenterFile);
 void fittingCompress(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const char* compressFile);
-void fittingFiberTwisting(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const char* fiberTwistFile);
+void fittingFiberTwisting(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const float yarn_radius, const char* fiberTwistFile);
 
 int main(int argc, const char **argv) {
 #if 1
@@ -33,7 +33,7 @@ int main(int argc, const char **argv) {
 		CrossSection cs(simulatedFILE.c_str(), cntrYarnFILE.c_str(), yarn.getPlyNum(), yarn.getStepNum(), 100, allPlaneIntersect);
 		fittingCompress(cs, allPlaneIntersect, compressFILE.c_str());
 		fittingPlyCenter(cs, allPlaneIntersect, yarn.getYarnRadius(), plyCenterFILE.c_str());
-		fittingFiberTwisting(cs, allPlaneIntersect, fiberTwistFILE.c_str());
+		fittingFiberTwisting(cs, allPlaneIntersect, yarn.getYarnRadius(), fiberTwistFILE.c_str());
 
 		// Procedural step
 		yarn.yarn_simulate(plyCenterFILE.c_str(), fiberTwistFILE.c_str());
@@ -128,7 +128,7 @@ void fittingPlyCenter(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneI
 	cs.parameterizePlyCenter(plyCenterFile, plyCenterFile);
 }
 
-void fittingFiberTwisting(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const char* fiberTwistFile)
+void fittingFiberTwisting(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const float yarn_radius, const char* fiberTwistFile)
 {
 	//fit the ellipse and find the compression param
 	std::vector<Ellipse> ellipses;
@@ -141,7 +141,7 @@ void fittingFiberTwisting(CrossSection & cs, std::vector<yarnIntersect2D> &allPl
 
 	//Decompress simulated yarn e1-e2 space
 	std::vector<yarnIntersect2D> deCompressPlaneIntersect;
-	cs.deCompressYarn(allPlaneIntersect, 0.0286676, simple_ellipses, deCompressPlaneIntersect);
+	cs.deCompressYarn(allPlaneIntersect, yarn_radius, simple_ellipses, deCompressPlaneIntersect);
 
 	//
 	std::vector<float> fiber_theta;

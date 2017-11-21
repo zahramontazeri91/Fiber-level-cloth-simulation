@@ -306,7 +306,7 @@ void ply_centers_test() {
 	}
 }					
 
-
+#if 0
 void extractNormals()
 {
 	const char* yarnfile = "frame00029_scaled.txt"; //For simulated yarn
@@ -352,3 +352,4 @@ void extractNormals()
 		}
 	}
 }
+#endif
