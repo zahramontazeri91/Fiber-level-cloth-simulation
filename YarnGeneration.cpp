@@ -68,10 +68,6 @@ int main(int argc, const char **argv) {
 #endif
 
 	//std::system("pause"); //add breakpoint instead
-
-
-
-
 	return 0;
 }
 
@@ -86,23 +82,24 @@ void fittingCompress(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIn
 	std::vector<Ellipse> ellipses;
 	cs.extractCompressParam(xy_Its, ellipses);
 
-	//simplify the ellipse params
-	std::vector<Ellipse> simple_ellipses;
-	cs.parameterizeEllipses(ellipses, simple_ellipses);
-	//simple_ellipses = ellipses;
+	//regularize the ellipse params
+	//std::vector<Ellipse> simple_ellipses1, simple_ellipses2, simple_ellipses3;
+	//cs.regularizeEllipses(ellipses, simple_ellipses1);
+	//cs.regularizeEllipses(simple_ellipses1, simple_ellipses2);
+
+	//parameterize the ellipse params
+	std::vector<Ellipse> param_ellipses;
+	cs.parameterizeEllipses(ellipses, param_ellipses);
 
 	FILE *fout;
 	if (fopen_s(&fout, compressFile, "wt") == 0) {
-		fprintf_s(fout, "%d \n", simple_ellipses.size());
-		for (int i = 0; i < simple_ellipses.size(); ++i) {
-			fprintf_s(fout, "%.4f %.4f %.4f \n", simple_ellipses[i].longR, simple_ellipses[i].shortR, simple_ellipses[i].angle);
+		fprintf_s(fout, "%d \n", param_ellipses.size());
+		for (int i = 0; i < param_ellipses.size(); ++i) {
+			fprintf_s(fout, "%.4f %.4f %.4f \n", param_ellipses[i].longR, param_ellipses[i].shortR, param_ellipses[i].angle);
 		}
 		fclose(fout);
 	}
 
-	//extract spline normals
-	//std::vector<vec3f> normals;
-	//cs.extractNormals(ellipses, normals, normsFile);
 }
 
 void fittingPlyCenter(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const float yarn_radius, const char* plyCenterFile)

@@ -48,7 +48,7 @@ void CrossSection::buildPlanes(const int num_planes, std::vector<yarnIntersect> 
 	allPlyCenters(plyCenters, itsLists);
 	// Define inplane 2D coord using the direction from yarn-center to intersection of first ply-center 
 	for (int i = 0; i < num_planes; ++i) {
-		// plyCenters[i][0] - m_planesList[i].point is too small so its dot product with n doesn't show they are perpendicular
+		// plyCenters[i][0] - m_planesList[i].point is too small so its dot product with n doesn't show they are perpendicular (e1.n !=0 )
 		m_planesList[i].e1 = nv::normalize(plyCenters[i][0] - m_planesList[i].point);
 		m_planesList[i].e2 = cross(m_planesList[i].n, m_planesList[i].e1);
 	}
@@ -260,7 +260,137 @@ void CrossSection::PlanesIntersections2D(std::vector<yarnIntersect> &itsLists, s
 }
 
 
-void CrossSection::fitEllipse(const yarnIntersect2D &pts, Ellipse &ellipse)
+void findEigenValue(const cv::Mat &data_pts, const std::vector<vec2f> &eigen_vecs, std::vector<float> &eigen_val) {
+	float max0 = std::numeric_limits<float>::min();
+	float max1 = std::numeric_limits<float>::min();
+	for (int i = 0; i < data_pts.rows; ++i) {
+		float prj0 = eigen_vecs[0].x * data_pts.at<float>(i, 0) + eigen_vecs[0].y * data_pts.at<float>(i, 1);
+		if (std::abs(prj0) > max0)
+			max0 = std::abs(prj0);
+		float prj1 = eigen_vecs[1].x * data_pts.at<float>(i, 0) + eigen_vecs[1].y * data_pts.at<float>(i, 1);
+		if (std::abs(prj1) > max1)
+			max1 = std::abs(prj1);
+	}
+
+	eigen_val[0] = max0;
+	eigen_val[1] = max1;
+}
+
+void CrossSection::fitEllipses(const std::vector<yarnIntersect2D> &allpts, std::vector<Ellipse> &ellipses) {	
+	std::ofstream fout("../data/pca_test.txt");
+	fout << allpts.size() << '\n';
+
+	vec2f axis1_old, axis1_new, axis2_new, axis1_old_old;
+	for (int cs = 0; cs < allpts.size(); ++cs) {
+		Ellipse ellipse;
+		//Find the total number of points for all plys
+		int sz = 0;
+		yarnIntersect2D pts = allpts[cs];
+		for (int p = 0; p < pts.size(); ++p)
+			sz += pts[p].size();
+		cv::Mat data_pts(sz, 2, CV_32FC1, cv::Scalar::all(0));
+
+		int c = data_pts.rows;
+		for (int p = 0; p < pts.size(); ++p) {
+			for (int i = 0; i < pts[p].size(); ++i) {
+				data_pts.at<float>(c, 0) = pts[p][i].x;
+				data_pts.at<float>(c, 1) = pts[p][i].y;
+				--c;
+			}
+		}
+
+		//Perform PCA analysis
+		cv::PCA pca_analysis(data_pts, cv::Mat(), cv::PCA::DATA_AS_ROW, 2);
+
+		//Store the center of the object
+		ellipse.center = vec2f(pca_analysis.mean.at<float>(0, 0), pca_analysis.mean.at<float>(0, 1));
+
+		//Store the eigenvalues and eigenvectors
+		std::vector<vec2f> eigen_vecs(2);
+		std::vector<float> eigen_val(2);
+		for (int i = 0; i < 2; ++i)
+		{
+			eigen_vecs[i] = vec2f(pca_analysis.eigenvectors.at<float>(i, 0),
+				pca_analysis.eigenvectors.at<float>(i, 1));
+			//eigen_val[i] = pca_analysis.eigenvalues.at<float>(0, i); // Wrong values
+		}
+		assert(!dot(eigen_vecs[0], eigen_vecs[1]) && "Eigen vectors aren't orthogonal!");
+
+		//find eigen values by projecting the points on eigenVectors
+		findEigenValue(data_pts, eigen_vecs, eigen_val);
+
+		//check which eigenVec is axis1 (using minimum rotation algo)
+		if (!cs) //first plane
+		{ 
+			//eigen_vecs[0] *= -1;
+			
+			//float theta0 = atan2(eigen_vecs[0].y, eigen_vecs[0].x); // orientation in radians between 0-2pi
+			//if (ellipse.angle < 0)
+				//theta0 = std::abs(ellipse.angle) + pi;
+				//eigen_vecs[0] *= -1;
+
+			axis1_new = eigen_vecs[0];
+			axis2_new = vec2f(-1 * axis1_new.y, axis1_new.x);
+			axis1_old = axis1_new;
+			ellipse.longR = eigen_val[0];
+			ellipse.shortR = eigen_val[1];
+		}
+		//Don't detect new axis if R1 and R2 are close 
+		else if (std::abs(eigen_val[0] - eigen_val[1]) < std::max(eigen_val[0], eigen_val[1])/4.f) {
+			std::cout << cs << " Hard to detect R1 and R2 \n";
+			axis1_new = axis1_old;
+			axis2_new = vec2f(-1 * axis1_new.y, axis1_new.x);
+			ellipse.longR = eigen_val[0];
+			ellipse.shortR = eigen_val[1];
+		}
+		else {
+			//compare the angle between two new axis with the axis1_old		
+			float dot0 = dot(eigen_vecs[0], axis1_old);
+			float dot1 = dot(eigen_vecs[1], axis1_old);
+			//Crop dot values to handle nan, because dot() is not stricktly between [-1,1]
+			dot0 = dot0 > 1 ? 1.0 : dot0;
+			dot0 = dot0 < -1 ? -1.0 : dot0;
+			dot1 = dot1 > 1 ? 1.0 : dot1;
+			dot1 = dot1 < -1 ? -1.0 : dot1;
+
+ 			float angle0 = std::min(pi - acos(dot0), acos(dot0));
+			float angle1 = std::min(pi - acos(dot1), acos(dot1));
+
+			if (angle0 < angle1) {
+				if (pi - acos(dot(eigen_vecs[0], axis1_old)) < acos(dot(eigen_vecs[0], axis1_old))) //flipped 
+					eigen_vecs[0] *= -1;
+
+				axis1_new = eigen_vecs[0];
+				axis2_new = vec2f(-1 * axis1_new.y, axis1_new.x);
+				ellipse.longR = eigen_val[0];
+				ellipse.shortR = eigen_val[1];
+			}
+
+			else {
+				if (pi - acos(dot(eigen_vecs[1], axis1_old)) < acos(dot(eigen_vecs[1], axis1_old))) //flipped
+					eigen_vecs[1] *= -1;
+				
+				axis1_new = eigen_vecs[1];
+				axis2_new = vec2f(-1 * axis1_new.y, axis1_new.x);
+				ellipse.longR = eigen_val[1];
+				ellipse.shortR = eigen_val[0];
+			}
+		}
+
+		fout << axis1_old.x << ' ' << axis1_old.y << ' ' << axis1_new.x << ' ' << axis1_new.y << ' ' << axis2_new.x << ' ' << axis2_new.y << ' ' << '\n';
+		axis1_old_old = axis1_old;
+		axis1_old = axis1_new;
+
+		//note that atan is in range [-pi, pi]
+		ellipse.angle = atan2(axis1_new.y, axis1_new.x); 
+		if (ellipse.angle < 0)
+			ellipse.angle = ellipse.angle + 2.0*pi; // orientation in radians between 0-2pi
+		ellipses.push_back(ellipse);		
+	}
+	fout.close();
+}
+
+void CrossSection::fitEllipse(const yarnIntersect2D &pts, Ellipse &ellipse, vec2f &axis1_old, vec2f &axis1_new, const int plane_indx)
 {
 	//Find the total number of points for all plys
 	int sz = 0;
@@ -296,32 +426,67 @@ void CrossSection::fitEllipse(const yarnIntersect2D &pts, Ellipse &ellipse)
 
 	assert(!dot(eigen_vecs[0], eigen_vecs[1]) && "Eigen vectors aren't orthogonal!");
 
+	//check which eigenVec is axis1 (using minimum rotation algo)
+	vec2f axis2_new;
+
+	if (!plane_indx) //first plane
+	{
+		axis1_old = eigen_vecs[0];
+		axis1_new = eigen_vecs[0];
+		axis2_new = eigen_vecs[1];
+	}
+	else {
+		//compare the angle between two new axis with the axis1_old
+
+		float angle0 = std::min( pi - acos (dot(eigen_vecs[0], axis1_old)) , acos(dot(eigen_vecs[0], axis1_old)) );
+		float angle1 = std::min( pi - acos (dot(eigen_vecs[1], axis1_old)) , acos(dot(eigen_vecs[1], axis1_old)) );
+
+		if (dot(eigen_vecs[0], axis1_old) >= 1 || dot(eigen_vecs[1], axis1_old) >= 1)
+		{//handle nan (when axis-new and old are the same)
+			axis1_new = axis1_old;
+			axis2_new = vec2f(-1 * axis1_new.y, axis1_new.x);
+		}
+		else if (angle0 < angle1) {
+			if (pi - acos(dot(eigen_vecs[0], axis1_old)) < acos(dot(eigen_vecs[0], axis1_old))) //flipped 
+			{
+				eigen_vecs[0] *= -1;
+			}
+			axis1_new = eigen_vecs[0];
+			axis2_new = vec2f(-1 * axis1_new.y, axis1_new.x);
+
+		}
+		else {
+			if (pi - acos(dot(eigen_vecs[1], axis1_old)) < acos(dot(eigen_vecs[1], axis1_old))) //flipped
+			{
+				eigen_vecs[1] *= -1;
+			}
+			axis1_new = eigen_vecs[1];
+			axis2_new = vec2f(-1 * axis1_new.y, axis1_new.x);
+		}
+	}
+
 	//find eigen values by projecting the points on eigenVectors
 	float max0 = std::numeric_limits<float>::min();
 	float max1 = std::numeric_limits<float>::min();
 	for (int i = 0; i < data_pts.rows; ++i) {
-		float prj0 = eigen_vecs[0].x * data_pts.at<float>(i, 0) + eigen_vecs[0].y * data_pts.at<float>(i, 1);
+		float prj0 = axis1_new.x * data_pts.at<float>(i, 0) + axis1_new.y * data_pts.at<float>(i, 1);
 		if (std::abs(prj0) > max0)
 			max0 = std::abs(prj0);
-		float prj1 = eigen_vecs[1].x * data_pts.at<float>(i, 0) + eigen_vecs[1].y * data_pts.at<float>(i, 1);
+		float prj1 = axis2_new.x * data_pts.at<float>(i, 0) + axis2_new.y * data_pts.at<float>(i, 1);
 		if (std::abs(prj1) > max1)
 			max1 = std::abs(prj1);
 	}
 	// TODO: find the eigen values using eigen vectors
-	eigen_val[0] = std::max(max0, max1);
-	eigen_val[1] = std::min(max1, max0);
+	eigen_val[0] = max0;
+	eigen_val[1] = max1;
+	ellipse.longR = eigen_val[0];
+	ellipse.shortR = eigen_val[1];
+	ellipse.angle = atan2(axis1_new.y, axis1_new.x); // orientation in radians
 
-	vec2f p1 = ellipse.center + vec2f(eigen_vecs[0].x * eigen_val[0], eigen_vecs[0].y * eigen_val[0]);
-	vec2f p2 = ellipse.center - vec2f(eigen_vecs[1].x * eigen_val[1], eigen_vecs[1].y * eigen_val[1]);
-	//to map angle between -pi/2 to pi/2
-	ellipse.angle = atan2(eigen_vecs[0].y, eigen_vecs[0].x); // orientation in radians
-	if (ellipse.angle < 0) {
-		ellipse.angle = pi - std::abs(ellipse.angle);
-	}
-
-	ellipse.longR = length(p1 - ellipse.center);
-	ellipse.shortR = length(p2 - ellipse.center);
-
+	//vec2f p1 = ellipse.center + vec2f(axis1_new.x * eigen_val[0], axis1_new.y * eigen_val[0]);
+	//vec2f p2 = ellipse.center - vec2f(axis2_new.x * eigen_val[1], axis2_new.y * eigen_val[1]);
+	//vec2f long_axis = p1 - ellipse.center;
+	//vec2f short_axis = p2 - ellipse.center;
 }
 
 #if 0
@@ -400,17 +565,19 @@ void CrossSection::minAreaEllipse(const yarnIntersect2D &pts, const Ellipse &ell
 #endif
 
 void CrossSection::extractCompressParam(const std::vector<yarnIntersect2D> &allPlaneIntersect, std::vector<Ellipse> &ellipses) {
+	
+	fitEllipses(allPlaneIntersect, ellipses);
 
-	for (int i = 0; i < allPlaneIntersect.size(); ++i)
-	{
-		Ellipse ell;
-		fitEllipse(allPlaneIntersect[i], ell);
 
-		//Ellipse minEll;
-		//minAreaEllipse(allPlaneIntersect[i], ell, minEll);
+	//vec2f axis1_old, axis1_new;
+	//for (int i = 0; i < allPlaneIntersect.size(); ++i)
+	//{
+	//	Ellipse ell;
+	//	fitEllipse(allPlaneIntersect[i], ell, axis1_old, axis1_new, i);
+	//	axis1_old = axis1_new;
 
-		ellipses.push_back(ell);
-	}
+	//	ellipses.push_back(ell);
+	//}
 
 	std::cout << "Compression parameters for each cross-sections are written to the file! \n";
 }
@@ -438,26 +605,59 @@ void CrossSection::parameterizeEllipses(const std::vector<Ellipse> &ellipses, st
 
 	float ell_lng_avg_clusterL = 0.f;
 	int ell_lng_avg_clusterL_num = 0;
+	float ell_shrt_avg_clusterS = 0.f;
+	int ell_shrt_avg_clusterS_num = 0;
 	for (int i = ignorPlanes; i < ellipses.size() - ignorPlanes; ++i)
 	{
 		if (ellipses[i].longR > ell_lng_avg) {
 			ell_lng_avg_clusterL += ellipses[i].longR;
 			ell_lng_avg_clusterL_num++;
 		}
+		if (ellipses[i].shortR < ell_shrt_avg) {
+			ell_shrt_avg_clusterS += ellipses[i].shortR;
+			ell_shrt_avg_clusterS_num++;
+		}
 	}
 	ell_lng_avg_clusterL /= static_cast<float>(ell_lng_avg_clusterL_num);
+	ell_shrt_avg_clusterS /= static_cast<float>(ell_shrt_avg_clusterS_num);
+
+
+	unsigned int numberOfPoints = ellipses.size();
+	Point2DVector points;
+	for (int i = ignorPlanes; i < ellipses.size() - ignorPlanes; ++i) {
+		Eigen::Vector2d point;
+		point(0) = i;
+		point(1) = ellipses[i].shortR;
+		points.push_back(point);
+	}
+	Eigen::VectorXd x(3);
+	//x.fill(1.f);
+	x(0) = (ell_shrt_max - ell_shrt_min) / 2.f;
+	x(1) = 0.125; // 2.0*pi * 1.0 / 40.0;
+	x(2) = (ell_shrt_max - ell_shrt_min) / 2.f;
+
+	MyFunctorNumericalDiff functor;
+	functor.Points = points;
+	Eigen::LevenbergMarquardt<MyFunctorNumericalDiff> lm(functor);
+	Eigen::LevenbergMarquardtSpace::Status status = lm.minimize(x);
+
+
 
 	for (int i = 0; i < ellipses.size(); ++i) {
 		Ellipse ell;
+
+		ell.longR = ellipses[i].longR;
+		ell.shortR = ellipses[i].shortR;
+		ell.angle = ellipses[i].angle;
+
 		//ell.longR = ell_lng_avg;
-		//ell.longR = ellipses[i].longR;
-		ell.longR = ell_lng_avg_clusterL;
+		//ell.longR = ell_lng_avg_clusterL;
 
-		ell.shortR = ell_shrt_avg;
-		//ell.shortR = ellipses[i].shortR;
+		//ell.shortR = ell_shrt_avg;
+		//ell.shortR = ell_shrt_avg_clusterS;
+		//ell.shortR = x(0) * sin(x(1)*i) + x(2);
 
-		ell.angle = ell_angle_avg;
-		//ell.angle = ellipses[i].angle;
+		//ell.angle = ell_angle_avg;
 
 		simple_ellipses.push_back(ell);
 	}
@@ -476,8 +676,9 @@ void CrossSection::planeIts2world(Plane &plane, vec2f &plane_point, vec3f &world
 
 
 	// ****** e1 maps to y and e2 maps to x *********
-	world_point.y = dot(vec3f(e1.x, e2.x, n.x), local) + plane.point.x;
-	world_point.x = dot(vec3f(e1.y, e2.y, n.y), local) + plane.point.y;
+	//*************************************************
+	world_point.x = dot(vec3f(e1.x, e2.x, n.x), local) + plane.point.x;
+	world_point.y = dot(vec3f(e1.y, e2.y, n.y), local) + plane.point.y;
 	world_point.z = dot(vec3f(e1.z, e2.z, n.z), local) + plane.point.z;
 	//note that order of the axis matches with the project2plane()
 }
@@ -586,8 +787,8 @@ void CrossSection::transferLocal2XY(const std::vector<yarnIntersect2D> &e1e2_Its
 				/* transform plyCenters in e1-e2 coord to xy plane */
 				/****************************************************/
 				// project e2 to ex, and e1 to ey with no translation
-				xy_Its[i][p][v].y = dot(vec2f(e1.x, e2.x), e1e2_p);
-				xy_Its[i][p][v].x = dot(vec2f(e1.y, e2.y), e1e2_p);
+				xy_Its[i][p][v].x = dot(vec2f(e1.x, e2.x), e1e2_p);
+				xy_Its[i][p][v].y = dot(vec2f(e1.y, e2.y), e1e2_p);
 			}
 		}
 	}
@@ -631,6 +832,38 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 		allTheta.push_back(theta);
 	}
 	fin.close();
+
+
+	/// regularization // *****************************
+	std::vector<float> allR_regularized;
+	std::vector<float> allTheta_regularized;
+	allR_regularized.resize(allR.size());
+	allTheta_regularized.resize(allTheta.size());
+	//copy ellipse to simple_ellipse to fill up the two ends before and after sigma 
+	for (int i = 0; i <  m_planesList.size(); ++i) {
+		allR_regularized[i] = allR[i];
+		allTheta_regularized[i] = allTheta[i];
+	}
+
+	const int sigma = 20;
+	for (int i = sigma; i < m_planesList.size() - sigma; ++i) {
+		float sum_R = allR[i];
+		float sum_theta = allTheta[i]; //not valid for theta!!!
+
+		for (int s = 0; s < sigma; ++s) {
+			sum_R += allR[i - s];
+			sum_R += allR[i + s];
+
+			sum_theta += allTheta[i - s];
+			sum_theta += allTheta[i + s];
+
+		}
+		float span = 2.f * sigma + 1.f;
+		allR_regularized[i] = sum_R / span;
+		allTheta_regularized[i] = sum_theta / span;
+	}
+
+	//////////// *****************************
 
 	bool clockwise = false;
 	const int ignorPlanes = 0.15 *  m_planesList.size();
@@ -698,8 +931,9 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 		//const float mag = (R_avg - R_avg_clusterS) / 2.f;
 		//const float R_ = mag * sin(2.f * (theta - pi / 4.f - 1.5697)) + mag + R_avg_clusterS;
 
-		//fout << allR[i] << " " << allTheta[i] << '\n';
-		fout << R_avg_clusterS << " " << theta << '\n';
+		//fout << allR_regularized[i] << " " << theta << '\n';
+		fout << allR[i] << " " << allTheta[i] << '\n';
+		//fout << R_avg_clusterS << " " << theta << '\n';
 		//fout << R_avg << " " << theta << '\n'; 
 	}
 	fout.close();
@@ -751,4 +985,36 @@ void CrossSection::fiberTwisting(const std::vector<yarnIntersect2D> &decompressP
 		fout << fiber_theta[i + 1] << '\n';
 	}
 	fout.close();
+}
+
+
+void CrossSection::regularizeEllipses(const std::vector<Ellipse> &ellipses, std::vector<Ellipse> &simple_ellipses) {
+	simple_ellipses.resize(ellipses.size());
+	//copy ellipse to simple_ellipse to fill up the two ends before and after sigma 
+	for (int i = 0; i < ellipses.size() ; ++i) {
+		simple_ellipses[i].longR = ellipses[i].longR;
+		simple_ellipses[i].shortR = ellipses[i].shortR;
+		simple_ellipses[i].angle = ellipses[i].angle;
+	}
+
+	const int sigma = 10;
+	for (int i = sigma; i < ellipses.size() - sigma; ++i) {
+		float sum_lng = ellipses[i].longR;
+		float sum_shrt = ellipses[i].shortR;
+		float sum_angle = ellipses[i].angle;
+		for (int s = 0; s < sigma; ++s) {
+			sum_lng += ellipses[i - s].longR;
+			sum_lng += ellipses[i + s].longR;
+
+			sum_shrt += ellipses[i - s].shortR;
+			sum_shrt += ellipses[i + s].shortR;
+
+			sum_angle += ellipses[i - s].angle;
+			sum_angle += ellipses[i + s].angle;
+		}
+		float span = 2.f * sigma + 1.f;
+		simple_ellipses[i].longR = sum_lng / span;
+		simple_ellipses[i].shortR = sum_shrt / span;
+		simple_ellipses[i].angle = sum_angle / span;
+	}
 }

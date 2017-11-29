@@ -1,4 +1,4 @@
-INPUT config.txt frame00029_scaled.txt frame00029_avg.txt 
+INPUT config.txt frame00001_compressed.txt frame00001_avg.txt 
 OUTPUT plyCenter.txt compress.txt fiberTwist.txt
 
 

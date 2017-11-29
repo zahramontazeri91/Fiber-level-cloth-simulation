@@ -161,7 +161,8 @@ void getOrientation_test() {
 	cs.transferLocal2XY(allPlaneIntersect, xy_Its);
 
 	Ellipse e;
-	cs.fitEllipse(xy_Its[28], e);
+	vec2f axis1_old, axis1_new;
+	cs.fitEllipse(xy_Its[28], e, axis1_old, axis1_new, 28);
 	FILE *fout;
 	if (fopen_s(&fout, "../data/pca_test.txt", "wt") == 0) {
 		for (int p = 0; p < xy_Its[28].size(); ++p) {
@@ -183,9 +184,9 @@ void extractCompressParam_test() {
 	/* ply-center procedural:
 	read generated-yarn and write fiber[0] */
 
-	const char* yarnfile = "genYarn.txt"; //For procedural yarn
-	//const char* yarnfile = "frame00029_scaled.txt"; //For simulated yarn
-	const char* curvefile = "frame00029_avg.txt";
+	//const char* yarnfile = "genYarn.txt"; //For procedural yarn
+	const char* yarnfile = "synthetic_test2.txt"; //For simulated yarn
+	const char* curvefile = "frame00001_avg.txt";
 	std::vector<yarnIntersect2D> allPlaneIntersect;
 	CrossSection cs(yarnfile, curvefile, 2, 1526, 100, allPlaneIntersect);
 
@@ -242,10 +243,10 @@ void extractCompressParam_test() {
 
 void ply_centers_test() {
 	//const char* yarnfile = "genYarn.txt"; //For procedural yarn
-	const char* yarnfile = "frame00029_scaled.txt"; //For simulated yarn
-	const char* curvefile = "frame00029_avg.txt";
+	const char* yarnfile = "frame00001_compressed.txt"; //For simulated yarn
+	const char* curvefile = "frame00001_avg.txt";
 	std::vector<yarnIntersect2D> allPlaneIntersect;
-	CrossSection cs(yarnfile, curvefile, 2, 1526, 100, allPlaneIntersect);
+	CrossSection cs(yarnfile, curvefile, 2, 1480, 100, allPlaneIntersect);
 
 
 	
@@ -264,6 +265,45 @@ void ply_centers_test() {
 
 	//extract ply-centers helix parameter
 	//cs.extractPlyTwist(allPlaneIntersect, "plyCenter.txt"); //todo
+
+	/////////////////////////////////****************************
+	//const char* yarnfile2 = "frame00001_scaled.txt"; //For simulated yarn
+	//const char* curvefile2 = "frame00001_avg.txt";
+	//std::vector<yarnIntersect2D> allPlaneIntersect2;
+	//CrossSection cs2(yarnfile2, curvefile2, 2, 1526, 100, allPlaneIntersect2);
+
+	////transform from e1-e2 space to x-y space
+	//std::vector<yarnIntersect2D> allPlaneIntersect_world2;
+	//cs2.transferLocal2XY(allPlaneIntersect2, allPlaneIntersect_world2);
+
+	//std::vector<Ellipse> ellipses2;
+	//cs.extractCompressParam(allPlaneIntersect_world2, ellipses2);
+	//allPlaneIntersect = allPlaneIntersect_world2;
+
+	//FILE *fout2;
+	////write ellipses to file for testing
+	//if (fopen_s(&fout2, "compression.txt", "wt") == 0) {
+	//	const int ignorPlanes = 0.0 * allPlaneIntersect.size(); // crop the first and last 10% of the yarn
+	//	fprintf_s(fout2, "%d\n", ellipses.size() - 2*ignorPlanes);
+	//	for (int i = ignorPlanes; i < ellipses.size() - ignorPlanes; ++i) {
+	//		float longR = ellipses[i].longR / ellipses2[i].longR;
+	//		float shortR = ellipses[i].shortR / ellipses2[i].shortR;
+	//		float angle = ellipses[i].angle - ellipses2[i].angle;
+
+	//		fprintf_s(fout2, "%.4f %.4f %.4f \n", ellipses[i].longR, ellipses[i].shortR, ellipses[i].angle);
+	//	}
+	//	fclose(fout2);
+	//}
+
+	/////////////////////////////////****************************
+	FILE *fout2;
+	if (fopen_s(&fout2, "compress.txt", "wt") == 0) {
+		fprintf_s(fout2, "%d \n", ellipses.size());
+		for (int i = 0; i < ellipses.size(); ++i) {
+			fprintf_s(fout2, "%.4f %.4f %.4f \n", ellipses[i].longR, ellipses[i].shortR, ellipses[i].angle);
+		}
+		fclose(fout2);
+	}
 
 	FILE *fout1;
 	//write ellipses to file for testing

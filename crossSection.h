@@ -56,8 +56,10 @@ public:
 		plane = m_planesList[i];
 	}
 	/* For 2D points gathered as an ellipse, return eigen values and eigen vectors in ellipse format */
-	void fitEllipse(const yarnIntersect2D &pts, Ellipse &ellipse);
-	/* Parameterize the extracted ellipse parameters */
+	void fitEllipse(const yarnIntersect2D &pts, Ellipse &ellipse, vec2f &axis1_old, vec2f &axis1_new, const int plane_indx);
+	void fitEllipses(const std::vector<yarnIntersect2D> &allpts, std::vector<Ellipse> &ellipses);
+	/* Regularize and then Parameterize the extracted ellipse parameters */
+	void regularizeEllipses(const std::vector<Ellipse> &ellipse, std::vector<Ellipse> &simple_ellipse);
 	void parameterizeEllipses(const std::vector<Ellipse> &ellipses, std::vector<Ellipse> &simple_ellipses);
 	/* Get ellipse a, b and angle for each cross-section and write it to the file */
 	void extractCompressParam(const std::vector<yarnIntersect2D> &allPlaneIntersect, std::vector<Ellipse> &ellipses);

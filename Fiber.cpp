@@ -524,6 +524,7 @@ namespace Fiber {
 		int sz = 0;
 		for (int p = 0; p < pts.size(); ++p)
 			sz += pts[p].size();
+		assert(sz);
 		cv::Mat data_pts(sz, 2, CV_32FC1, cv::Scalar::all(0));
 
 		int c = data_pts.rows;
@@ -623,8 +624,10 @@ namespace Fiber {
 					ellipse_p.y = nv::dot(ellipse_axis_short, world_p);
 
 					//apply the scaling 
-					ellipse_p.x *= ellipse_long / fitCircleR[v];
-					ellipse_p.y *= ellipse_short / fitCircleR[v];
+					ellipse_p.x *= ellipse_long / fitCircleR_avg;
+					ellipse_p.y *= ellipse_short / fitCircleR_avg;
+					//ellipse_p.x *= ellipse_long / fitCircleR[v];
+					//ellipse_p.y *= ellipse_short / fitCircleR[v];
 
 					//transfer back to x-y
 					world_p.x = nv::dot(vec2f(ellipse_axis_long.x, ellipse_axis_short.x), ellipse_p);
