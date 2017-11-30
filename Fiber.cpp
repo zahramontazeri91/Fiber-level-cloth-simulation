@@ -658,17 +658,6 @@ namespace Fiber {
 			}
 			fclose(fout);
 		}
-		FILE *fout1;
-		//write ellipses to file for testing
-		if (fopen_s(&fout1, "../data/orientation_compress.txt", "wt") == 0) {
-			const int ignorPlanes = 0.1 * plane_num; // crop the first and last 10% of the yarn
-			for (int i = ignorPlanes; i < compress_params.size() - ignorPlanes; ++i) {
-				fprintf_s(fout1, "%.4f %.4f \n", 0.f, 0.f);
-				fprintf_s(fout1, "%.4f %.4f %.4f \n", compress_params[i].ellipse_long, compress_params[i].ellipse_short, compress_params[i].theta);
-				fprintf_s(fout1, "\n");
-			}
-			fclose(fout1);
-		}
 	} // compress_yarn
 
 

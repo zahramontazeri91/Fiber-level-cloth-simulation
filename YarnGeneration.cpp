@@ -100,6 +100,19 @@ void fittingCompress(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIn
 		fclose(fout);
 	}
 
+	FILE *fout1;
+	//write ellipses to file for testing
+	if (fopen_s(&fout1, "../data/orientation.txt", "wt") == 0) {
+		const int ignorPlanes = 0.1 * param_ellipses.size(); // crop the first and last 10% of the yarn
+		for (int i = ignorPlanes; i < param_ellipses.size() - ignorPlanes; ++i) {
+			fprintf_s(fout1, "%.4f %.4f \n", 0.f, 0.f);
+			fprintf_s(fout1, "%.4f %.4f %.4f \n", param_ellipses[i].longR, param_ellipses[i].shortR, param_ellipses[i].angle);
+			fprintf_s(fout1, "\n");
+		}
+		fclose(fout1);
+	}
+
+
 }
 
 void fittingPlyCenter(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const float yarn_radius, const char* plyCenterFile)
