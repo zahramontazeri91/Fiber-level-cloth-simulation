@@ -38,6 +38,10 @@ int main(int argc, const char **argv) {
 		// Procedural step
 		yarn.yarn_simulate(plyCenterFILE.c_str(), fiberTwistFILE.c_str());
 		yarn.compress_yarn(compressFILE.c_str());
+
+		//external yarn is mapped to curve
+		//yarn.build("genYarn_frame1_compressed.txt", 2);
+		
 		yarn.curve_yarn(cntrYarnFILE.c_str(), normFILE.c_str());
 		yarn.write_yarn(argv[2]);
 	}
@@ -67,8 +71,7 @@ int main(int argc, const char **argv) {
 	//extractNormals();
 #endif
 
-	//std::system("pause"); //add breakpoint instead
-	return 0;
+	//std::system("pause"); //add breakpoint inste	return 0;
 }
 
 
