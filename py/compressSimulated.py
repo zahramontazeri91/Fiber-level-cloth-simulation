@@ -4,8 +4,12 @@ import matplotlib.pyplot as plt
 from perlin import SimplexNoise
 
 m = 0
-with open("frame00001_hairs.txt", "r") as fin:
-    while True:
+#with open("frame00001_hairs.txt", "r") as fin:
+with open("../genYarn_frame1.txt", "r") as fin:
+
+    line = fin.readline()
+    m=0
+    while True: 
         line = fin.readline()
         if not line:
             break
@@ -18,8 +22,8 @@ with open("frame00001_hairs.txt", "r") as fin:
             assert n == int(line.strip())
         curCurve = np.zeros((n, 3))
         for i in range(0, n):
-            pos = np.array([float(x) for x in fin.readline().strip().split()])*0.25
-            assert len(pos) == 4
+            pos = np.array([float(x) for x in fin.readline().strip().split()])
+#            assert len(pos) == 4
             curCurve[i, :] = pos[0 : 3]
         avgCurve += curCurve
         curves.append(curCurve)
@@ -32,8 +36,8 @@ avgCurve /= m
 noise = SimplexNoise()
 #theta = np.linspace(0.0, 4.0*np.pi, n)
 theta = np.linspace(0,4.0*np.pi, n)
-R1 = np.linspace(1.25, 1.05, n)
-R2 = np.linspace(0.05, 0.15, n)
+R1 = np.linspace(1.25, 0.05, n)
+R2 = np.linspace(0.05, 1.15, n)
 
 for i in range(0, n):
     offset = 0.5*noise.noise2(0.75*theta[i], 0.0)
@@ -68,7 +72,7 @@ for i in range(0, m):
         curves[i][j] = avgCurve[j] + x*axisX + y*axisY
 
 
-with open("../frame00001_compressed.txt", "w") as fout:
+with open("../genYarn_frame1_compressed.txt", "w") as fout:
     fout.write(str(m) + "\n")
     for i in range(0, m):
         fout.write(str(n) + "\n")

@@ -26,6 +26,15 @@ void CrossSection::init(const char* yarnfile, const int ply_num, const char* cur
 
 	PlanesIntersections2D(itsLists, allPlaneIntersect);
 }
+void CrossSection::init(const char* yarnfile, const int ply_num, const char* curvefile, const char* normfile,
+	const int seg_subdiv, const int num_planes, std::vector<yarnIntersect2D> &allPlaneIntersect) {
+	m_yarn.build(yarnfile, ply_num);
+	m_curve.init(curvefile, normfile, seg_subdiv);
+	std::vector<yarnIntersect> itsLists;
+	buildPlanes(num_planes, itsLists);
+
+	PlanesIntersections2D(itsLists, allPlaneIntersect);
+}
 
 void CrossSection::buildPlanes(const int num_planes, std::vector<yarnIntersect> &itsLists) {
 	const double curveLen = m_curve.totalLength();
@@ -280,7 +289,9 @@ void CrossSection::fitEllipses(const std::vector<yarnIntersect2D> &allpts, std::
 	std::ofstream fout("../data/pca_test.txt");
 	fout << allpts.size() << '\n';
 
-	vec2f axis1_old, axis1_new, axis2_new, axis1_old_old;
+	vec2f axis1_old, axis1_new, axis2_new;
+	float longR_old, shortR_old;
+
 	for (int cs = 0; cs < allpts.size(); ++cs) {
 		Ellipse ellipse;
 		//Find the total number of points for all plys
@@ -321,27 +332,23 @@ void CrossSection::fitEllipses(const std::vector<yarnIntersect2D> &allpts, std::
 
 		//check which eigenVec is axis1 (using minimum rotation algo)
 		if (!cs) //first plane
-		{ 
-			//eigen_vecs[0] *= -1;
-			
-			//float theta0 = atan2(eigen_vecs[0].y, eigen_vecs[0].x); // orientation in radians between 0-2pi
-			//if (ellipse.angle < 0)
-				//theta0 = std::abs(ellipse.angle) + pi;
-				//eigen_vecs[0] *= -1;
+		{ 			
+			float theta0 = atan2(eigen_vecs[0].y, eigen_vecs[0].x); // orientation in radians between 0-2pi
+			if ( pi - std::abs(theta0) < std::abs(theta0) ) //flipped
+				eigen_vecs[0] *= -1;
 
 			axis1_new = eigen_vecs[0];
 			axis2_new = vec2f(-1 * axis1_new.y, axis1_new.x);
-			axis1_old = axis1_new;
 			ellipse.longR = eigen_val[0];
 			ellipse.shortR = eigen_val[1];
 		}
 		//Don't detect new axis if R1 and R2 are close 
-		else if (std::abs(eigen_val[0] - eigen_val[1]) < std::max(eigen_val[0], eigen_val[1])/4.f) {
+		else if (std::abs(eigen_val[0] - eigen_val[1]) < std::max(eigen_val[0], eigen_val[1])/6.f) {
 			std::cout << cs << " Hard to detect R1 and R2 \n";
 			axis1_new = axis1_old;
 			axis2_new = vec2f(-1 * axis1_new.y, axis1_new.x);
-			ellipse.longR = eigen_val[0];
-			ellipse.shortR = eigen_val[1];
+			ellipse.longR = longR_old;
+			ellipse.shortR = shortR_old;
 		}
 		else {
 			//compare the angle between two new axis with the axis1_old		
@@ -378,13 +385,15 @@ void CrossSection::fitEllipses(const std::vector<yarnIntersect2D> &allpts, std::
 		}
 
 		fout << axis1_old.x << ' ' << axis1_old.y << ' ' << axis1_new.x << ' ' << axis1_new.y << ' ' << axis2_new.x << ' ' << axis2_new.y << ' ' << '\n';
-		axis1_old_old = axis1_old;
 		axis1_old = axis1_new;
+		longR_old = ellipse.longR;
+		shortR_old = ellipse.shortR;
 
 		//note that atan is in range [-pi, pi]
-		ellipse.angle = atan2(axis1_new.y, axis1_new.x); 
+		ellipse.angle = atan2(axis1_new.y, axis1_new.x) ; 
 		if (ellipse.angle < 0)
 			ellipse.angle = ellipse.angle + 2.0*pi; // orientation in radians between 0-2pi
+
 		ellipses.push_back(ellipse);		
 	}
 	fout.close();
@@ -567,7 +576,6 @@ void CrossSection::minAreaEllipse(const yarnIntersect2D &pts, const Ellipse &ell
 void CrossSection::extractCompressParam(const std::vector<yarnIntersect2D> &allPlaneIntersect, std::vector<Ellipse> &ellipses) {
 	
 	fitEllipses(allPlaneIntersect, ellipses);
-
 
 	//vec2f axis1_old, axis1_new;
 	//for (int i = 0; i < allPlaneIntersect.size(); ++i)

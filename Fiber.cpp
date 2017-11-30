@@ -672,13 +672,13 @@ namespace Fiber {
 	} // compress_yarn
 
 
-	void Yarn::curve_yarn(const char* pntsFile, bool scaleXY) {
+	void Yarn::curve_yarn(const char* pntsFile, const char* normsFile, bool scaleXY) {
 		std::cout << "step8: map the straight yarn to the spline curve ..." << std::endl;
 
 		/* use hermite spline multiple segments */
 		HermiteCurve curve;
-		curve.init(pntsFile);
-		//curve.init(pntsFile, normsFile);
+		//curve.init(pntsFile);
+		curve.init(pntsFile, normsFile);
 
 		double zMin = std::numeric_limits<double>::max(), zMax = std::numeric_limits<double>::lowest();
 		for (const auto &ply : plys)

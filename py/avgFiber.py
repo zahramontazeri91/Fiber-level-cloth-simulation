@@ -7,7 +7,7 @@ hairs_path = "../../../hairs"
 
 vrtx_num = 0
 
-for h in range (1,30): #iterate over all hair frames
+for h in range (1,2): #iterate over all hair frames
     if h<10: 
         frame_num = 'frame0000' + str(h)
     else:
@@ -15,6 +15,7 @@ for h in range (1,30): #iterate over all hair frames
 
     list_fibers = []        
     with open(hairs_path + '/scaledHairs/' + frame_num + '_scaled.txt') as f:
+#    with open('../genYarn.txt') as f:
         fiber_cnt = list(islice(f, 1) )
         fiber_cnt = int (fiber_cnt[0])
 
@@ -27,7 +28,8 @@ for h in range (1,30): #iterate over all hair frames
             next_n_lines = list(islice(f, vrtx_num) )
             list_fibers.append(next_n_lines)
             
-    yarn_file = open(hairs_path + '/avgHairs/' + frame_num + '_avg.txt','w') 
+    yarn_file = open(hairs_path + '/avgHairs/' + frame_num + '_avg.txt','w')
+#    yarn_file = open('../genYarn_frame1_avg.txt','w')
     
     yarn_file.write(str(vrtx_num) )  
     for v in range (0, vrtx_num): #iterate over vertices 

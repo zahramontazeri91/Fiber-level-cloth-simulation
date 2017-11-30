@@ -23,14 +23,14 @@ int main(int argc, const char **argv) {
 
 		Fiber::Yarn yarn;
 		std::string command, configFILE, simulatedFILE, cntrYarnFILE,
-			compressFILE, plyCenterFILE, fiberTwistFILE;
+			normFILE, compressFILE, plyCenterFILE, fiberTwistFILE;
 
 		// Fitting step 
-		fin >> command >> configFILE >> simulatedFILE >> cntrYarnFILE;
+		fin >> command >> configFILE >> simulatedFILE >> cntrYarnFILE >> normFILE;
 		fin >> command >> plyCenterFILE >> compressFILE >> fiberTwistFILE;
 		yarn.parse(configFILE.c_str());
 		std::vector<yarnIntersect2D> allPlaneIntersect;
-		CrossSection cs(simulatedFILE.c_str(), cntrYarnFILE.c_str(), yarn.getPlyNum(), yarn.getStepNum(), 100, allPlaneIntersect);
+		CrossSection cs(simulatedFILE.c_str(), cntrYarnFILE.c_str(), normFILE.c_str(), yarn.getPlyNum(), yarn.getStepNum(), 100, allPlaneIntersect);
 		fittingCompress(cs, allPlaneIntersect, compressFILE.c_str());
 		fittingPlyCenter(cs, allPlaneIntersect, yarn.getYarnRadius(), plyCenterFILE.c_str());
 		fittingFiberTwisting(cs, allPlaneIntersect, yarn.getYarnRadius(), fiberTwistFILE.c_str());
@@ -38,7 +38,7 @@ int main(int argc, const char **argv) {
 		// Procedural step
 		yarn.yarn_simulate(plyCenterFILE.c_str(), fiberTwistFILE.c_str());
 		yarn.compress_yarn(compressFILE.c_str());
-		yarn.curve_yarn(cntrYarnFILE.c_str());
+		yarn.curve_yarn(cntrYarnFILE.c_str(), normFILE.c_str());
 		yarn.write_yarn(argv[2]);
 	}
 	else

@@ -29,11 +29,17 @@ class CrossSection {
 public:
 
 	/* constructor for simulated yarn */
-	CrossSection(const char* yarnfile, const char* curvefile, int ply_num, int plane_num, int subdiv_curve, std::vector<yarnIntersect2D> &allPlaneIntersect) {
+	CrossSection(const char* yarnfile, const char* curvefile, int ply_num, int plane_num, int subdiv_curve, 
+		std::vector<yarnIntersect2D> &allPlaneIntersect) {
 		init(yarnfile, ply_num, curvefile, subdiv_curve, plane_num, allPlaneIntersect);
-	}	
+	}
+	CrossSection(const char* yarnfile, const char* curvefile, const char* normfile, int ply_num, int plane_num, 
+		int subdiv_curve, std::vector<yarnIntersect2D> &allPlaneIntersect) {
+		init(yarnfile, ply_num, curvefile, normfile, subdiv_curve, plane_num, allPlaneIntersect);
+	}
 
 	void init (const char* yarnfile, const int ply_num, const char* curvefile, const int subdiv, const int num_planes, std::vector<yarnIntersect2D> &allPlaneIntersect);
+	void init(const char* yarnfile, const int ply_num, const char* curvefile, const char* normfile, const int subdiv, const int num_planes, std::vector<yarnIntersect2D> &allPlaneIntersect);
 	void buildPlanes (const int num_planes, std::vector<yarnIntersect> &itsLists);
 	/* Intersection between a segment, defined between start to end, with a plane */
 	bool linePlaneIntersection (const vec3f &start, const vec3f &end, const Plane &plane, vec3f &its);

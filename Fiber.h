@@ -180,7 +180,7 @@ namespace Fiber {
 		void write_yarn(const char* filename);
 
 		/* map the straight yarn on a curved spline */
-		void curve_yarn(const char* pntsFile, bool scaleXY = false);
+		void curve_yarn(const char* pntsFile, const char* normsFile, bool scaleXY = false);
 
 		/* Find the yarn-radius for each cross-section */
 		//void shapeCrossSection(yarnIntersect2D &its, float &rLong, float &rShort);
