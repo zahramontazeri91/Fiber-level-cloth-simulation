@@ -686,8 +686,14 @@ namespace Fiber {
 			printf(" (scale: %.4lf)", xyScale = curveLength / zSpan);
 		putchar('\n');
 
+		//
+		//bool firstTime = true;
+		//std::ofstream fout1("genYarn_frame29_norms.txt");
+		//fout1 << this->z_step_num << "\n";
+		//
+
 		for (auto &ply : plys)
-			for (auto &fiber : ply.fibers)
+			for (auto &fiber : ply.fibers) {
 				for (auto &vertex : fiber.vertices) {
 					double len = curveLength*(vertex.z - zMin) / zSpan;
 					double t = curve.arcLengthInvApprox(len);
@@ -703,7 +709,15 @@ namespace Fiber {
 					vertex.x = static_cast<float>(pos1[0]);
 					vertex.y = static_cast<float>(pos1[1]);
 					vertex.z = static_cast<float>(pos1[2]);
+
+					//for debugging (write normals to file):
+					//if (firstTime) {
+					//fout1 << ey[0] << " " << ey[1] << " " << ey[2] << std::endl;
+					//}
 				}
+		//firstTime = false;
+		//fout1.close();
+		}
 
 		// for debuging:
 		const int ply_num = this->plys.size();

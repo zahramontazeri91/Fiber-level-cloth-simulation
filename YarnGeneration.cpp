@@ -39,7 +39,7 @@ int main(int argc, const char **argv) {
 		yarn.yarn_simulate(plyCenterFILE.c_str(), fiberTwistFILE.c_str());
 		yarn.compress_yarn(compressFILE.c_str());
 
-		//external yarn is mapped to curve
+		//map external yarn to the curve
 		//yarn.build("genYarn_frame1_compressed.txt", 2);
 		
 		yarn.curve_yarn(cntrYarnFILE.c_str(), normFILE.c_str());
