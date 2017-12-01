@@ -343,7 +343,9 @@ void preComputeEllipses(const std::vector<yarnIntersect2D> &allpts, cv::Mat &R1,
 		//assign to theta
 		float angle = atan2(eigen_vecs[0].y, eigen_vecs[0].x);
 		angle = angle < 0 ? angle + 2.f*pi : angle;
+
 		theta.at<float>(cs, 0) = angle;
+
 		for (int i = 1; i < 4; ++i) {
 			angle += pi / 2.f;
 			angle = angle > 2.f*pi ? angle - 2.f*pi : angle;
@@ -352,19 +354,14 @@ void preComputeEllipses(const std::vector<yarnIntersect2D> &allpts, cv::Mat &R1,
 
 		//assign to isValid
 		if (std::abs(eigen_val[0] - eigen_val[1]) < std::max(eigen_val[0], eigen_val[1]) / 6.f) {
+			std::cout << cs << " inValid is false. \n";
 			isValid[cs] = false;
-		}
+		}	
 	}
 }
 
 
 void CrossSection::fitEllipses(const std::vector<yarnIntersect2D> &allpts, std::vector<Ellipse> &ellipses) {
-
-	cv::Mat R1;
-	cv::Mat R2;
-	cv::Mat theta;
-	std::vector<bool> isValid;
-	preComputeEllipses(allpts, R1, R2, theta, isValid);
 
 	//std::ofstream fout("../data/pca_test.txt");
 	//fout << allpts.size() << '\n';
@@ -658,17 +655,42 @@ void CrossSection::minAreaEllipse(const yarnIntersect2D &pts, const Ellipse &ell
 
 void CrossSection::extractCompressParam(const std::vector<yarnIntersect2D> &allPlaneIntersect, std::vector<Ellipse> &ellipses) {
 	
-	fitEllipses(allPlaneIntersect, ellipses);
+	//fitEllipses(allPlaneIntersect, ellipses);
 
-	//vec2f axis1_old, axis1_new;
-	//for (int i = 0; i < allPlaneIntersect.size(); ++i)
-	//{
-	//	Ellipse ell;
-	//	fitEllipse(allPlaneIntersect[i], ell, axis1_old, axis1_new, i);
-	//	axis1_old = axis1_new;
+	cv::Mat R1;
+	cv::Mat R2;
+	cv::Mat theta;
+	std::vector<bool> isValid;
+	preComputeEllipses(allPlaneIntersect, R1, R2, theta, isValid);
 
-	//	ellipses.push_back(ell);
-	//}
+	Ellipse ell;
+	ell.longR = R1.at<float>(0, 0);
+	ell.shortR = R2.at<float>(0, 0);
+	ell.angle = theta.at<float>(0, 0);
+	ellipses.push_back(ell);
+	float theta_old = ell.angle;
+	for (int i = 0; i < allPlaneIntersect.size(); ++i) {
+		//find the min theta with previous cross-section
+		float min_delta_theta = 2.f*pi;
+		int opt_indx;
+		for (int j = 0; j < 4; ++j) {
+			//argmin theta_j - theta_old
+			float delta_theta = std::abs(theta.at<float>(i, j) - theta_old);
+			delta_theta = std::min(delta_theta, 2 * pi - delta_theta); 
+			//delta_theta = delta_theta > pi ? delta_theta - pi : delta_theta;
+			if (delta_theta < min_delta_theta) {
+				min_delta_theta = delta_theta;
+				opt_indx = j;
+			}
+		}
+		ell.longR = R1.at<float>(i, opt_indx);
+		ell.shortR = R2.at<float>(i, opt_indx);
+		ell.angle = theta.at<float>(i, opt_indx);
+		theta_old = ell.angle;
+		ellipses.push_back(ell);
+	}
+
+
 
 	std::cout << "Compression parameters for each cross-sections are written to the file! \n";
 }
