@@ -337,7 +337,7 @@ void preComputeEllipses(const std::vector<yarnIntersect2D> &allpts, cv::Mat &R1,
 		}
 		//assign to R2
 		for (int i = 0; i < 4; ++i) {
-			const int indx = i % 2 + 1;
+			const int indx = (i+1) % 2;
 			R2.at<float>(cs, i) = eigen_val[indx];
 		}
 		//assign to theta
@@ -345,10 +345,11 @@ void preComputeEllipses(const std::vector<yarnIntersect2D> &allpts, cv::Mat &R1,
 		angle = angle < 0 ? angle + 2.f*pi : angle;
 		theta.at<float>(cs, 0) = angle;
 		for (int i = 1; i < 4; ++i) {
-			angle += i * pi / 2.f;
+			angle += pi / 2.f;
 			angle = angle > 2.f*pi ? angle - 2.f*pi : angle;
 			theta.at<float>(cs, i) = angle;
 		}
+
 		//assign to isValid
 		if (std::abs(eigen_val[0] - eigen_val[1]) < std::max(eigen_val[0], eigen_val[1]) / 6.f) {
 			isValid[cs] = false;
