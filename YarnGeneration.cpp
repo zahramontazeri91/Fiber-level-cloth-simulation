@@ -71,7 +71,8 @@ int main(int argc, const char **argv) {
 	//extractNormals();
 #endif
 
-	//std::system("pause"); //add breakpoint inste	return 0;
+	//std::system("pause"); //add breakpoint inste	
+	return 0;
 }
 
 

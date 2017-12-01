@@ -147,37 +147,38 @@ void write_PlanesIntersections2D_test() {
 	}
 }
 
-void getOrientation_test() {
-	//const char* yarnfile = "gen_yarn_f1.txt"; //For procedural yarn
-	const char* yarnfile = "frame00029_scaled.txt"; //For simulated yarn
-	const char* curvefile = "frame00029_avg.txt";
-	std::vector<yarnIntersect2D> allPlaneIntersect;
-	CrossSection cs(yarnfile, curvefile, 2, 1526, 100, allPlaneIntersect);
+//void getOrientation_test() {
+//	//const char* yarnfile = "gen_yarn_f1.txt"; //For procedural yarn
+//	const char* yarnfile = "frame00029_scaled.txt"; //For simulated yarn
+//	const char* curvefile = "frame00029_avg.txt";
+//	std::vector<yarnIntersect2D> allPlaneIntersect;
+//	CrossSection cs(yarnfile, curvefile, 2, 1526, 100, allPlaneIntersect);
+//
+//
+//
+//	//transfer from e1-e2 to x-y plane
+//	std::vector<yarnIntersect2D> xy_Its;
+//	cs.transferLocal2XY(allPlaneIntersect, xy_Its);
+//
+//	Ellipse e;
+//	vec2f axis1_old, axis1_new;
+//	cs.fitEllipse(xy_Its[28], e, axis1_old, axis1_new, 28);
+//	FILE *fout;
+//	if (fopen_s(&fout, "../data/pca_test.txt", "wt") == 0) {
+//		for (int p = 0; p < xy_Its[28].size(); ++p) {
+//			fprintf_s(fout, "%d \n", xy_Its[28][p].size());
+//			for (int i = 0; i < xy_Its[28][p].size(); ++i) {
+//				fprintf_s(fout, "%.6f %.6f \n", xy_Its[28][p][i].x, xy_Its[28][p][i].y);
+//			}
+//		}
+//		fprintf_s(fout, "\n");
+//		fprintf_s(fout, "%.4f %.4f \n", e.center.x, e.center.y);
+//		fprintf_s(fout, "%.4f %.4f %.4f \n", e.longR, e.shortR, e.angle);
+//		fprintf_s(fout, "\n");
+//		fclose(fout);
+//	}
+//}
 
-
-
-	//transfer from e1-e2 to x-y plane
-	std::vector<yarnIntersect2D> xy_Its;
-	cs.transferLocal2XY(allPlaneIntersect, xy_Its);
-
-	Ellipse e;
-	vec2f axis1_old, axis1_new;
-	cs.fitEllipse(xy_Its[28], e, axis1_old, axis1_new, 28);
-	FILE *fout;
-	if (fopen_s(&fout, "../data/pca_test.txt", "wt") == 0) {
-		for (int p = 0; p < xy_Its[28].size(); ++p) {
-			fprintf_s(fout, "%d \n", xy_Its[28][p].size());
-			for (int i = 0; i < xy_Its[28][p].size(); ++i) {
-				fprintf_s(fout, "%.6f %.6f \n", xy_Its[28][p][i].x, xy_Its[28][p][i].y);
-			}
-		}
-		fprintf_s(fout, "\n");
-		fprintf_s(fout, "%.4f %.4f \n", e.center.x, e.center.y);
-		fprintf_s(fout, "%.4f %.4f %.4f \n", e.longR, e.shortR, e.angle);
-		fprintf_s(fout, "\n");
-		fclose(fout);
-	}
-}
 void extractCompressParam_test() {
 	/* ply-center simulate: 
 	 write avg of each ply */

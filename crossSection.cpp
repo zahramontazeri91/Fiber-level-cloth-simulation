@@ -284,10 +284,89 @@ void findEigenValue(const cv::Mat &data_pts, const std::vector<vec2f> &eigen_vec
 	eigen_val[0] = max0;
 	eigen_val[1] = max1;
 }
+void preComputeEllipses(const std::vector<yarnIntersect2D> &allpts, cv::Mat &R1, cv::Mat &R2, cv::Mat &theta, std::vector<bool> &isValid) {
 
-void CrossSection::fitEllipses(const std::vector<yarnIntersect2D> &allpts, std::vector<Ellipse> &ellipses) {	
-	std::ofstream fout("../data/pca_test.txt");
-	fout << allpts.size() << '\n';
+	const int plane_num = allpts.size();
+	R1.create(plane_num, 4, CV_32FC1);
+	R2.create(plane_num, 4, CV_32FC1);
+	theta.create(plane_num, 4, CV_32FC1);
+	isValid.resize(plane_num, true);
+
+	for (int cs = 0; cs < plane_num; ++cs) {
+		Ellipse ellipse;
+		//Find the total number of points for all plys
+		int sz = 0;
+		yarnIntersect2D pts = allpts[cs];
+		for (int p = 0; p < pts.size(); ++p)
+			sz += pts[p].size();
+		cv::Mat data_pts(sz, 2, CV_32FC1, cv::Scalar::all(0));
+
+		int c = data_pts.rows;
+		for (int p = 0; p < pts.size(); ++p) {
+			for (int i = 0; i < pts[p].size(); ++i) {
+				data_pts.at<float>(c, 0) = pts[p][i].x;
+				data_pts.at<float>(c, 1) = pts[p][i].y;
+				--c;
+			}
+		}
+
+		//Perform PCA analysis
+		cv::PCA pca_analysis(data_pts, cv::Mat(), cv::PCA::DATA_AS_ROW, 2);
+
+		//Store the center of the object
+		ellipse.center = vec2f(pca_analysis.mean.at<float>(0, 0), pca_analysis.mean.at<float>(0, 1));
+
+		//Store the eigenvalues and eigenvectors
+		std::vector<vec2f> eigen_vecs(2);
+		std::vector<float> eigen_val(2);
+		for (int i = 0; i < 2; ++i)
+		{
+			eigen_vecs[i] = vec2f(pca_analysis.eigenvectors.at<float>(i, 0),
+				pca_analysis.eigenvectors.at<float>(i, 1));
+			//eigen_val[i] = pca_analysis.eigenvalues.at<float>(0, i); // Wrong values
+		}
+		assert(!dot(eigen_vecs[0], eigen_vecs[1]) && "Eigen vectors aren't orthogonal!");
+
+		//find eigen values by projecting the points on eigenVectors
+		findEigenValue(data_pts, eigen_vecs, eigen_val);
+
+		//assign to R1
+		for (int i = 0; i < 4; ++i) {
+			const int indx = i % 2 ;
+			R1.at<float>(cs, i) = eigen_val[indx];
+		}
+		//assign to R2
+		for (int i = 0; i < 4; ++i) {
+			const int indx = i % 2 + 1;
+			R2.at<float>(cs, i) = eigen_val[indx];
+		}
+		//assign to theta
+		float angle = atan2(eigen_vecs[0].y, eigen_vecs[0].x);
+		angle = angle < 0 ? angle + 2.f*pi : angle;
+		theta.at<float>(cs, 0) = angle;
+		for (int i = 1; i < 4; ++i) {
+			angle += i * pi / 2.f;
+			angle = angle > 2.f*pi ? angle - 2.f*pi : angle;
+			theta.at<float>(cs, i) = angle;
+		}
+		//assign to isValid
+		if (std::abs(eigen_val[0] - eigen_val[1]) < std::max(eigen_val[0], eigen_val[1]) / 6.f) {
+			isValid[cs] = false;
+		}
+	}
+}
+
+
+void CrossSection::fitEllipses(const std::vector<yarnIntersect2D> &allpts, std::vector<Ellipse> &ellipses) {
+
+	cv::Mat R1;
+	cv::Mat R2;
+	cv::Mat theta;
+	std::vector<bool> isValid;
+	preComputeEllipses(allpts, R1, R2, theta, isValid);
+
+	//std::ofstream fout("../data/pca_test.txt");
+	//fout << allpts.size() << '\n';
 
 	vec2f axis1_old, axis1_new, axis2_new;
 	float longR_old, shortR_old;
@@ -384,7 +463,8 @@ void CrossSection::fitEllipses(const std::vector<yarnIntersect2D> &allpts, std::
 			}
 		}
 
-		fout << axis1_old.x << ' ' << axis1_old.y << ' ' << axis1_new.x << ' ' << axis1_new.y << ' ' << axis2_new.x << ' ' << axis2_new.y << ' ' << '\n';
+		//fout << axis1_old.x << ' ' << axis1_old.y << ' ' << axis1_new.x << ' ' << axis1_new.y << ' ' << axis2_new.x << ' ' << axis2_new.y << ' ' << '\n';
+		
 		axis1_old = axis1_new;
 		longR_old = ellipse.longR;
 		shortR_old = ellipse.shortR;
@@ -396,9 +476,10 @@ void CrossSection::fitEllipses(const std::vector<yarnIntersect2D> &allpts, std::
 
 		ellipses.push_back(ellipse);		
 	}
-	fout.close();
+	//fout.close();
 }
 
+#if 0
 void CrossSection::fitEllipse(const yarnIntersect2D &pts, Ellipse &ellipse, vec2f &axis1_old, vec2f &axis1_new, const int plane_indx)
 {
 	//Find the total number of points for all plys
@@ -497,6 +578,7 @@ void CrossSection::fitEllipse(const yarnIntersect2D &pts, Ellipse &ellipse, vec2
 	//vec2f long_axis = p1 - ellipse.center;
 	//vec2f short_axis = p2 - ellipse.center;
 }
+#endif
 
 #if 0
 /* Given a ellipse, find the minimum area ellipse that covers 95% of fiber centers (search around the given ellipse) */
