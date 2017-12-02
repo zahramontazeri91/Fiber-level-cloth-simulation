@@ -1,4 +1,4 @@
-INPUT config.txt genYarn_frame29_compressed.txt genYarn_frame29_avg.txt genYarn_frame29_norms.txt
+INPUT config.txt genYarn_frame1_compressed.txt genYarn_frame1_avg.txt genYarn_frame1_norms.txt
 OUTPUT plyCenter.txt compress.txt fiberTwist.txt
 
 

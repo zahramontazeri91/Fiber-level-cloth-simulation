@@ -353,13 +353,45 @@ void preComputeEllipses(const std::vector<yarnIntersect2D> &allpts, cv::Mat &R1,
 		}
 
 		//assign to isValid
-		if (std::abs(eigen_val[0] - eigen_val[1]) < std::max(eigen_val[0], eigen_val[1]) / 6.f) {
-			std::cout << cs << " inValid is false. \n";
+		if (std::abs(eigen_val[0] - eigen_val[1]) < std::max(eigen_val[0], eigen_val[1]) / 2.f) {
+			//std::cout << cs << " inValid is false. \n";
 			isValid[cs] = false;
 		}	
 	}
 }
 
+void interpolateEllipses(const std::vector<Ellipse> &ellipses, const std::vector<bool> &isValid, std::vector<Ellipse> &ellipses_smooth) {
+	ellipses_smooth.resize(ellipses.size() );
+	assert(ellipses.size() == isValid.size() );
+	assert(isValid[0]); //handle this later
+	int i = 0;
+	while (i < isValid.size()) {
+		if (!isValid[i]) {
+			int j = i+1;
+			while (!isValid[j]) 
+				j++;
+			//interpolate values between i-1 and j+1
+			float delta_indx = (j + 1) - (i - 1) - 1;
+			float delta_longR = ellipses[j + 1].longR - ellipses[i - 1].longR;
+			float delta_shortR = ellipses[j + 1].shortR - ellipses[i - 1].shortR;
+			float delta_angle = ellipses[j + 1].angle - ellipses[i - 1].angle;
+			int cnt = 1;
+			for (int cs = i; cs <= j; ++cs) {
+				ellipses_smooth[cs].longR = ellipses[i - 1].longR + cnt * delta_longR / delta_indx;
+				ellipses_smooth[cs].shortR = ellipses[i - 1].shortR + cnt * delta_shortR / delta_indx;
+				ellipses_smooth[cs].angle = ellipses[i - 1].angle + cnt * delta_angle / delta_indx;
+				cnt++;
+			}
+			i = j+1;
+		}
+		else {
+			ellipses_smooth[i].longR = ellipses[i].longR;
+			ellipses_smooth[i].shortR = ellipses[i].shortR;
+			ellipses_smooth[i].angle = ellipses[i].angle;
+			++i;
+		}
+	}
+}
 
 void CrossSection::fitEllipses(const std::vector<yarnIntersect2D> &allpts, std::vector<Ellipse> &ellipses) {
 
@@ -420,7 +452,7 @@ void CrossSection::fitEllipses(const std::vector<yarnIntersect2D> &allpts, std::
 			ellipse.shortR = eigen_val[1];
 		}
 		//Don't detect new axis if R1 and R2 are close 
-		else if (std::abs(eigen_val[0] - eigen_val[1]) < std::max(eigen_val[0], eigen_val[1])/6.f) {
+		else if (std::abs(eigen_val[0] - eigen_val[1]) < std::max(eigen_val[0], eigen_val[1])/2.f) {
 			std::cout << cs << " Hard to detect R1 and R2 \n";
 			axis1_new = axis1_old;
 			axis2_new = vec2f(-1 * axis1_new.y, axis1_new.x);
@@ -657,27 +689,36 @@ void CrossSection::extractCompressParam(const std::vector<yarnIntersect2D> &allP
 	
 	//fitEllipses(allPlaneIntersect, ellipses);
 
+	//precompute R1\R2\theta and isValid
 	cv::Mat R1;
 	cv::Mat R2;
 	cv::Mat theta;
 	std::vector<bool> isValid;
 	preComputeEllipses(allPlaneIntersect, R1, R2, theta, isValid);
 
+	//find optimal ellipse for valid ones
+	std::vector<Ellipse> allEllipses;
 	Ellipse ell;
 	ell.longR = R1.at<float>(0, 0);
 	ell.shortR = R2.at<float>(0, 0);
 	ell.angle = theta.at<float>(0, 0);
-	ellipses.push_back(ell);
+	allEllipses.push_back(ell);
 	float theta_old = ell.angle;
-	for (int i = 0; i < allPlaneIntersect.size(); ++i) {
-		//find the min theta with previous cross-section
+	int opt_indx;
+	for (int i = 1; i < allPlaneIntersect.size(); ++i) {
+		if (!isValid[i]) {
+			ell.longR = allEllipses[i - 1].longR;
+			ell.shortR = allEllipses[i - 1].shortR;
+			ell.angle = allEllipses[i - 1].angle;
+			allEllipses.push_back(ell);
+			continue;
+		}
+		//find the min theta with previous cross-section	
 		float min_delta_theta = 2.f*pi;
-		int opt_indx;
 		for (int j = 0; j < 4; ++j) {
 			//argmin theta_j - theta_old
 			float delta_theta = std::abs(theta.at<float>(i, j) - theta_old);
 			delta_theta = std::min(delta_theta, 2 * pi - delta_theta); 
-			//delta_theta = delta_theta > pi ? delta_theta - pi : delta_theta;
 			if (delta_theta < min_delta_theta) {
 				min_delta_theta = delta_theta;
 				opt_indx = j;
@@ -687,9 +728,11 @@ void CrossSection::extractCompressParam(const std::vector<yarnIntersect2D> &allP
 		ell.shortR = R2.at<float>(i, opt_indx);
 		ell.angle = theta.at<float>(i, opt_indx);
 		theta_old = ell.angle;
-		ellipses.push_back(ell);
+		allEllipses.push_back(ell);
 	}
 
+	//interpolate for not valid ones
+	interpolateEllipses(allEllipses, isValid, ellipses);
 
 
 	std::cout << "Compression parameters for each cross-sections are written to the file! \n";
