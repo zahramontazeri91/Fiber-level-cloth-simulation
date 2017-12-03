@@ -71,7 +71,7 @@ int main(int argc, const char **argv) {
 	//extractNormals();
 #endif
 
-	//std::system("pause"); //add breakpoint inste	
+	//std::system("pause"); //add breakpoint instead
 
 	return 0;
 }
@@ -88,7 +88,7 @@ void fittingCompress(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIn
 	cs.extractCompressParam(xy_Its, ellipses);
 
 	//regularize the ellipse params
-	//std::vector<Ellipse> simple_ellipses1, simple_ellipses2, simple_ellipses3;
+	std::vector<Ellipse> simple_ellipses1, simple_ellipses2, simple_ellipses3;
 	//cs.regularizeEllipses(ellipses, simple_ellipses1);
 	//cs.regularizeEllipses(simple_ellipses1, simple_ellipses2);
 

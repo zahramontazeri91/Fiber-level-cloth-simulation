@@ -360,6 +360,59 @@ void preComputeEllipses(const std::vector<yarnIntersect2D> &allpts, cv::Mat &R1,
 	}
 }
 
+void costFunction(const cv::Mat &R1, const cv::Mat &R2, const cv::Mat &theta, const std::vector<bool> &isValid, std::vector<cv::Mat> &cost) {
+	assert(isValid[0]); //assumption
+	cv::Mat config(4,4, CV_32FC1, cv::Scalar::all(0));
+	cost.resize(isValid.size());
+	cost[0] = config;
+	for (int i = 1; i < cost.size(); ++i) { //started from 1
+		if (isValid[i]) {
+			int ip = i - 1;
+			while (!isValid[ip])
+				ip = ip - 1; //ip is the last valid cs
+			for (int k_i = 0; k_i < 4; ++k_i) {
+				for (int k_ip = 0; k_ip < 4; ++k_ip) {
+					float w1 = 0.f;
+					float w2 = 0.f;
+					float w3 = 1.f/(4.f*pi*pi);
+					float g = w1*pow(R1.at<float>(i, k_i) - R1.at<float>(ip, k_ip), 2)
+						+ w2*pow(R2.at<float>(i, k_i) - R2.at<float>(ip, k_ip),2)
+						+ w3*pow(theta.at<float>(i, k_i) - theta.at<float>(ip, k_ip),2);
+					config.at<float>(k_i, k_ip) = g;
+				}
+			}	
+		}
+		cost[i] = config; //assign previous config to inValid ones
+	}
+}
+void dynamicProgramming(const std::vector<bool> &isValid, const std::vector<cv::Mat> &cost, cv::Mat &totalCost, cv::Mat &preConfig) {
+	const int plane_num = isValid.size();
+	totalCost.create(plane_num, 4, CV_32FC1);
+	preConfig.create(plane_num, 4, CV_32FC1);
+	//initialization for first cs
+	for (int i = 0; i < 4; ++i)
+		totalCost.at<float>(0, i) = 0.f;
+
+	for (int i = 1; i < plane_num; ++i) { //started from 1
+		if (isValid[i]) {
+			int ip = i - 1;
+			while (!isValid[ip])
+				ip = ip - 1; //ip is the last valid cs
+			for (int k_i = 0; k_i < 4; ++k_i) {
+				totalCost.at<float>(i,k_i) = std::numeric_limits<float>::max();
+				for (int k_ip = 0; k_ip < 4; ++k_ip) {
+					float val = totalCost.at<float>(ip, k_ip) + cost[i].at<float>(k_i, k_ip);
+					if (val < totalCost.at<float>(i, k_i)) {
+						totalCost.at<float>(i, k_i) = val;
+						preConfig.at<float>(i, k_i) = k_ip;
+					}
+				}
+			}
+		}
+		//totalCost and preconfig for in-valid ones are not assigned
+	}
+}
+
 void interpolateEllipses(const std::vector<Ellipse> &ellipses, const std::vector<bool> &isValid, std::vector<Ellipse> &ellipses_smooth) {
 	ellipses_smooth.resize(ellipses.size() );
 	assert(ellipses.size() == isValid.size() );
@@ -382,6 +435,21 @@ void interpolateEllipses(const std::vector<Ellipse> &ellipses, const std::vector
 				ellipses_smooth[cs].angle = ellipses[i - 1].angle + cnt * delta_angle / delta_indx;
 				cnt++;
 			}
+			//interpolate from other direction
+			if (std::abs(delta_angle) > 2.f*pi - std::abs(delta_angle)) { 
+				delta_angle = 2.f*pi - std::abs(ellipses[j + 1].angle - ellipses[i - 1].angle);
+				delta_angle = ellipses[j + 1].angle > ellipses[i - 1].angle ? -delta_angle : delta_angle;
+				int cnt = 1;
+				for (int cs = i; cs <= j; ++cs) {
+					ellipses_smooth[cs].angle = ellipses[i - 1].angle + cnt * delta_angle / delta_indx;
+					if (ellipses_smooth[cs].angle > 2 * pi)
+						ellipses_smooth[cs].angle -= 2 * pi;
+					if (ellipses_smooth[cs].angle < 0)
+						ellipses_smooth[cs].angle += 2 * pi;
+					cnt++;
+				}
+			}
+
 			i = j+1;
 		}
 		else {
@@ -689,14 +757,26 @@ void CrossSection::extractCompressParam(const std::vector<yarnIntersect2D> &allP
 	
 	//fitEllipses(allPlaneIntersect, ellipses);
 
-	//precompute R1\R2\theta and isValid
+	//1. precompute R1\R2\theta and isValid
 	cv::Mat R1;
 	cv::Mat R2;
 	cv::Mat theta;
 	std::vector<bool> isValid;
 	preComputeEllipses(allPlaneIntersect, R1, R2, theta, isValid);
 
-	//find optimal ellipse for valid ones
+	//2. precompute cost function 
+	std::vector<cv::Mat> cost;
+	costFunction(R1, R2, theta, isValid, cost);
+
+	//3. dynamic programming
+	cv::Mat totalCost;
+	cv::Mat preConfig;
+	dynamicProgramming(isValid, cost, totalCost, preConfig);
+
+	//4.retreive solution for valid cross-sections
+
+
+	//2. find optimal ellipse for valid ones
 	std::vector<Ellipse> allEllipses;
 	Ellipse ell;
 	ell.longR = R1.at<float>(0, 0);
@@ -716,7 +796,7 @@ void CrossSection::extractCompressParam(const std::vector<yarnIntersect2D> &allP
 		//find the min theta with previous cross-section	
 		float min_delta_theta = 2.f*pi;
 		for (int j = 0; j < 4; ++j) {
-			//argmin theta_j - theta_old
+			//argmin (theta_j - theta_old)
 			float delta_theta = std::abs(theta.at<float>(i, j) - theta_old);
 			delta_theta = std::min(delta_theta, 2 * pi - delta_theta); 
 			if (delta_theta < min_delta_theta) {
@@ -731,7 +811,7 @@ void CrossSection::extractCompressParam(const std::vector<yarnIntersect2D> &allP
 		allEllipses.push_back(ell);
 	}
 
-	//interpolate for not valid ones
+	//3. interpolate for not valid ones
 	interpolateEllipses(allEllipses, isValid, ellipses);
 
 
@@ -1153,7 +1233,8 @@ void CrossSection::regularizeEllipses(const std::vector<Ellipse> &ellipses, std:
 		simple_ellipses[i].angle = ellipses[i].angle;
 	}
 
-	const int sigma = 10;
+	//gaussian smoothing
+	const int sigma = 30;
 	for (int i = sigma; i < ellipses.size() - sigma; ++i) {
 		float sum_lng = ellipses[i].longR;
 		float sum_shrt = ellipses[i].shortR;
@@ -1165,12 +1246,24 @@ void CrossSection::regularizeEllipses(const std::vector<Ellipse> &ellipses, std:
 			sum_shrt += ellipses[i - s].shortR;
 			sum_shrt += ellipses[i + s].shortR;
 
-			sum_angle += ellipses[i - s].angle;
-			sum_angle += ellipses[i + s].angle;
+			//handle the case of 2*pi and zero
+			float delta = std::abs(ellipses[i - s].angle - ellipses[i].angle);
+			float angle_s = ellipses[i - s].angle;
+			if (delta > pi)
+				angle_s = ellipses[i - s].angle - 2.f * pi;
+			
+			delta = std::abs(ellipses[i + s].angle - ellipses[i].angle);				
+			float angle__s = ellipses[i + s].angle;
+			if (delta > pi)
+				angle_s = ellipses[i + s].angle - 2.f * pi; 
+
+			sum_angle += angle_s;
+			sum_angle += angle__s;
 		}
 		float span = 2.f * sigma + 1.f;
 		simple_ellipses[i].longR = sum_lng / span;
 		simple_ellipses[i].shortR = sum_shrt / span;
 		simple_ellipses[i].angle = sum_angle / span;
+
 	}
 }
