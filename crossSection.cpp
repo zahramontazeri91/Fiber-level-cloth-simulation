@@ -284,12 +284,12 @@ void findEigenValue(const cv::Mat &data_pts, const std::vector<vec2f> &eigen_vec
 	eigen_val[0] = max0;
 	eigen_val[1] = max1;
 }
-void preComputeEllipses(const std::vector<yarnIntersect2D> &allpts, cv::Mat &R1, cv::Mat &R2, cv::Mat &theta, std::vector<bool> &isValid) {
 
+void preComputeEllipses(const std::vector<yarnIntersect2D> &allpts, Eigen::MatrixXf &R1, Eigen::MatrixXf &R2, Eigen::MatrixXf &theta, std::vector<bool> &isValid) {
 	const int plane_num = allpts.size();
-	R1.create(plane_num, 4, CV_32FC1);
-	R2.create(plane_num, 4, CV_32FC1);
-	theta.create(plane_num, 4, CV_32FC1);
+	R1.resize(plane_num, 4);
+	R2.resize(plane_num, 4);
+	theta.resize(plane_num, 4);
 	isValid.resize(plane_num, true);
 
 	for (int cs = 0; cs < plane_num; ++cs) {
@@ -332,68 +332,72 @@ void preComputeEllipses(const std::vector<yarnIntersect2D> &allpts, cv::Mat &R1,
 
 		//assign to R1
 		for (int i = 0; i < 4; ++i) {
-			const int indx = i % 2 ;
-			R1.at<float>(cs, i) = eigen_val[indx];
+			const int indx = i % 2;
+			R1(cs, i) = eigen_val[indx];
 		}
 		//assign to R2
 		for (int i = 0; i < 4; ++i) {
-			const int indx = (i+1) % 2;
-			R2.at<float>(cs, i) = eigen_val[indx];
+			const int indx = (i + 1) % 2;
+			R2(cs, i) = eigen_val[indx];
 		}
 		//assign to theta
 		float angle = atan2(eigen_vecs[0].y, eigen_vecs[0].x);
 		angle = angle < 0 ? angle + 2.f*pi : angle;
 
-		theta.at<float>(cs, 0) = angle;
+		theta(cs, 0) = angle;
 
 		for (int i = 1; i < 4; ++i) {
 			angle += pi / 2.f;
 			angle = angle > 2.f*pi ? angle - 2.f*pi : angle;
-			theta.at<float>(cs, i) = angle;
+			theta(cs, i) = angle;
 		}
 
 		//assign to isValid
 		if (std::abs(eigen_val[0] - eigen_val[1]) < std::max(eigen_val[0], eigen_val[1]) / 2.f) {
 			//std::cout << cs << " inValid is false. \n";
 			isValid[cs] = false;
-		}	
+		}
 	}
 }
 
-void costFunction(const cv::Mat &R1, const cv::Mat &R2, const cv::Mat &theta, const std::vector<bool> &isValid, std::vector<cv::Mat> &cost) {
+
+void costFunction(const Eigen::MatrixXf &R1, const Eigen::MatrixXf &R2, const Eigen::MatrixXf &theta, const std::vector<bool> &isValid, std::vector<Eigen::Matrix4f> &cost) {
 	assert(isValid[0]); //assumption
-	cv::Mat config(4,4, CV_32FC1, cv::Scalar::all(0));
+	Eigen::Matrix4f config = Eigen::Matrix4f::Zero();
 	cost.resize(isValid.size());
 	cost[0] = config;
 	for (int i = 1; i < cost.size(); ++i) { //started from 1
+		cost[i] = Eigen::Matrix4f::Zero(); //keep it zero for in-valid ones
 		if (isValid[i]) {
 			int ip = i - 1;
 			while (!isValid[ip])
 				ip = ip - 1; //ip is the last valid cs
 			for (int k_i = 0; k_i < 4; ++k_i) {
 				for (int k_ip = 0; k_ip < 4; ++k_ip) {
-					float w1 = 1.f;
-					float w2 = 1.f;
+					float w1 = 1.f / 0.028;
+					float w2 = 1.f / 0.028;
 					float w3 = 1.f/(4.f*pi*pi);
-					float delta_theta = std::min( theta.at<float>(i, k_i) - theta.at<float>(ip, k_ip), 2.f*pi - theta.at<float>(i, k_i) - theta.at<float>(ip, k_ip) );
-					float g = w1*pow(R1.at<float>(i, k_i) - R1.at<float>(ip, k_ip), 2)
-						+ w2*pow(R2.at<float>(i, k_i) - R2.at<float>(ip, k_ip),2)
-						+ w3*pow(delta_theta, 2);
-					config.at<float>(k_i, k_ip) = g;
+					float dR1 = (R1(i, k_i) - R1(ip, k_ip)) / (i - ip);
+					float dR2 = (R2(i, k_i) - R2(ip, k_ip)) / (i - ip);
+					float dtheta = std::abs(theta(i, k_i) - theta(ip, k_ip) );
+					dtheta = std::min(dtheta, 2.f*pi - dtheta)/(i - ip);
+					float g = (i - ip) * ( w1*pow(dR1, 2) + w2*pow(dR1,2) + w3*pow(dtheta, 2) );
+					config(k_i, k_ip) = g;
 				}
 			}	
-		}
-		cost[i] = config; //assign previous config to inValid ones
+			cost[i] = config;
+		}	
 	}
 }
-void dynamicProgramming(const std::vector<bool> &isValid, const std::vector<cv::Mat> &cost, cv::Mat &totalCost, cv::Mat &preConfig) {
+
+void dynamicProgramming(const std::vector<bool> &isValid, const std::vector<Eigen::Matrix4f> &cost, Eigen::MatrixXf &totalCost, Eigen::MatrixXf &preConfig) {
 	const int plane_num = isValid.size();
-	totalCost.create(plane_num, 4, CV_32FC1);
-	preConfig.create(plane_num, 4, CV_32SC1);
+	totalCost.resize(plane_num, 4);
+	preConfig.resize(plane_num, 4);
 	//initialization for first cs
 	for (int i = 0; i < 4; ++i) {
-		totalCost.at<float>(0, i) = 0.f;
-		preConfig.at<int>(i, i) = -1.f;
+		totalCost(0, i) = 0.f;
+		preConfig(i, i) = -1.f;
 	}
 
 	for (int i = 1; i < plane_num; ++i) { //started from 1
@@ -402,12 +406,12 @@ void dynamicProgramming(const std::vector<bool> &isValid, const std::vector<cv::
 			while (!isValid[ip])
 				ip = ip - 1; //ip is the last valid cs
 			for (int k_i = 0; k_i < 4; ++k_i) {
-				totalCost.at<float>(i,k_i) = std::numeric_limits<float>::max();
+				totalCost(i,k_i) = std::numeric_limits<float>::max();
 				for (int k_ip = 0; k_ip < 4; ++k_ip) {
-					float val = totalCost.at<float>(ip, k_ip) + cost[i].at<float>(k_i, k_ip);
-					if (val < totalCost.at<float>(i, k_i)) {
-						totalCost.at<float>(i, k_i) = val;
-						preConfig.at<int>(i, k_i) = k_ip;
+					float val = totalCost(ip, k_ip) + cost[i](k_i, k_ip);
+					if (val < totalCost(i, k_i)) {
+						totalCost(i, k_i) = val;
+						preConfig(i, k_i) = k_ip;
 					}
 				}
 			}
@@ -427,7 +431,7 @@ void interpolateEllipses(const std::vector<Ellipse> &ellipses, const std::vector
 			while (!isValid[j]) 
 				j++;
 			//interpolate values between i-1 and j+1
-			float delta_indx = (j + 1) - (i - 1) - 1;
+			float delta_indx = (j + 1) - (i - 1) - 1; //TODO: or simply j-1?
 			float delta_longR = ellipses[j + 1].longR - ellipses[i - 1].longR;
 			float delta_shortR = ellipses[j + 1].shortR - ellipses[i - 1].shortR;
 			float delta_angle = ellipses[j + 1].angle - ellipses[i - 1].angle;
@@ -761,38 +765,38 @@ void CrossSection::extractCompressParam(const std::vector<yarnIntersect2D> &allP
 	//fitEllipses(allPlaneIntersect, ellipses);
 
 	//1. precompute R1\R2\theta and isValid
-	cv::Mat R1;
-	cv::Mat R2;
-	cv::Mat theta;
+	const int n = allPlaneIntersect.size();
+	Eigen::MatrixXf R1(n, 4);
+	Eigen::MatrixXf R2(n, 4);
+	Eigen::MatrixXf theta(n, 4);
 	std::vector<bool> isValid;
 	preComputeEllipses(allPlaneIntersect, R1, R2, theta, isValid);
 
 	//2. precompute cost function 
-	std::vector<cv::Mat> cost;
+	std::vector<Eigen::Matrix4f> cost;
 	costFunction(R1, R2, theta, isValid, cost);
 
 	//3. dynamic programming
-	cv::Mat totalCost;
-	cv::Mat preConfig;
+	Eigen::MatrixXf totalCost(n, 4); 
+	Eigen::MatrixXf preConfig(n, 4);
 	dynamicProgramming(isValid, cost, totalCost, preConfig);
 
 	//4.retreive solution for valid cross-sections
-	const int n = allPlaneIntersect.size();
 	std::vector<Ellipse> validEllipses(n);
 	std::vector<int> solutions(n);
-	std::vector<float> cost_n{ totalCost.at<float>(n-1,0), totalCost.at<float>(n-1,1), totalCost.at<float>(n-1,2), totalCost.at<float>(n-1,3) };
+	std::vector<float> cost_n{ totalCost(n-1,0), totalCost(n-1,1), totalCost(n-1,2), totalCost(n-1,3) };
 	int opt_config = std::min_element(cost_n.begin(), cost_n.end()) - cost_n.begin();
 	Ellipse ell;
 	int i = n - 1;
 	int ip = 0;
 	while(i){
 		solutions[i] = opt_config;
-		ell.longR = R1.at<float>(i, opt_config);
-		ell.shortR = R2.at<float>(i, opt_config);
-		ell.angle = theta.at<float>(i, opt_config);
+		ell.longR = R1(i, opt_config);
+		ell.shortR = R2(i, opt_config);
+		ell.angle = theta(i, opt_config);
 		validEllipses[i] = ell;
 
-		opt_config = preConfig.at<int>(i, opt_config);
+		opt_config = preConfig(i, opt_config);
 		if (isValid[i]) {
 			ip = i - 1;
 			while (!isValid[ip])
@@ -802,48 +806,51 @@ void CrossSection::extractCompressParam(const std::vector<yarnIntersect2D> &allP
 		else
 			i = i - 1;
 	}
-	ell.longR = R1.at<float>(0, opt_config);
-	ell.shortR = R2.at<float>(0, opt_config);
-	ell.angle = theta.at<float>(0, opt_config);
+	ell.longR = R1(0, opt_config);
+	ell.shortR = R2(0, opt_config);
+	ell.angle = theta(0, opt_config);
 	validEllipses[0] = ell;
 
-	////2. find optimal ellipse for valid ones
-	//std::vector<Ellipse> allEllipses;
-	//Ellipse ell;
-	//ell.longR = R1.at<float>(0, 0);
-	//ell.shortR = R2.at<float>(0, 0);
-	//ell.angle = theta.at<float>(0, 0);
-	//allEllipses.push_back(ell);
-	//float theta_old = ell.angle;
-	//int opt_indx;
-	//for (int i = 1; i < allPlaneIntersect.size(); ++i) {
-	//	if (!isValid[i]) {
-	//		ell.longR = allEllipses[i - 1].longR;
-	//		ell.shortR = allEllipses[i - 1].shortR;
-	//		ell.angle = allEllipses[i - 1].angle;
-	//		allEllipses.push_back(ell);
-	//		continue;
-	//	}
-	//	//find the min theta with previous cross-section	
-	//	float min_delta_theta = 2.f*pi;
-	//	for (int j = 0; j < 4; ++j) {
-	//		//argmin (theta_j - theta_old)
-	//		float delta_theta = std::abs(theta.at<float>(i, j) - theta_old);
-	//		delta_theta = std::min(delta_theta, 2 * pi - delta_theta); 
-	//		if (delta_theta < min_delta_theta) {
-	//			min_delta_theta = delta_theta;
-	//			opt_indx = j;
-	//		}
-	//	}
-	//	ell.longR = R1.at<float>(i, opt_indx);
-	//	ell.shortR = R2.at<float>(i, opt_indx);
-	//	ell.angle = theta.at<float>(i, opt_indx);
-	//	theta_old = ell.angle;
-	//	allEllipses.push_back(ell);
-	//}
+	/**** Alternative approach for step 2-3-4 (using minimum rotation algo) ****/
+	//2. find optimal ellipse for valid ones
+	std::vector<Ellipse> allEllipses;
+	Ellipse ellps;
+	ellps.longR = R1(0, 0);
+	ellps.shortR = R2(0, 0);
+	ellps.angle = theta(0, 0);
+	allEllipses.push_back(ellps);
+	float theta_old = ellps.angle;
+	int opt_indx;
+	for (int i = 1; i < allPlaneIntersect.size(); ++i) {
+		if (!isValid[i]) {
+			ellps.longR = allEllipses[i - 1].longR;
+			ellps.shortR = allEllipses[i - 1].shortR;
+			ellps.angle = allEllipses[i - 1].angle;
+			allEllipses.push_back(ellps);
+			continue;
+		}
+		//find the min theta with previous cross-section	
+		float min_delta_theta = 2.f*pi;
+		for (int j = 0; j < 4; ++j) {
+			//argmin (theta_j - theta_old)
+			float delta_theta = std::abs(theta(i, j) - theta_old);
+			delta_theta = std::min(delta_theta, 2 * pi - delta_theta); 
+			if (delta_theta < min_delta_theta) {
+				min_delta_theta = delta_theta;
+				opt_indx = j;
+			}
+		}
+		ellps.longR = R1(i, opt_indx);
+		ellps.shortR = R2(i, opt_indx);
+		ellps.angle = theta(i, opt_indx);
+		theta_old = ellps.angle;
+		allEllipses.push_back(ellps);
+	}
+
 
 	//3. interpolate for not valid ones
 	interpolateEllipses(validEllipses, isValid, ellipses);
+	//interpolateEllipses(allEllipses, isValid, ellipses);
 
 
 	std::cout << "Compression parameters for each cross-sections are written to the file! \n";
