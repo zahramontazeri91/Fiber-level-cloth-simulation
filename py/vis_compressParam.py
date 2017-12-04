@@ -18,7 +18,7 @@ fig, ax = plt.subplots(figsize=(15,5))
 lng = []
 shrt = []
 theta = []
-with open('../compress.txt', 'r') as fin:
+with open('../compress_info.txt', 'r') as fin:
     N = int(fin.readline())
     for i in range (0,N):
          compress = fin.readline().split()
