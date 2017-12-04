@@ -35,7 +35,7 @@ avgCurve /= m
 
 noise = SimplexNoise()
 #theta = np.linspace(0.0, 4.0*np.pi, n)
-theta = np.linspace(0.0,4.0*np.pi, n)
+theta = np.linspace(np.pi,np.pi, n)
 R1 = np.linspace(1.25, 0.05, n)
 R2 = np.linspace(0.05, 1.15, n)
 

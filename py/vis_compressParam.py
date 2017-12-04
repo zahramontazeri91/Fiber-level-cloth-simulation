@@ -27,11 +27,11 @@ with open('../compress.txt', 'r') as fin:
          theta.append(float(compress[2]))
  
 ind = np.arange(N)    
-ax.plot([200,200], [0, 0.06], color='black') 
-ax.plot([1200,1200], [0, 0.06], color='black') 
-rects = ax.plot(ind, lng, color='r')
-rects = ax.plot(ind, shrt, color='b')
-plt.savefig("../../data/vis_crossSections/ellipseShape.png")
+#ax.plot([200,200], [0, 0.06], color='black') 
+#ax.plot([1200,1200], [0, 0.06], color='black') 
+#rects = ax.plot(ind, lng, color='r')
+#rects = ax.plot(ind, shrt, color='b')
+#plt.savefig("../../data/vis_crossSections/ellipseShape.png")
 
 ax.plot([200,200], [0, 3], color='black') 
 ax.plot([1200,1200], [0, 3], color='black') 
