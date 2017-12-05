@@ -285,78 +285,30 @@ void findEigenValue(const cv::Mat &data_pts, const std::vector<vec2f> &eigen_vec
 	eigen_val[1] = max1;
 }
 
-void preComputeEllipses(const std::vector<yarnIntersect2D> &allpts, Eigen::MatrixXf &R1, Eigen::MatrixXf &R2, Eigen::MatrixXf &theta, std::vector<bool> &isValid) {
-	const int plane_num = allpts.size();
+void preComputeEllipses(const std::vector<Ellipse> &ellipses, Eigen::MatrixXf &R1, Eigen::MatrixXf &R2, Eigen::MatrixXf &theta) {
+	const int plane_num = ellipses.size();
 	R1.resize(plane_num, 4);
 	R2.resize(plane_num, 4);
 	theta.resize(plane_num, 4);
-	isValid.resize(plane_num, true);
 
 	for (int cs = 0; cs < plane_num; ++cs) {
-		Ellipse ellipse;
-		//Find the total number of points for all plys
-		int sz = 0;
-		yarnIntersect2D pts = allpts[cs];
-		for (int p = 0; p < pts.size(); ++p)
-			sz += pts[p].size();
-		cv::Mat data_pts(sz, 2, CV_32FC1, cv::Scalar::all(0));
-
-		int c = data_pts.rows;
-		for (int p = 0; p < pts.size(); ++p) {
-			for (int i = 0; i < pts[p].size(); ++i) {
-				data_pts.at<float>(c, 0) = pts[p][i].x;
-				data_pts.at<float>(c, 1) = pts[p][i].y;
-				--c;
-			}
-		}
-
-		//Perform PCA analysis
-		cv::PCA pca_analysis(data_pts, cv::Mat(), cv::PCA::DATA_AS_ROW, 2);
-
-		//Store the center of the object
-		ellipse.center = vec2f(pca_analysis.mean.at<float>(0, 0), pca_analysis.mean.at<float>(0, 1));
-
-		//Store the eigenvalues and eigenvectors
-		std::vector<vec2f> eigen_vecs(2);
-		std::vector<float> eigen_val(2);
-		for (int i = 0; i < 2; ++i)
-		{
-			eigen_vecs[i] = vec2f(pca_analysis.eigenvectors.at<float>(i, 0),
-				pca_analysis.eigenvectors.at<float>(i, 1));
-			//eigen_val[i] = pca_analysis.eigenvalues.at<float>(0, i); // Wrong values
-		}
-		assert(!dot(eigen_vecs[0], eigen_vecs[1]) && "Eigen vectors aren't orthogonal!");
-
-		//find eigen values by projecting the points on eigenVectors
-		findEigenValue(data_pts, eigen_vecs, eigen_val);
 
 		//assign to R1
 		for (int i = 0; i < 4; ++i) {
-			const int indx = i % 2;
-			R1(cs, i) = eigen_val[indx];
+			R1(cs, i) = i % 2 ? ellipses[cs].shortR : ellipses[cs].longR;
 		}
 		//assign to R2
 		for (int i = 0; i < 4; ++i) {
-			const int indx = (i + 1) % 2;
-			R2(cs, i) = eigen_val[indx];
+			R2(cs, i) = i % 2  ? ellipses[cs].longR : ellipses[cs].shortR;
 		}
 		//assign to theta
-		float angle = atan2(eigen_vecs[0].y, eigen_vecs[0].x);
-		angle = angle < 0 ? angle + 2.f*pi : angle;
-
+		float angle = ellipses[cs].angle;
 		theta(cs, 0) = angle;
-
 		for (int i = 1; i < 4; ++i) {
 			angle += pi / 2.f;
 			angle = angle > 2.f*pi ? angle - 2.f*pi : angle;
 			theta(cs, i) = angle;
-		}
-
-		//assign to isValid
-		if (std::abs(eigen_val[0] - eigen_val[1]) < std::max(eigen_val[0], eigen_val[1]) / 2.f) {
-			//std::cout << cs << " inValid is false. \n";
-			isValid[cs] = false;
-		}
+		}		
 	}
 }
 
@@ -469,15 +421,13 @@ void interpolateEllipses(const std::vector<Ellipse> &ellipses, const std::vector
 	}
 }
 
-void CrossSection::fitEllipses(const std::vector<yarnIntersect2D> &allpts, std::vector<Ellipse> &ellipses) {
+void CrossSection::fitEllipses(const std::vector<yarnIntersect2D> &allpts, std::vector<Ellipse> &ellipses, std::vector<bool> &isValid) {
 
-	//std::ofstream fout("../data/pca_test.txt");
-	//fout << allpts.size() << '\n';
+	const int plane_num = allpts.size();
+	isValid.resize(plane_num, true);
+	ellipses.resize(plane_num);
 
-	vec2f axis1_old, axis1_new, axis2_new;
-	float longR_old, shortR_old;
-
-	for (int cs = 0; cs < allpts.size(); ++cs) {
+	for (int cs = 0; cs < plane_num; ++cs) {
 		Ellipse ellipse;
 		//Find the total number of points for all plys
 		int sz = 0;
@@ -515,74 +465,24 @@ void CrossSection::fitEllipses(const std::vector<yarnIntersect2D> &allpts, std::
 		//find eigen values by projecting the points on eigenVectors
 		findEigenValue(data_pts, eigen_vecs, eigen_val);
 
-		//check which eigenVec is axis1 (using minimum rotation algo)
-		if (!cs) //first plane
-		{ 			
-			float theta0 = atan2(eigen_vecs[0].y, eigen_vecs[0].x); // orientation in radians between 0-2pi
-			if ( pi - std::abs(theta0) < std::abs(theta0) ) //flipped
-				eigen_vecs[0] *= -1;
+		//assign to R
+		ellipse.longR = eigen_val[0];
+		ellipse.shortR = eigen_val[1];
 
-			axis1_new = eigen_vecs[0];
-			axis2_new = vec2f(-1 * axis1_new.y, axis1_new.x);
-			ellipse.longR = eigen_val[0];
-			ellipse.shortR = eigen_val[1];
+
+		//assign to theta
+		float angle = atan2(eigen_vecs[0].y, eigen_vecs[0].x);
+		ellipse.angle = angle < 0 ? angle + 2.f*pi : angle;
+
+		ellipses[cs] = ellipse;
+
+		//assign to isValid
+		if (std::abs(eigen_val[0] - eigen_val[1]) < std::max(eigen_val[0], eigen_val[1]) / 2.f) {
+			isValid[cs] = false;
 		}
-		//Don't detect new axis if R1 and R2 are close 
-		else if (std::abs(eigen_val[0] - eigen_val[1]) < std::max(eigen_val[0], eigen_val[1])/2.f) {
-			std::cout << cs << " Hard to detect R1 and R2 \n";
-			axis1_new = axis1_old;
-			axis2_new = vec2f(-1 * axis1_new.y, axis1_new.x);
-			ellipse.longR = longR_old;
-			ellipse.shortR = shortR_old;
-		}
-		else {
-			//compare the angle between two new axis with the axis1_old		
-			float dot0 = dot(eigen_vecs[0], axis1_old);
-			float dot1 = dot(eigen_vecs[1], axis1_old);
-			//Crop dot values to handle nan, because dot() is not stricktly between [-1,1]
-			dot0 = dot0 > 1 ? 1.0 : dot0;
-			dot0 = dot0 < -1 ? -1.0 : dot0;
-			dot1 = dot1 > 1 ? 1.0 : dot1;
-			dot1 = dot1 < -1 ? -1.0 : dot1;
-
- 			float angle0 = std::min(pi - acos(dot0), acos(dot0));
-			float angle1 = std::min(pi - acos(dot1), acos(dot1));
-
-			if (angle0 < angle1) {
-				if (pi - acos(dot(eigen_vecs[0], axis1_old)) < acos(dot(eigen_vecs[0], axis1_old))) //flipped 
-					eigen_vecs[0] *= -1;
-
-				axis1_new = eigen_vecs[0];
-				axis2_new = vec2f(-1 * axis1_new.y, axis1_new.x);
-				ellipse.longR = eigen_val[0];
-				ellipse.shortR = eigen_val[1];
-			}
-
-			else {
-				if (pi - acos(dot(eigen_vecs[1], axis1_old)) < acos(dot(eigen_vecs[1], axis1_old))) //flipped
-					eigen_vecs[1] *= -1;
-				
-				axis1_new = eigen_vecs[1];
-				axis2_new = vec2f(-1 * axis1_new.y, axis1_new.x);
-				ellipse.longR = eigen_val[1];
-				ellipse.shortR = eigen_val[0];
-			}
-		}
-
-		//fout << axis1_old.x << ' ' << axis1_old.y << ' ' << axis1_new.x << ' ' << axis1_new.y << ' ' << axis2_new.x << ' ' << axis2_new.y << ' ' << '\n';
 		
-		axis1_old = axis1_new;
-		longR_old = ellipse.longR;
-		shortR_old = ellipse.shortR;
-
-		//note that atan is in range [-pi, pi]
-		ellipse.angle = atan2(axis1_new.y, axis1_new.x) ; 
-		if (ellipse.angle < 0)
-			ellipse.angle = ellipse.angle + 2.0*pi; // orientation in radians between 0-2pi
-
-		ellipses.push_back(ellipse);		
 	}
-	//fout.close();
+	std::cout << "here in fitellipse " << ellipses[10].longR << std::endl;
 }
 
 #if 0
@@ -761,98 +661,193 @@ void CrossSection::minAreaEllipse(const yarnIntersect2D &pts, const Ellipse &ell
 }
 #endif
 
+void preComputeEllipses(const std::vector<yarnIntersect2D> &allpts, Eigen::MatrixXf &R1, Eigen::MatrixXf &R2, Eigen::MatrixXf &theta, std::vector<bool> &isValid) {
+	const int plane_num = allpts.size();
+	R1.resize(plane_num, 4);
+	R2.resize(plane_num, 4);
+	theta.resize(plane_num, 4);
+	isValid.resize(plane_num, true);
+
+	for (int cs = 0; cs < plane_num; ++cs) {
+		Ellipse ellipse;
+		//Find the total number of points for all plys
+		int sz = 0;
+		yarnIntersect2D pts = allpts[cs];
+		for (int p = 0; p < pts.size(); ++p)
+			sz += pts[p].size();
+		cv::Mat data_pts(sz, 2, CV_32FC1, cv::Scalar::all(0));
+
+		int c = data_pts.rows;
+		for (int p = 0; p < pts.size(); ++p) {
+			for (int i = 0; i < pts[p].size(); ++i) {
+				data_pts.at<float>(c, 0) = pts[p][i].x;
+				data_pts.at<float>(c, 1) = pts[p][i].y;
+				--c;
+			}
+		}
+
+		//Perform PCA analysis
+		cv::PCA pca_analysis(data_pts, cv::Mat(), cv::PCA::DATA_AS_ROW, 2);
+
+		//Store the center of the object
+		ellipse.center = vec2f(pca_analysis.mean.at<float>(0, 0), pca_analysis.mean.at<float>(0, 1));
+
+		//Store the eigenvalues and eigenvectors
+		std::vector<vec2f> eigen_vecs(2);
+		std::vector<float> eigen_val(2);
+		for (int i = 0; i < 2; ++i)
+		{
+			eigen_vecs[i] = vec2f(pca_analysis.eigenvectors.at<float>(i, 0),
+				pca_analysis.eigenvectors.at<float>(i, 1));
+			//eigen_val[i] = pca_analysis.eigenvalues.at<float>(0, i); // Wrong values
+		}
+		assert(!dot(eigen_vecs[0], eigen_vecs[1]) && "Eigen vectors aren't orthogonal!");
+
+		//find eigen values by projecting the points on eigenVectors
+		findEigenValue(data_pts, eigen_vecs, eigen_val);
+
+		//assign to R1
+		for (int i = 0; i < 4; ++i) {
+			const int indx = i % 2;
+			R1(cs, i) = eigen_val[indx];
+		}
+		//assign to R2
+		for (int i = 0; i < 4; ++i) {
+			const int indx = (i + 1) % 2;
+			R2(cs, i) = eigen_val[indx];
+		}
+		//assign to theta
+		float angle = atan2(eigen_vecs[0].y, eigen_vecs[0].x);
+		angle = angle < 0 ? angle + 2.f*pi : angle;
+
+		theta(cs, 0) = angle;
+
+		for (int i = 1; i < 4; ++i) {
+			angle += pi / 2.f;
+			angle = angle > 2.f*pi ? angle - 2.f*pi : angle;
+			theta(cs, i) = angle;
+		}
+
+		//assign to isValid
+		if (std::abs(eigen_val[0] - eigen_val[1]) < std::max(eigen_val[0], eigen_val[1]) / 2.f) {
+			//std::cout << cs << " inValid is false. \n";
+			isValid[cs] = false;
+		}
+	}
+}
+
+void localOptimize(const Eigen::MatrixXf &R1, const Eigen::MatrixXf &R2, const Eigen::MatrixXf &theta, const std::vector<bool> &isValid, std::vector<Ellipse> &validEllipses) {
+	const int plane_num = isValid.size();
+	Ellipse ellps;
+	ellps.longR = R1(0, 0);
+	ellps.shortR = R2(0, 0);
+	ellps.angle = theta(0, 0);
+	validEllipses.push_back(ellps);
+	float theta_old = ellps.angle;
+	int opt_indx;
+	for (int i = 1; i < plane_num; ++i) {
+		if (!isValid[i]) {
+			ellps.longR = validEllipses[i - 1].longR;
+			ellps.shortR = validEllipses[i - 1].shortR;
+			ellps.angle = validEllipses[i - 1].angle;
+			validEllipses.push_back(ellps);
+			continue;
+		}
+		//find the min theta with previous cross-section	
+		float min_delta_theta = 2.f*pi;
+		for (int j = 0; j < 4; ++j) {
+			//argmin (theta_j - theta_old)
+			float delta_theta = std::abs(theta(i, j) - theta_old);
+			delta_theta = std::min(delta_theta, 2 * pi - delta_theta);
+			if (delta_theta < min_delta_theta) {
+				min_delta_theta = delta_theta;
+				opt_indx = j;
+			}
+		}
+		ellps.longR = R1(i, opt_indx);
+		ellps.shortR = R2(i, opt_indx);
+		ellps.angle = theta(i, opt_indx);
+		theta_old = ellps.angle;
+		validEllipses.push_back(ellps);
+	}
+}
+
 void CrossSection::extractCompressParam(const std::vector<yarnIntersect2D> &allPlaneIntersect, std::vector<Ellipse> &ellipses) {
 
-	//fitEllipses(allPlaneIntersect, ellipses);
+	//0. extract the ellipses 
+	const int n = allPlaneIntersect.size();
+	std::vector<Ellipse> allEllipses(n);
+	std::vector<bool> isValid;
+	fitEllipses(allPlaneIntersect, allEllipses, isValid);
 
 	//1. precompute R1\R2\theta and isValid
-	const int n = allPlaneIntersect.size();
 	Eigen::MatrixXf R1(n, 4);
 	Eigen::MatrixXf R2(n, 4);
 	Eigen::MatrixXf theta(n, 4);
-	std::vector<bool> isValid;
-	preComputeEllipses(allPlaneIntersect, R1, R2, theta, isValid);
-
-	//2. precompute cost function 
-	std::vector<Eigen::Matrix4f> cost;
-	costFunction(R1, R2, theta, isValid, cost);
-
-	//3. dynamic programming
-	Eigen::MatrixXf totalCost(n, 4); 
-	Eigen::MatrixXf preConfig(n, 4);
-	dynamicProgramming(isValid, cost, totalCost, preConfig);
-
-	//4.retreive solution for valid cross-sections
-	std::vector<Ellipse> validEllipses(n);
-	std::vector<int> solutions(n);
-	std::vector<float> cost_n{ totalCost(n-1,0), totalCost(n-1,1), totalCost(n-1,2), totalCost(n-1,3) };
-	int opt_config = std::min_element(cost_n.begin(), cost_n.end()) - cost_n.begin();
-	Ellipse ell;
-	int i = n - 1;
-	int ip = 0;
-	while(i){
-
-		solutions[i] = opt_config;
-		ell.longR = R1(i, opt_config);
-		ell.shortR = R2(i, opt_config);
-		ell.angle = theta(i, opt_config);
-		validEllipses[i] = ell;
-
-		opt_config = preConfig(i, opt_config);
-		if (isValid[i]) {
-			ip = i - 1;
-			while (!isValid[ip])
-				ip = ip - 1;
-			i = ip;
-		}
-		else
-			i = i - 1;
-	}
-	ell.longR = R1(0, opt_config);
-	ell.shortR = R2(0, opt_config);
-	ell.angle = theta(0, opt_config);
-	validEllipses[0] = ell;
-
-	/**** Alternative approach for step 2-3-4 (using minimum rotation algo) ****/
-	////2. find optimal ellipse for valid ones
-	//std::vector<Ellipse> allEllipses;
-	//Ellipse ellps;
-	//ellps.longR = R1(0, 0);
-	//ellps.shortR = R2(0, 0);
-	//ellps.angle = theta(0, 0);
-	//allEllipses.push_back(ellps);
-	//float theta_old = ellps.angle;
-	//int opt_indx;
-	//for (int i = 1; i < allPlaneIntersect.size(); ++i) {
-	//	if (!isValid[i]) {
-	//		ellps.longR = allEllipses[i - 1].longR;
-	//		ellps.shortR = allEllipses[i - 1].shortR;
-	//		ellps.angle = allEllipses[i - 1].angle;
-	//		allEllipses.push_back(ellps);
-	//		continue;
-	//	}
-	//	//find the min theta with previous cross-section	
-	//	float min_delta_theta = 2.f*pi;
-	//	for (int j = 0; j < 4; ++j) {
-	//		//argmin (theta_j - theta_old)
-	//		float delta_theta = std::abs(theta(i, j) - theta_old);
-	//		delta_theta = std::min(delta_theta, 2 * pi - delta_theta); 
-	//		if (delta_theta < min_delta_theta) {
-	//			min_delta_theta = delta_theta;
-	//			opt_indx = j;
-	//		}
-	//	}
-	//	ellps.longR = R1(i, opt_indx);
-	//	ellps.shortR = R2(i, opt_indx);
-	//	ellps.angle = theta(i, opt_indx);
-	//	theta_old = ellps.angle;
-	//	allEllipses.push_back(ellps);
-	//}
-
+	preComputeEllipses(allEllipses, R1, R2, theta);
+	
+	//2. find optimal ellipse for valid ones
+	std::vector<Ellipse> validEllipses;
+	localOptimize(R1, R2, theta, isValid, validEllipses);
 
 	//3. interpolate for not valid ones
 	interpolateEllipses(validEllipses, isValid, ellipses);
-	//interpolateEllipses(allEllipses, isValid, ellipses);
+
+	//4. regularize ellipses
+
+	//5. update R1, R2 and theta 
+	/****************************************************/
+
+	////1. precompute R1\R2\theta and isValid
+	//const int n = allPlaneIntersect.size();
+	//Eigen::MatrixXf R1(n, 4);
+	//Eigen::MatrixXf R2(n, 4);
+	//Eigen::MatrixXf theta(n, 4);
+	//std::vector<bool> isValid;
+	//preComputeEllipses(allPlaneIntersect, R1, R2, theta, isValid);
+
+	////2. precompute cost function 
+	//std::vector<Eigen::Matrix4f> cost;
+	//costFunction(R1, R2, theta, isValid, cost);
+
+	////3. dynamic programming
+	//Eigen::MatrixXf totalCost(n, 4); 
+	//Eigen::MatrixXf preConfig(n, 4);
+	//dynamicProgramming(isValid, cost, totalCost, preConfig);
+
+	////4.retreive solution for valid cross-sections
+	//std::vector<Ellipse> validEllipses(n);
+	//std::vector<int> solutions(n);
+	//std::vector<float> cost_n{ totalCost(n-1,0), totalCost(n-1,1), totalCost(n-1,2), totalCost(n-1,3) };
+	//int opt_config = std::min_element(cost_n.begin(), cost_n.end()) - cost_n.begin();
+	//Ellipse ell;
+	//int i = n - 1;
+	//int ip = 0;
+	//while(i){
+
+	//	solutions[i] = opt_config;
+	//	ell.longR = R1(i, opt_config);
+	//	ell.shortR = R2(i, opt_config);
+	//	ell.angle = theta(i, opt_config);
+	//	validEllipses[i] = ell;
+
+	//	opt_config = preConfig(i, opt_config);
+	//	if (isValid[i]) {
+	//		ip = i - 1;
+	//		while (!isValid[ip])
+	//			ip = ip - 1;
+	//		i = ip;
+	//	}
+	//	else
+	//		i = i - 1;
+	//}
+	//ell.longR = R1(0, opt_config);
+	//ell.shortR = R2(0, opt_config);
+	//ell.angle = theta(0, opt_config);
+	//validEllipses[0] = ell;
+
+	////5. interpolate for not valid ones
+	//interpolateEllipses(validEllipses, isValid, ellipses);
 
 
 	std::cout << "Compression parameters for each cross-sections are written to the file! \n";
