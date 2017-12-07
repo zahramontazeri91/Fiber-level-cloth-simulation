@@ -50,17 +50,17 @@ void CrossSection::buildPlanes(const int num_planes, std::vector<yarnIntersect> 
 		Eigen::Vector3d curve_b = curve_t.cross(curve_n); //long axis
 		m_planesList[i].point = vec3f(curve_p[0], curve_p[1], curve_p[2]);
 		m_planesList[i].n = vec3f(curve_t[0], curve_t[1], curve_t[2]);
-		//m_planesList[i].e1    = vec3f(curve_n[0], curve_n[1], curve_n[2]);
-		//m_planesList[i].e2 = cross(m_planesList[i].n, m_planesList[i].e1);
-		//assert(dot(m_planesList[i].n, m_planesList[i].e1) < EPS);
+		m_planesList[i].e1    = vec3f(curve_n[0], curve_n[1], curve_n[2]);
+		m_planesList[i].e2 = cross(m_planesList[i].n, m_planesList[i].e1);
+		assert(dot(m_planesList[i].n, m_planesList[i].e1) < EPS);
 	}
 	std::vector<std::vector<vec3f>> plyCenters;
 	allPlyCenters(plyCenters, itsLists);
 	// Define inplane 2D coord using the direction from yarn-center to intersection of first ply-center 
 	for (int i = 0; i < num_planes; ++i) {
 		// plyCenters[i][0] - m_planesList[i].point is too small so its dot product with n doesn't show they are perpendicular (e1.n !=0 )
-		m_planesList[i].e1 = nv::normalize(plyCenters[i][0] - m_planesList[i].point);
-		m_planesList[i].e2 = cross(m_planesList[i].n, m_planesList[i].e1);
+		//m_planesList[i].e1 = nv::normalize(plyCenters[i][0] - m_planesList[i].point);
+		//m_planesList[i].e2 = cross(m_planesList[i].n, m_planesList[i].e1);
 	}
 
 	//debug: testing the e# coord
@@ -168,19 +168,33 @@ void CrossSection::shapeMatch(const Eigen::MatrixXf &pnt_trans, const Eigen::Mat
 	Eigen::Matrix2f Aqq_1 = Eigen::Matrix2f::Zero();
 	
 	Eigen::MatrixXf Qtrans = pnt_ref.transpose();
-	
+	Eigen::MatrixXf cm_ref(2, 1);
+	Eigen::MatrixXf cm_trans(2, 1);
 	for (int i = 0; i < n; ++i) {
-		Apq += pnt_trans.col(i) * Qtrans.row(i) / n;
-		Aqq_1 += pnt_ref.col(i) * Qtrans.row(i) / n;
+		cm_ref += pnt_ref.col(i);
+		cm_trans += pnt_trans.col(i);
+	}
+	cm_ref /= n;
+	cm_trans /= n;
+	std::cout << "cm_ref is: \n" << cm_ref << std::endl;
+
+	for (int i = 0; i < n; ++i) {
+		Apq += (pnt_trans.col(i)-cm_trans) * ( Qtrans.row(i)-cm_ref.transpose() ) / n;
+		Aqq_1 += (pnt_ref.col(i)-cm_ref) * ( Qtrans.row(i)-cm_ref.transpose() ) / n;
+		//Apq += pnt_trans.col(i) *  Qtrans.row(i) / n;
+		//Aqq_1 += pnt_ref.col(i) *  Qtrans.row(i) / n;
 	}
 	Eigen::MatrixXf Aqq = Aqq_1.inverse();
 	
 	Eigen::JacobiSVD<Eigen::MatrixXf> svd(Apq*Aqq, Eigen::ComputeThinU | Eigen::ComputeThinV);
+	//Eigen::JacobiSVD<Eigen::MatrixXf> svd(Apq, Eigen::ComputeThinU | Eigen::ComputeThinV);
 	Eigen::MatrixXf U = svd.matrixU();
 	Eigen::MatrixXf sigma = svd.singularValues().asDiagonal();
 	Eigen::MatrixXf V = svd.matrixV();
 
 	scale = V * sigma * V.transpose();
+	std::cout << "Aqq is: \n" << Aqq << std::endl << std::endl;
+	//scale = V * sigma * V.transpose() * Aqq;
 	rotation = U * V.transpose();
 }
 
@@ -221,8 +235,11 @@ void CrossSection::yarnShapeMatch(const yarnIntersect2D &pnts_trans, const yarnI
 	shapeMatch(all_trans, all_ref, rot, scl);
 
 	ellipse.angle = atan2(rot(1, 0), rot(0, 0));
-	ellipse.longR = scl(0, 0);
-	ellipse.shortR = scl(1, 1);
+	ellipse.longR = scl(0,0);
+	ellipse.shortR = scl(1,1);
+
+	//ellipse.longR = std::max (scl(0, 0), scl(1, 1));
+	//ellipse.shortR = std::min (scl(0, 0), scl(1, 1));
 }
 
 void CrossSection::yarnShapeMatches(const std::vector<yarnIntersect2D> &pnts_trans, const std::vector<yarnIntersect2D> &pnts_ref, std::vector<Ellipse> &ellipses) {
@@ -236,7 +253,6 @@ void CrossSection::yarnShapeMatches(const std::vector<yarnIntersect2D> &pnts_tra
 
 		ellipses[i] = ellipse;
 	}
-
 }
 
 void CrossSection::allPlyCenters(std::vector<std::vector<vec3f>> &plyCenters, std::vector<yarnIntersect> &itsLists) {

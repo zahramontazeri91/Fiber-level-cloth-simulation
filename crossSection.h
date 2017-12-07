@@ -89,6 +89,7 @@ public:
 	/*find the theta for fiber-centers rotating around the ply-center for each cross section*/
 	void fiberTwisting(const std::vector<yarnIntersect2D> &decompressPlaneIts, std::vector<float> &fiber_theta, const char *fiberTwistFile);
 
+	/* optimization related functions */
 	void optimizeEllipses();
 
 	//for debug:
