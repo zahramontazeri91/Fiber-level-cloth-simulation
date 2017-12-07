@@ -10,7 +10,7 @@ void fittingCompress(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIn
 void fittingFiberTwisting(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const float yarn_radius, const char* fiberTwistFile);
 
 int main(int argc, const char **argv) {
-#if 1
+#if 0
 
 	if (argc != 3) {
 		printf("Usage: YarnGeneration [task file] [output file]\n");
@@ -66,12 +66,15 @@ int main(int argc, const char **argv) {
 	//extractCompressParam_test();
 
 	//compress_yarn_test();
-	ply_centers_test();
+	//ply_centers_test();
 
 	//extractNormals();
+
+	shapeMatch_test();
 #endif
 
-	//std::system("pause"); //add breakpoint instead
+//	std::system("pause"); //add breakpoint instead
+
 
 	return 0;
 }
@@ -88,19 +91,30 @@ void fittingCompress(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIn
 	cs.extractCompressParam(xy_Its, ellipses);
 
 	//regularize the ellipse params
-	std::vector<Ellipse> simple_ellipses1, simple_ellipses2, simple_ellipses3;
-	//cs.regularizeEllipses(ellipses, simple_ellipses1);
-	//cs.regularizeEllipses(simple_ellipses1, simple_ellipses2);
+	std::vector<Ellipse> regulEllipses;
+	//cs.regularizeEllipses(ellipses, regulEllipses, 20);
+	//cs.regularizeEllipses(regulEllipses, ellipses, 20);
+	//cs.regularizeEllipses(ellipses, regulEllipses, 20);
+	//cs.regularizeEllipses(regulEllipses, ellipses, 20);
+
+	//ellipses = regulEllipses;
+
+	//update R1, R2, theta
+	/*************** TO DO ***************/
+
+	//do the dynamic programming optimization
+	/*************** TO DO ***************/
+	//optimizeEllipses()
 
 	//parameterize the ellipse params
-	std::vector<Ellipse> param_ellipses;
-	cs.parameterizeEllipses(ellipses, param_ellipses);
+	//std::vector<Ellipse> param_ellipses;
+	//cs.parameterizeEllipses(ellipses, param_ellipses);
 
 	FILE *fout;
 	if (fopen_s(&fout, compressFile, "wt") == 0) {
-		fprintf_s(fout, "%d \n", param_ellipses.size());
-		for (int i = 0; i < param_ellipses.size(); ++i) {
-			fprintf_s(fout, "%.4f %.4f %.4f \n", param_ellipses[i].longR, param_ellipses[i].shortR, param_ellipses[i].angle);
+		fprintf_s(fout, "%d \n", ellipses.size());
+		for (int i = 0; i < ellipses.size(); ++i) {
+			fprintf_s(fout, "%.4f %.4f %.4f \n", ellipses[i].longR, ellipses[i].shortR, ellipses[i].angle);
 		}
 		fclose(fout);
 	}
@@ -108,10 +122,10 @@ void fittingCompress(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIn
 	FILE *fout1;
 	//write ellipses to file for testing
 	if (fopen_s(&fout1, "../data/orientation.txt", "wt") == 0) {
-		const int ignorPlanes = 0.1 * param_ellipses.size(); // crop the first and last 10% of the yarn
-		for (int i = ignorPlanes; i < param_ellipses.size() - ignorPlanes; ++i) {
+		const int ignorPlanes = 0.1 * ellipses.size(); // crop the first and last 10% of the yarn
+		for (int i = ignorPlanes; i < ellipses.size() - ignorPlanes; ++i) {
 			fprintf_s(fout1, "%.4f %.4f \n", 0.f, 0.f);
-			fprintf_s(fout1, "%.4f %.4f %.4f \n", param_ellipses[i].longR, param_ellipses[i].shortR, param_ellipses[i].angle);
+			fprintf_s(fout1, "%.4f %.4f %.4f \n", ellipses[i].longR, ellipses[i].shortR, ellipses[i].angle);
 			fprintf_s(fout1, "\n");
 		}
 		fclose(fout1);

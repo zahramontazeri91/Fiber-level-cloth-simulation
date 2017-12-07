@@ -1,5 +1,6 @@
 #include "CrossSection.h"
 #include "curveFitting.h"
+#include <Eigen/SVD>
 
 #if 0
 /* constructor for procedural yarn (for debug use) */
@@ -158,6 +159,64 @@ bool CrossSection::allPlanesIntersections(std::vector<yarnIntersect> &itsLists) 
 	if (isIntrsct)
 		return true;
 	return false;
+}
+
+void CrossSection::shapeMatch(const Eigen::MatrixXf &P, const Eigen::MatrixXf &Q, Eigen::Matrix2f &rotation, Eigen::Matrix2f &scale) {
+	assert(P.cols() == Q.cols());
+	const int n = P.cols();
+	Eigen::Matrix2f Apq = Eigen::Matrix2f::Zero();
+	Eigen::Matrix2f Aqq_1 = Eigen::Matrix2f::Zero();
+	
+	Eigen::MatrixXf Qtrans = Q.transpose();
+	
+	for (int i = 0; i < n; ++i) {
+		Apq += P.col(i) * Qtrans.row(i) / n;
+		Aqq_1 += Q.col(i) * Qtrans.row(i) / n;
+	}
+	Eigen::MatrixXf Aqq = Aqq_1.inverse();
+	
+	Eigen::JacobiSVD<Eigen::MatrixXf> svd(Apq*Aqq, Eigen::ComputeThinU | Eigen::ComputeThinV);
+	Eigen::MatrixXf U = svd.matrixU();
+	Eigen::MatrixXf sigma = svd.singularValues().asDiagonal();
+	Eigen::MatrixXf V = svd.matrixV();
+
+	scale = V * sigma * V.transpose();
+	rotation = U * V.transpose();
+}
+
+void CrossSection::yarnShapeMatch(const yarnIntersect2D &pnts_ref, const yarnIntersect2D &pnts_compress, Ellipse &ellipse) {
+
+	//Find the total number of points for all plys
+	int sz_ref = 0, sz_compress = 0;
+	for (int p = 0; p < pnts_ref.size(); ++p)
+		sz_ref += pnts_ref[p].size();
+	for (int p = 0; p < pnts_compress.size(); ++p)
+		sz_compress += pnts_compress[p].size();
+	assert(sz_ref == sz_compress);
+
+	Eigen::MatrixXf all_ref(sz_ref, 2);
+	int c = sz_ref;
+	for (int p = 0; p < pnts_ref.size(); ++p) {
+		for (int i = 0; i < pnts_ref[p].size(); ++i) {
+			all_ref(c, 0) = pnts_ref[p][i].x;
+			all_ref(c, 1) = pnts_ref[p][i].y;
+			--c;
+		}
+	}
+
+	Eigen::MatrixXf all_compress(sz_compress, 2);
+	c = sz_compress;
+	for (int p = 0; p < pnts_compress.size(); ++p) {
+		for (int i = 0; i < pnts_compress[p].size(); ++i) {
+			all_compress(c, 0) = pnts_compress[p][i].x;
+			all_compress(c, 1) = pnts_compress[p][i].y;
+			--c;
+		}
+	}
+
+}
+
+void CrossSection::yarnShapeMatches(const std::vector<yarnIntersect2D> &pnts_ref, const std::vector<yarnIntersect2D> &pnts_compress, std::vector<Ellipse> ellipses) {
 }
 
 void CrossSection::allPlyCenters(std::vector<std::vector<vec3f>> &plyCenters, std::vector<yarnIntersect> &itsLists) {
@@ -774,28 +833,36 @@ void localOptimize(const Eigen::MatrixXf &R1, const Eigen::MatrixXf &R2, const E
 
 void CrossSection::extractCompressParam(const std::vector<yarnIntersect2D> &allPlaneIntersect, std::vector<Ellipse> &ellipses) {
 
-	//0. extract the ellipses 
+	//1. extract the ellipses 
 	const int n = allPlaneIntersect.size();
 	std::vector<Ellipse> allEllipses(n);
 	std::vector<bool> isValid;
 	fitEllipses(allPlaneIntersect, allEllipses, isValid);
 
-	//1. precompute R1\R2\theta and isValid
+	//2. precompute R1\R2\theta and isValid
 	Eigen::MatrixXf R1(n, 4);
 	Eigen::MatrixXf R2(n, 4);
 	Eigen::MatrixXf theta(n, 4);
 	preComputeEllipses(allEllipses, R1, R2, theta);
 	
-	//2. find optimal ellipse for valid ones
+	//3. find optimal ellipse for valid ones
 	std::vector<Ellipse> validEllipses;
 	localOptimize(R1, R2, theta, isValid, validEllipses);
 
-	//3. interpolate for not valid ones
-	interpolateEllipses(validEllipses, isValid, ellipses);
+	//4. interpolate for not valid ones
+	std::vector<Ellipse> interEllipses;
+	interpolateEllipses(validEllipses, isValid, interEllipses);
 
-	//4. regularize ellipses
+	//5. regularize ellipses
+	//6. update R1, R2 and theta
 
-	//5. update R1, R2 and theta 
+	ellipses = interEllipses;
+
+
+	std::cout << "Compression parameters for each cross-sections are written to the file! \n";
+}
+
+void CrossSection::optimizeEllipses() {
 	/****************************************************/
 
 	////1. precompute R1\R2\theta and isValid
@@ -848,11 +915,7 @@ void CrossSection::extractCompressParam(const std::vector<yarnIntersect2D> &allP
 
 	////5. interpolate for not valid ones
 	//interpolateEllipses(validEllipses, isValid, ellipses);
-
-
-	std::cout << "Compression parameters for each cross-sections are written to the file! \n";
 }
-
 
 void CrossSection::parameterizeEllipses(const std::vector<Ellipse> &ellipses, std::vector<Ellipse> &simple_ellipses) {
 
@@ -1259,7 +1322,8 @@ void CrossSection::fiberTwisting(const std::vector<yarnIntersect2D> &decompressP
 }
 
 
-void CrossSection::regularizeEllipses(const std::vector<Ellipse> &ellipses, std::vector<Ellipse> &simple_ellipses) {
+void CrossSection::regularizeEllipses(const std::vector<Ellipse> &ellipses, std::vector<Ellipse> &simple_ellipses, const int sigma) {
+	
 	simple_ellipses.resize(ellipses.size());
 	//copy ellipse to simple_ellipse to fill up the two ends before and after sigma 
 	for (int i = 0; i < ellipses.size() ; ++i) {
@@ -1269,11 +1333,22 @@ void CrossSection::regularizeEllipses(const std::vector<Ellipse> &ellipses, std:
 	}
 
 	//gaussian smoothing
-	const int sigma = 30;
 	for (int i = sigma; i < ellipses.size() - sigma; ++i) {
-		float sum_lng = ellipses[i].longR;
-		float sum_shrt = ellipses[i].shortR;
-		float sum_angle = ellipses[i].angle;
+		float sum_lng = 0.f;
+		float sum_shrt = 0.f;
+		float sum_angle = 0.f;
+
+		//find if in the sigma terithory, there is any fluctuation
+		bool isFluctuate = false;
+		for (int s = 0; s < sigma; ++s) {
+			float delta = std::abs(ellipses[i - s].angle - ellipses[i].angle);
+			if (delta > pi) //since we don't normally have this rotation, this is absolutely the case of fluctuation at 2pi-0
+			{
+				isFluctuate = true;
+				break;
+			}
+		}
+
 		for (int s = 0; s < sigma; ++s) {
 			sum_lng += ellipses[i - s].longR;
 			sum_lng += ellipses[i + s].longR;
@@ -1281,24 +1356,37 @@ void CrossSection::regularizeEllipses(const std::vector<Ellipse> &ellipses, std:
 			sum_shrt += ellipses[i - s].shortR;
 			sum_shrt += ellipses[i + s].shortR;
 
-			//handle the case of 2*pi and zero
-			float delta = std::abs(ellipses[i - s].angle - ellipses[i].angle);
 			float angle_s = ellipses[i - s].angle;
-			if (delta > pi)
-				angle_s = ellipses[i - s].angle - 2.f * pi;
-			
-			delta = std::abs(ellipses[i + s].angle - ellipses[i].angle);				
 			float angle__s = ellipses[i + s].angle;
-			if (delta > pi)
-				angle_s = ellipses[i + s].angle - 2.f * pi; 
-
+			//handle the case of 2*pi and zero
+			if (isFluctuate) { //negate angle[i-s] if it's on the wrong side
+				angle_s = ellipses[i - s].angle > pi ? ellipses[i - s].angle - 2.f * pi : ellipses[i - s].angle;
+				angle__s = ellipses[i + s].angle > pi ? ellipses[i + s].angle - 2.f * pi : ellipses[i + s].angle;
+			}			
 			sum_angle += angle_s;
 			sum_angle += angle__s;
 		}
+
+		sum_lng += ellipses[i].longR;
+		sum_shrt += ellipses[i].shortR;
+		sum_angle += ( isFluctuate && ellipses[i].angle > pi ) ? ellipses[i].angle - 2.f * pi : ellipses[i].angle;
+
 		float span = 2.f * sigma + 1.f;
 		simple_ellipses[i].longR = sum_lng / span;
 		simple_ellipses[i].shortR = sum_shrt / span;
-		simple_ellipses[i].angle = sum_angle / span;
+		float avg_angle = sum_angle / span;
+		simple_ellipses[i].angle = avg_angle < 0 ? 2.f*pi + avg_angle : avg_angle;
+
+		//simple_ellipses[i].longR = ellipses[i].longR;
+		//simple_ellipses[i].shortR = ellipses[i].shortR;
+		//simple_ellipses[i].angle = ellipses[i].angle;
 
 	}
+	//debug only:
+	std::ofstream fout("compress_regularized.txt");
+	fout << ellipses.size() << '\n';
+	for (int i = 0; i < ellipses.size(); ++i) {
+		fout << simple_ellipses[i].longR << " " << simple_ellipses[i].shortR << " " << simple_ellipses[i].angle << '\n';
+	}
+	fout.close();
 }

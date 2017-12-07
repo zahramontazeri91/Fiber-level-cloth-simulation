@@ -394,3 +394,34 @@ void extractNormals()
 	}
 }
 #endif
+
+void shapeMatch_test() {
+
+	const char* yarnfile = "genYarn_frame1_compressed.txt"; //For simulated yarn
+	const char* curvefile = "genYarn_frame1_avg.txt";
+	const char* normfile = "genYarn_frame1_norms.txt";
+	std::vector<yarnIntersect2D> allPlaneIntersect;
+	CrossSection cs(yarnfile, curvefile, normfile, 2, 1480, 100, allPlaneIntersect);
+
+	Eigen::MatrixXf P = Eigen::MatrixXf::Random(2, 50);
+	Eigen::MatrixXf Q;
+	Eigen::Matrix2f R, S;
+	float t = 1.2;
+
+	R << cos(t), -sin(t),
+		sin(t), cos(t);
+	S << 2, 0,
+		0, 0.5;
+	Q = R*S*P;
+
+	std::cout << "reference: \n theta" << t << std::endl;
+	std::cout << "scale:\n" << S << std::endl << std::endl;
+
+
+	Eigen::Matrix2f rotation;
+	Eigen::Matrix2f scale;
+	cs.shapeMatch(Q, P, rotation, scale);
+
+	std::cout << "reference: \n theta" << atan2(rotation(1,0), rotation(0,0) ) << std::endl;
+	std::cout << "scale:\n" << scale << std::endl;
+}

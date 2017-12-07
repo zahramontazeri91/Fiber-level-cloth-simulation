@@ -62,10 +62,14 @@ public:
 		plane = m_planesList[i];
 	}
 	/* For 2D points gathered as an ellipse, return eigen values and eigen vectors in ellipse format */
+	void shapeMatch(const Eigen::MatrixXf &pnts_ref, const Eigen::MatrixXf &pnts_compress, Eigen::Matrix2f &rotation, Eigen::Matrix2f &scale);
+	void yarnShapeMatch(const yarnIntersect2D &pnts_ref, const yarnIntersect2D &pnts_compress, Ellipse &ellipse);
+	void yarnShapeMatches(const std::vector<yarnIntersect2D> &pnts_ref, const std::vector<yarnIntersect2D> &pnts_compress, std::vector<Ellipse> ellipses);
+	
 	//void fitEllipse(const yarnIntersect2D &pts, Ellipse &ellipse, vec2f &axis1_old, vec2f &axis1_new, const int plane_indx);
 	void fitEllipses(const std::vector<yarnIntersect2D> &allpts, std::vector<Ellipse> &ellipses, std::vector<bool> &isValid);
 	/* Regularize and then Parameterize the extracted ellipse parameters */
-	void regularizeEllipses(const std::vector<Ellipse> &ellipse, std::vector<Ellipse> &simple_ellipse);
+	void regularizeEllipses(const std::vector<Ellipse> &ellipse, std::vector<Ellipse> &simple_ellipse, const int sigma);
 	void parameterizeEllipses(const std::vector<Ellipse> &ellipses, std::vector<Ellipse> &simple_ellipses);
 	/* Get ellipse a, b and angle for each cross-section and write it to the file */
 	void extractCompressParam(const std::vector<yarnIntersect2D> &allPlaneIntersect, std::vector<Ellipse> &ellipses);
@@ -84,6 +88,8 @@ public:
 	void extractFiberVectors(const std::vector<yarnIntersect2D> &decompressPlaneIts, std::vector<plyItersect2D> &fiberCntrVector);
 	/*find the theta for fiber-centers rotating around the ply-center for each cross section*/
 	void fiberTwisting(const std::vector<yarnIntersect2D> &decompressPlaneIts, std::vector<float> &fiber_theta, const char *fiberTwistFile);
+
+	void optimizeEllipses();
 
 	//for debug:
 	/* constructor for procedural yarn (for debug use) */
