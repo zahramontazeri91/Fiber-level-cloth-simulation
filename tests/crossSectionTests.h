@@ -15,5 +15,6 @@ void ply_centers_test();
 void extractNormals();
 
 void shapeMatch_test();
+void yarnShapeMatch_test();
 #endif // !__CROSS_SECTION_TEST_H_
 

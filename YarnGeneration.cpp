@@ -70,7 +70,8 @@ int main(int argc, const char **argv) {
 
 	//extractNormals();
 
-	shapeMatch_test();
+	//shapeMatch_test();
+	yarnShapeMatch_test();
 #endif
 
 //	std::system("pause"); //add breakpoint instead

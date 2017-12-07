@@ -63,8 +63,8 @@ public:
 	}
 	/* For 2D points gathered as an ellipse, return eigen values and eigen vectors in ellipse format */
 	void shapeMatch(const Eigen::MatrixXf &pnts_ref, const Eigen::MatrixXf &pnts_compress, Eigen::Matrix2f &rotation, Eigen::Matrix2f &scale);
-	void yarnShapeMatch(const yarnIntersect2D &pnts_ref, const yarnIntersect2D &pnts_compress, Ellipse &ellipse);
-	void yarnShapeMatches(const std::vector<yarnIntersect2D> &pnts_ref, const std::vector<yarnIntersect2D> &pnts_compress, std::vector<Ellipse> ellipses);
+	void yarnShapeMatch(const yarnIntersect2D &pnts_trans, const yarnIntersect2D &pnts_ref, Ellipse &ellipse);
+	void yarnShapeMatches(const std::vector<yarnIntersect2D> &pnts_trans, const std::vector<yarnIntersect2D> &pnts_ref, std::vector<Ellipse> &ellipses);
 	
 	//void fitEllipse(const yarnIntersect2D &pts, Ellipse &ellipse, vec2f &axis1_old, vec2f &axis1_new, const int plane_indx);
 	void fitEllipses(const std::vector<yarnIntersect2D> &allpts, std::vector<Ellipse> &ellipses, std::vector<bool> &isValid);

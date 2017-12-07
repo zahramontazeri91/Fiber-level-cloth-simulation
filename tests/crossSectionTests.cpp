@@ -414,7 +414,7 @@ void shapeMatch_test() {
 		0, 0.5;
 	Q = R*S*P;
 
-	std::cout << "reference: \n theta" << t << std::endl;
+	std::cout << "reference: \n theta: " << t << std::endl;
 	std::cout << "scale:\n" << S << std::endl << std::endl;
 
 
@@ -422,6 +422,41 @@ void shapeMatch_test() {
 	Eigen::Matrix2f scale;
 	cs.shapeMatch(Q, P, rotation, scale);
 
-	std::cout << "reference: \n theta" << atan2(rotation(1,0), rotation(0,0) ) << std::endl;
+	std::cout << "reference: \n theta: " << atan2(rotation(1,0), rotation(0,0) ) << std::endl;
 	std::cout << "scale:\n" << scale << std::endl;
+}
+
+void yarnShapeMatch_test() {
+
+	const char* yarnfile = "genYarn_frame1_compressed.txt"; //For simulated yarn
+	const char* curvefile = "genYarn_frame1_avg.txt";
+	const char* normfile = "genYarn_frame1_norms.txt";
+	std::vector<yarnIntersect2D> pnts_trans;
+	CrossSection cs(yarnfile, curvefile, normfile, 2, 1480, 100, pnts_trans);
+
+	const char* yarnfile2 = "genYarn_frame1.txt"; //For simulated yarn
+	const char* curvefile2 = "genYarn_frame1_avg.txt";
+	const char* normfile2 = "genYarn_frame1_norms.txt";
+	std::vector<yarnIntersect2D> pnts_ref;
+	CrossSection cs2(yarnfile2, curvefile2, normfile2, 2, 1480, 100, pnts_ref);
+
+	//test yarnShapematch:
+	//Ellipse ellipse;
+	//cs.yarnShapeMatch(pnts_ref[60], pnts_ref[70], ellipse);
+	//std::cout << "reference: \n theta: " << ellipse.angle << std::endl;
+	//std::cout << "scale:\n" << ellipse.longR << " " << ellipse.shortR << std::endl;
+
+	//test yarnShapeMatches:
+	std::vector<Ellipse> ellipses;
+	cs.yarnShapeMatches(pnts_trans, pnts_ref, ellipses);
+
+	FILE *fout;
+	if (fopen_s(&fout, "compress_new.txt", "wt") == 0) {
+		fprintf_s(fout, "%d \n", ellipses.size());
+		for (int i = 0; i < ellipses.size(); ++i) {
+			fprintf_s(fout, "%.4f %.4f %.4f \n", ellipses[i].longR, ellipses[i].shortR, ellipses[i].angle);
+		}
+		fclose(fout);
+	}
+
 }

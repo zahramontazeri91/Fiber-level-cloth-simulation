@@ -34,8 +34,8 @@ avgCurve /= m
 #     print("%.6f %.6f %.6f" % (avgCurve[i, 0], avgCurve[i, 1], avgCurve[i, 2]))
 
 noise = SimplexNoise()
-#theta = np.linspace(0.0, 4.0*np.pi, n)
-theta = np.linspace(0.0,0.0, n)
+theta = np.linspace(0.0, 2.0*np.pi, n)
+#theta = np.linspace(0.0,0.0, n)
 R1 = np.linspace(1.25, 0.05, n)
 R2 = np.linspace(0.05, 1.15, n)
 

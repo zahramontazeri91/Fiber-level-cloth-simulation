@@ -161,17 +161,17 @@ bool CrossSection::allPlanesIntersections(std::vector<yarnIntersect> &itsLists) 
 	return false;
 }
 
-void CrossSection::shapeMatch(const Eigen::MatrixXf &P, const Eigen::MatrixXf &Q, Eigen::Matrix2f &rotation, Eigen::Matrix2f &scale) {
-	assert(P.cols() == Q.cols());
-	const int n = P.cols();
+void CrossSection::shapeMatch(const Eigen::MatrixXf &pnt_trans, const Eigen::MatrixXf &pnt_ref, Eigen::Matrix2f &rotation, Eigen::Matrix2f &scale) {
+	assert(pnt_trans.cols() == pnt_ref.cols());
+	const int n = pnt_trans.cols();
 	Eigen::Matrix2f Apq = Eigen::Matrix2f::Zero();
 	Eigen::Matrix2f Aqq_1 = Eigen::Matrix2f::Zero();
 	
-	Eigen::MatrixXf Qtrans = Q.transpose();
+	Eigen::MatrixXf Qtrans = pnt_ref.transpose();
 	
 	for (int i = 0; i < n; ++i) {
-		Apq += P.col(i) * Qtrans.row(i) / n;
-		Aqq_1 += Q.col(i) * Qtrans.row(i) / n;
+		Apq += pnt_trans.col(i) * Qtrans.row(i) / n;
+		Aqq_1 += pnt_ref.col(i) * Qtrans.row(i) / n;
 	}
 	Eigen::MatrixXf Aqq = Aqq_1.inverse();
 	
@@ -184,39 +184,59 @@ void CrossSection::shapeMatch(const Eigen::MatrixXf &P, const Eigen::MatrixXf &Q
 	rotation = U * V.transpose();
 }
 
-void CrossSection::yarnShapeMatch(const yarnIntersect2D &pnts_ref, const yarnIntersect2D &pnts_compress, Ellipse &ellipse) {
+void CrossSection::yarnShapeMatch(const yarnIntersect2D &pnts_trans, const yarnIntersect2D &pnts_ref, Ellipse &ellipse) {
 
 	//Find the total number of points for all plys
-	int sz_ref = 0, sz_compress = 0;
+	int sz_ref = 0, sz_trans = 0;
 	for (int p = 0; p < pnts_ref.size(); ++p)
 		sz_ref += pnts_ref[p].size();
-	for (int p = 0; p < pnts_compress.size(); ++p)
-		sz_compress += pnts_compress[p].size();
-	assert(sz_ref == sz_compress);
+	for (int p = 0; p < pnts_trans.size(); ++p)
+		sz_trans += pnts_trans[p].size();
+	assert(sz_ref == sz_trans);
 
-	Eigen::MatrixXf all_ref(sz_ref, 2);
-	int c = sz_ref;
+	
+
+	Eigen::MatrixXf all_ref(2, sz_ref);
+	int c = 0;
 	for (int p = 0; p < pnts_ref.size(); ++p) {
 		for (int i = 0; i < pnts_ref[p].size(); ++i) {
-			all_ref(c, 0) = pnts_ref[p][i].x;
-			all_ref(c, 1) = pnts_ref[p][i].y;
-			--c;
+			all_ref(0, c) = pnts_ref[p][i].x;
+			all_ref(1, c) = pnts_ref[p][i].y;
+			++c;
 		}
 	}
 
-	Eigen::MatrixXf all_compress(sz_compress, 2);
-	c = sz_compress;
-	for (int p = 0; p < pnts_compress.size(); ++p) {
-		for (int i = 0; i < pnts_compress[p].size(); ++i) {
-			all_compress(c, 0) = pnts_compress[p][i].x;
-			all_compress(c, 1) = pnts_compress[p][i].y;
-			--c;
+	Eigen::MatrixXf all_trans(2, sz_trans);
+	c = 0;
+	for (int p = 0; p < pnts_trans.size(); ++p) {
+		for (int i = 0; i < pnts_trans[p].size(); ++i) {
+			all_trans(0, c) = pnts_trans[p][i].x;
+			all_trans(1, c) = pnts_trans[p][i].y;
+			++c;
 		}
 	}
 
+	Eigen::Matrix2f rot;
+	Eigen::Matrix2f scl;
+	shapeMatch(all_trans, all_ref, rot, scl);
+
+	ellipse.angle = atan2(rot(1, 0), rot(0, 0));
+	ellipse.longR = scl(0, 0);
+	ellipse.shortR = scl(1, 1);
 }
 
-void CrossSection::yarnShapeMatches(const std::vector<yarnIntersect2D> &pnts_ref, const std::vector<yarnIntersect2D> &pnts_compress, std::vector<Ellipse> ellipses) {
+void CrossSection::yarnShapeMatches(const std::vector<yarnIntersect2D> &pnts_trans, const std::vector<yarnIntersect2D> &pnts_ref, std::vector<Ellipse> &ellipses) {
+	assert(pnts_trans.size() == pnts_trans.size());
+	const int n = pnts_trans.size();
+	ellipses.resize(n);
+
+	for (int i = 0; i < n; ++i) {
+		Ellipse ellipse;
+		yarnShapeMatch(pnts_trans[i], pnts_ref[i], ellipse);
+
+		ellipses[i] = ellipse;
+	}
+
 }
 
 void CrossSection::allPlyCenters(std::vector<std::vector<vec3f>> &plyCenters, std::vector<yarnIntersect> &itsLists) {
