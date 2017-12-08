@@ -62,9 +62,9 @@ public:
 		plane = m_planesList[i];
 	}
 	/* For 2D points gathered as an ellipse, return eigen values and eigen vectors in ellipse format */
-	void shapeMatch(const Eigen::MatrixXf &pnts_ref, const Eigen::MatrixXf &pnts_compress, Eigen::Matrix2f &rotation, Eigen::Matrix2f &scale);
-	void yarnShapeMatch(const yarnIntersect2D &pnts_trans, const yarnIntersect2D &pnts_ref, Ellipse &ellipse);
-	void yarnShapeMatches(const std::vector<yarnIntersect2D> &pnts_trans, const std::vector<yarnIntersect2D> &pnts_ref, std::vector<Ellipse> &ellipses);
+	void shapeMatch(const Eigen::MatrixXf &pnts_ref, const Eigen::MatrixXf &pnts_compress, Ellipse &ellipse, float &theta_R);
+	void yarnShapeMatch(const yarnIntersect2D &pnts_trans, const yarnIntersect2D &pnts_ref, Ellipse &ellipse, float &theta_R);
+	void yarnShapeMatches(const std::vector<yarnIntersect2D> &pnts_trans, const std::vector<yarnIntersect2D> &pnts_ref, std::vector<Ellipse> &ellipses, std::vector<float> &all_theta_R);
 	
 	//void fitEllipse(const yarnIntersect2D &pts, Ellipse &ellipse, vec2f &axis1_old, vec2f &axis1_new, const int plane_indx);
 	void fitEllipses(const std::vector<yarnIntersect2D> &allpts, std::vector<Ellipse> &ellipses, std::vector<bool> &isValid);
@@ -91,7 +91,10 @@ public:
 
 	/* optimization related functions */
 	void optimizeEllipses();
-
+	void preComputeEllipses(const std::vector<Ellipse> &ellipses, Eigen::MatrixXf &R1, Eigen::MatrixXf &R2, Eigen::MatrixXf &theta);
+	void greedyOpt(const Eigen::MatrixXf &R1, const Eigen::MatrixXf &R2, const Eigen::MatrixXf &theta, const std::vector<bool> &isValid, std::vector<Ellipse> &validEllipses);
+	void dynamicProgramming(const std::vector<bool> &isValid, const std::vector<Eigen::Matrix4f> &cost, Eigen::MatrixXf &totalCost, Eigen::MatrixXf &preConfig);
+	void costFunction(const Eigen::MatrixXf &R1, const Eigen::MatrixXf &R2, const Eigen::MatrixXf &theta, const std::vector<bool> &isValid, std::vector<Eigen::Matrix4f> &cost);
 	//for debug:
 	/* constructor for procedural yarn (for debug use) */
 	//CrossSection(const Fiber::Yarn &yarn);

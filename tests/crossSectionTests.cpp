@@ -395,155 +395,288 @@ void extractNormals()
 }
 #endif
 
-void shapeMatch_test() {
-
-	const char* yarnfile = "genYarn_frame1_compressed.txt"; //For simulated yarn
-	const char* curvefile = "genYarn_frame1_avg.txt";
-	const char* normfile = "genYarn_frame1_norms.txt";
-	std::vector<yarnIntersect2D> allPlaneIntersect;
-	CrossSection cs(yarnfile, curvefile, normfile, 2, 1480, 100, allPlaneIntersect);
-
-	Eigen::MatrixXf P = Eigen::MatrixXf::Random(2, 50);
-	Eigen::MatrixXf Q;
-	Eigen::Matrix2f R, S;
-	float t = 1.2;
-
-	R << cos(t), -sin(t),
-		sin(t), cos(t);
-	S << 2, 0,
-		0, 0.5;
-	Q = R*S*P;
-
-	std::cout << "reference: \n theta: " << t << std::endl;
-	std::cout << "scale:\n" << S << std::endl << std::endl;
-
-
-	Eigen::Matrix2f rotation;
-	Eigen::Matrix2f scale;
-	cs.shapeMatch(Q, P, rotation, scale);
-
-	std::cout << "reference: \n theta: " << atan2(rotation(1,0), rotation(0,0) ) << std::endl;
-	std::cout << "scale:\n" << scale << std::endl;
-}
+//void shapeMatch_test() {
+//
+//	const char* yarnfile = "genYarn_frame1_compressed.txt"; //For simulated yarn
+//	const char* curvefile = "genYarn_frame1_avg.txt";
+//	const char* normfile = "genYarn_frame1_norms.txt";
+//	std::vector<yarnIntersect2D> allPlaneIntersect;
+//	CrossSection cs(yarnfile, curvefile, normfile, 2, 1480, 100, allPlaneIntersect);
+//
+//	Eigen::MatrixXf P = Eigen::MatrixXf::Random(2, 50);
+//	Eigen::MatrixXf Q;
+//	Eigen::Matrix2f R, S;
+//	float t = 1.2;
+//
+//	R << cos(t), -sin(t),
+//		sin(t), cos(t);
+//	S << 2, 0,
+//		0, 0.5;
+//	Q = R*S*P;
+//
+//	std::cout << "reference: \n theta: " << t << std::endl;
+//	std::cout << "scale:\n" << S << std::endl << std::endl;
+//
+//
+//	Eigen::Matrix2f rotation;
+//	Eigen::Matrix2f scale;
+//	cs.shapeMatch(Q, P, rotation, scale);
+//
+//	std::cout << "reference: \n theta: " << atan2(rotation(1,0), rotation(0,0) ) << std::endl;
+//	std::cout << "scale:\n" << scale << std::endl;
+//}
 
 void yarnShapeMatch_test() {
 
-	const char* yarnfile = "genYarn_frame1_compressed.txt"; //For simulated yarn
+	//const char* yarnfile = "frame00001_compressed.txt";
+	const char* yarnfile = "genYarn_frame1_compressed.txt";
 	const char* curvefile = "genYarn_frame1_avg.txt";
 	const char* normfile = "genYarn_frame1_norms.txt";
 	std::vector<yarnIntersect2D> pnts_trans;
 	CrossSection cs(yarnfile, curvefile, normfile, 2, 1480, 100, pnts_trans);
 
-	const char* yarnfile2 = "genYarn_frame1.txt"; //For simulated yarn
+	//const char* yarnfile2 = "frame00001_scaled.txt";
+	const char* yarnfile2 = "genYarn_frame1.txt"; 
 	const char* curvefile2 = "genYarn_frame1_avg.txt";
 	const char* normfile2 = "genYarn_frame1_norms.txt";
 	std::vector<yarnIntersect2D> pnts_ref;
 	CrossSection cs2(yarnfile2, curvefile2, normfile2, 2, 1480, 100, pnts_ref);
 
-	//test shapematch
-	const int n = pnts_trans[60][0].size();
-	Eigen::MatrixXf P (2, n);
-	Eigen::MatrixXf Q(2, n);
-	Eigen::Matrix2f rotation;
-	Eigen::Matrix2f scale;
-	for (int i = 0; i < n; ++i) {
-		P(0, i) = pnts_trans[60][0][i].x;
-		P(1, i) = pnts_trans[60][0][i].y;
-		Q(0, i) = pnts_ref[60][0][i].x;
-		Q(1, i) = pnts_ref[60][0][i].y;
+	//*********************test shapematch
+	//cout << "test ShapeMatch\n ";
+	//const int n = pnts_trans[60][0].size();
+	//Eigen::MatrixXf P (2, n);
+	//Eigen::MatrixXf Q(2, n);
+	//Eigen::Matrix2f rotation;
+	//Eigen::Matrix2f scale;
+	//for (int i = 0; i < n; ++i) {
+	//	P(0, i) = pnts_trans[60][0][i].x;
+	//	P(1, i) = pnts_trans[60][0][i].y;
+	//	Q(0, i) = pnts_ref[60][0][i].x;
+	//	Q(1, i) = pnts_ref[60][0][i].y;
+	//}
+	//Eigen::Matrix2f R, S;
+	//float t = 1.2;
+	//R << cos(t), -sin(t),
+	//	sin(t), cos(t);
+	//S << 2, 0,
+	//	0, 0.5;
+	////P = R*S*R.transpose()*Q;
+	//float theta_R;
+	//Ellipse ellipse;
+	//cs.shapeMatch(P, Q, ellipse, theta_R);
+
+	//std::cout << "reference: \n theta: " << t << std::endl;
+	//std::cout << "scale:\n" << S << std::endl << std::endl;
+
+	//std::cout << "result: \n theta: " << theta_R << std::endl;
+	//std::cout << "scale:\n" << ellipse.longR << " "<< ellipse.shortR << " " << ellipse.angle << std::endl;
+
+	//FILE *fout2;
+	////pnts_trans = pnts_ref;
+	//// write the plycenters
+	//if (fopen_s(&fout2, "../data/allCrossSection2D_new.txt", "wt") == 0) {
+	//	fprintf_s(fout2, "plane_num: %d \n", 1);
+	//	fprintf_s(fout2, "ply_num: %d \n", 1);
+	//	fprintf_s(fout2, "\n");
+
+	//	fprintf_s(fout2, "ply_fiber_num: %d \n", n-1); //first fiber is reserved as ply-center
+	//	vec2f plyCenter(0.f);
+	//	plyCenter = vec2f(P(0,0), P(1,0));
+	//	fprintf_s(fout2, "plyCenter: %.4lf %.4lf \n", plyCenter.x, plyCenter.y);
+
+	//	for (int j = 1; j < n; ++j) { //number of intersections
+	//		fprintf_s(fout2, "%.4f %.4f \n", P(0, j), P(1, j));
+	//	}
+	//	fprintf_s(fout2, "\n");
+	//	fclose(fout2);
+	//}
+
+	//************test yarnShapematch:
+	//cout << "test yarnShapeMatch\n "
+	//cs.yarnShapeMatch(pnts_trans[60], pnts_ref[60], scale, theta1, theta2);
+	//std::cout << "reference: \n theta: " << theta1 << theta2 << std::endl;
+	//std::cout << "scale:\n" << scale << std::endl;
+
+	//************test yarnShapeMatches:
+	cout << "test yarnShapeMatches\n ";
+	std::vector<Ellipse> ellipses;
+	std::vector<float> all_theta_R;
+	cs.yarnShapeMatches(pnts_trans, pnts_ref, ellipses, all_theta_R);
+
+	/****** greedy *********/
+	const int n = ellipses.size();
+	std::vector<bool> isValid(n, true);
+
+	//2. precompute R1\R2\theta and isValid
+	Eigen::MatrixXf R1(n, 4);
+	Eigen::MatrixXf R2(n, 4);
+	Eigen::MatrixXf theta(n, 4);
+	cs.preComputeEllipses(ellipses, R1, R2, theta);
+
+	//3. find optimal ellipse for valid ones
+	//std::vector<Ellipse> validEllipses;
+	//cs.greedyOpt(R1, R2, theta, isValid, validEllipses);
+
+	/************ dynamic programming *****/
+	//2. precompute cost function 
+	std::vector<Eigen::Matrix4f> cost;
+	cs.costFunction(R1, R2, theta, isValid, cost);
+
+	//3. dynamic programming
+	Eigen::MatrixXf totalCost(n, 4); 
+	Eigen::MatrixXf preConfig(n, 4);
+	cs.dynamicProgramming(isValid, cost, totalCost, preConfig);
+
+	//4.retreive solution for valid cross-sections
+	std::vector<Ellipse> validEllipses(n);
+	std::vector<int> solutions(n);
+	std::vector<float> cost_n{ totalCost(n-1,0), totalCost(n-1,1), totalCost(n-1,2), totalCost(n-1,3) };
+	int opt_config = std::min_element(cost_n.begin(), cost_n.end()) - cost_n.begin();
+	Ellipse ell;
+	int i = n - 1;
+	int ip = 0;
+	while(i){
+
+		solutions[i] = opt_config;
+		ell.longR = R1(i, opt_config);
+		ell.shortR = R2(i, opt_config);
+		ell.angle = theta(i, opt_config);
+		validEllipses[i] = ell;
+
+		opt_config = preConfig(i, opt_config);
+		if (isValid[i]) {
+			ip = i - 1;
+			while (!isValid[ip])
+				ip = ip - 1;
+			i = ip;
+		}
+		else
+			i = i - 1;
 	}
-	Eigen::Matrix2f R, S;
-	float t = 1.2;
-	R << cos(t), -sin(t),
-		sin(t), cos(t);
-	S << 2, 0,
-		0, 0.5;
-	//P = R*S*Q;
-	cs.shapeMatch(P, Q, rotation, scale);
-
-	std::cout << "reference: \n theta: " << t << std::endl;
-	std::cout << "scale:\n" << S << std::endl << std::endl;
-
-	std::cout << "result: \n theta: " << atan2(rotation(1, 0), rotation(0, 0)) << std::endl;
-	std::cout << "scale:\n" << scale << std::endl;
+	ell.longR = R1(0, opt_config);
+	ell.shortR = R2(0, opt_config);
+	ell.angle = theta(0, opt_config);
+	validEllipses[0] = ell;
+	/**************/
+	FILE *fout;
+	if (fopen_s(&fout, "compress_new.txt", "wt") == 0) {
+		fprintf_s(fout, "%d \n", ellipses.size());
+		for (int i = 0; i < ellipses.size(); ++i) {
+			fprintf_s(fout, "%.4f %.4f %.4f %.4f \n", R1(i,0), R2(i,0), validEllipses[i].angle, all_theta_R[i]);
+			//fprintf_s(fout, "%.4f %.4f %.4f \n", validEllipses[i].longR, validEllipses[i].shortR, validEllipses[i].angle);
+		}
+		fclose(fout);
+	}
+	FILE *fout1;
+	//write ellipses to file for testing
+	if (fopen_s(&fout1, "../data/orientation_new.txt", "wt") == 0) {
+		const int ignorPlanes = 0.1 * ellipses.size(); // crop the first and last 10% of the yarn
+		for (int i = ignorPlanes; i < ellipses.size() - ignorPlanes; ++i) {
+			fprintf_s(fout1, "%.4f %.4f \n", 0.f, 0.f);
+			fprintf_s(fout1, "%.4f %.4f %.4f \n", ellipses[i].longR, ellipses[i].shortR, ellipses[i].angle);
+			fprintf_s(fout1, "\n");
+		}
+		fclose(fout1);
+	}
 
 	FILE *fout2;
 	//pnts_trans = pnts_ref;
 	// write the plycenters
 	if (fopen_s(&fout2, "../data/allCrossSection2D_new.txt", "wt") == 0) {
-		fprintf_s(fout2, "plane_num: %d \n", 1);
-		fprintf_s(fout2, "ply_num: %d \n", 1);
+		const int ignorPlanes = 0.1 * pnts_trans.size(); // crop the first and last 10% of the yarn
+		/* in case of visualizing ellipses and points together, make sure they are in same amount!!! */
+		fprintf_s(fout2, "plane_num: %d \n", pnts_trans.size() - 2 * ignorPlanes);
+		fprintf_s(fout2, "ply_num: %d \n", pnts_trans[0].size());
 		fprintf_s(fout2, "\n");
 
-		fprintf_s(fout2, "ply_fiber_num: %d \n", n-1); //first fiber is reserved as ply-center
-		vec2f plyCenter(0.f);
-		plyCenter = vec2f(Q(0,0), Q(1,0));
-		fprintf_s(fout2, "plyCenter: %.4lf %.4lf \n", plyCenter.x, plyCenter.y);
+		for (int i = ignorPlanes; i < pnts_trans.size() - ignorPlanes; ++i) { //number of planes
+			for (int p = 0; p < pnts_trans[i].size(); ++p) { //number of plys
+				fprintf_s(fout2, "ply_fiber_num: %d \n", pnts_trans[i][p].size());
+				vec2f plyCenter(0.f);
+				for (int j = 0; j < pnts_trans[i][p].size(); ++j) { //number of intersections
+					plyCenter += pnts_trans[i][p][j];
+				}
+				plyCenter /= pnts_trans[i][p].size();
+				fprintf_s(fout2, "plyCenter: %.4lf %.4lf \n", plyCenter.x, plyCenter.y);
 
-		for (int j = 1; j < n; ++j) { //number of intersections
-			fprintf_s(fout2, "%.4f %.4f \n", Q(0, j), Q(1, j));
+				for (int j = 0; j < pnts_trans[i][p].size(); ++j) { //number of intersections
+					fprintf_s(fout2, "%.4f %.4f \n", pnts_trans[i][p][j].x, pnts_trans[i][p][j].y);
+				}
+			}
+			fprintf_s(fout2, "\n");
 		}
-		fprintf_s(fout2, "\n");
 		fclose(fout2);
 	}
+
+}
+
+void yarnShapeMatch_test_SVD() {
+
+	//const char* yarnfile = "genYarn_frame1_compressed.txt"; //For simulated yarn
+	//const char* curvefile = "genYarn_frame1_avg.txt";
+	//const char* normfile = "genYarn_frame1_norms.txt";
+	//std::vector<yarnIntersect2D> pnts_trans;
+	//CrossSection cs(yarnfile, curvefile, normfile, 2, 1480, 100, pnts_trans);
+
+	//const char* yarnfile2 = "genYarn_frame1.txt"; //For simulated yarn
+	//const char* curvefile2 = "genYarn_frame1_avg.txt";
+	//const char* normfile2 = "genYarn_frame1_norms.txt";
+	//std::vector<yarnIntersect2D> pnts_ref;
+	//CrossSection cs2(yarnfile2, curvefile2, normfile2, 2, 1480, 100, pnts_ref);
+
+	////test shapematch
+	//const int n = pnts_trans[60][0].size();
+	//Eigen::MatrixXf P(2, n);
+	//Eigen::MatrixXf Q(2, n);
+	//for (int i = 0; i < n; ++i) {
+	//	//P(0, i) = pnts_trans[60][0][i].x;
+	//	//P(1, i) = pnts_trans[60][0][i].y;
+	//	Q(0, i) = pnts_ref[60][0][i].x;
+	//	Q(1, i) = pnts_ref[60][0][i].y;
+	//}
+	//Eigen::Matrix2f R, S;
+	//float t = 1.2;
+	//R << cos(t), -sin(t),
+	//	sin(t), cos(t);
+	//S << 2, 0,
+	//	0, 0.5;
+	//P = R*S*Q;
+	//float rotU;
+	//Eigen::Matrix2f scale;
+	//float theta1, theta2;
+	//cs.shapeMatch(P, Q, scale, theta1, theta2);
+
+	//std::cout << "reference: \n theta: " << t << std::endl;
+	//std::cout << "scale:\n" << S << std::endl << std::endl;
+
+	//std::cout << "reference: \n theta: " << theta1 << " " << theta2 << std::endl;
+	//std::cout << "scale:\n" << scale << std::endl;
+
+	//FILE *fout2;
+	////pnts_trans = pnts_ref;
+	//// write the plycenters
+	//if (fopen_s(&fout2, "../data/allCrossSection2D_new.txt", "wt") == 0) {
+	//	fprintf_s(fout2, "plane_num: %d \n", 1);
+	//	fprintf_s(fout2, "ply_num: %d \n", 1);
+	//	fprintf_s(fout2, "\n");
+
+	//	fprintf_s(fout2, "ply_fiber_num: %d \n", n - 1); //first fiber is reserved as ply-center
+	//	vec2f plyCenter(0.f);
+	//	plyCenter = vec2f(P(0, 0), P(1, 0));
+	//	fprintf_s(fout2, "plyCenter: %.4lf %.4lf \n", plyCenter.x, plyCenter.y);
+
+	//	for (int j = 1; j < n; ++j) { //number of intersections
+	//		fprintf_s(fout2, "%.4f %.4f \n", P(0, j), P(1, j));
+	//	}
+	//	fprintf_s(fout2, "\n");
+	//	fclose(fout2);
+	//}
 
 	//************test yarnShapematch:
 	//Ellipse ellipse;
 	//cs.yarnShapeMatch(pnts_trans[60], pnts_ref[60], ellipse);
 	//std::cout << "reference: \n theta: " << ellipse.angle << std::endl;
 	//std::cout << "scale:\n" << ellipse.longR << " " << ellipse.shortR << std::endl;
-
-	//************test yarnShapeMatches:
-	//std::vector<Ellipse> ellipses;
-	//cs.yarnShapeMatches(pnts_trans, pnts_ref, ellipses);
-
-	//FILE *fout;
-	//if (fopen_s(&fout, "compress_new.txt", "wt") == 0) {
-	//	fprintf_s(fout, "%d \n", ellipses.size());
-	//	for (int i = 0; i < ellipses.size(); ++i) {
-	//		fprintf_s(fout, "%.4f %.4f %.4f \n", ellipses[i].longR, ellipses[i].shortR, ellipses[i].angle);
-	//	}
-	//	fclose(fout);
-	//}
-	//FILE *fout1;
-	////write ellipses to file for testing
-	//if (fopen_s(&fout1, "../data/orientation_new.txt", "wt") == 0) {
-	//	const int ignorPlanes = 0.1 * ellipses.size(); // crop the first and last 10% of the yarn
-	//	for (int i = ignorPlanes; i < ellipses.size() - ignorPlanes; ++i) {
-	//		fprintf_s(fout1, "%.4f %.4f \n", 0.f, 0.f);
-	//		fprintf_s(fout1, "%.4f %.4f %.4f \n", ellipses[i].longR, ellipses[i].shortR, ellipses[i].angle);
-	//		fprintf_s(fout1, "\n");
-	//	}
-	//	fclose(fout1);
-	//}
-
-	//FILE *fout2;
-	////pnts_trans = pnts_ref;
-	//// write the plycenters
-	//if (fopen_s(&fout2, "../data/allCrossSection2D_new.txt", "wt") == 0) {
-	//	const int ignorPlanes = 0.1 * pnts_trans.size(); // crop the first and last 10% of the yarn
-	//	/* in case of visualizing ellipses and points together, make sure they are in same amount!!! */
-	//	fprintf_s(fout2, "plane_num: %d \n", pnts_trans.size() - 2 * ignorPlanes);
-	//	fprintf_s(fout2, "ply_num: %d \n", pnts_trans[0].size());
-	//	fprintf_s(fout2, "\n");
-
-	//	for (int i = ignorPlanes; i < pnts_trans.size() - ignorPlanes; ++i) { //number of planes
-	//		for (int p = 0; p < pnts_trans[i].size(); ++p) { //number of plys
-	//			fprintf_s(fout2, "ply_fiber_num: %d \n", pnts_trans[i][p].size());
-	//			vec2f plyCenter(0.f);
-	//			for (int j = 0; j < pnts_trans[i][p].size(); ++j) { //number of intersections
-	//				plyCenter += pnts_trans[i][p][j];
-	//			}
-	//			plyCenter /= pnts_trans[i][p].size();
-	//			fprintf_s(fout2, "plyCenter: %.4lf %.4lf \n", plyCenter.x, plyCenter.y);
-
-	//			for (int j = 0; j < pnts_trans[i][p].size(); ++j) { //number of intersections
-	//				fprintf_s(fout2, "%.4f %.4f \n", pnts_trans[i][p][j].x, pnts_trans[i][p][j].y);
-	//			}
-	//		}
-	//		fprintf_s(fout2, "\n");
-	//	}
-	//	fclose(fout2);
-	//}
 
 }

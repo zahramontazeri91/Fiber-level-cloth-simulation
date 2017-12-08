@@ -18,6 +18,7 @@ fig, ax = plt.subplots(figsize=(15,5))
 lng = []
 shrt = []
 theta = []
+rot = []
 with open('../compress_new.txt', 'r') as fin:
     N = int(fin.readline())
     for i in range (0,N):
@@ -25,19 +26,20 @@ with open('../compress_new.txt', 'r') as fin:
          lng.append(float(compress[0]))
          shrt.append(float(compress[1]))
          theta.append(float(compress[2]))
+         rot.append(float(compress[3]))
  
 ind = np.arange(N)    
 #ax.plot([200,200], [0, 0.06], color='black') 
 #ax.plot([1200,1200], [0, 0.06], color='black') 
 #rects = ax.plot(ind, lng, color='r')
 #rects = ax.plot(ind, shrt, color='b')
-##plt.ylim(0,.1)
 #plt.savefig("../../data/vis_crossSections/ellipseShape.png")
 
             
 ax.plot([200,200], [0, 3], color='black') 
 ax.plot([1200,1200], [0, 3], color='black') 
 rects = ax.plot(ind, theta, color='g')
+rects = ax.plot(ind, rot, color='y')
 plt.savefig("../../data/vis_crossSections/ellipseTheta.png")
 
 plt.show()

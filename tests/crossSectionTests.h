@@ -16,5 +16,7 @@ void extractNormals();
 
 void shapeMatch_test();
 void yarnShapeMatch_test();
+void yarnShapeMatch_test_SVD();
+
 #endif // !__CROSS_SECTION_TEST_H_
 
