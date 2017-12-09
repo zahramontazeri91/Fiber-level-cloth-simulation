@@ -35,9 +35,9 @@ avgCurve /= m
 
 noise = SimplexNoise()
 theta = np.linspace(0.0, 4.0*np.pi, n)
-#theta = np.linspace(0.0,0.0, n)
-R1 = np.linspace(1.25, 0.05, n)
-R2 = np.linspace(0.05, 1.15, n)
+thetaR = np.linspace(0.0, -2.0*np.pi, n)
+R1 = np.linspace(1.25, 0.75, n)
+R2 = np.linspace(0.75, 1.25, n)
 
 for i in range(0, n):
     offset = 0.5*noise.noise2(0.75*theta[i], 0.0)
@@ -49,11 +49,8 @@ for i in range(0, n):
     offset = 0.1*noise.noise2(5.0*R2[i], 20.0)
     R2[i] += offset
 
-# plt.plot(theta/np.pi)
-# plt.plot(R1)
-# plt.plot(R2)
-# plt.tight_layout()
-# plt.show()
+    offset = noise.noise2(0.5*thetaR[i], 0.0)
+    thetaR[i] += offset
 
 with open("../compress_info.txt", "w") as fout:
     fout.write(str(n) + "\n")
@@ -69,10 +66,15 @@ for i in range(0, m):
         axisY = np.array([-np.sin(theta[j]), np.cos(theta[j]), 0.0])
         x = np.dot(offset, axisX)*R1[j]
         y = np.dot(offset, axisY)*R2[j]
-        curves[i][j] = avgCurve[j] + x*axisX + y*axisY
+        offset = x*axisX + y*axisY
+
+        rot = np.array([[np.cos(thetaR[j]), -np.sin(thetaR[j])], [np.sin(thetaR[j]), np.cos(thetaR[j])]])
+        offset[0 : 2] = np.reshape(rot.dot([[offset[0]], [offset[1]]]), 2)
+
+        curves[i][j] = avgCurve[j] + offset
 
 
-with open("../genYarn_frame1_compressed.txt", "w") as fout:
+with open("../genYarn_frame1_compressed_R.txt", "w") as fout:
     fout.write(str(m) + "\n")
     for i in range(0, m):
         fout.write(str(n) + "\n")

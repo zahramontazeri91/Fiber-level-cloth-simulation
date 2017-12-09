@@ -199,14 +199,14 @@ void CrossSection::shapeMatch(const Eigen::MatrixXf &pnt_trans, const Eigen::Mat
 	ellipse.shortR = std::min(sigma(0, 0), sigma(1, 1));
 	//Make V reflection free (if det(V) is negative)
 	Eigen::Matrix2f m;
-	m << -1, 0, 0, 1;
+	m << 1, 0, 0, -1;
 	if (V.determinant() < 0)
 		V = V*m;
-	ellipse.angle = atan2(V.transpose()(1, 0), V.transpose()(0, 0));
+	ellipse.angle = atan2(V(1, 0), V(0, 0));
 	ellipse.angle = ellipse.angle < 0 ? ellipse.angle + 2.f*pi : ellipse.angle;
 
 	theta_R = atan2(R(1, 0), R(0, 0));
-
+	theta_R = theta_R < 0 ? theta_R + 2.f*pi : theta_R;
 }
 
 void CrossSection::yarnShapeMatch(const yarnIntersect2D &pnts_trans, const yarnIntersect2D &pnts_ref, Ellipse &ellipse, float &theta_R) {
@@ -901,6 +901,39 @@ void CrossSection::extractCompressParam(const std::vector<yarnIntersect2D> &allP
 	std::cout << "Compression parameters for each cross-sections are written to the file! \n";
 }
 
+void CrossSection::retreiveSol(const Eigen::MatrixXf &R1, const Eigen::MatrixXf &R2, const Eigen::MatrixXf &theta, const Eigen::MatrixXf &totalCost, 
+	const Eigen::MatrixXf &preConfig, const std::vector<bool> &isValid, std::vector<Ellipse> &validEllipses) {
+	const int n = isValid.size();
+	validEllipses.resize(n);
+	std::vector<int> solutions(n);
+	std::vector<float> cost_n{ totalCost(n-1,0), totalCost(n-1,1), totalCost(n-1,2), totalCost(n-1,3) };
+	int opt_config = std::min_element(cost_n.begin(), cost_n.end()) - cost_n.begin();
+	Ellipse ell;
+	int i = n - 1;
+	int ip = 0;
+	while(i){
+
+		solutions[i] = opt_config;
+		ell.longR = R1(i, opt_config);
+		ell.shortR = R2(i, opt_config);
+		ell.angle = theta(i, opt_config);
+		validEllipses[i] = ell;
+
+		opt_config = preConfig(i, opt_config);
+		if (isValid[i]) {
+			ip = i - 1;
+			while (!isValid[ip])
+				ip = ip - 1;
+			i = ip;
+		}
+		else
+			i = i - 1;
+	}
+	ell.longR = R1(0, opt_config);
+	ell.shortR = R2(0, opt_config);
+	ell.angle = theta(0, opt_config);
+	validEllipses[0] = ell;
+}
 void CrossSection::optimizeEllipses() {
 	/****************************************************/
 
