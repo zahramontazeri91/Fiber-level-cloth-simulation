@@ -76,10 +76,10 @@ if __name__ == "__main__":
     useTranslation = 1
     # useTranslation = 0
 
-    baseName = "../frame00001"
-#    baseName = "../genYarn_frame1"
+    # baseName = "frame00001"
+    baseName = "genYarn_frame1"
 
-    data0 = readData(baseName + "_scaled.txt")
+    data0 = readData(baseName + ".txt")
     data1 = readData(baseName + "_compressed.txt")
     assert data0.shape == data1.shape
     m = data0.shape[1]

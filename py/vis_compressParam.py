@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import math
 
 
-fig, ax = plt.subplots(2, sharex=True, figsize=(15,10))
+
 
 lng = []
 shrt = []
@@ -30,19 +30,27 @@ with open('../compress_new.txt', 'r') as fin:
  
 ind = np.arange(N)  
 
-  
-ax[0].plot([200,200], [0, 0.06], color='black') 
-ax[0].plot([1200,1200], [0, 0.06], color='black') 
-ax[0].set_ylim([-0.2, 2.5])
-rects = ax[0].plot(ind, lng, color='r')
-rects = ax[0].plot(ind, shrt, color='b')
+#f, axs = plt.subplots(2,1,figsize=(15,15))
+#ax = plt.subplot(1,2,1)
+plt.figure(figsize=(15,10))
 
-            
-ax[1].plot([200,200], [0, 3], color='black') 
-ax[1].plot([1200,1200], [0, 3], color='black') 
-rects = ax[1].plot(ind, theta, color='g')
-rects = ax[1].plot(ind, rot, color='y')
+plt.subplot(211)
+plt.plot([200,200], [0, 0.06], color='black') 
+plt.plot([1200,1200], [0, 0.06], color='black') 
+plt.ylim(-0.2, 2.5)
+plt.plot(ind, lng, color='r', label='Sx')
+plt.plot(ind, shrt, color='b', label='Sx')
+plt.legend()
+plt.title('Simulated data frame 29')
+          
+plt.subplot(212)         
+plt.plot([200,200], [0, 3], color='black') 
+plt.plot([1200,1200], [0, 3], color='black') 
+plt.plot(ind, rot, color='y', label=r'$\theta_R$')
+plt.plot(ind, theta, color='g', label=r'$\theta_S$')
+plt.legend()
+
+
 
 plt.savefig("../../data/vis_crossSections/shapeMatch.png")
-
 plt.show()

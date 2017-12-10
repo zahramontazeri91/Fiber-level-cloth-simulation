@@ -23,6 +23,7 @@ void CrossSection::init(const char* yarnfile, const int ply_num, const char* cur
 	m_yarn.build(yarnfile, ply_num);
 	m_curve.init(curvefile, seg_subdiv);
 	std::vector<yarnIntersect> itsLists;
+
 	buildPlanes(num_planes, itsLists);
 
 	PlanesIntersections2D(itsLists, allPlaneIntersect);
@@ -88,11 +89,11 @@ bool CrossSection::linePlaneIntersection(const vec3f &start, const vec3f &end, c
 	if (std::abs(denom) > EPS) {
 		vec3f cntrStart = plane.point - start;
 		float t = dot(cntrStart, plane.n) / denom;
-		if (t >= EPS && t <= t_end) {
+		if (t >= 0.f && t <= t_end) {
 			its = start + dir*t;
 
 			assert(length(its - plane.point) > 1e-6 && "intersection exactly at the plane.point"); //TODO: handle this corner case later 
-			//assert(std::abs(dot(its - plane.point, plane.n)) < 1e-6);
+			assert(std::abs(dot(its - plane.point, plane.n)) < 1e-6);
 			return true;
 		}
 	}
@@ -134,10 +135,11 @@ bool CrossSection::yarnPlaneIntersection(const Plane &plane, yarnIntersect &itsL
 					hitFiberNum++;
 				}
 			}
-			if (hitFiberNum)
+			if (hitFiberNum) 
 				itsList[p].push_back(closest_its);
 		}
 	}
+
 	if (isIntrsct)
 		return true;
 	return false;
@@ -151,6 +153,10 @@ bool CrossSection::allPlanesIntersections(std::vector<yarnIntersect> &itsLists) 
 	for (int i = 0; i < m_planesList.size(); ++i) {
 		yarnIntersect itsList;
 		if (yarnPlaneIntersection(m_planesList[i], itsList)) {
+
+			if (itsList[0].size() < 80 || itsList[1].size() <80)
+				std::cout << i << "  " << itsList[0].size() << " " << itsList[1].size() << "\n";
+
 			isIntrsct = true;
 			itsLists.push_back(itsList);
 		}
@@ -263,10 +269,11 @@ void CrossSection::yarnShapeMatches(const std::vector<yarnIntersect2D> &pnts_tra
 		Ellipse ellipse;
 		float theta_R;
 		if (pnts_trans[i][0].size() != pnts_ref[i][0].size() || pnts_trans[i][1].size() != pnts_ref[i][1].size()) {
-			std::cout << " is not valid cross-section" << i <<  "\n";
-			std::cout << pnts_trans[i][0].size() << " " << pnts_ref[i][0].size() << std::endl;
-			std::cout << pnts_ref[i][0].size() << " " << pnts_ref[i][0].size() << std::endl;
-			ellipses[i] = ellipses[i-1];
+			std::cout << i << " is not valid cross-section"  <<  "\n";
+			//std::cout << pnts_trans[i][0].size() << " " << pnts_ref[i][0].size() << std::endl;
+			//std::cout << pnts_ref[i][0].size() << " " << pnts_ref[i][0].size() << std::endl;
+			ellipses[i].shortR = 0.0;
+			ellipses[i].longR = 0.0;
 			all_theta_R[i] = all_theta_R[i-1];
 			continue;
 		}
@@ -355,8 +362,9 @@ void CrossSection::project2Plane(const vec3f& P3d, const Plane& plane, vec2f& P2
 }
 
 void CrossSection::PlanesIntersections2D(std::vector<yarnIntersect> &itsLists, std::vector<yarnIntersect2D> &allPlaneIntersect) {
-	if (m_planesList.size() != itsLists.size())
-		std::cout << itsLists.size() << " out of " << m_planesList.size() << " many planes had intersections! \n";
+	assert(m_planesList.size() == itsLists.size() && "not all the planes have intersections!");
+	//if (m_planesList.size() != itsLists.size())
+		//std::cout << itsLists.size() << " out of " << m_planesList.size() << " many planes had intersections! \n";
 
 	const int ply_num = m_yarn.plys.size();
 	const int num_of_cores = omp_get_num_procs();
