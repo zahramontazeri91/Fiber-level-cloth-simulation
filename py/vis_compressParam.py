@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import math
 
 
-fig, ax = plt.subplots(figsize=(15,5))
+fig, ax = plt.subplots(2, sharex=True, figsize=(15,10))
 
 lng = []
 shrt = []
@@ -28,18 +28,21 @@ with open('../compress_new.txt', 'r') as fin:
          theta.append(float(compress[2]))
          rot.append(float(compress[3]))
  
-ind = np.arange(N)    
-#ax.plot([200,200], [0, 0.06], color='black') 
-#ax.plot([1200,1200], [0, 0.06], color='black') 
-#rects = ax.plot(ind, lng, color='r')
-#rects = ax.plot(ind, shrt, color='b')
-#plt.savefig("../../data/vis_crossSections/ellipseShape.png")
+ind = np.arange(N)  
+
+  
+ax[0].plot([200,200], [0, 0.06], color='black') 
+ax[0].plot([1200,1200], [0, 0.06], color='black') 
+ax[0].set_ylim([-0.2, 2.5])
+rects = ax[0].plot(ind, lng, color='r')
+rects = ax[0].plot(ind, shrt, color='b')
 
             
-ax.plot([200,200], [0, 3], color='black') 
-ax.plot([1200,1200], [0, 3], color='black') 
-rects = ax.plot(ind, theta, color='g')
-rects = ax.plot(ind, rot, color='y')
-plt.savefig("../../data/vis_crossSections/ellipseTheta.png")
+ax[1].plot([200,200], [0, 3], color='black') 
+ax[1].plot([1200,1200], [0, 3], color='black') 
+rects = ax[1].plot(ind, theta, color='g')
+rects = ax[1].plot(ind, rot, color='y')
+
+plt.savefig("../../data/vis_crossSections/shapeMatch.png")
 
 plt.show()

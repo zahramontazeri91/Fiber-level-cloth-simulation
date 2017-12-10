@@ -16,7 +16,9 @@ void extractNormals();
 
 void shapeMatch_test();
 void yarnShapeMatch_test();
-void yarnShapeMatch_test_SVD();
+
+//write curve normals to a file
+void writeNormals();
 
 #endif // !__CROSS_SECTION_TEST_H_
 

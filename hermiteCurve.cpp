@@ -14,8 +14,24 @@ void HermiteCurve::init(const char* filename, int subdiv) {
     for ( int i = 0; i < n; ++i ) fin >> pts[i][0] >> pts[i][1] >> pts[i][2];
 
     init(pts, subdiv);
+
+	//TODO : to print normals comment buildPlanes and PlanesIntersections2D in CrossSection::init()
+	printNormals(subdiv);
 }
 
+void HermiteCurve::printNormals(const int subdiv) {
+	std::ofstream fout("curveNormals.txt");
+	fout << m_splines.size() + 1  << '\n';
+	for (int i = 0; i < m_splines.size(); ++i) {
+		Eigen::Vector3d n = m_splines[i].evalNormal(0);
+		fout << n[0] << ' ' << n[1] << ' ' << n[2] << std::endl;
+	}
+	int i = m_splines.size() - 1;
+	Eigen::Vector3d n = m_splines[i].evalNormal(1);
+	fout << n[0] << ' ' << n[1] << ' ' << n[2] << std::endl;
+	std::cout << "Normals are written to curveNormals.txt \n";
+	fout.close();
+}
 
 void HermiteCurve::init(const char* pntsFILE, const char* normsFILE, int subdiv) {
 	// import the points
@@ -59,6 +75,8 @@ void HermiteCurve::init(const std::vector<Eigen::Vector3d> &pts, int subdiv) //s
 void HermiteCurve::init(const std::vector<Eigen::Vector3d> &pts, const std::vector<Eigen::Vector3d> &norms, int subdiv)
 {
     initPoints(pts);
+	if (pts.size() != norms.size())
+		std::cout << "number of curve points and norms don't match! " << pts.size() << " " << norms.size() << std::endl;
     assert(pts.size() == norms.size());
 
     for ( int i = 0; i < m_spline_seg; ++i )

@@ -56,6 +56,8 @@ public:
 	/* Returns reference Frenet frame by -90 (so BNT to NBT) */
 	void getRotatedFrame(double t, Eigen::Vector3d &ex, Eigen::Vector3d &ey, Eigen::Vector3d &ez) const;
 
+	/* print normals to a file */
+	void HermiteCurve::printNormals(const int subdiv);
 protected:
     void initPoints(const std::vector<Eigen::Vector3d> &pts);
 

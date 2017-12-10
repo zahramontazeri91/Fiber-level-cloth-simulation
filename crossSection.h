@@ -29,10 +29,11 @@ class CrossSection {
 public:
 
 	/* constructor for simulated yarn */
-	CrossSection(const char* yarnfile, const char* curvefile, int ply_num, int plane_num, int subdiv_curve, 
+	CrossSection(const char* yarnfile, const char* curvefile, int ply_num, int plane_num, int subdiv_curve,
 		std::vector<yarnIntersect2D> &allPlaneIntersect) {
 		init(yarnfile, ply_num, curvefile, subdiv_curve, plane_num, allPlaneIntersect);
 	}
+	//constructor if having normfile as input
 	CrossSection(const char* yarnfile, const char* curvefile, const char* normfile, int ply_num, int plane_num, 
 		int subdiv_curve, std::vector<yarnIntersect2D> &allPlaneIntersect) {
 		init(yarnfile, ply_num, curvefile, normfile, subdiv_curve, plane_num, allPlaneIntersect);

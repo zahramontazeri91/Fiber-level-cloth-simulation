@@ -126,6 +126,9 @@ public:
     void output(int n, Eigen::Vector3d *bufferPosition,
         Eigen::Vector3d *bufferTangent = NULL, Eigen::Vector3d *bufferNormal = NULL) const;
 
+	void getNorms(std::vector<Eigen::Vector3d> &m_norms) {
+		m_norms = norms;
+	}
 protected:
     double subdivideAInternal(double maxError, std::vector<HermiteSpline> &results) const;
 

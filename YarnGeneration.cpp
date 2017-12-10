@@ -72,7 +72,8 @@ int main(int argc, const char **argv) {
 
 	//shapeMatch_test();
 	yarnShapeMatch_test();
-	//yarnShapeMatch_test_SVD();
+
+	//writeNormals();
 #endif
 
 //	std::system("pause"); //add breakpoint instead

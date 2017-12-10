@@ -464,11 +464,19 @@ void shapeMatch_test() {
 void yarnShapeMatch_test() {
 	const int n = 1480;
 
-	//const char* yarnfile = "frame00001_compressed.txt";
-	const char* yarnfile = "genYarn_frame1_compressed_R.txt";
+	//const char* yarnfile = "frame00001_scaled.txt";
+	//const char* curvefile = "frame00001_avg.txt";
+	//const char* normfile = "frame00001_norms.txt";
+
+	const char* yarnfile = "frame00029_compressed.txt";
+	const char* curvefile = "frame00029_avg.txt";
+	const char* normfile = "frame00029_norms.txt";
+
+	//const char* yarnfile = "genYarn_frame1_compressed_R.txt";
 	//const char* yarnfile = "genYarn_frame1_compressed.txt";
-	const char* curvefile = "genYarn_frame1_avg.txt";
-	const char* normfile = "genYarn_frame1_norms.txt";
+	//const char* curvefile = "genYarn_frame1_avg.txt";
+	//const char* normfile = "genYarn_frame1_norms.txt";
+
 	std::vector<yarnIntersect2D> pnts_trans;
 	CrossSection cs(yarnfile, curvefile, normfile, 2, n, 100, pnts_trans);
 
@@ -489,6 +497,7 @@ void yarnShapeMatch_test() {
 	Eigen::MatrixXf R1(n, 4);
 	Eigen::MatrixXf R2(n, 4);
 	Eigen::MatrixXf theta(n, 4);
+
 	cs.preComputeEllipses(ellipses, R1, R2, theta);
 
 	/****** greedy *********/
@@ -502,12 +511,13 @@ void yarnShapeMatch_test() {
 	cs.costFunction(R1, R2, theta, isValid, cost);
 
 	//3. dynamic programming
-	Eigen::MatrixXf totalCost(n, 4); 
+	Eigen::MatrixXf totalCost(n, 4);
 	Eigen::MatrixXf preConfig(n, 4);
 	cs.dynamicProgramming(isValid, cost, totalCost, preConfig);
 
 	//4.retreive solution for valid cross-sections
 	std::vector<Ellipse> validEllipses(n);
+
 	cs.retreiveSol(R1, R2, theta, totalCost, preConfig, isValid, validEllipses);
 
 	///**************/
@@ -560,4 +570,12 @@ void yarnShapeMatch_test() {
 		fclose(fout2);
 	}
 
+}
+
+void writeNormals() {
+	std::cout << "writenormals: \n ";
+	const char* yarnfile = "frame00001_scaled.txt";
+	const char* curvefile = "frame00001_avg.txt";
+	std::vector<yarnIntersect2D> pnts_trans;
+	CrossSection cs(yarnfile, curvefile, 2, 1480, 100, pnts_trans);
 }
