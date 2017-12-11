@@ -2,9 +2,9 @@
 #include "hermiteCurve.h"
 
 
-void HermiteCurve::init(const char* filename, int subdiv) {
-    assert(filename);
-	std::ifstream fin(filename);
+void HermiteCurve::init_norm(const char* pntsFILE, const char* normsFILE, int subdiv) {
+    assert(pntsFILE);
+	std::ifstream fin(pntsFILE);
     assert(!fin.fail());
 
     int n;
@@ -13,14 +13,15 @@ void HermiteCurve::init(const char* filename, int subdiv) {
     std::vector<Eigen::Vector3d> pts(n), norms(n);
     for ( int i = 0; i < n; ++i ) fin >> pts[i][0] >> pts[i][1] >> pts[i][2];
 
-    init(pts, subdiv);
+    init_norm(pts, subdiv);
 
 	//TODO : to print normals comment buildPlanes and PlanesIntersections2D in CrossSection::init()
-	printNormals(subdiv);
+	printNormals(normsFILE, subdiv);
 }
 
-void HermiteCurve::printNormals(const int subdiv) {
-	std::ofstream fout("curveNormals.txt");
+void HermiteCurve::printNormals(const char* normsFILE, const int subdiv) {
+	assert(normsFILE);
+	std::ofstream fout(normsFILE);
 	fout << m_splines.size() + 1  << '\n';
 	for (int i = 0; i < m_splines.size(); ++i) {
 		Eigen::Vector3d n = m_splines[i].evalNormal(0);
@@ -55,7 +56,7 @@ void HermiteCurve::init(const char* pntsFILE, const char* normsFILE, int subdiv)
 }
 
 
-void HermiteCurve::init(const std::vector<Eigen::Vector3d> &pts, int subdiv) //subdiv for each segment
+void HermiteCurve::init_norm(const std::vector<Eigen::Vector3d> &pts, int subdiv) //subdiv for each segment
 {
     initPoints(pts);
 	

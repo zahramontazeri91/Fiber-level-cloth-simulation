@@ -21,7 +21,8 @@ CrossSection::CrossSection(const Fiber::Yarn &yarn) {
 void CrossSection::init(const char* yarnfile, const int ply_num, const char* curvefile,
 	const int seg_subdiv, const int num_planes, std::vector<yarnIntersect2D> &allPlaneIntersect) {
 	m_yarn.build(yarnfile, ply_num);
-	m_curve.init(curvefile, seg_subdiv);
+	//TODO: pass this to the func
+	m_curve.init_norm(curvefile,"write2normals.txt", seg_subdiv);
 	std::vector<yarnIntersect> itsLists;
 
 	buildPlanes(num_planes, itsLists);

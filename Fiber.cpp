@@ -63,6 +63,54 @@ namespace Fiber {
 		printf("Yarn is initialized from the file. \n");
 	}
 
+	void Yarn::yarnCenter(const char *yarnfile, const char *yarnCenterfile) {
+		
+		std::ifstream fin;
+		if (yarnfile != NULL)
+			fin.open(yarnfile);
+	
+		//generate a one-ply yarn
+		const int num_of_cores = omp_get_num_procs();
+		Yarn yarn;
+		const int ply_num = 1;
+		int vrtx_num;
+		std::string line;
+		std::getline(fin, line);
+		int fiber_num = atoi(line.c_str());
+		yarn.plys.resize(ply_num);
+
+	#pragma omp parallel for num_threads(num_of_cores) 
+		for (int p = 0; p < ply_num; ++p) {
+			yarn.plys[p].fibers.resize(fiber_num);
+			for (int f = 0; f < fiber_num; ++f) {
+				Fiber &fiber = yarn.plys[p].fibers[f];
+				fiber.clear(); //clear the vertices list 
+				std::getline(fin, line);
+				vrtx_num = atoi(line.c_str());
+				for (int v = 0; v < vrtx_num; ++v) {
+					std::getline(fin, line);
+					std::vector<std::string> splits = split(line, ' ');
+					vec3f vrtx(atof(splits[0].c_str()), atof(splits[1].c_str()), atof(splits[2].c_str()));
+					fiber.vertices.push_back(vrtx);
+				}
+			}
+		}
+		//get the average
+		std::ofstream fout(yarnCenterfile);
+		fout << vrtx_num << '\n';
+		for (int v = 0; v < vrtx_num; ++v) {
+			vec3f sum_fibers = vec3f(0.f);
+			for (int f = 0; f < fiber_num; ++f) {
+				sum_fibers += yarn.plys[0].fibers[f].vertices[v];
+			}
+			sum_fibers /= static_cast<float>(fiber_num);
+			fout << sum_fibers.x << " " << sum_fibers.y << " " << sum_fibers.z << "\n";
+		}
+		fout.close();
+		
+		printf("Centerfiber is written to the file. \n");
+	}
+
 	void Yarn::parse(const char* filename) {
 		std::ifstream fin;
 		if (filename != NULL)

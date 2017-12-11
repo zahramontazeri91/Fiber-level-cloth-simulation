@@ -461,6 +461,8 @@ void shapeMatch_test() {
 	}
 }
 
+
+
 void yarnShapeMatch_test() {
 	const int n = 1480;
 
@@ -469,8 +471,15 @@ void yarnShapeMatch_test() {
 	//const char* normfile = "frame00001_norms.txt";
 
 	const char* yarnfile = "frame00029_scaled.txt";
-	const char* curvefile = "frame00029_avg.txt";
-	const char* normfile = "frame00029_norms.txt";
+	const char* curvefile = "frame00029_avg_test.txt";
+	//const char* normfile = "frame00029_norms.txt";
+	/*******/
+	Fiber::Yarn yarn;
+	yarn.yarnCenter(yarnfile, curvefile);
+
+	//HermiteCurve curve;
+	//curve.init_norm(curvefile, normfile, 100);
+	/*******/
 
 	//const char* yarnfile = "genYarn_frame1_compressed_R.txt";
 	//const char* yarnfile = "genYarn_frame1_compressed.txt";
@@ -478,18 +487,23 @@ void yarnShapeMatch_test() {
 	//const char* normfile = "genYarn_frame1_norms.txt";
 
 	std::vector<yarnIntersect2D> pnts_trans;
-	CrossSection cs(yarnfile, curvefile, normfile, 2, n, 100, pnts_trans);
+	CrossSection cs(yarnfile, curvefile, 2, n, 100, pnts_trans);
 
-	//const char* yarnfile2 = "frame00001_scaled.txt";
-	//const char* curvefile2 = "frame00001_avg.txt";
+	const char* yarnfile2 = "frame00001_scaled.txt";
+	const char* curvefile2 = "frame00001_avg.txt";
 	//const char* normfile2 = "frame00001_norms.txt";
 
-	const char* yarnfile2 = "genYarn_frame1.txt"; 
-	const char* curvefile2 = "genYarn_frame1_avg.txt";
-	const char* normfile2 = "genYarn_frame1_norms.txt";
+	//const char* yarnfile2 = "genYarn_frame1.txt"; 
+	//const char* curvefile2 = "genYarn_frame1_avg.txt";
+	//const char* normfile2 = "genYarn_frame1_norms.txt";
+
+	/*******/
+	//HermiteCurve curve2;
+	//curve2.init_norm(curvefile2, normfile2, 100);
+	/*******/
 
 	std::vector<yarnIntersect2D> pnts_ref;
-	CrossSection cs2(yarnfile2, curvefile2, normfile2, 2, n, 100, pnts_ref);
+	CrossSection cs2(yarnfile2, curvefile2, 2, n, 100, pnts_ref);
 
 	//************test yarnShapeMatches:
 	cout << "test yarnShapeMatches\n ";

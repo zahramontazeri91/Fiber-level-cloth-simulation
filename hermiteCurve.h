@@ -14,9 +14,9 @@ public:
         m_spline_seg = 0;
     }
 
-	void init(const char* filename, int subdiv = 10);
+	void init_norm(const char* pntsFILE, const char* normsFILE, int subdiv = 10);
 	void init(const char* pntsFILE, const char* normsFILE, int subdiv = 10);
-    void init(const std::vector<Eigen::Vector3d> &pts, int subdiv = 10);
+    void init_norm(const std::vector<Eigen::Vector3d> &pts, int subdiv = 10);
     void init(const std::vector<Eigen::Vector3d> &pts, const std::vector<Eigen::Vector3d> &norms, int subdiv = 10);
 
 	Eigen::Vector3d eval(double t) const;
@@ -57,7 +57,7 @@ public:
 	void getRotatedFrame(double t, Eigen::Vector3d &ex, Eigen::Vector3d &ey, Eigen::Vector3d &ez) const;
 
 	/* print normals to a file */
-	void HermiteCurve::printNormals(const int subdiv);
+	void HermiteCurve::printNormals(const char* normsFILE, const int subdiv = 10);
 protected:
     void initPoints(const std::vector<Eigen::Vector3d> &pts);
 

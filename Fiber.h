@@ -159,6 +159,7 @@ namespace Fiber {
 
 		/* Build and initialize a yarn from a given file */
 		void build(const char *yarnfile, const int num_ply);
+		void yarnCenter(const char *yarnfile, const char *yarnCenterfile);
 
 		/* Parse config file from disk */
 		void parse(const char *filename = NULL);
