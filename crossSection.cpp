@@ -24,9 +24,8 @@ void CrossSection::init(const char* yarnfile, const int ply_num, const char* cur
 	//TODO: pass this to the func
 	m_curve.init_norm(curvefile,"write2normals.txt", seg_subdiv);
 	std::vector<yarnIntersect> itsLists;
-
 	buildPlanes(num_planes, itsLists);
-
+	std::cout << "Finding the intersections with the cross-sectional plane... \n";
 	PlanesIntersections2D(itsLists, allPlaneIntersect);
 }
 void CrossSection::init(const char* yarnfile, const int ply_num, const char* curvefile, const char* normfile,
@@ -35,20 +34,23 @@ void CrossSection::init(const char* yarnfile, const int ply_num, const char* cur
 	m_curve.init(curvefile, normfile, seg_subdiv);
 	std::vector<yarnIntersect> itsLists;
 	buildPlanes(num_planes, itsLists);
-
+	std::cout << "Finding the intersections with the cross-sectional plane... \n";
 	PlanesIntersections2D(itsLists, allPlaneIntersect);
 }
 
 void CrossSection::buildPlanes(const int num_planes, std::vector<yarnIntersect> &itsLists) {
 	const double curveLen = m_curve.totalLength();
-	const double crossSectionLen = curveLen / static_cast<double>(num_planes - 1); //place plane at the very ends as well
+	//const double crossSectionLen = curveLen / static_cast<double>(num_planes - 1); //place plane at the very ends as well
+	const double crossSectionLen = curveLen / static_cast<double>(num_planes + 1); //don't place planes at the end-points
 	const double crossSection_t = m_curve.arcLengthInvApprox(crossSectionLen);
 	m_planesList.resize(num_planes);
 	for (int i = 0; i < num_planes; ++i) {
-		Eigen::Vector3d curve_p = m_curve.eval(i * crossSection_t);
-		Eigen::Vector3d curve_t = m_curve.evalTangent(i * crossSection_t);
+		//float current_t = i * crossSection_t;//place plane at the very ends as well
+		float current_t = (i + 1) * crossSection_t;
+		Eigen::Vector3d curve_p = m_curve.eval(current_t);
+		Eigen::Vector3d curve_t = m_curve.evalTangent(current_t);
 		/* need binormal and normal of the plane to project 3D points on the plane */
-		Eigen::Vector3d curve_n = m_curve.evalNormal(i * crossSection_t); //short axis
+		Eigen::Vector3d curve_n = m_curve.evalNormal(current_t); //short axis
 		Eigen::Vector3d curve_b = curve_t.cross(curve_n); //long axis
 		m_planesList[i].point = vec3f(curve_p[0], curve_p[1], curve_p[2]);
 		m_planesList[i].n = vec3f(curve_t[0], curve_t[1], curve_t[2]);
@@ -154,10 +156,6 @@ bool CrossSection::allPlanesIntersections(std::vector<yarnIntersect> &itsLists) 
 	for (int i = 0; i < m_planesList.size(); ++i) {
 		yarnIntersect itsList;
 		if (yarnPlaneIntersection(m_planesList[i], itsList)) {
-
-			if (itsList[0].size() < 80 || itsList[1].size() <80)
-				std::cout << i << "  " << itsList[0].size() << " " << itsList[1].size() << "\n";
-
 			isIntrsct = true;
 			itsLists.push_back(itsList);
 		}
@@ -270,7 +268,7 @@ void CrossSection::yarnShapeMatches(const std::vector<yarnIntersect2D> &pnts_tra
 		Ellipse ellipse;
 		float theta_R;
 		if (pnts_trans[i][0].size() != pnts_ref[i][0].size() || pnts_trans[i][1].size() != pnts_ref[i][1].size()) {
-			std::cout << i << " is not valid cross-section"  <<  "\n";
+			//std::cout << i << " is not valid cross-section"  <<  "\n";
 			//std::cout << pnts_trans[i][0].size() << " " << pnts_ref[i][0].size() << std::endl;
 			//std::cout << pnts_ref[i][0].size() << " " << pnts_ref[i][0].size() << std::endl;
 			ellipses[i].shortR = 0.0;
@@ -347,7 +345,7 @@ void CrossSection::write_PlanesIntersections3D(const char* filename, std::vector
 		}
 		fclose(fout);
 	}
-	std::cout << "Intersections are written to the file successfully! \n\n";
+	//std::cout << "Intersections are written to the file successfully! \n\n";
 }
 
 void CrossSection::project2Plane(const vec3f& P3d, const Plane& plane, vec2f& P2d) {
@@ -363,9 +361,9 @@ void CrossSection::project2Plane(const vec3f& P3d, const Plane& plane, vec2f& P2
 }
 
 void CrossSection::PlanesIntersections2D(std::vector<yarnIntersect> &itsLists, std::vector<yarnIntersect2D> &allPlaneIntersect) {
+	if (m_planesList.size() != itsLists.size())
+		std::cout << itsLists.size() << " out of " << m_planesList.size() << " many planes had intersections! \n";
 	assert(m_planesList.size() == itsLists.size() && "not all the planes have intersections!");
-	//if (m_planesList.size() != itsLists.size())
-		//std::cout << itsLists.size() << " out of " << m_planesList.size() << " many planes had intersections! \n";
 
 	const int ply_num = m_yarn.plys.size();
 	const int num_of_cores = omp_get_num_procs();
@@ -392,7 +390,7 @@ void CrossSection::PlanesIntersections2D(std::vector<yarnIntersect> &itsLists, s
 		}
 		allPlaneIntersect.push_back(planeProjected);
 	}
-	std::cout << "Intersections are written to the file successfully! \n\n";
+	//std::cout << "Intersections are written to the file successfully! \n\n";
 }
 
 
@@ -1437,11 +1435,108 @@ void CrossSection::fiberTwisting(const std::vector<yarnIntersect2D> &decompressP
 }
 
 
-void CrossSection::regularizeEllipses(const std::vector<Ellipse> &ellipses, std::vector<Ellipse> &simple_ellipses, const int sigma) {
+void CrossSection::regularizeEllipses(const std::vector<Ellipse> &ellipses, const std::vector<float> &theta_R, std::vector<Ellipse> &simple_ellipses, std::vector<float> &simple_theta_R, const int sigma) {
 	
+	simple_theta_R.resize(ellipses.size());
 	simple_ellipses.resize(ellipses.size());
 	//copy ellipse to simple_ellipse to fill up the two ends before and after sigma 
 	for (int i = 0; i < ellipses.size() ; ++i) {
+		simple_ellipses[i].longR = ellipses[i].longR;
+		simple_ellipses[i].shortR = ellipses[i].shortR;
+		simple_ellipses[i].angle = ellipses[i].angle;
+		simple_theta_R[i] = theta_R[i];
+	}
+
+	//gaussian smoothing
+	for (int i = sigma; i < ellipses.size() - sigma; ++i) {
+		float sum_lng = 0.f;
+		float sum_shrt = 0.f;
+		float sum_angle = 0.f;
+		float sum_theta_R = 0.f;
+
+		//find if in the sigma terithory, there is any fluctuation
+		bool isFluctuate = false;
+		for (int s = 0; s < sigma; ++s) {
+			float delta = std::abs(ellipses[i - s].angle - ellipses[i].angle);
+			if (delta > pi) //since we don't normally have this rotation, this is absolutely the case of fluctuation at 2pi-0
+			{
+				isFluctuate = true;
+				break;
+			}
+		}
+		bool isFluctuate_R = false;
+		for (int s = 0; s < sigma; ++s) {
+			float delta = std::abs(theta_R[i - s] - theta_R[i]);
+			if (delta > pi) //since we don't normally have this rotation, this is absolutely the case of fluctuation at 2pi-0
+			{
+				isFluctuate_R = true;
+				break;
+			}
+		}
+
+		for (int s = 0; s < sigma; ++s) {
+			sum_lng += ellipses[i - s].longR;
+			sum_lng += ellipses[i + s].longR;
+
+			sum_shrt += ellipses[i - s].shortR;
+			sum_shrt += ellipses[i + s].shortR;
+
+			float angle_s = ellipses[i - s].angle;
+			float angle__s = ellipses[i + s].angle;
+			//handle the case of 2*pi and zero
+			if (isFluctuate) { //negate angle[i-s] if it's on the wrong side
+				angle_s = ellipses[i - s].angle > pi ? ellipses[i - s].angle - 2.f * pi : ellipses[i - s].angle;
+				angle__s = ellipses[i + s].angle > pi ? ellipses[i + s].angle - 2.f * pi : ellipses[i + s].angle;
+			}			
+			sum_angle += angle_s;
+			sum_angle += angle__s;
+
+			/* theta_R */
+			float angle_s_R = theta_R[i-s];
+			float angle__s_R = theta_R[i + s];
+			//handle the case of 2*pi and zero
+			if (isFluctuate_R) { //negate angle[i-s] if it's on the wrong side
+				angle_s_R = theta_R[i - s] > pi ? theta_R[i - s] - 2.f * pi : theta_R[i - s];
+				angle__s_R = theta_R[i + s] > pi ? theta_R[i + s] - 2.f * pi : theta_R[i + s];
+			}
+			sum_theta_R += angle_s_R;
+			sum_theta_R += angle__s_R;
+		}
+
+		sum_lng += ellipses[i].longR;
+		sum_shrt += ellipses[i].shortR;
+		sum_angle += ( isFluctuate && ellipses[i].angle > pi ) ? ellipses[i].angle - 2.f * pi : ellipses[i].angle;
+		sum_theta_R += (isFluctuate_R && theta_R[i] > pi) ? theta_R[i] - 2.f * pi : theta_R[i];
+
+		float span = 2.f * sigma + 1.f;
+		simple_ellipses[i].longR = sum_lng / span;
+		simple_ellipses[i].shortR = sum_shrt / span;
+		float avg_angle = sum_angle / span;
+		simple_ellipses[i].angle = avg_angle < 0 ? 2.f*pi + avg_angle : avg_angle;
+
+		float avg_theta_R = sum_theta_R / span;
+		simple_theta_R[i] = avg_theta_R < 0 ? 2.f*pi + avg_theta_R : avg_theta_R;
+
+		//simple_ellipses[i].longR = ellipses[i].longR;
+		//simple_ellipses[i].shortR = ellipses[i].shortR;
+		//simple_ellipses[i].angle = ellipses[i].angle;
+
+	}
+	//debug only:
+	std::ofstream fout("compress_regularized.txt");
+	fout << ellipses.size() << '\n';
+	for (int i = 0; i < ellipses.size(); ++i) {
+		fout << simple_ellipses[i].longR << " " << simple_ellipses[i].shortR << " " << simple_ellipses[i].angle << '\n';
+	}
+	fout.close();
+}
+
+
+void CrossSection::regularizeEllipses(const std::vector<Ellipse> &ellipses, std::vector<Ellipse> &simple_ellipses, const int sigma) {
+
+	simple_ellipses.resize(ellipses.size());
+	//copy ellipse to simple_ellipse to fill up the two ends before and after sigma 
+	for (int i = 0; i < ellipses.size(); ++i) {
 		simple_ellipses[i].longR = ellipses[i].longR;
 		simple_ellipses[i].shortR = ellipses[i].shortR;
 		simple_ellipses[i].angle = ellipses[i].angle;
@@ -1477,14 +1572,14 @@ void CrossSection::regularizeEllipses(const std::vector<Ellipse> &ellipses, std:
 			if (isFluctuate) { //negate angle[i-s] if it's on the wrong side
 				angle_s = ellipses[i - s].angle > pi ? ellipses[i - s].angle - 2.f * pi : ellipses[i - s].angle;
 				angle__s = ellipses[i + s].angle > pi ? ellipses[i + s].angle - 2.f * pi : ellipses[i + s].angle;
-			}			
+			}
 			sum_angle += angle_s;
 			sum_angle += angle__s;
 		}
 
 		sum_lng += ellipses[i].longR;
 		sum_shrt += ellipses[i].shortR;
-		sum_angle += ( isFluctuate && ellipses[i].angle > pi ) ? ellipses[i].angle - 2.f * pi : ellipses[i].angle;
+		sum_angle += (isFluctuate && ellipses[i].angle > pi) ? ellipses[i].angle - 2.f * pi : ellipses[i].angle;
 
 		float span = 2.f * sigma + 1.f;
 		simple_ellipses[i].longR = sum_lng / span;

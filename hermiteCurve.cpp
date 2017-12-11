@@ -15,8 +15,8 @@ void HermiteCurve::init_norm(const char* pntsFILE, const char* normsFILE, int su
 
     init_norm(pts, subdiv);
 
-	//TODO : to print normals comment buildPlanes and PlanesIntersections2D in CrossSection::init()
-	printNormals(normsFILE, subdiv);
+
+	//printNormals(normsFILE, subdiv);
 }
 
 void HermiteCurve::printNormals(const char* normsFILE, const int subdiv) {
@@ -30,7 +30,7 @@ void HermiteCurve::printNormals(const char* normsFILE, const int subdiv) {
 	int i = m_splines.size() - 1;
 	Eigen::Vector3d n = m_splines[i].evalNormal(1);
 	fout << n[0] << ' ' << n[1] << ' ' << n[2] << std::endl;
-	std::cout << "Normals are written to curveNormals.txt \n";
+	std::cout << "Normals are written to the file \n";
 	fout.close();
 }
 
@@ -59,7 +59,6 @@ void HermiteCurve::init(const char* pntsFILE, const char* normsFILE, int subdiv)
 void HermiteCurve::init_norm(const std::vector<Eigen::Vector3d> &pts, int subdiv) //subdiv for each segment
 {
     initPoints(pts);
-	
     m_splines[0].build(subdiv, m_splines[0].evalPrincipalNormal(0.0));
 
     for ( int i = 1; i < m_spline_seg; ++i )

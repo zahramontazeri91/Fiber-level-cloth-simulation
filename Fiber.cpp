@@ -60,7 +60,7 @@ namespace Fiber {
 				}
 			}
 		}
-		printf("Yarn is initialized from the file. \n");
+		//printf("Yarn is initialized from the file. \n");
 	}
 
 	void Yarn::yarnCenter(const char *yarnfile, const char *yarnCenterfile) {
@@ -96,19 +96,21 @@ namespace Fiber {
 			}
 		}
 		//get the average
-		std::ofstream fout(yarnCenterfile);
-		fout << vrtx_num << '\n';
-		for (int v = 0; v < vrtx_num; ++v) {
-			vec3f sum_fibers = vec3f(0.f);
-			for (int f = 0; f < fiber_num; ++f) {
-				sum_fibers += yarn.plys[0].fibers[f].vertices[v];
+		FILE *fout;
+		if (fopen_s(&fout, yarnCenterfile, "wt") == 0) {
+			fprintf_s(fout, "%d \n", vrtx_num);
+			for (int v = 0; v < vrtx_num; ++v) {
+				vec3f sum_fibers = vec3f(0.f);
+				for (int f = 0; f < fiber_num; ++f) {
+					sum_fibers += yarn.plys[0].fibers[f].vertices[v];
+				}
+				sum_fibers /= static_cast<float>(fiber_num);
+				fprintf_s(fout, "%.6f %.6f %.6f \n", sum_fibers.x, sum_fibers.y, sum_fibers.z);
 			}
-			sum_fibers /= static_cast<float>(fiber_num);
-			fout << sum_fibers.x << " " << sum_fibers.y << " " << sum_fibers.z << "\n";
+			fclose(fout);
 		}
-		fout.close();
 		
-		printf("Centerfiber is written to the file. \n");
+		//printf("Centerfiber is written to the file. \n");
 	}
 
 	void Yarn::parse(const char* filename) {

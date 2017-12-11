@@ -48,6 +48,81 @@ int main(int argc, const char **argv) {
 	else
 		std::cout << "File wasn't found! \n";
 
+#elif (1)
+	//if (argc != 4) {
+		//printf("Usage: YarnGeneration [config file] [reference-yarn file] [compressed-yarn file]\n");
+		//return 1;
+	//}
+	
+	Fiber::Yarn yarn;
+	//const char* configfile = argv[1];
+	const char* configfile = "config.txt"; 
+	yarn.parse(configfile);
+	const int n = yarn.getStepNum();
+	const int ply_num = yarn.getPlyNum();
+
+	//const char* yarnfile = argv[2];
+	const char* yarnfile = "frame00029_scaled.txt";
+	const char* curvefile = "compressed_yarnCenter.txt";
+	Fiber::Yarn yarn_tmp;
+	yarn_tmp.yarnCenter(yarnfile, curvefile);
+	std::vector<yarnIntersect2D> pnts_trans;
+	CrossSection cs(yarnfile, curvefile, ply_num, n, 100, pnts_trans);
+
+	//const char* yarnfile2 = argv[3];
+	const char* yarnfile2 = "genYarn_frame1_shuang.txt";
+	const char* curvefile2 = "reference_yarnCenter.txt";
+	yarn_tmp.yarnCenter(yarnfile2, curvefile2);
+	std::vector<yarnIntersect2D> pnts_ref;
+	CrossSection cs2(yarnfile2, curvefile2, ply_num, n, 100, pnts_ref);
+
+	//2. yarnShapeMatches:
+	std::cout << "\n";
+	std::cout << "Step 1: Shape matching between reference and compressed yarn.\n";
+	std::vector<Ellipse> ellipses;
+	std::vector<float> all_theta_R;
+	cs.yarnShapeMatches(pnts_trans, pnts_ref, ellipses, all_theta_R);
+	std::vector<bool> isValid(n, true);
+
+	//1. precompute R1\R2\theta and isValid
+	std::cout << "Step 2: precompute four possibilites for each cross-section.\n";
+	Eigen::MatrixXf R1(n, 4);
+	Eigen::MatrixXf R2(n, 4);
+	Eigen::MatrixXf theta(n, 4);
+	cs.preComputeEllipses(ellipses, R1, R2, theta);
+
+	//2. precompute cost function 
+	std::cout << "Step 3: computing the cost function...\n";
+	std::vector<Eigen::Matrix4f> cost;
+	cs.costFunction(R1, R2, theta, isValid, cost);
+
+	//3. dynamic programming
+	std::cout << "Step 4: Use Dynamic Programming to find the optimum.\n";
+	Eigen::MatrixXf totalCost(n, 4);
+	Eigen::MatrixXf preConfig(n, 4);
+	cs.dynamicProgramming(isValid, cost, totalCost, preConfig);
+
+	//4.retreive solution for valid cross-sections
+	std::cout << "Step 5: finalize optimum solution.\n\n";
+	std::vector<Ellipse> validEllipses(n);
+	cs.retreiveSol(R1, R2, theta, totalCost, preConfig, isValid, validEllipses);
+
+	//5. regularizing the parameters
+	std::cout << "Step 6: regularizing the parameters.\n\n";
+	std::vector<Ellipse> simple_ellipses;
+	std::vector<float> simple_theta_R;
+	cs.regularizeEllipses(validEllipses, all_theta_R, simple_ellipses, simple_theta_R, 40);
+	cs.regularizeEllipses(simple_ellipses, simple_theta_R, validEllipses, all_theta_R, 40);
+
+	FILE *fout;
+	if (fopen_s(&fout, "compressParams.txt", "wt") == 0) {
+		fprintf_s(fout, "%d \n", ellipses.size());
+		for (int i = 0; i < ellipses.size(); ++i) {
+			fprintf_s(fout, "%.4f %.4f %.4f %.4f \n", validEllipses[i].longR, validEllipses[i].shortR, validEllipses[i].angle, all_theta_R[i]);
+		}
+		fclose(fout);
+	}
+	std::cout << "Compression parameters are successfully written to the file!\n";
 
 #else
 	//hermiteTest1();
