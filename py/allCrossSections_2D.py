@@ -64,43 +64,43 @@ X3, Y3 = visIntersections(fname)
 plane_num = 1184
 for i in range(0, plane_num):  
     ply_num = 2
-    plt.figure(figsize=(10,30))
+    plt.figure(figsize=(5,15))
     for p in range(0,ply_num):  
         its_num = 80
         for j in range(0, its_num):
             if j==0 and p==0:  
                 z = 200
                 c = 'red'
-                s = 150
+                s = 100
             elif j==0 and p==1: 
                 z = 300
                 c = 'black'
-                s = 150
+                s = 100
             else:
                 z = 1
                 c = "C" + str(p)
-                s = 100
+                s = 50
 
             plt.subplot(311)
             plt.scatter(X1[i][p][j], Y1[i][p][j], alpha=0.8, color = c, zorder = z, s = s)
             plt.tick_params(axis='both', which='major', labelsize=5)
             plt.xlim(-.1,.1)
             plt.ylim(-.1,.1)
-            plt.title('Reference yarn %d' %i)
+            plt.title('Reference - %d' %i)
             
             plt.subplot(312)
             plt.scatter(X2[i][p][j], Y2[i][p][j], alpha=0.8, color = c, zorder = z, s = s)
             plt.tick_params(axis='both', which='major', labelsize=5)
             plt.xlim(-.1,.1)
             plt.ylim(-.1,.1)
-            plt.title('Deformed reference yarn %d' %i)
+            plt.title('Deformed reference - %d' %i)
             
             plt.subplot(313)
             plt.scatter(X3[i][p][j], Y3[i][p][j], alpha=0.8, color = c, zorder = z, s = s)
             plt.tick_params(axis='both', which='major', labelsize=5)
             plt.xlim(-.1,.1)
             plt.ylim(-.1,.1)
-            plt.title('Simulated yarn %d' %i)
+            plt.title('Simulated frame 1 - %d' %i)
         
     
     plt.savefig("../../data/vis_crossSections/2Dcompare/plane%d.png" %i)

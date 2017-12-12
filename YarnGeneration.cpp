@@ -52,51 +52,38 @@ int main(int argc, const char **argv) {
 		std::cout << "File wasn't found! \n";
 
 #elif (1)
-	//if (argc != 4) {
-		//printf("Usage: YarnGeneration [config file] [reference-yarn file] [compressed-yarn file]\n");
-		//return 1;
-	//}
+	if (argc != 4) {
+		printf("Usage: YarnGeneration [config file] [reference-yarn file] [compressed-yarn file]\n");
+		return 1;
+	}
 	
 	Fiber::Yarn yarn;
-	//const char* configfile = argv[1];
-	const char* configfile = "config.txt"; 
+	const char* configfile = argv[1];
+	//const char* configfile = "config.txt"; 
 	yarn.parse(configfile);
 	const int n = yarn.getStepNum();
 	const int ply_num = yarn.getPlyNum();
 
-	//const char* yarnfile = argv[2];
-
-	//const char* yarnfile = "frame00001_scaled.txt";
-	//const char* curvefile = "frame00001_avg.txt";
-	//const char* normfile = "frame00001_norms.txt";
-
-	const char* yarnfile = "frame00029_scaled.txt";
-	const char* curvefile = "frame00029_avg.txt";
-	//const char* normfile = "frame00029_norms.txt";
-
-	//const char* yarnfile = "genYarn_frame29_compressed.txt";
-	//const char* curvefile = "genYarn_frame29_avg.txt";
-	//const char* normfile = "genYarn_frame29_norms.txt";
+	const char* yarnfile1 = argv[2];
+	//const char* yarnfile1 = "frame00001_scaled.txt";
+	//const char* yarnfile1 = "genYarn_frame1_shuang.txt";
+	//const char* yarnfile1 = "genYarn_frame1.txt"; 
 
 	Fiber::Yarn yarn_tmp;
-	yarn_tmp.yarnCenter(yarnfile, curvefile);
-	std::vector<yarnIntersect2D> pnts_trans;
-	CrossSection cs(yarnfile, curvefile, ply_num, n, 100, pnts_trans);
-
-	//const char* yarnfile2 = argv[3];
-
-	//const char* yarnfile2 = "frame00001_scaled.txt";
-	//const char* curvefile2 = "frame00001_avg.txt";
-	//const char* normfile2 = "frame00001_norms.txt";
-
-	//const char* yarnfile2 = "genYarn_frame1_shuang.txt";
-	const char* yarnfile2 = "genYarn_frame1.txt"; 
-	const char* curvefile2 = "genYarn_frame1_avg.txt";
-	const char* normfile2 = "genYarn_frame1_norms.txt";
-
-	yarn_tmp.yarnCenter(yarnfile2, curvefile2);
+	const char* centerYarn1 = "centerYarn_ref.txt";
+	yarn_tmp.yarnCenter(yarnfile1, centerYarn1);
 	std::vector<yarnIntersect2D> pnts_ref;
-	CrossSection cs2(yarnfile2, curvefile2, normfile2, ply_num, n, 100, pnts_ref);
+	CrossSection cs2(yarnfile1, centerYarn1, ply_num, n, 100, pnts_ref);
+
+	const char* yarnfile2 = argv[3];
+	//const char* yarnfile2 = "frame00001_scaled.txt";
+	//const char* yarnfile2 = "frame00029_scaled.txt";
+	//const char* yarnfile2 = "genYarn_frame29_compressed.txt";
+
+	const char* centerYarn2 = "centerYarn_compress.txt";
+	yarn_tmp.yarnCenter(yarnfile2, centerYarn2);
+	std::vector<yarnIntersect2D> pnts_trans;
+	CrossSection cs(yarnfile2, centerYarn2, ply_num, n, 100, pnts_trans);
 
 	//0. yarnShapeMatches:
 	std::cout << "\n";
@@ -155,8 +142,8 @@ int main(int argc, const char **argv) {
 	const char* deformed = "../data/allCrossSection2D_deformed.txt";
 	//plotIntersections(pnts_ref, refFile);
 	std::vector<yarnIntersect2D> ref_deformed;
-	//plotIntersectionsDeformed(pnts_ref, ref_deformed, ellipses, all_theta_R, deformedRefFile);
-	//plotIntersections(pnts_trans, deformed);
+	plotIntersectionsDeformed(pnts_ref, ref_deformed, ellipses, all_theta_R, deformedRefFile);
+	plotIntersections(pnts_trans, deformed);
 #else
 	//hermiteTest1();
 	//hermiteTest2();
@@ -179,9 +166,11 @@ int main(int argc, const char **argv) {
 	//extractNormals();
 
 	//shapeMatch_test();
-	yarnShapeMatch_test();
+	//yarnShapeMatch_test();
 
 	//writeNormals();
+
+	render1fiber();
 #endif
 
 //	std::system("pause"); //add breakpoint instead

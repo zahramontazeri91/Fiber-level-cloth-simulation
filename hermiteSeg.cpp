@@ -1,6 +1,8 @@
 #include <algorithm>
 #include "hermiteSeg.h"
 
+#include <iostream>
+
 #define POLYSOLVER_EPS  1e-8
 
 
@@ -291,7 +293,7 @@ Eigen::Vector3d HermiteSpline::computeRotatedNormal(const Eigen::Vector3d &tang0
 {
     assert(std::abs(tang0.norm() - 1.0) < HERMITE_EPS);
     assert(std::abs(tang1.norm() - 1.0) < HERMITE_EPS);
-    assert(std::abs(norm0.norm() - 1.0) < HERMITE_EPS);
+	assert(std::abs(norm0.norm() - 1.0) < HERMITE_EPS);
 
     double val = tang0.dot(tang1);
     if ( val > 1.0 - HERMITE_EPS )

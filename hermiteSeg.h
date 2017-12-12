@@ -67,13 +67,32 @@ public:
 	{
 		return u1*6.0*t + u2*2.0;
 	}
+	
+	inline Eigen::Vector3d rotateTang(const Eigen::Vector3d &v) const {
+		Eigen::Matrix3d Rx, Ry, Rz;
+		Rx << 1, 0, 0,
+			0, 0, -1,
+			0, 1, 0;
+		Ry << 0, 0, 1,
+			0, 1, 0,
+			-1, 0, 0;
+		Rz << 0, -1, 0,
+			1, 0, 0,
+			0, 0, 1;
+		return (Rz*v == v ? Ry*v : Rz*v);
+	}
 
     /* get the principle normal at t */
     inline Eigen::Vector3d evalPrincipalNormal(double t, bool normalize = true) const
     {
+		Eigen::Vector3d ret;
         Eigen::Vector3d q = evalCurvature(t), v = evalTangent(t);
-        Eigen::Vector3d ret = v.cross(q).cross(v);
+		
+		//assing a perpendicular vector if q vanishes
+		if (q.norm() <= HERMITE_EPS) 
+			return rotateTang(v);
 
+        ret = v.cross(q).cross(v);
         if ( normalize ) {
             assert(ret.norm() > HERMITE_EPS && "Either normal or tangent is zero!"); 
             ret.normalize();

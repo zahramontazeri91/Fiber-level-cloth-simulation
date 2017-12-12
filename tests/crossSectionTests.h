@@ -19,6 +19,7 @@ void yarnShapeMatch_test();
 
 //write curve normals to a file
 void writeNormals();
+void render1fiber();
 
 #endif // !__CROSS_SECTION_TEST_H_
 

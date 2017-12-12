@@ -606,3 +606,23 @@ void writeNormals() {
 	std::vector<yarnIntersect2D> pnts_trans;
 	CrossSection cs(yarnfile, curvefile, 2, 1480, 100, pnts_trans);
 }
+
+void render1fiber() {
+	Fiber::Yarn yarn;
+	const char *yarnfile = "genYarn_frame1_shuang.txt";
+	yarn.build(yarnfile, 2);
+	const char *outfile = "genFiber_ref.txt";
+	yarn.write_yarn(outfile);
+
+	yarnfile = "frame00001_scaled.txt";
+	yarn.build(yarnfile, 2);
+	outfile = "genFiber_frame1.txt";
+	yarn.write_yarn(outfile);
+
+	yarnfile = "frame00002_scaled.txt";
+	yarn.build(yarnfile, 2);
+	outfile = "genFiber_frame2.txt";
+	yarn.write_yarn(outfile);
+
+
+}

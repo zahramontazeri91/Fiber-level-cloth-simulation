@@ -60,7 +60,6 @@ void HermiteCurve::init_norm(const std::vector<Eigen::Vector3d> &pts, int subdiv
 {
     initPoints(pts);
     m_splines[0].build(subdiv, m_splines[0].evalPrincipalNormal(0.0));
-
     for ( int i = 1; i < m_spline_seg; ++i )
         m_splines[i].build(subdiv, m_splines[i - 1].evalNormal(1.0));
 	
