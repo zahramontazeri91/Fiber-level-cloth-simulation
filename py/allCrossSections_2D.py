@@ -12,62 +12,96 @@ import matplotlib.pyplot as plt
 import math
 
 
+def visIntersections(fname = ""):  
+    with open(fname, 'r') as fin:
+        plane_num = int( fin.readline().split()[1] )
+        ply_num = int(fin.readline().split()[1])
     
-with open('../../data/allCrossSection2D_new.txt', 'r') as fin:
-    plane_num = int( fin.readline().split()[1] )
-    ply_num = int(fin.readline().split()[1])
-
-    
-    with open('../../data/orientation_new.txt','r') as fv: 
+        X = []
+        Y = []
         for i in range(0, plane_num):
-            print ( "Display intersections with plane %d ... " %i)
-            whitespace = fin.readline().split()
-    
-            X = []
-            Y = []
-#            plt.scatter(0.0,0.0, alpha=1.0, color = 'red', s = 100) #Because center is always in the middle
-            
-            # draw ellipse
-            cntr = fv.readline().split()
-            param = fv.readline().split()
-            whitespace = fv.readline().split()
-            width = 2.0 * float(param[0])
-            height = 2.0 * float(param[1])
-            angle = math.degrees(float(param[2]))
-            ax = plt.subplot(111, aspect='equal')
-            #angle = angle,
-            ell = Ellipse((float(cntr[0]),float(cntr[1])), 
-                          width, height, angle = angle, 
-                          alpha=0.3, facecolor = 'yellow' )  
-#            ax.add_artist(ell)
-            
+#            print ( "Display intersections with plane %d ... " %i)
+            X.append([])
+            Y.append([])
+            fin.readline().split()           
             for p in range(0,ply_num):   
-                
+                X[-1].append([])
+                Y[-1].append([])
                 its_num = int(fin.readline().split()[1])
-                print(p)
-                X = []
-                Y = []
-                c = "C" + str(p)
-                if p==0: 
-                    centerColor = 'black'
-                else:
-                    centerColor = 'red'
-                plyCenter = fin.readline().split() 
-                plt.scatter(plyCenter[1], plyCenter[2], alpha=0.8, color = centerColor, zorder=200)
+                plyCenter = fin.readline().split()
+                plyCenter_x = float(plyCenter[1])
+                plyCenter_y = float(plyCenter[2])
+                X[-1][-1].append(plyCenter_x)
+                Y[-1][-1].append(plyCenter_y)
                 for j in range(0, its_num):
                     pos = [float(val) for val in fin.readline().strip().split(' ')]                
-                    if j==10:
-                        plt.scatter(pos[0],pos[1], alpha=0.8, color = 'r',zorder=200) # first fiber for each ply is the ply-center
-                    else:
-                        X.append(pos[0])
-                        Y.append(pos[1])
+                    X[-1][-1].append(pos[0])
+                    Y[-1][-1].append(pos[1])
+    return X,Y
+                    
+
+ 
                 
-                plt.scatter(X, Y, alpha=0.8, color = c)
-            
-            
-            plt.tick_params(axis='both', which='major', labelsize=8)
-            # set axes range
+                
+#####################
+fname = '../../data/allCrossSection2D_ref.txt'
+outPath = "../../data/vis_crossSections/reference"
+#print('Reading the first file ... ')
+X1, Y1 = visIntersections(fname)
+
+fname = '../../data/allCrossSection2D_deformedRef.txt'
+outPath = "../../data/vis_crossSections/deformedRef"
+#print('Reading the next file ... ')
+X2, Y2 = visIntersections(fname)
+
+
+fname = '../../data/allCrossSection2D_deformed.txt'
+outPath = "../../data/vis_crossSections/deformed"
+#print('Reading the next file ... ')
+X3, Y3 = visIntersections(fname)
+
+
+plane_num = 1184
+for i in range(0, plane_num):  
+    ply_num = 2
+    plt.figure(figsize=(10,30))
+    for p in range(0,ply_num):  
+        its_num = 80
+        for j in range(0, its_num):
+            if j==0 and p==0:  
+                z = 200
+                c = 'red'
+                s = 150
+            elif j==0 and p==1: 
+                z = 300
+                c = 'black'
+                s = 150
+            else:
+                z = 1
+                c = "C" + str(p)
+                s = 100
+
+            plt.subplot(311)
+            plt.scatter(X1[i][p][j], Y1[i][p][j], alpha=0.8, color = c, zorder = z, s = s)
+            plt.tick_params(axis='both', which='major', labelsize=5)
             plt.xlim(-.1,.1)
             plt.ylim(-.1,.1)
-            plt.savefig("../../data/vis_crossSections/ints_plane%d.png" %i)
-            plt.show()  
+            plt.title('Reference yarn %d' %i)
+            
+            plt.subplot(312)
+            plt.scatter(X2[i][p][j], Y2[i][p][j], alpha=0.8, color = c, zorder = z, s = s)
+            plt.tick_params(axis='both', which='major', labelsize=5)
+            plt.xlim(-.1,.1)
+            plt.ylim(-.1,.1)
+            plt.title('Deformed reference yarn %d' %i)
+            
+            plt.subplot(313)
+            plt.scatter(X3[i][p][j], Y3[i][p][j], alpha=0.8, color = c, zorder = z, s = s)
+            plt.tick_params(axis='both', which='major', labelsize=5)
+            plt.xlim(-.1,.1)
+            plt.ylim(-.1,.1)
+            plt.title('Simulated yarn %d' %i)
+        
+    
+    plt.savefig("../../data/vis_crossSections/2Dcompare/plane%d.png" %i)
+    plt.show()

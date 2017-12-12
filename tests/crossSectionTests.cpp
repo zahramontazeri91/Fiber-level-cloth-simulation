@@ -490,13 +490,13 @@ void yarnShapeMatch_test() {
 
 	std::cout << "read reference yarn... \n";
 
-	//const char* yarnfile2 = "frame00001_scaled.txt";
-	//const char* curvefile2 = "frame00001_avg.txt";
-	//const char* normfile2 = "frame00001_norms.txt";
+	const char* yarnfile2 = "frame00001_scaled.txt";
+	const char* curvefile2 = "frame00001_avg.txt";
+	const char* normfile2 = "frame00001_norms.txt";
 
-	const char* yarnfile2 = "genYarn_frame1_shuang.txt"; 
-	const char* curvefile2 = "genYarn_frame1_avg.txt";
-	const char* normfile2 = "genYarn_frame1_norms.txt";
+	//const char* yarnfile2 = "genYarn_frame1.txt"; 
+	//const char* curvefile2 = "genYarn_frame1_avg.txt";
+	//const char* normfile2 = "genYarn_frame1_norms.txt";
 
 	/*******/
 	yarn.yarnCenter(yarnfile2, curvefile2);
@@ -543,10 +543,10 @@ void yarnShapeMatch_test() {
 	cs.retreiveSol(R1, R2, theta, totalCost, preConfig, isValid, validEllipses);
 
 	///**************/
-	std::vector<Ellipse> simple_ellipses;
-	std::vector<float> simple_theta_R;
-	cs.regularizeEllipses(validEllipses, all_theta_R, simple_ellipses, simple_theta_R, 40);
-	cs.regularizeEllipses(simple_ellipses, simple_theta_R, validEllipses, all_theta_R, 40);
+	//std::vector<Ellipse> simple_ellipses;
+	//std::vector<float> simple_theta_R;
+	//cs.regularizeEllipses(validEllipses, all_theta_R, simple_ellipses, simple_theta_R, 40);
+	//cs.regularizeEllipses(simple_ellipses, simple_theta_R, validEllipses, all_theta_R, 40);
 
 	FILE *fout;
 	if (fopen_s(&fout, "compressParams.txt", "wt") == 0) {
