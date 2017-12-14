@@ -9,11 +9,13 @@ void fittingPlyCenter(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneI
 void fittingCompress(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const char* compressFile);
 void fittingFiberTwisting(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const float yarn_radius, const char* fiberTwistFile);
 void plotIntersections(const std::vector<yarnIntersect2D> &its, const char* filename);
-void plotIntersectionsDeformed(const std::vector<yarnIntersect2D> &its, std::vector<yarnIntersect2D> &its_deformed,
-	const std::vector<Ellipse> &ellipses, const std::vector<float> &all_theta_R, const char* filename);
+void deformRef(const std::vector<yarnIntersect2D> &its, std::vector<yarnIntersect2D> &its_deformed,
+	const std::vector<Ellipse> &ellipses, const std::vector<float> &all_theta_R);
+void L2norm(const std::vector<yarnIntersect2D> &its_deform, const std::vector<yarnIntersect2D> &its_trans, std::vector<float> &L2, const char* filename);
+
 
 int main(int argc, const char **argv) {
-#if 1
+#if 0
 
 	if (argc != 3) {
 		printf("Usage: YarnGeneration [task file] [output file]\n");
@@ -35,19 +37,12 @@ int main(int argc, const char **argv) {
 		std::vector<yarnIntersect2D> allPlaneIntersect;
 		CrossSection cs(simulatedFILE.c_str(), cntrYarnFILE.c_str(), normFILE.c_str(), yarn.getPlyNum(), yarn.getStepNum(), 100, allPlaneIntersect);
 		fittingCompress(cs, allPlaneIntersect, compressFILE.c_str());
-		//fittingPlyCenter(cs, allPlaneIntersect, yarn.getYarnRadius(), plyCenterFILE.c_str());
-		//fittingFiberTwisting(cs, allPlaneIntersect, yarn.getYarnRadius(), fiberTwistFILE.c_str());
+		fittingPlyCenter(cs, allPlaneIntersect, yarn.getYarnRadius(), plyCenterFILE.c_str());
+		fittingFiberTwisting(cs, allPlaneIntersect, yarn.getYarnRadius(), fiberTwistFILE.c_str());
 
 		// Procedural step
 		yarn.yarn_simulate(plyCenterFILE.c_str(), fiberTwistFILE.c_str());
-		Fiber::Yarn::compress params;
-		params.ellipse_long = 2.0;
-		params.ellipse_short = 0.5;
-		params.ellipse_theta = 0.0;
-		params.rotation = pi;
-
-		yarn.compress_yarn(params);
-		//yarn.compress_yarn(compressFILE.c_str());
+		yarn.compress_yarn(compressFILE.c_str());
 
 		//map external yarn to the curve
 		//yarn.build("genYarn_frame1_compressed.txt", 2);
@@ -57,8 +52,21 @@ int main(int argc, const char **argv) {
 	}
 	else
 		std::cout << "File wasn't found! \n";
-
 #elif 0
+	Fiber::Yarn yarn;
+	const char* configfile = "config.txt";
+	const char* compressfile = "compressParams.txt";
+	const char* curvefile = "centerYarn_compress.txt";
+
+	yarn.parse(configfile);
+
+	// Procedural step
+	yarn.yarn_simulate();
+	yarn.compress_yarn(compressfile);
+	yarn.curve_yarn(compressfile, curvefile);
+	yarn.write_yarn(argv[2]);
+
+#elif 1
 	//if (argc != 4) {
 	//	printf("Usage: YarnGeneration [config file] [reference-yarn file] [compressed-yarn file]\n");
 	//	return 1;
@@ -67,14 +75,15 @@ int main(int argc, const char **argv) {
 	const char* configfile = "config.txt";
 
 	//const char* yarnfile1 = argv[2];
-	const char* yarnfile1 = "frame0000000.txt";
+	//const char* yarnfile1 = "frame0000000.txt";
 	//const char* yarnfile1 = "genYarn_frame1_shuang.txt";
+	const char* yarnfile1 = "frame00001_scaled.txt";
 	//const char* yarnfile1 = "genYarn_frame1.txt"; 
 
 	//const char* yarnfile2 = argv[3];
-	const char* yarnfile2 = "frame0009900.txt";
+	//const char* yarnfile2 = "frame0009900.txt";
 	//const char* yarnfile2 = "frame00001_scaled.txt";
-	//const char* yarnfile2 = "frame00029_scaled.txt";
+	const char* yarnfile2 = "frame00029_scaled.txt";
 	//const char* yarnfile2 = "genYarn_frame1_compressed_R.txt";
 	//const char* norm2 = "genYarn_frame29_norms.txt";
 
@@ -88,8 +97,8 @@ int main(int argc, const char **argv) {
 	Fiber::Yarn yarn;
 
 	yarn.parse(configfile);
-	//const int n = yarn.getStepNum();
-	const int n = 150;
+	const int n = yarn.getStepNum();
+	//const int n = 80;
 	const int ply_num = yarn.getPlyNum();
 
 	Fiber::Yarn yarn_tmp;
@@ -152,9 +161,9 @@ int main(int argc, const char **argv) {
 	cs.retreiveSol(R1, R2, theta, totalCost, preConfig, isValid, validEllipses);
 
 	//5. regularizing the parameters
-	//std::cout << "Step 6: regularizing the parameters.\n\n";
-	//std::vector<Ellipse> simple_ellipses;
-	//std::vector<float> simple_theta_R;
+	std::cout << "Step 6: regularizing the parameters.\n\n";
+	std::vector<Ellipse> simple_ellipses;
+	std::vector<float> simple_theta_R;
 	//cs.regularizeEllipses(validEllipses, all_theta_R, simple_ellipses, simple_theta_R, 40);
 	//cs.regularizeEllipses(simple_ellipses, simple_theta_R, validEllipses, all_theta_R, 40);
 
@@ -162,8 +171,8 @@ int main(int argc, const char **argv) {
 
 	FILE *fout;
 	if (fopen_s(&fout, "compressParams.txt", "wt") == 0) {
-		fprintf_s(fout, "%d \n", ellipses.size());
-		for (int i = 0; i < ellipses.size(); ++i) {
+		fprintf_s(fout, "%d \n", validEllipses.size());
+		for (int i = 0; i < validEllipses.size(); ++i) {
 			//fprintf_s(fout, "%.6f %.6f %.6f ", validEllipses[i].longR, validEllipses[i].shortR, validEllipses[i].angle);
 			//fprintf_s(fout, "%.6f %.6f %.6f \n", all_theta_R[i], all_T[i](0, 0), all_T[i](1, 0));
 			fprintf_s(fout, "%.6f %.6f %.6f %.6f \n", validEllipses[i].longR, validEllipses[i].shortR, validEllipses[i].angle, all_theta_R[i]);
@@ -173,14 +182,19 @@ int main(int argc, const char **argv) {
 	std::cout << "Compression parameters are successfully written to the file!\n";
 
 	//visualization
-
+	const char* L2File = "../data/L2.txt";
 	const char* refFile = "../data/allCrossSection2D_ref.txt";
 	const char* deformedRefFile = "../data/allCrossSection2D_deformedRef.txt";
-	const char* deformed = "../data/allCrossSection2D_deformed.txt";
+	const char* deformedFile = "../data/allCrossSection2D_deformed.txt";
+
 	plotIntersections(pnts_ref, refFile);
 	std::vector<yarnIntersect2D> ref_deformed;
-	plotIntersectionsDeformed(pnts_ref, ref_deformed, ellipses, all_theta_R, deformedRefFile);
-	plotIntersections(pnts_trans, deformed);
+	deformRef(pnts_ref, ref_deformed, validEllipses, all_theta_R);
+	plotIntersections(ref_deformed, deformedRefFile);
+	plotIntersections(pnts_trans, deformedFile);
+
+	std::vector<float> L2;
+	L2norm(ref_deformed, pnts_trans, L2, L2File);
 #elif 0
 
 	Fiber::Yarn yarn;
@@ -246,11 +260,31 @@ int main(int argc, const char **argv) {
  	return 0;
 }
 
+void L2norm(const std::vector<yarnIntersect2D> &its_deform, const std::vector<yarnIntersect2D> &its_trans, std::vector<float> &L2, const char* filename) {
+	assert(its_deform.size() == its_trans.size() );
+	FILE *fout;
+
+	if (fopen_s(&fout, filename, "wt") == 0) {
+		fprintf_s(fout, "%d \n", its_deform.size());
+		for (int i = 0; i < its_deform.size(); ++i) { //number of planes
+			float e = 0.f;
+			for (int p = 0; p < its_deform[i].size(); ++p) { //number of plys
+				for (int j = 0; j < its_deform[i][p].size(); ++j) { //number of intersections
+					e += square_norm(its_deform[i][p][j] - its_trans[i][p][j]);
+				}
+			}
+			L2.push_back(e);
+			fprintf_s(fout, "%.6f \n", e);
+		}
+	fclose(fout);
+	}
+}
+
 void plotIntersections(const std::vector<yarnIntersect2D> &its, const char* filename) {
 	FILE *fout;
 	// write the plycenters
 	if (fopen_s(&fout, filename, "wt") == 0) {
-		const int ignorPlanes = 0.1 * its.size(); // crop the first and last 10% of the yarn
+		const int ignorPlanes = 0.2 * its.size(); // crop the first and last 10% of the yarn
 														
 		fprintf_s(fout, "plane_num: %d \n", its.size() - 2 * ignorPlanes);
 		fprintf_s(fout, "ply_num: %d \n", its[0].size());
@@ -277,51 +311,30 @@ void plotIntersections(const std::vector<yarnIntersect2D> &its, const char* file
 	}
 }
 
-void plotIntersectionsDeformed(const std::vector<yarnIntersect2D> &its, std::vector<yarnIntersect2D> &its_deformed,
-	const std::vector<Ellipse> &ellipses, const std::vector<float> &all_theta_R, const char* filename) {
-	FILE *fout;
-	// write the plycenters
-	if (fopen_s(&fout, filename, "wt") == 0) {
-		const int ignorPlanes = 0.1 * its.size(); // crop the first and last 10% of the yarn
+void deformRef(const std::vector<yarnIntersect2D> &its, std::vector<yarnIntersect2D> &its_deformed,
+	const std::vector<Ellipse> &ellipses, const std::vector<float> &all_theta_R) {
 
-		fprintf_s(fout, "plane_num: %d \n", its.size() - 2 * ignorPlanes);
-		fprintf_s(fout, "ply_num: %d \n", its[0].size());
-		fprintf_s(fout, "\n");
+	its_deformed.resize(its.size());
+	Eigen::Matrix2f R, S, V, sigma, transf;
+	for (int i = 0; i < its_deformed.size() ; ++i) { //number of planes
+		sigma << ellipses[i].longR, 0, 0, ellipses[i].shortR;
+		V << cos(ellipses[i].angle), -sin(ellipses[i].angle), sin(ellipses[i].angle), cos(ellipses[i].angle);
+		S = V*sigma*V.transpose();
+		R << cos(all_theta_R[i]), -sin(all_theta_R[i]), sin(all_theta_R[i]), cos(all_theta_R[i]);
+		transf = R *S;
 
-		Eigen::Matrix2f R, S, V, sigma, transf;
-		for (int i = ignorPlanes; i < its.size() - ignorPlanes; ++i) { //number of planes
-			sigma << ellipses[i].longR, 0, 0, ellipses[i].shortR;
-			V << cos(ellipses[i].angle), -sin(ellipses[i].angle), sin(ellipses[i].angle), cos(ellipses[i].angle);
-			S = V*sigma*V.transpose();
-			R << cos(all_theta_R[i]), -sin(all_theta_R[i]), sin(all_theta_R[i]), cos(all_theta_R[i]);
-			transf = R *S;
-
-			fprintf_s(fout, "index plane : %d \n", i - ignorPlanes);
-			for (int p = 0; p < its[i].size(); ++p) { //number of plys
-				fprintf_s(fout, "ply_fiber_num: %d \n", its[i][p].size());
-				vec2f plyCenter(0.f);
-				for (int j = 0; j < its[i][p].size(); ++j) { //number of intersections
-					plyCenter += its[i][p][j];
-				}
-				plyCenter /= its[i][p].size();
+		its_deformed[i].resize(its[i].size());
+		for (int p = 0; p < its[i].size(); ++p) { //number of plys
+			its_deformed[i][p].resize(its[i][p].size());
+			for (int j = 0; j < its[i][p].size(); ++j) { //number of intersections
 				Eigen::VectorXf ref(2, 1);
-				ref << plyCenter.x, plyCenter.y;
+				ref << its[i][p][j].x, its[i][p][j].y;
 				Eigen::VectorXf deformedRef = transf*ref;
-				fprintf_s(fout, "plyCenter: %.6lf %.6lf \n", deformedRef[0], deformedRef[1]);
-
-				for (int j = 0; j < its[i][p].size(); ++j) { //number of intersections
-					Eigen::VectorXf ref(2, 1);
-					ref << its[i][p][j].x, its[i][p][j].y;
-					Eigen::VectorXf deformedRef = transf*ref;
-					fprintf_s(fout, "%.6f %.6f \n", deformedRef[0], deformedRef[1]);
-				}
+				its_deformed[i][p][j] = vec2f(deformedRef(0, 0), deformedRef(1, 0));
 			}
-			fprintf_s(fout, "\n");
 		}
-		fclose(fout);
 	}
 }
-
 
 void fittingCompress(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const char* compressFile) {
 

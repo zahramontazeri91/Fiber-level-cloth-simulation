@@ -3,8 +3,8 @@
 Read obj file and write in the data format of simulated data
 """
 path = 'D:/sandbox/fiberSimulation/dataSets/1211/'
-fname_read = path + 'frame_0009900fiber_00.obj'
-fname_write = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/frame0009900.txt'
+fname_read = path + 'frame_0008100fiber_00.obj'
+fname_write = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/frame0008100.txt'
 with open(fname_write, 'w') as fout:
     with open(fname_read, 'r') as fin:
         fout.writelines('%d\n' %160)

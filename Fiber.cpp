@@ -459,7 +459,6 @@ namespace Fiber {
 		}
 	} // yarn_simulate
 
-#if 0
 	void Yarn::yarn_simulate() {
 
 		std::cout << "step1: yarn center ...\n";
@@ -545,7 +544,6 @@ namespace Fiber {
 			}
 		}
 	} // yarn_simulate
-#endif
 
 	void Yarn::readCompressFile(const char* filename, std::vector<compress> &compress_params) {
 		std::ifstream fin;
@@ -563,6 +561,7 @@ namespace Fiber {
 			param.ellipse_long = atof(splits[0].c_str());
 			param.ellipse_short = atof(splits[1].c_str());
 			param.ellipse_theta = atof(splits[2].c_str());
+			param.rotation = atof(splits[3].c_str());
 			compress_params.push_back(param);
 			planeId++;
 		}
@@ -628,6 +627,7 @@ namespace Fiber {
 		}
 	}
 
+#if 0
 	void Yarn::compress_yarn(const char* filename) {
 		std::cout << "step7: compress yarn cross-sections ..." << std::endl;
 
@@ -710,8 +710,9 @@ namespace Fiber {
 			fclose(fout);
 		}
 	} // compress_yarn
+#endif
 
-	void Yarn::compress_yarn(const compress &params) {
+	void Yarn::compress_yarn(const char* filename) {
 		std::cout << "step7: compress yarn cross-sections ..." << std::endl;
 
 		//first find the fitted circle around each cross-section
@@ -728,6 +729,9 @@ namespace Fiber {
 		}
 		fitCircleR_avg /= static_cast<float> (this->z_step_num);
 
+		std::vector<compress> compress_params;
+		readCompressFile(filename, compress_params);
+
 		// change the yarn cross-sections
 		//const int ply_num = this->plys.size();
 		for (int i = 0; i < ply_num; i++) {
@@ -740,11 +744,16 @@ namespace Fiber {
 				//while (1);
 				for (int v = 0; v < vertices_num; v++) {
 
+					const float ellipse_long = compress_params[v].ellipse_long;
+					const float ellipse_short = compress_params[v].ellipse_short;
+					const float ellipse_theta = compress_params[v].ellipse_theta;
+					const float rotation = compress_params[v].rotation;
+
 					Eigen::Matrix2f R, S, V, sigma, transf;
-					sigma << params.ellipse_long, 0, 0, params.ellipse_short;
-					V << cos(params.ellipse_theta), -sin(params.ellipse_theta), sin(params.ellipse_theta), cos(params.ellipse_theta);
+					sigma << ellipse_long, 0, 0, ellipse_short;
+					V << cos(ellipse_theta), -sin(ellipse_theta), sin(ellipse_theta), cos(ellipse_theta);
 					S = V*sigma*V.transpose();
-					R << cos(params.rotation), -sin(params.rotation), sin(params.rotation), cos(params.rotation);
+					R << cos(rotation), -sin(rotation), sin(rotation), cos(rotation);
 					transf = R *S;
 					Eigen::MatrixXf ref(2, 1);
 					ref << fiber.vertices[v].x, fiber.vertices[v].y;
@@ -900,8 +909,8 @@ namespace Fiber {
 		for (int i = 0; i < ply_num; i++) {
 			int fiber_num = this->plys[i].fibers.size();
 			for (int f = 0; f < fiber_num; f++) {
-				Fiber &fiber = this->plys[i].fibers[10]; //render one fiber
-				//Fiber &fiber = this->plys[i].fibers[f];
+				//Fiber &fiber = this->plys[i].fibers[10]; //render one fiber
+				Fiber &fiber = this->plys[i].fibers[f];
 				int fiber_vertex_num = fiber.vertices.size();
 				fout << fiber_vertex_num << std::endl;
 				for (int v = 0; v < fiber_vertex_num; v++) {
