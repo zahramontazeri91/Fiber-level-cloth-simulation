@@ -79,6 +79,7 @@ namespace Fiber {
 		int fiber_num = atoi(line.c_str());
 		yarn.plys.resize(ply_num);
 
+
 	#pragma omp parallel for num_threads(num_of_cores) 
 		for (int p = 0; p < ply_num; ++p) {
 			yarn.plys[p].fibers.resize(fiber_num);
@@ -561,7 +562,7 @@ namespace Fiber {
 
 			param.ellipse_long = atof(splits[0].c_str());
 			param.ellipse_short = atof(splits[1].c_str());
-			param.theta = atof(splits[2].c_str());
+			param.ellipse_theta = atof(splits[2].c_str());
 			compress_params.push_back(param);
 			planeId++;
 		}
@@ -661,7 +662,7 @@ namespace Fiber {
 
 					const float ellipse_long = compress_params[v].ellipse_long;
 					const float ellipse_short = compress_params[v].ellipse_short;
-					const float ellipse_theta = compress_params[v].theta;
+					const float ellipse_theta = compress_params[v].ellipse_theta;
 
 					//obtain ellipse axis
 					const vec2f ellipse_axis_long = vec2f(cos(ellipse_theta), sin(ellipse_theta));
@@ -685,6 +686,101 @@ namespace Fiber {
 
 					fiber.vertices[v].x = world_p.x;
 					fiber.vertices[v].y = world_p.y;
+				}
+			}
+		}
+		// for debuging:
+		FILE *fout;
+		const int plane_num = this->z_step_num;
+		const int f_num = this->plys[0].fibers.size() - 1; //since the first fiber is the center
+		const int ignorPlanes = 0.1 * plane_num; // crop the first and last 10% of the yarn
+		if (fopen_s(&fout, "../data/allCrossSection2D_compress.txt", "wt") == 0) {
+			fprintf_s(fout, "plane_num: %d \n", plane_num - 2 * ignorPlanes);
+			fprintf_s(fout, "ply_num: %d \n \n", ply_num);
+			for (int step_id = ignorPlanes; step_id < plane_num - ignorPlanes; step_id++) {
+				for (int i = 0; i < ply_num; i++) {
+					fprintf_s(fout, "ply_fiber_num: %d\n", f_num);
+					fprintf_s(fout, "plyCenter: %.4f %.4f\n", this->plys[i].fibers[0].vertices[step_id].x, this->plys[i].fibers[0].vertices[step_id].y);
+					for (int f = 1; f < f_num + 1; ++f) {
+						fprintf_s(fout, "%.4f %.4f\n", this->plys[i].fibers[f].vertices[step_id].x, this->plys[i].fibers[f].vertices[step_id].y);
+					}
+				}
+				fprintf_s(fout, "\n");
+			}
+			fclose(fout);
+		}
+	} // compress_yarn
+
+	void Yarn::compress_yarn(const compress &params) {
+		std::cout << "step7: compress yarn cross-sections ..." << std::endl;
+
+		//first find the fitted circle around each cross-section
+		std::vector<float> fitCircleR;
+		const int ply_num = this->plys.size();
+		std::vector<yarnIntersect2D> itsLists;
+		yarn2crossSections(itsLists);
+		float fitCircleR_avg = 0.f;
+		for (int i = 0; i < this->z_step_num; ++i) {
+			float radius;
+			fitCircle(itsLists[i], radius);
+			fitCircleR.push_back(radius);
+			fitCircleR_avg += radius;
+		}
+		fitCircleR_avg /= static_cast<float> (this->z_step_num);
+
+		// change the yarn cross-sections
+		//const int ply_num = this->plys.size();
+		for (int i = 0; i < ply_num; i++) {
+			const int fiber_num = this->plys[i].fibers.size();
+			for (int f = 0; f < fiber_num; f++) {
+				Fiber &fiber = this->plys[i].fibers[f];
+				const int vertices_num = this->plys[i].fibers[f].vertices.size();
+				//assert(compress_params.size() == vertices_num);
+				//std::cout << compress_params.size() << " " <<  vertices_num << std::endl;
+				//while (1);
+				for (int v = 0; v < vertices_num; v++) {
+
+					Eigen::Matrix2f R, S, V, sigma, transf;
+					sigma << params.ellipse_long, 0, 0, params.ellipse_short;
+					V << cos(params.ellipse_theta), -sin(params.ellipse_theta), sin(params.ellipse_theta), cos(params.ellipse_theta);
+					S = V*sigma*V.transpose();
+					R << cos(params.rotation), -sin(params.rotation), sin(params.rotation), cos(params.rotation);
+					transf = R *S;
+					Eigen::MatrixXf ref(2, 1);
+					ref << fiber.vertices[v].x, fiber.vertices[v].y;
+					Eigen::MatrixXf def(2, 1);
+					def = transf*ref;
+
+					fiber.vertices[v].x = def(0, 0);
+					fiber.vertices[v].y = def(1, 0);
+#if 0
+					const float ellipse_long = params.ellipse_long;
+					const float ellipse_short = params.ellipse_short;
+					const float ellipse_theta = params.ellipse_theta;
+
+					//obtain ellipse axis
+					const vec2f ellipse_axis_long = vec2f(cos(ellipse_theta), sin(ellipse_theta));
+					const vec2f ellipse_axis_short = vec2f(-sin(ellipse_theta), cos(ellipse_theta));
+
+					//transfer from x-y space to ellipse space
+					vec2f world_p(fiber.vertices[v].x, fiber.vertices[v].y);
+					vec2f ellipse_p(0.f);
+					ellipse_p.x = nv::dot(ellipse_axis_long, world_p);
+					ellipse_p.y = nv::dot(ellipse_axis_short, world_p);
+
+					//apply the scaling 
+					ellipse_p.x *= ellipse_long / fitCircleR_avg;
+					ellipse_p.y *= ellipse_short / fitCircleR_avg;
+					//ellipse_p.x *= ellipse_long / fitCircleR[v];
+					//ellipse_p.y *= ellipse_short / fitCircleR[v];
+
+					//transfer back to x-y
+					world_p.x = nv::dot(vec2f(ellipse_axis_long.x, ellipse_axis_short.x), ellipse_p);
+					world_p.y = nv::dot(vec2f(ellipse_axis_long.y, ellipse_axis_short.y), ellipse_p);
+
+					fiber.vertices[v].x = world_p.x;
+					fiber.vertices[v].y = world_p.y;
+#endif
 				}
 			}
 		}

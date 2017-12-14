@@ -35,7 +35,7 @@ def visualize(Sx, Sy, thetaS, thetaR, title = "", fname = "", showWindow = True)
     thetaS -= np.floor(0.25*(thetaS[0] + thetaS[-1])/np.pi + 0.5)*2.0*np.pi
     thetaR -= np.floor(0.25*(thetaR[0] + thetaR[-1])/np.pi + 0.5)*2.0*np.pi
 
-    plt.figure(figsize=(8, 8))
+    plt.figure(figsize=(8,8))
 
     plt.subplot(311)
     plt.plot(Sx, label='Sx')
@@ -43,6 +43,7 @@ def visualize(Sx, Sy, thetaS, thetaR, title = "", fname = "", showWindow = True)
     plt.legend()
     if title != "":
         plt.title(title, fontsize=14)
+#    plt.ylim([0,1.1])
 
     plt.subplot(312)
     plt.plot(thetaS, label=r'$\theta_S$')
@@ -52,34 +53,80 @@ def visualize(Sx, Sy, thetaS, thetaR, title = "", fname = "", showWindow = True)
     plt.plot(thetaR, label=r'$\theta_R$')
     plt.legend()
 
+    
     plt.tight_layout()
     if fname != "":
-        plt.savefig(fname, dpi=200)
+        plt.savefig("../../data/vis_crossSections/shapeMatch.png", dpi=200)
     if showWindow:
         plt.show()
 
+#def visualize_T(Sx, Sy, thetaS, thetaR, Tx, Ty, title = "", fname = "", showWindow = True):
+##    assert Sx.shape == Sy.shape and Sx.shape == thetaS.shape and Sx.shape == thetaR.shape
+#
+#    m = len(thetaS)
+#    for i in range(1, m):
+#        thetaS[i] = nextTheta(thetaS[i - 1], thetaS[i])
+#        thetaR[i] = nextTheta(thetaR[i - 1], thetaR[i])
+#    thetaS -= np.floor(0.25*(thetaS[0] + thetaS[-1])/np.pi + 0.5)*2.0*np.pi
+#    thetaR -= np.floor(0.25*(thetaR[0] + thetaR[-1])/np.pi + 0.5)*2.0*np.pi
+#
+#    plt.figure(figsize=(8, 8))
+#
+#    plt.subplot(411)
+#    plt.plot(Sx, label='Sx')
+#    plt.plot(Sy, label='Sy')
+#    plt.legend()
+#    if title != "":
+#        plt.title(title, fontsize=14)
+##    plt.ylim([0,1.1])
+#
+#    plt.subplot(412)
+#    plt.plot(thetaS, label=r'$\theta_S$')
+#    plt.legend()
+#
+#    plt.subplot(413)
+#    plt.plot(thetaR, label=r'$\theta_R$')
+#    plt.legend()
+#
+#    plt.subplot(414)
+#    plt.plot(Tx, label='Tx')
+#    plt.plot(Ty, label='Ty')
+#    plt.legend()
+#    
+#    plt.tight_layout()
+#    if fname != "":
+#        plt.savefig("../../data/vis_crossSections/shapeMatch.png", dpi=200)
+#    if showWindow:
+#        plt.show()
+        
 lng = []
 shrt = []
 theta = []
 rot = []
+Tx = []
+Ty = []
 #fname = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/x64/Release/compressParams.txt'
 fname = '../compressParams.txt'
 
 with open(fname, 'r') as fin:
     N = int(fin.readline())
     for i in range (0,N):
-         compress = fin.readline().split()
-         lng.append(float(compress[0]))
-         shrt.append(float(compress[1]))
-         theta.append(float(compress[2]))
-         rot.append(float(compress[3]))
+        compress = fin.readline().split()
+        if i>65 and i<75:
+             lng.append(float(compress[0]))
+             shrt.append(float(compress[1]))
+             theta.append(float(compress[2]))
+             rot.append(float(compress[3]))
+    #         Tx.append(float(compress[4]))
+    #         Ty.append(float(compress[5]))
  
 ind = np.arange(N)  
 
 
-title = 'simulated-frame-29 using actual reference'
+title = 'dataset2\n compressed: simulated frame 9900 \n reference: simulated frame 0'
+#title = 'compressed: synthetic frame 1 compressed \n reference: synthetic frame 1'
 visualize(lng, shrt, theta, rot, title, fname)
-#
+
 #plt.figure(figsize=(15,10))
 #
 #plt.subplot(311)

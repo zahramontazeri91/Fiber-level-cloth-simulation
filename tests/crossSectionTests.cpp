@@ -470,36 +470,36 @@ void yarnShapeMatch_test() {
 	//const char* curvefile = "frame00001_avg.txt";
 	//const char* normfile = "frame00001_norms.txt";
 
-	const char* yarnfile = "frame00029_scaled.txt";
-	const char* curvefile = "frame00029_avg.txt";
+	//const char* yarnfile = "frame00029_scaled.txt";
+	//const char* curvefile = "frame00029_avg.txt";
 	//const char* normfile = "frame00029_norms.txt";
 
-	//const char* yarnfile = "genYarn_frame29_compressed.txt";
-	//const char* curvefile = "genYarn_frame29_avg.txt";
-	//const char* normfile = "genYarn_frame29_norms.txt";
+	const char* yarnfile = "genYarn_frame29_compressed.txt";
+	const char* curvefile = "genYarn_frame29_avg.txt";
+	const char* normfile = "genYarn_frame29_norms.txt";
 
 	/*******/
-	Fiber::Yarn yarn;
-	yarn.yarnCenter(yarnfile, curvefile);
+	//Fiber::Yarn yarn;
+	//yarn.yarnCenter(yarnfile, curvefile);
 	//HermiteCurve curve;
 	//curve.init_norm(curvefile, normfile, 100);
 	/*******/
 
 	std::vector<yarnIntersect2D> pnts_trans;
-	CrossSection cs(yarnfile, curvefile, 2, n, 100, pnts_trans);
+	CrossSection cs(yarnfile, curvefile, normfile, 2, n, 100, pnts_trans);
 
 	std::cout << "read reference yarn... \n";
 
-	const char* yarnfile2 = "frame00001_scaled.txt";
-	const char* curvefile2 = "frame00001_avg.txt";
-	const char* normfile2 = "frame00001_norms.txt";
+	//const char* yarnfile2 = "frame00001_scaled.txt";
+	//const char* curvefile2 = "frame00001_avg.txt";
+	//const char* normfile2 = "frame00001_norms.txt";
 
-	//const char* yarnfile2 = "genYarn_frame1.txt"; 
-	//const char* curvefile2 = "genYarn_frame1_avg.txt";
-	//const char* normfile2 = "genYarn_frame1_norms.txt";
+	const char* yarnfile2 = "genYarn_frame1.txt"; 
+	const char* curvefile2 = "genYarn_frame1_avg.txt";
+	const char* normfile2 = "genYarn_frame1_norms.txt";
 
 	/*******/
-	yarn.yarnCenter(yarnfile2, curvefile2);
+	//yarn.yarnCenter(yarnfile2, curvefile2);
 	//HermiteCurve curve2;
 	//curve2.init_norm(curvefile2, normfile2, 100);
 	//return;
@@ -549,7 +549,7 @@ void yarnShapeMatch_test() {
 	//cs.regularizeEllipses(simple_ellipses, simple_theta_R, validEllipses, all_theta_R, 40);
 
 	FILE *fout;
-	if (fopen_s(&fout, "compressParams.txt", "wt") == 0) {
+	if (fopen_s(&fout, "compressParams1.txt", "wt") == 0) {
 		fprintf_s(fout, "%d \n", ellipses.size());
 		for (int i = 0; i < ellipses.size(); ++i) {
 			fprintf_s(fout, "%.4f %.4f %.4f %.4f \n", validEllipses[i].longR, validEllipses[i].shortR, validEllipses[i].angle, all_theta_R[i]);

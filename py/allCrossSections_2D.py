@@ -23,7 +23,8 @@ def visIntersections(fname = ""):
 #            print ( "Display intersections with plane %d ... " %i)
             X.append([])
             Y.append([])
-            fin.readline().split()           
+            fin.readline().split() 
+            fin.readline().split() #read the plane index
             for p in range(0,ply_num):   
                 X[-1].append([])
                 Y[-1].append([])
@@ -68,11 +69,11 @@ for i in range(0, plane_num):
     for p in range(0,ply_num):  
         its_num = 80
         for j in range(0, its_num):
-            if j==0 and p==0:  
+            if j==10 and p==0:  
                 z = 200
                 c = 'red'
                 s = 100
-            elif j==0 and p==1: 
+            elif j==20 and p==1: 
                 z = 300
                 c = 'black'
                 s = 100

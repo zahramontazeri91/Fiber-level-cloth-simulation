@@ -1,7 +1,6 @@
 #include <algorithm>
 #include "hermiteSeg.h"
 
-#include <iostream>
 
 #define POLYSOLVER_EPS  1e-8
 

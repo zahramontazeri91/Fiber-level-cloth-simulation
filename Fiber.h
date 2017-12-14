@@ -91,9 +91,10 @@ namespace Fiber {
 
 		/* Define a set of parameters needed for compression*/    //TODO: unify this with the other crossSection/Elllipse Struct
 		struct compress {
-			float theta;
 			float ellipse_long;
 			float ellipse_short;
+			float ellipse_theta;
+			float rotation;
 		};
 
 		void setStepSize(const float ss) {
@@ -176,6 +177,7 @@ namespace Fiber {
 		void fitCircle(const yarnIntersect2D &pts, float &radius);
 		void yarn2crossSections(std::vector<yarnIntersect2D> &itsLists);
 		void compress_yarn(const char* filename);
+		void compress_yarn(const compress &params);
 
 		/* Write simulated data (single yarns) to disk */
 		void write_yarn(const char* filename);
