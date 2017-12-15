@@ -102,13 +102,8 @@ public:
 	void fiberTwisting(const std::vector<yarnIntersect2D> &decompressPlaneIts, std::vector<float> &fiber_theta, const char *fiberTwistFile);
 
 	/* optimization related functions */
-	void optimizeEllipses();
-	void preComputeEllipses(const std::vector<Ellipse> &ellipses, Eigen::MatrixXf &R1, Eigen::MatrixXf &R2, Eigen::MatrixXf &theta);
-	void greedyOpt(const Eigen::MatrixXf &R1, const Eigen::MatrixXf &R2, const Eigen::MatrixXf &theta, const std::vector<bool> &isValid, std::vector<Ellipse> &validEllipses);
-	void dynamicProgramming(const std::vector<bool> &isValid, const std::vector<Eigen::Matrix4f> &cost, Eigen::MatrixXf &totalCost, Eigen::MatrixXf &preConfig);
-	void costFunction(const Eigen::MatrixXf &R1, const Eigen::MatrixXf &R2, const Eigen::MatrixXf &theta, const std::vector<bool> &isValid, std::vector<Eigen::Matrix4f> &cost);
-	void retreiveSol(const Eigen::MatrixXf &R1, const Eigen::MatrixXf &R2, const Eigen::MatrixXf &theta, const Eigen::MatrixXf &totalCost,
-		const Eigen::MatrixXf &preConfig, const std::vector<bool> &isValid, std::vector<Ellipse> &validEllipses);
+	void optimizeEllipses(const std::vector<Ellipse> &ellipses, const std::vector<float> &theta_R,
+		std::vector<Ellipse> &new_ellipses, std::vector<float> &new_theta_R);
 	
 	//for debug:
 	/* constructor for procedural yarn (for debug use) */
@@ -122,5 +117,13 @@ protected:
 	Fiber::Yarn m_yarn;
 	std::vector<Plane> m_planesList;
 };
+
+void preComputeEllipses(const std::vector<Ellipse> &ellipses, Eigen::MatrixXf &R1, Eigen::MatrixXf &R2, Eigen::MatrixXf &theta);
+void greedyOpt(const Eigen::MatrixXf &R1, const Eigen::MatrixXf &R2, const Eigen::MatrixXf &theta, const std::vector<bool> &isValid, std::vector<Ellipse> &validEllipses);
+void dynamicProgramming(const std::vector<bool> &isValid, const std::vector<Eigen::Matrix4f> &cost, Eigen::MatrixXf &totalCost, Eigen::MatrixXf &preConfig);
+void costFunction(const Eigen::MatrixXf &R1, const Eigen::MatrixXf &R2, const Eigen::MatrixXf &theta, const std::vector<bool> &isValid, std::vector<Eigen::Matrix4f> &cost);
+void retreiveSol(const Eigen::MatrixXf &R1, const Eigen::MatrixXf &R2, const Eigen::MatrixXf &theta, const Eigen::MatrixXf &totalCost,
+	const Eigen::MatrixXf &preConfig, const std::vector<bool> &isValid, std::vector<Ellipse> &validEllipses);
+
 
 #endif // !_CROSS_SECTION_H_

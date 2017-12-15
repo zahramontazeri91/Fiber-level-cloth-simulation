@@ -63,7 +63,6 @@ void appendCenter_yarn(const std::vector<Fiber::Yarn::CenterLine> &centerlines, 
 			allCenterlines[indx].b = centerlines[i].b;
 			allCenterlines[indx].c = centerlines[i].c;
 			allCenterlines[indx].d = centerlines[i].d;
-
 		}
 	}
 	//mirror the values for the leftover vertices  (if the end of yarn hasn't been assign)
@@ -105,12 +104,11 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 	CrossSection cs(yarnfile2, centerYarn2, ply_num, n, 100, pnts_trans);
 
 	//0. yarnShapeMatches:
-	std::cout << "\n";
-	std::cout << "Step 1: Shape matching between reference and compressed yarn.\n";
+	//std::cout << "\n";
+	//std::cout << "Step 1: Shape matching between reference and compressed yarn.\n";
 	std::vector<Ellipse> ellipses;
 	std::vector<float> all_theta_R;
 	cs.yarnShapeMatches(pnts_trans, pnts_ref, ellipses, all_theta_R);
-	std::vector<bool> isValid(n, true);
 
 	/*use PCA */
 	//0. extract the ellipses 
@@ -129,51 +127,20 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 	//	ellipses[i] = ell;
 	//}
 
-	//1. precompute R1\R2\theta and isValid
-	std::cout << "Step 2: precompute four possibilites for each cross-section.\n";
-	Eigen::MatrixXf R1(n, 4);
-	Eigen::MatrixXf R2(n, 4);
-	Eigen::MatrixXf theta(n, 4);
-	cs.preComputeEllipses(ellipses, R1, R2, theta);
-
-	//2. precompute cost function 
-	std::cout << "Step 3: computing the cost function...\n";
-	std::vector<Eigen::Matrix4f> cost;
-	cs.costFunction(R1, R2, theta, isValid, cost);
-
-	//3. dynamic programming
-	std::cout << "Step 4: Use Dynamic Programming to find the optimum.\n";
-	Eigen::MatrixXf totalCost(n, 4);
-	Eigen::MatrixXf preConfig(n, 4);
-	cs.dynamicProgramming(isValid, cost, totalCost, preConfig);
-
-	//4.retreive solution for valid cross-sections
-	std::cout << "Step 5: finalize optimum solution.\n";
-	std::vector<Ellipse> validEllipses(n);
-	cs.retreiveSol(R1, R2, theta, totalCost, preConfig, isValid, validEllipses);
-
-	//5. regularizing the parameters
-	std::cout << "Step 6: regularizing the parameters.\n\n";
-	std::vector<Ellipse> simple_ellipses;
-	std::vector<float> simple_theta_R;
-	//cs.regularizeEllipses(validEllipses, all_theta_R, simple_ellipses, simple_theta_R, 40);
-	//cs.regularizeEllipses(simple_ellipses, simple_theta_R, validEllipses, all_theta_R, 40);
-
-	std::cout << "\n";
-
+	
 	FILE *fout;
 	if (fopen_s(&fout, compressFile, "wt") == 0) {
-		fprintf_s(fout, "%d \n", validEllipses.size());
-		for (int i = 0; i < validEllipses.size(); ++i) {
+		fprintf_s(fout, "%d \n", ellipses.size());
+		for (int i = 0; i < ellipses.size(); ++i) {
 			//fprintf_s(fout, "%.6f %.6f %.6f ", validEllipses[i].longR, validEllipses[i].shortR, validEllipses[i].angle);
 			//fprintf_s(fout, "%.6f %.6f %.6f \n", all_theta_R[i], all_T[i](0, 0), all_T[i](1, 0));
-			fprintf_s(fout, "%.6f %.6f %.6f %.6f \n", validEllipses[i].longR, validEllipses[i].shortR, validEllipses[i].angle, all_theta_R[i]);
+			fprintf_s(fout, "%.6f %.6f %.6f %.6f \n", ellipses[i].longR, ellipses[i].shortR, ellipses[i].angle, all_theta_R[i]);
 		}
 		fclose(fout);
 	}
 	std::cout << "Compression parameters are successfully written to the file!\n";
 
-	//visualization
+	//for debug: visualization
 	const char* L2File = "../data/L2.txt";
 	const char* refFile = "../data/allCrossSection2D_ref.txt";
 	const char* deformedRefFile = "../data/allCrossSection2D_deformedRef.txt";
@@ -181,12 +148,17 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 
 	plotIntersections(pnts_ref, refFile);
 	std::vector<yarnIntersect2D> ref_deformed;
-	deformRef(pnts_ref, ref_deformed, validEllipses, all_theta_R);
+	deformRef(pnts_ref, ref_deformed, ellipses, all_theta_R);
 	plotIntersections(ref_deformed, deformedRefFile);
 	plotIntersections(pnts_trans, deformedFile);
 
 	std::vector<float> L2;
 	L2norm(ref_deformed, pnts_trans, L2, L2File);
+}
+
+void regularize_seg() {
+	//optimizeEllipses(const std::vector<Ellipse> &ellipses, const std::vector<float> &theta_R,
+		//std::vector<Ellipse> &new_ellipses, std::vector<float> &new_theta_R);
 }
 void L2norm(const std::vector<yarnIntersect2D> &its_deform, const std::vector<yarnIntersect2D> &its_trans, std::vector<float> &L2, const char* filename) {
 	assert(its_deform.size() == its_trans.size());

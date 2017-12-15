@@ -520,7 +520,7 @@ void yarnShapeMatch_test() {
 	Eigen::MatrixXf R2(n, 4);
 	Eigen::MatrixXf theta(n, 4);
 
-	cs.preComputeEllipses(ellipses, R1, R2, theta);
+	preComputeEllipses(ellipses, R1, R2, theta);
 
 	/****** greedy *********/
 	////3. find optimal ellipse for valid ones
@@ -530,17 +530,17 @@ void yarnShapeMatch_test() {
 	///************ dynamic programming *****/
 	//2. precompute cost function 
 	std::vector<Eigen::Matrix4f> cost;
-	cs.costFunction(R1, R2, theta, isValid, cost);
+	costFunction(R1, R2, theta, isValid, cost);
 
 	//3. dynamic programming
 	Eigen::MatrixXf totalCost(n, 4);
 	Eigen::MatrixXf preConfig(n, 4);
-	cs.dynamicProgramming(isValid, cost, totalCost, preConfig);
+	dynamicProgramming(isValid, cost, totalCost, preConfig);
 
 	//4.retreive solution for valid cross-sections
 	std::vector<Ellipse> validEllipses(n);
 
-	cs.retreiveSol(R1, R2, theta, totalCost, preConfig, isValid, validEllipses);
+	retreiveSol(R1, R2, theta, totalCost, preConfig, isValid, validEllipses);
 
 	///**************/
 	//std::vector<Ellipse> simple_ellipses;

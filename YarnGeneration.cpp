@@ -13,7 +13,7 @@ int main(int argc, const char **argv) {
 	Fiber::Yarn yarn;
 	yarn.parse(configfile);
 
-	int phase = 3;
+	int phase = 1;
 	//phase 0: test
 	//phase 1: fitting
 	//phase 2: training
@@ -24,14 +24,16 @@ int main(int argc, const char **argv) {
 		case 1: {
 			std::cout << "*** Fitting phase ***\n";
 
-			//const char* yarnfile1 = "data/frame0000000.txt";
-			const char* yarnfile1 = "data/genYarn_frame1_shuang.txt";
-			//const char* yarnfile1 = "data/frame00001_scaled.txt";
+			const char* yarnfile1 = "data/1215_frame0000000.txt";
+			//const char* yarnfile1 = "data/1211_frame0000000.txt";
+			//const char* yarnfile1 = "data/genYarn_frame1_shuang.txt";
+			//const char* yarnfile1 = "data/1111_frame00001_scaled.txt";
 			//const char* yarnfile1 = "data/genYarn_frame1.txt"; 
 
-			//const char* yarnfile2 = "data/frame0011100.txt";
-			//const char* yarnfile2 = "data/frame00001_scaled.txt";
-			const char* yarnfile2 = "data/frame00029_scaled.txt";
+			const char* yarnfile2 = "data/1215_frame0011400.txt";
+			//const char* yarnfile2 = "data/1211_frame0011100.txt";
+			//const char* yarnfile2 = "data/1111_frame00001_scaled.txt";
+			//const char* yarnfile2 = "data/1111_frame00029_scaled.txt";
 			//const char* yarnfile2 = "data/genYarn_frame1_compressed_R.txt";
 			//const char* norm2 = "data/genYarn_frame29_norms.txt";
 

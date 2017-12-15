@@ -56,7 +56,7 @@ def visualize(Sx, Sy, thetaS, thetaR, title = "", fname = "", showWindow = True)
     plt.subplot(414)
     plt.plot(L2, label='L2 error', color = 'r')
     plt.legend()
-    plt.ylim([0,300])
+#    plt.ylim([0,300])
     
     plt.tight_layout()
     if fname != "":
@@ -112,7 +112,7 @@ Ty = []
 L2 = []
 
 #fname = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/x64/Release/compressParams.txt'
-fname = '../compressParams.txt'
+fname = '../compressParams_seg.txt'
 
 with open(fname, 'r') as fin:
     N = int(fin.readline())
@@ -134,7 +134,7 @@ with open('D:/sandbox/fiberSimulation/yarn_generation_project/data/L2.txt', 'r')
         L2.append(float(e))
     finL2.close()
 
-title = 'dataset1\n compressed: simulated frame 9900 \n reference: simulated frame 0'
+title = 'dataset3\n compressed: simulated frame 11400 \n reference: simulated frame 0'
 #title = 'compressed: synthetic frame 1 compressed \n reference: synthetic frame 1'
 visualize(lng, shrt, theta, rot, title, fname)
 

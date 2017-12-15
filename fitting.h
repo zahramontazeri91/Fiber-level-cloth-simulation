@@ -7,6 +7,7 @@ void appendCompress_yarn(const std::vector<Fiber::Yarn::Compress> &compress_segs
 void appendCenter_yarn(const std::vector<Fiber::Yarn::CenterLine> &centerlines, const int seg_vrtx, const int yarn_vrtx, const char* curveFile);
 
 void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const char* compressFile, const int ply_num, const int vrtx_num);
+void regularize_seg();
 
 void fittingPlyCenter(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const float yarn_radius, const char* plyCenterFile);
 void fittingCompress(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const char* compressFile);

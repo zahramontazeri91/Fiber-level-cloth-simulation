@@ -101,7 +101,7 @@ for i in range(0, plane_num):
             plt.tick_params(axis='both', which='major', labelsize=5)
             plt.xlim(-0.2,0.2)
             plt.ylim(-0.2,0.2)
-            plt.title('Simulated frame 9900 - %d' %i)
+            plt.title('Simulated frame 11400 - %d' %i)
         
     
     plt.savefig("../../data/vis_crossSections/2Dcompare/plane%d.png" %i)
