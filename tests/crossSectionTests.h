@@ -21,5 +21,7 @@ void yarnShapeMatch_test();
 void writeNormals();
 void render1fiber();
 
+void vis_allFrames();
+
 #endif // !__CROSS_SECTION_TEST_H_
 

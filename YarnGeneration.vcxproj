@@ -135,6 +135,7 @@
     <ClInclude Include="Curve.h" />
     <ClInclude Include="curveFitting.h" />
     <ClInclude Include="Fiber.h" />
+    <ClInclude Include="fitting.h" />
     <ClInclude Include="hermiteCurve.h" />
     <ClInclude Include="hermiteSeg.h" />
     <ClInclude Include="nvMatrix.h" />
@@ -149,6 +150,7 @@
     <ClCompile Include="Fiber.cpp" />
     <ClCompile Include="hermiteCurve.cpp" />
     <ClCompile Include="hermiteSeg.cpp" />
+    <ClCompile Include="fitting.cpp" />
     <ClCompile Include="Tests\crossSectionTests.cpp" />
     <ClCompile Include="tests\hermiteTests.cpp" />
     <ClCompile Include="YarnGeneration.cpp" />

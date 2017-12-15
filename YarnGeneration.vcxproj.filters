@@ -54,6 +54,9 @@
     <ClInclude Include="curveFitting.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="fitting.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="hermiteSeg.cpp">
@@ -76,6 +79,9 @@
     </ClCompile>
     <ClCompile Include="Tests\crossSectionTests.cpp">
       <Filter>Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="fitting.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
