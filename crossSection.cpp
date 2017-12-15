@@ -1380,7 +1380,7 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 	fout.close();
 }
 
-void CrossSection::extractFiberVectors(const std::vector<yarnIntersect2D> &decompressPlaneIts, std::vector<plyItersect2D> &fiberCntrVector) {
+void CrossSection::extractFiberVectors(const std::vector<yarnIntersect2D> &decompressPlaneIts, std::vector<plyIntersect2D> &fiberCntrVector) {
 	fiberCntrVector.resize(decompressPlaneIts.size());
 	const int num_of_cores = omp_get_num_procs();
 #pragma omp parallel for num_threads(num_of_cores)
@@ -1400,7 +1400,7 @@ void CrossSection::extractFiberVectors(const std::vector<yarnIntersect2D> &decom
 }
 void CrossSection::fiberTwisting(const std::vector<yarnIntersect2D> &decompressPlaneIts, std::vector<float> &fiber_theta, const char *fiberTwistFile) {
 
-	std::vector<plyItersect2D> fiberCntrVector;
+	std::vector<plyIntersect2D> fiberCntrVector;
 	extractFiberVectors(decompressPlaneIts, fiberCntrVector);
 
 	//push theta = 0 for the first plane

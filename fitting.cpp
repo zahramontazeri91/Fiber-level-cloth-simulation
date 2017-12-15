@@ -3,14 +3,95 @@
 #include "crossSection.h"
 #include "fitting.h"
 
-void extractCompressParams(const char* configfile, const char* yarnfile1, const char* yarnfile2, const char* compressFile)
-{
-	Fiber::Yarn yarn;
+void interpolate(const std::vector<float> vals, const int interval, std::vector<float> newVals) {
 
-	yarn.parse(configfile);
-	//const int n = yarn.getStepNum();
-	const int n = 40;
-	const int ply_num = yarn.getPlyNum();
+}
+
+void appendCompress_yarn(const std::vector<Fiber::Yarn::Compress> &compress_segs, const int seg_vrtx, 
+	const int yarn_vrtx, const char* compressFile) {
+	const int seg_num = compress_segs.size();
+	assert(seg_num * seg_vrtx < yarn_vrtx);
+	std::vector<Fiber::Yarn::Compress> allCompress;
+	allCompress.resize(yarn_vrtx);
+
+	const int seg_vrtx_new = yarn_vrtx / seg_num;
+	//interpolate old segment to new one
+	int indx = 0;
+	for (int i = 0; i < seg_num; ++i) {
+		for (int v = 0; v < seg_vrtx_new; ++v) {
+			indx = i*seg_vrtx_new + v;
+			allCompress[indx].ellipse_long = compress_segs[i].ellipse_long;
+			allCompress[indx].ellipse_short = compress_segs[i].ellipse_short;
+			allCompress[indx].ellipse_theta = compress_segs[i].ellipse_theta;
+			allCompress[indx].rotation = compress_segs[i].rotation;
+		}
+	}
+	//mirror the values for the leftover vertices  (if the end of yarn hasn't been assign)
+	int c = 1;
+	for (int l = indx+1; l < yarn_vrtx; ++l) {
+		allCompress[l].ellipse_long = allCompress[indx - c].ellipse_long;
+		allCompress[l].ellipse_short = allCompress[indx - c].ellipse_short;
+		allCompress[l].ellipse_theta = allCompress[indx - c].ellipse_theta;
+		allCompress[l].rotation = allCompress[indx - c].rotation;
+		c++;
+	}
+
+	//write to file
+	FILE *fout;
+	//write ellipses to file for testing
+	if (fopen_s(&fout, compressFile, "wt") == 0) {
+		fprintf_s(fout, "%d \n", yarn_vrtx);
+		for (int i = 0; i < yarn_vrtx; ++i) {
+			fprintf_s(fout, "%.4f %.4f %.4f %.4f\n", allCompress[i].ellipse_long, allCompress[i].ellipse_short, allCompress[i].ellipse_theta, allCompress[i].rotation);
+		}
+		fclose(fout);
+	}
+}
+
+void appendCenter_yarn(const std::vector<Fiber::Yarn::CenterLine> &centerlines, const int seg_vrtx, const int yarn_vrtx, const char* curveFile) {
+	const int seg_num = centerlines.size();
+	assert(seg_num * seg_vrtx < yarn_vrtx);
+	std::vector<Fiber::Yarn::CenterLine> allCenterlines;
+	allCenterlines.resize(yarn_vrtx);
+	const int seg_vrtx_new = yarn_vrtx / seg_num;
+	//interpolate old segment to new one
+	int indx = 0;
+	for (int i = 0; i < seg_num; ++i) {
+		for (int v = 0; v < seg_vrtx_new; ++v) {
+			indx = i*seg_vrtx_new + v;
+			allCenterlines[indx].a = centerlines[i].a;
+			allCenterlines[indx].b = centerlines[i].b;
+			allCenterlines[indx].c = centerlines[i].c;
+			allCenterlines[indx].d = centerlines[i].d;
+
+		}
+	}
+	//mirror the values for the leftover vertices  (if the end of yarn hasn't been assign)
+	int c = 1;
+	for (int l = indx + 1; l < yarn_vrtx; ++l) {
+		allCenterlines[l].a = centerlines[indx - c].a;
+		allCenterlines[l].b = centerlines[indx - c].b;
+		allCenterlines[l].c = centerlines[indx - c].c;
+		allCenterlines[l].d = centerlines[indx - c].d;
+		c++;
+	}
+
+	//write to file
+	FILE *fout;
+	//write ellipses to file for testing
+	if (fopen_s(&fout, curveFile, "wt") == 0) {
+		fprintf_s(fout, "%d \n", yarn_vrtx);
+		for (int i = 0; i < yarn_vrtx; ++i) {
+			fprintf_s(fout, "%.4f %.4f %.4f %.4f\n", allCenterlines[i].a, allCenterlines[i].b, allCenterlines[i].c, allCenterlines[i].d);
+		}
+		fclose(fout);
+	}
+}
+
+void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const char* compressFile, 
+	const int ply_num, const int vrtx_num)
+{
+	const int n = vrtx_num;
 
 	Fiber::Yarn yarn_tmp;
 	const char* centerYarn1 = "centerYarn_ref.txt";

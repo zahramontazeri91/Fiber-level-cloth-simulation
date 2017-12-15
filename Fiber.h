@@ -5,10 +5,10 @@
 typedef std::vector<vec3f> fiber_t;
 typedef std::vector<fiber_t> yarn_t;
 
-typedef std::vector<vec3f> plyItersect;				     //Plane intersection with each of the plys
-typedef std::vector<plyItersect> yarnIntersect;		     //Plane intersection with whole yarn
-typedef std::vector<vec2f> plyItersect2D;				     //Plane intersection with each of the plys in 2D
-typedef std::vector<plyItersect2D> yarnIntersect2D;		     //Plane intersection with whole yarn in 2D
+typedef std::vector<vec3f> plyIntersect;				     //Plane intersection with each of the plys
+typedef std::vector<plyIntersect> yarnIntersect;		     //Plane intersection with whole yarn
+typedef std::vector<vec2f> plyIntersect2D;				     //Plane intersection with each of the plys in 2D
+typedef std::vector<plyIntersect2D> yarnIntersect2D;		     //Plane intersection with whole yarn in 2D
 
 namespace Fiber {
 
@@ -90,11 +90,19 @@ namespace Fiber {
 		std::vector<Ply> plys;
 
 		/* Define a set of parameters needed for compression*/    //TODO: unify this with the other crossSection/Elllipse Struct
-		struct compress {
+		struct Compress {
 			float ellipse_long;
 			float ellipse_short;
 			float ellipse_theta;
 			float rotation;
+		};
+
+		struct CenterLine {
+			//model each segment of yarn with one cycle sinisoid a*sin(x+c) + d
+			float a;
+			float b;
+			float c;
+			float d;
 		};
 
 		void setStepSize(const float ss) {
@@ -173,7 +181,7 @@ namespace Fiber {
 		void yarn_simulate();
 
 		/* compress yarn with theta, direction, a and b, cross section ellipse param. */
-		void readCompressFile(const char* filename, std::vector<compress> &compress_params);
+		void readCompressFile(const char* filename, std::vector<Compress> &compress_params);
 		/* Find the spanning circle for generated yarn before applying the compression */
 		void fitCircle(const yarnIntersect2D &pts, float &radius);
 		void yarn2crossSections(std::vector<yarnIntersect2D> &itsLists);

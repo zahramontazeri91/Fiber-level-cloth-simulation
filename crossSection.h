@@ -97,7 +97,7 @@ public:
 		return m_curve;
 	}
 	/*For each plane, store the vector from ply-center to all fiber-centers for only first ply */
-	void extractFiberVectors(const std::vector<yarnIntersect2D> &decompressPlaneIts, std::vector<plyItersect2D> &fiberCntrVector);
+	void extractFiberVectors(const std::vector<yarnIntersect2D> &decompressPlaneIts, std::vector<plyIntersect2D> &fiberCntrVector);
 	/*find the theta for fiber-centers rotating around the ply-center for each cross section*/
 	void fiberTwisting(const std::vector<yarnIntersect2D> &decompressPlaneIts, std::vector<float> &fiber_theta, const char *fiberTwistFile);
 

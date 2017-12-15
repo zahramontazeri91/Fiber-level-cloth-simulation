@@ -42,7 +42,7 @@ void yarnPlaneIntersection_test() {
 
 	//std::cout << itsList[0].size() << std::endl;
 
-	plyItersect ply_its = itsList[0];
+	plyIntersect ply_its = itsList[0];
 	//write for only one ply
 	FILE *fout;
 	if (fopen_s(&fout, "../data/crossSection.txt", "wt") == 0) {

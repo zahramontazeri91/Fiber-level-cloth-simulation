@@ -545,7 +545,7 @@ namespace Fiber {
 		}
 	} // yarn_simulate
 
-	void Yarn::readCompressFile(const char* filename, std::vector<compress> &compress_params) {
+	void Yarn::readCompressFile(const char* filename, std::vector<Compress> &compress_params) {
 		std::ifstream fin;
 		if (filename != NULL)
 			fin.open(filename);
@@ -555,7 +555,7 @@ namespace Fiber {
 		const int plane_num = atof(line.c_str());
 		int planeId = 0;
 		while (std::getline(fin, line)) {
-			compress param;
+			Compress param;
 			std::vector<std::string> splits = split(line, ' ');
 
 			param.ellipse_long = atof(splits[0].c_str());
@@ -617,7 +617,7 @@ namespace Fiber {
 
 		//copy the yarn into new dataStructure
 		for (int p = 0; p < this->plys.size(); ++p) {
-			plyItersect plyIts;
+			plyIntersect plyIts;
 			for (int f = 0; f < this->plys[p].fibers.size(); ++f) {
 				for (int v = 0; v < this->plys[p].fibers[f].vertices.size(); ++v) {
 					itsLists[v][p].push_back(vec2f(this->plys[p].fibers[f].vertices[v].x,
@@ -645,7 +645,7 @@ namespace Fiber {
 		}
 		fitCircleR_avg /= static_cast<float> (this->z_step_num);
 
-		std::vector<compress> compress_params;
+		std::vector<Compress> compress_params;
 		readCompressFile(filename, compress_params);
 
 		// change the yarn cross-sections
@@ -729,7 +729,7 @@ namespace Fiber {
 		}
 		fitCircleR_avg /= static_cast<float> (this->z_step_num);
 
-		std::vector<compress> compress_params;
+		std::vector<Compress> compress_params;
 		readCompressFile(filename, compress_params);
 
 		// change the yarn cross-sections

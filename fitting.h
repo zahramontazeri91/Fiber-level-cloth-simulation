@@ -1,7 +1,13 @@
 #pragma once
 #include "crossSection.h"
+#include "Fiber.h"
 
-void extractCompressParams(const char* configfile, const char* yarnfile1, const char* yarnfile2, const char* compressFile);
+void interpolate(const std::vector<float> vals, const int interval, std::vector<float> newVals);
+void appendCompress_yarn(const std::vector<Fiber::Yarn::Compress> &compress_segs, const int seg_vrtx, const int yarn_vrtx, const char* compressFile);
+void appendCenter_yarn(const std::vector<Fiber::Yarn::CenterLine> &centerlines, const int seg_vrtx, const int yarn_vrtx, const char* curveFile);
+
+void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const char* compressFile, const int ply_num, const int vrtx_num);
+
 void fittingPlyCenter(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const float yarn_radius, const char* plyCenterFile);
 void fittingCompress(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const char* compressFile);
 void fittingFiberTwisting(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const float yarn_radius, const char* fiberTwistFile);
