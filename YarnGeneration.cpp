@@ -38,6 +38,7 @@ int main(int argc, const char **argv) {
 			//const char* norm2 = "data/genYarn_frame29_norms.txt";
 
 			const char* compressfile = "compressParams_seg.txt";
+			const char* curvefile = "centerYarn_compress_seg.txt";
 
 			std::ifstream fin1(yarnfile1);
 			std::ifstream fin2(yarnfile2);
@@ -46,7 +47,17 @@ int main(int argc, const char **argv) {
 
 			//const int vrtx_num = yarn.getStepNum();
 			const int vrtx_num = 150;
-			extractCompress_seg(yarnfile1, yarnfile2, compressfile, yarn.getPlyNum(), vrtx_num);
+			std::vector<Ellipse> ellipses;
+			std::vector<float> theta_R;
+			extractCompress_seg(yarnfile1, yarnfile2, compressfile, curvefile, yarn.getPlyNum(), vrtx_num, ellipses, theta_R);
+			
+			Fiber::Yarn::Compress compress;
+			Fiber::Yarn::CenterLine curve;
+			const int trimPercent = 0.30;
+
+			constFitting_compParam(ellipses, theta_R, trimPercent, compress);
+			//sinFitting_curve(curvefile, trimPercent, curve);
+
 			break;
 		}
 		case 2: {
@@ -54,7 +65,7 @@ int main(int argc, const char **argv) {
 			break;
 		}
 		case 3: {
-			std::cout << "*** Parameterization phase ***\n";
+			std::cout << "*** Parameterization and merging phase ***\n";
 			const char* compressFile = "compressParam_yarn.txt";
 			const char* curveFile = "centerline_yarn.txt";
 			std::vector<Fiber::Yarn::Compress> compress_segs;
@@ -62,6 +73,8 @@ int main(int argc, const char **argv) {
 			const int seg_num = 3;
 			const int yarn_vrtx = yarn.getStepNum();
 			
+
+
 			compress_segs.resize(seg_num);
 			for (int i = 0; i < seg_num; ++i) {
 				compress_segs[i].ellipse_long = 1.7;
@@ -78,7 +91,6 @@ int main(int argc, const char **argv) {
 				centerlines[i].a = 1.7;
 				centerlines[i].b = 0.3;
 				centerlines[i].c = 0.0;
-				centerlines[i].d = 1.0;
 			}
 
 			appendCenter_yarn(centerlines, seg_vrtx, yarn_vrtx, curveFile);

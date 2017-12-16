@@ -98,11 +98,10 @@ namespace Fiber {
 		};
 
 		struct CenterLine {
-			//model each segment of yarn with one cycle sinisoid a*sin(x+c) + d
+			//model each segment of yarn with one cycle sinisoid a*sin(x+b) + c
 			float a;
 			float b;
 			float c;
-			float d;
 		};
 
 		void setStepSize(const float ss) {

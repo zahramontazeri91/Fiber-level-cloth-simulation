@@ -29,8 +29,8 @@ struct Functor
 	Functor() : m_inputs(InputsAtCompileTime), m_values(ValuesAtCompileTime) {}
 	Functor(int inputs, int values) : m_inputs(inputs), m_values(values) {}
 
-	int inputs() const { return m_inputs; }
-	int values() const { return m_values; }
+	inline int inputs() const { return m_inputs; }
+	inline int values() const { return m_values; }
 
 };
 
@@ -39,37 +39,27 @@ struct MyFunctor : Functor<double>
 {
 	int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec) const
 	{
-		// "a" in the model is x(0), and "b" is x(1)
-		for (unsigned int i = 0; i < this->Points.size(); ++i)
-		{
-			//fvec(i) = this->Points[i](1) - (x(0) * this->Points[i](0) + x(1));
-			//fvec(i) = this->Points[i](1) - (x(0));
-			fvec(i) = this->Points[i](1) - (x(0) * sin(x(1)*this->Points[i](0)) + x(2) ); //for sine-fitting
+		if (x.size() == 1) {
+			 //"a" in the model is x(0), and "b" is x(1)
+			for (unsigned int i = 0; i < this->Points.size(); ++i)
+			{
+				//fvec(i) = this->Points[i](1) - (x(0) * this->Points[i](0) + x(1));
+				fvec(i) = this->Points[i](1) - (x(0));
+			}
 		}
-
+		else if (x.size() == 3) {
+			for (unsigned int i = 0; i < this->Points.size(); ++i)
+			{
+				fvec(i) = this->Points[i](1) - (x(0) * sin(this->Points[i](0) + x(1)) + x(2)); //for one-cycle sine-fitting
+			}
+		}
 		return 0;
 	}
 
 	Point2DVector Points;
 
-	int inputs() const { return 3; } // There are two parameters of the model
-	int values() const { return this->Points.size(); } // The number of observations
+	inline int inputs() const { return 3; } // There are two parameters of the model
+	inline int values() const { return this->Points.size(); } // The number of observations
 };
 
 struct MyFunctorNumericalDiff : Eigen::NumericalDiff<MyFunctor> {};
-
-Point2DVector GeneratePoints(const unsigned int numberOfPoints)
-{
-	Point2DVector points;
-	// Model y = 2*x + 5 with some noise (meaning that the resulting minimization should be about (2,5)
-	for (unsigned int i = 0; i < numberOfPoints; ++i)
-	{
-		double x = static_cast<double>(i);
-		Eigen::Vector2d point;
-		point(0) = x;
-		point(1) = 2.0 * x + 5.0 / 10.0;
-		points.push_back(point);
-	}
-
-	return points;
-}

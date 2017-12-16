@@ -1002,15 +1002,16 @@ void CrossSection::optimizeEllipses(const std::vector<Ellipse> &ellipses, const 
 	std::vector<Ellipse> simple_ellipses;
 	std::vector<float> simple_theta_R1;
 	std::vector<float> simple_theta_R2;
-	regularizeEllipses(validEllipses, theta_R, simple_ellipses, simple_theta_R1, 40);
-	regularizeEllipses(simple_ellipses, simple_theta_R1, validEllipses, simple_theta_R2, 40);
+	regularizeEllipses(validEllipses, theta_R, simple_ellipses, simple_theta_R1, 10);
+	regularizeEllipses(simple_ellipses, simple_theta_R1, validEllipses, simple_theta_R2, 10);
+	
 	std::cout << "\n";
 
 	////5. interpolate for not valid ones
 	//interpolateEllipses(validEllipses, isValid, ellipses);
 
 	new_ellipses = validEllipses;
-	new_theta_R = simple_theta_R2;
+	new_theta_R = theta_R;
 }
 
 void CrossSection::parameterizeEllipses(const std::vector<Ellipse> &ellipses, std::vector<Ellipse> &simple_ellipses) {

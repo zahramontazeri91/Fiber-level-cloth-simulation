@@ -2,6 +2,7 @@
 #include "Fiber.h"
 #include "crossSection.h"
 #include "fitting.h"
+#include "curveFitting.h"
 
 void interpolate(const std::vector<float> vals, const int interval, std::vector<float> newVals) {
 
@@ -62,7 +63,6 @@ void appendCenter_yarn(const std::vector<Fiber::Yarn::CenterLine> &centerlines, 
 			allCenterlines[indx].a = centerlines[i].a;
 			allCenterlines[indx].b = centerlines[i].b;
 			allCenterlines[indx].c = centerlines[i].c;
-			allCenterlines[indx].d = centerlines[i].d;
 		}
 	}
 	//mirror the values for the leftover vertices  (if the end of yarn hasn't been assign)
@@ -71,7 +71,6 @@ void appendCenter_yarn(const std::vector<Fiber::Yarn::CenterLine> &centerlines, 
 		allCenterlines[l].a = centerlines[indx - c].a;
 		allCenterlines[l].b = centerlines[indx - c].b;
 		allCenterlines[l].c = centerlines[indx - c].c;
-		allCenterlines[l].d = centerlines[indx - c].d;
 		c++;
 	}
 
@@ -81,27 +80,26 @@ void appendCenter_yarn(const std::vector<Fiber::Yarn::CenterLine> &centerlines, 
 	if (fopen_s(&fout, curveFile, "wt") == 0) {
 		fprintf_s(fout, "%d \n", yarn_vrtx);
 		for (int i = 0; i < yarn_vrtx; ++i) {
-			fprintf_s(fout, "%.4f %.4f %.4f %.4f\n", allCenterlines[i].a, allCenterlines[i].b, allCenterlines[i].c, allCenterlines[i].d);
+			fprintf_s(fout, "%.4f %.4f %.4f \n", allCenterlines[i].a, allCenterlines[i].b, allCenterlines[i].c);
 		}
 		fclose(fout);
 	}
 }
 
 void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const char* compressFile, 
-	const int ply_num, const int vrtx_num)
+	const char* curveFile, const int ply_num, const int vrtx_num, std::vector<Ellipse> &new_ellipses, std::vector<float> &new_theta_R)
 {
 	const int n = vrtx_num;
 
 	Fiber::Yarn yarn_tmp;
-	const char* centerYarn1 = "centerYarn_ref.txt";
+	const char* centerYarn1 = "centerYarn_ref_seg.txt"; //TODO: maybe we can use z axis later
 	yarn_tmp.yarnCenter(yarnfile1, centerYarn1);
 	std::vector<yarnIntersect2D> pnts_ref;
 	CrossSection cs2(yarnfile1, centerYarn1, ply_num, n, 100, pnts_ref);
 
-	const char* centerYarn2 = "centerYarn_compress.txt";
-	yarn_tmp.yarnCenter(yarnfile2, centerYarn2);
+	yarn_tmp.yarnCenter(yarnfile2, curveFile);
 	std::vector<yarnIntersect2D> pnts_trans;
-	CrossSection cs(yarnfile2, centerYarn2, ply_num, n, 100, pnts_trans);
+	CrossSection cs(yarnfile2, curveFile, ply_num, n, 100, pnts_trans);
 
 	//0. yarnShapeMatches:
 	//std::cout << "\n";
@@ -127,17 +125,28 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 	//	ellipses[i] = ell;
 	//}
 
-	
+	FILE *fout0;
+	if (fopen_s(&fout0, compressFile, "wt") == 0) {
+		fprintf_s(fout0, "%d \n", ellipses.size());
+		for (int i = 0; i < ellipses.size(); ++i) {
+			fprintf_s(fout0, "%.6f %.6f %.6f %.6f \n", ellipses[i].longR, ellipses[i].shortR, ellipses[i].angle, all_theta_R[i]);
+		}
+		fclose(fout0);
+	}
+
+	//optimize the solution and regularizing
+	cs.optimizeEllipses(ellipses, all_theta_R, new_ellipses, new_theta_R);
+
 	FILE *fout;
-	if (fopen_s(&fout, compressFile, "wt") == 0) {
+	if (fopen_s(&fout, "compressParams_regul.txt", "wt") == 0) {
 		fprintf_s(fout, "%d \n", ellipses.size());
 		for (int i = 0; i < ellipses.size(); ++i) {
-			//fprintf_s(fout, "%.6f %.6f %.6f ", validEllipses[i].longR, validEllipses[i].shortR, validEllipses[i].angle);
-			//fprintf_s(fout, "%.6f %.6f %.6f \n", all_theta_R[i], all_T[i](0, 0), all_T[i](1, 0));
-			fprintf_s(fout, "%.6f %.6f %.6f %.6f \n", ellipses[i].longR, ellipses[i].shortR, ellipses[i].angle, all_theta_R[i]);
+			fprintf_s(fout, "%.6f %.6f %.6f %.6f \n", new_ellipses[i].longR, new_ellipses[i].shortR, new_ellipses[i].angle, new_theta_R[i]);
 		}
 		fclose(fout);
 	}
+
+	//constant fitting
 	std::cout << "Compression parameters are successfully written to the file!\n";
 
 	//for debug: visualization
@@ -148,7 +157,7 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 
 	plotIntersections(pnts_ref, refFile);
 	std::vector<yarnIntersect2D> ref_deformed;
-	deformRef(pnts_ref, ref_deformed, ellipses, all_theta_R);
+	deformRef(pnts_ref, ref_deformed, new_ellipses, new_theta_R);
 	plotIntersections(ref_deformed, deformedRefFile);
 	plotIntersections(pnts_trans, deformedFile);
 
@@ -156,10 +165,40 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 	L2norm(ref_deformed, pnts_trans, L2, L2File);
 }
 
-void regularize_seg() {
+void constFitting_compParam( const std::vector<Ellipse> &ellipses, const std::vector<float> &theta_R,
+	const int trimPercent, Fiber::Yarn::Compress &compress) {
+
+	unsigned int numberOfPoints = ellipses.size();
+	const int ignorPlanes = trimPercent * ellipses.size();
+	Point2DVector points;
+	for (int i = ignorPlanes; i < ellipses.size() - ignorPlanes; ++i) {
+		Eigen::Vector2d point;
+		point(0) = i - ignorPlanes;
+		point(1) = ellipses[i].shortR;
+		points.push_back(point);
+	}
+	Eigen::VectorXd x(1);
+	x.fill(0.f);
+
+	MyFunctorNumericalDiff functor;
+	functor.Points = points;
+	Eigen::LevenbergMarquardt<MyFunctorNumericalDiff> lm(functor);
+	Eigen::LevenbergMarquardtSpace::Status status = lm.minimize(x);
+
+	std::cout << x(0) << "  ********************* \n";
+
+	//1. regularize each segment
+	//2. constant-fitting for each segment 
+	//3. write each segment as one Ellipse parameter
+	//4. Find the optimum solution for each segment 
 	//optimizeEllipses(const std::vector<Ellipse> &ellipses, const std::vector<float> &theta_R,
 		//std::vector<Ellipse> &new_ellipses, std::vector<float> &new_theta_R);
 }
+
+void sinFitting_curve(const char* curveFile, const int trimPercent, Fiber::Yarn::CenterLine &curve) {
+
+}
+
 void L2norm(const std::vector<yarnIntersect2D> &its_deform, const std::vector<yarnIntersect2D> &its_trans, std::vector<float> &L2, const char* filename) {
 	assert(its_deform.size() == its_trans.size());
 	FILE *fout;

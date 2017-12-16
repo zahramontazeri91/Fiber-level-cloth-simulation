@@ -6,8 +6,12 @@ void interpolate(const std::vector<float> vals, const int interval, std::vector<
 void appendCompress_yarn(const std::vector<Fiber::Yarn::Compress> &compress_segs, const int seg_vrtx, const int yarn_vrtx, const char* compressFile);
 void appendCenter_yarn(const std::vector<Fiber::Yarn::CenterLine> &centerlines, const int seg_vrtx, const int yarn_vrtx, const char* curveFile);
 
-void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const char* compressFile, const int ply_num, const int vrtx_num);
-void regularize_seg();
+
+void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const char* compressFile,
+	const char* curveFile, const int ply_num, const int vrtx_num, std::vector<Ellipse> &new_ellipses, std::vector<float> &new_theta_R);
+void constFitting_compParam(const std::vector<Ellipse> &ellipses, const std::vector<float> &theta_R,
+	const int trimPercent, Fiber::Yarn::Compress &compress);
+void sinFitting_curve(const char* curveFile, const int trimPercent, Fiber::Yarn::CenterLine &curve);
 
 void fittingPlyCenter(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const float yarn_radius, const char* plyCenterFile);
 void fittingCompress(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const char* compressFile);
