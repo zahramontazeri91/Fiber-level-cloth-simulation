@@ -102,6 +102,7 @@ namespace Fiber {
 			float a;
 			float b;
 			float c;
+			float d;
 		};
 
 		void setStepSize(const float ss) {

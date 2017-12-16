@@ -80,7 +80,11 @@ void appendCenter_yarn(const std::vector<Fiber::Yarn::CenterLine> &centerlines, 
 	if (fopen_s(&fout, curveFile, "wt") == 0) {
 		fprintf_s(fout, "%d \n", yarn_vrtx);
 		for (int i = 0; i < yarn_vrtx; ++i) {
-			fprintf_s(fout, "%.4f %.4f %.4f \n", allCenterlines[i].a, allCenterlines[i].b, allCenterlines[i].c);
+			int v = i%seg_vrtx_new;
+			float b = 2 * pi / (seg_vrtx_new); //stretch the curve to fit the new length
+			float y = allCenterlines[i].a* sin(b * v) + allCenterlines[i].c;
+			fprintf_s(fout, "0.0 %.4f \n", y); //TODO: this should be in 3D
+			//fprintf_s(fout, "%.4f %.4f %.4f\n", allCenterlines[i].a, allCenterlines[i].b, allCenterlines[i].c);
 		}
 		fclose(fout);
 	}
@@ -126,7 +130,7 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 	//}
 
 	FILE *fout0;
-	if (fopen_s(&fout0, compressFile, "wt") == 0) {
+	if (fopen_s(&fout0, "compressParams_org.txt", "wt") == 0) {
 		fprintf_s(fout0, "%d \n", ellipses.size());
 		for (int i = 0; i < ellipses.size(); ++i) {
 			fprintf_s(fout0, "%.6f %.6f %.6f %.6f \n", ellipses[i].longR, ellipses[i].shortR, ellipses[i].angle, all_theta_R[i]);
@@ -138,7 +142,7 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 	cs.optimizeEllipses(ellipses, all_theta_R, new_ellipses, new_theta_R);
 
 	FILE *fout;
-	if (fopen_s(&fout, "compressParams_regul.txt", "wt") == 0) {
+	if (fopen_s(&fout, compressFile, "wt") == 0) {
 		fprintf_s(fout, "%d \n", ellipses.size());
 		for (int i = 0; i < ellipses.size(); ++i) {
 			fprintf_s(fout, "%.6f %.6f %.6f %.6f \n", new_ellipses[i].longR, new_ellipses[i].shortR, new_ellipses[i].angle, new_theta_R[i]);
@@ -166,37 +170,105 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 }
 
 void constFitting_compParam( const std::vector<Ellipse> &ellipses, const std::vector<float> &theta_R,
-	const int trimPercent, Fiber::Yarn::Compress &compress) {
+	const float trimPercent, Fiber::Yarn::Compress &compress) {
 
-	unsigned int numberOfPoints = ellipses.size();
 	const int ignorPlanes = trimPercent * ellipses.size();
-	Point2DVector points;
+	Point2DVector points_R1;
+	Point2DVector points_R2;
+	Point2DVector points_theta;
+	Point2DVector points_rot;
+
 	for (int i = ignorPlanes; i < ellipses.size() - ignorPlanes; ++i) {
 		Eigen::Vector2d point;
 		point(0) = i - ignorPlanes;
+		point(1) = ellipses[i].longR;
+		points_R1.push_back(point);
+
 		point(1) = ellipses[i].shortR;
-		points.push_back(point);
+		points_R2.push_back(point);
+
+		point(1) = ellipses[i].angle;
+		points_theta.push_back(point);
+
+		point(1) = theta_R[i];
+		points_rot.push_back(point);
 	}
 	Eigen::VectorXd x(1);
 	x.fill(0.f);
+	MyFunctorNumericalDiff functor;
+	functor.Points = points_R1;
+	Eigen::LevenbergMarquardt<MyFunctorNumericalDiff> lm(functor);
+	Eigen::LevenbergMarquardtSpace::Status status = lm.minimize(x);
+	compress.ellipse_long = x(0);
+
+	functor.Points = points_R2;
+	Eigen::LevenbergMarquardt<MyFunctorNumericalDiff> lm2(functor);
+	status = lm2.minimize(x);
+	compress.ellipse_short = x(0);
+
+	functor.Points = points_theta;
+	Eigen::LevenbergMarquardt<MyFunctorNumericalDiff> lm3(functor);
+	status = lm3.minimize(x);
+	compress.ellipse_theta = x(0);
+
+	functor.Points = points_rot;
+	Eigen::LevenbergMarquardt<MyFunctorNumericalDiff> lm4(functor);
+	status = lm4.minimize(x);
+	compress.rotation = x(0);
+
+	std::cout << "fitted compression params: " << compress.ellipse_long << " " << compress.ellipse_short << " " << compress.ellipse_theta << " " << compress.rotation << "\n";
+}
+
+void sinFitting_curve(const char* curveFile, const float trimPercent, Fiber::Yarn::CenterLine &curve) {
+	//read the curve points
+	std::vector<float> curvePnts;
+	std::ifstream fin;
+	if (curveFile != NULL)
+		fin.open(curveFile);
+	std::string line;
+	std::getline(fin, line);
+	const int plane_num = atof(line.c_str());
+	for (int i = 0; i < plane_num; ++i) {
+		std::getline(fin, line);
+		float pnt = atof(line.c_str());
+		curvePnts.push_back(pnt);
+	}
+
+	const int ignorPlanes = trimPercent * curvePnts.size();
+	Point2DVector points;
+
+	for (int i = ignorPlanes; i < curvePnts.size() - ignorPlanes; ++i) {
+		Eigen::Vector2d point;
+		point(0) = i - ignorPlanes;
+		point(1) = curvePnts[i];
+		points.push_back(point);
+	}
+	const int period = curvePnts.size() - 2 * ignorPlanes;
+	Eigen::VectorXd x(3);
+	x(0) = 1.f;
+	x(1) = 2.f * pi / static_cast<float>(period);
+	x(2) = 0.f;
+
 
 	MyFunctorNumericalDiff functor;
 	functor.Points = points;
 	Eigen::LevenbergMarquardt<MyFunctorNumericalDiff> lm(functor);
 	Eigen::LevenbergMarquardtSpace::Status status = lm.minimize(x);
+	curve.a = x(0);
+	//curve.b = x(1);
+	curve.b = 2.f * pi / static_cast<float>(period); //TODO: pass this during fitting
+	curve.c = x(2);
 
-	std::cout << x(0) << "  ********************* \n";
+	std::cout << "curve params: " << curve.a << " " << curve.b << " compared to: " << 2.f * pi / static_cast<float>(period) << " " << curve.c << std::endl;
 
-	//1. regularize each segment
-	//2. constant-fitting for each segment 
-	//3. write each segment as one Ellipse parameter
-	//4. Find the optimum solution for each segment 
-	//optimizeEllipses(const std::vector<Ellipse> &ellipses, const std::vector<float> &theta_R,
-		//std::vector<Ellipse> &new_ellipses, std::vector<float> &new_theta_R);
-}
-
-void sinFitting_curve(const char* curveFile, const int trimPercent, Fiber::Yarn::CenterLine &curve) {
-
+	//for debug: 
+	std::ofstream fout("sineCurve.txt");
+	fout << points.size() << std::endl;
+	for (int i = 0; i < points.size(); ++i) {
+		float y = curve.a * cos(curve.b*i) + curve.c;
+		fout << y << std::endl;
+	}
+	fout.close();
 }
 
 void L2norm(const std::vector<yarnIntersect2D> &its_deform, const std::vector<yarnIntersect2D> &its_trans, std::vector<float> &L2, const char* filename) {

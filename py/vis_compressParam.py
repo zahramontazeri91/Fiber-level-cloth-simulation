@@ -112,7 +112,7 @@ Ty = []
 L2 = []
 
 #fname = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/x64/Release/compressParams.txt'
-fname = '../compressParams_seg.txt'
+fname = '../compressParams_regul.txt'
 
 with open(fname, 'r') as fin:
     N = int(fin.readline())

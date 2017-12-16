@@ -13,7 +13,7 @@ int main(int argc, const char **argv) {
 	Fiber::Yarn yarn;
 	yarn.parse(configfile);
 
-	int phase = 1;
+	int phase = 3;
 	//phase 0: test
 	//phase 1: fitting
 	//phase 2: training
@@ -53,10 +53,10 @@ int main(int argc, const char **argv) {
 			
 			Fiber::Yarn::Compress compress;
 			Fiber::Yarn::CenterLine curve;
-			const int trimPercent = 0.30;
+			const float trimPercent = 0.33;
 
 			constFitting_compParam(ellipses, theta_R, trimPercent, compress);
-			//sinFitting_curve(curvefile, trimPercent, curve);
+			sinFitting_curve(curvefile, trimPercent, curve);
 
 			break;
 		}
@@ -72,15 +72,13 @@ int main(int argc, const char **argv) {
 			const int seg_vrtx = 150;
 			const int seg_num = 3;
 			const int yarn_vrtx = yarn.getStepNum();
-			
-
 
 			compress_segs.resize(seg_num);
 			for (int i = 0; i < seg_num; ++i) {
-				compress_segs[i].ellipse_long = 1.7;
-				compress_segs[i].ellipse_short = 0.3;
-				compress_segs[i].ellipse_theta = 0.0;
-				compress_segs[i].rotation = 0.0;
+				compress_segs[i].ellipse_long = 0.877276;
+				compress_segs[i].ellipse_short = 0.452084;
+				compress_segs[i].ellipse_theta = 2.43881;
+				compress_segs[i].rotation = 5.23583;
 			}
 			appendCompress_yarn(compress_segs, seg_vrtx, yarn_vrtx, compressFile );
 
@@ -88,9 +86,9 @@ int main(int argc, const char **argv) {
 
 			centerlines.resize(seg_num);
 			for (int i = 0; i < seg_num; ++i) {
-				centerlines[i].a = 1.7;
-				centerlines[i].b = 0.3;
-				centerlines[i].c = 0.0;
+				centerlines[i].a = 0.0091413;
+				centerlines[i].b = 0.12083;
+				centerlines[i].c = 0.00551934;
 			}
 
 			appendCenter_yarn(centerlines, seg_vrtx, yarn_vrtx, curveFile);

@@ -50,9 +50,11 @@ struct MyFunctor : Functor<double>
 		else if (x.size() == 3) {
 			for (unsigned int i = 0; i < this->Points.size(); ++i)
 			{
-				fvec(i) = this->Points[i](1) - (x(0) * sin(this->Points[i](0) + x(1)) + x(2)); //for one-cycle sine-fitting
+				fvec(i) = this->Points[i](1) - (x(0) * cos(x(1)*this->Points[i](0)) + x(2)); //for one-cycle sine-fitting
 			}
 		}
+		else
+			perror("number of parameters don't match!");
 		return 0;
 	}
 

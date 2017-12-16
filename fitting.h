@@ -10,8 +10,8 @@ void appendCenter_yarn(const std::vector<Fiber::Yarn::CenterLine> &centerlines, 
 void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const char* compressFile,
 	const char* curveFile, const int ply_num, const int vrtx_num, std::vector<Ellipse> &new_ellipses, std::vector<float> &new_theta_R);
 void constFitting_compParam(const std::vector<Ellipse> &ellipses, const std::vector<float> &theta_R,
-	const int trimPercent, Fiber::Yarn::Compress &compress);
-void sinFitting_curve(const char* curveFile, const int trimPercent, Fiber::Yarn::CenterLine &curve);
+	const float trimPercent, Fiber::Yarn::Compress &compress);
+void sinFitting_curve(const char* curveFile, const float trimPercent, Fiber::Yarn::CenterLine &curve);
 
 void fittingPlyCenter(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const float yarn_radius, const char* plyCenterFile);
 void fittingCompress(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const char* compressFile);
