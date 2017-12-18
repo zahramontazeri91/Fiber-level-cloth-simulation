@@ -13,7 +13,7 @@ int main(int argc, const char **argv) {
 	Fiber::Yarn yarn;
 	yarn.parse(configfile);
 
-	int phase = 4;
+	int phase = 1;
 	//phase 0: test
 	//phase 1: fitting
 	//phase 2: training
@@ -104,8 +104,10 @@ int main(int argc, const char **argv) {
 
 			std::ifstream fin1(compressfile);
 			std::ifstream fin2(curvefile);
+			std::ifstream fin3(normfile);
 			assert(fin1.is_open() && "compressfile file wasn't found!\n");
 			assert(fin2.is_open() && "curvefile file wasn't found!\n");
+			assert(fin3.is_open() && "normfile file wasn't found!\n");
 
 			// Procedural step
 			yarn.yarn_simulate();

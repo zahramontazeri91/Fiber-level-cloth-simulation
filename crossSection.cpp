@@ -22,7 +22,7 @@ void CrossSection::init(const char* yarnfile, const int ply_num, const char* cur
 	const int seg_subdiv, const int num_planes, std::vector<yarnIntersect2D> &allPlaneIntersect) {
 	m_yarn.build(yarnfile, ply_num);
 	//TODO: pass this to the func
-	m_curve.init_norm(curvefile,"write2normals.txt", seg_subdiv);
+	m_curve.init(curvefile,"write2normals.txt", seg_subdiv);
 	std::vector<yarnIntersect> itsLists;
 	buildPlanes(num_planes, itsLists);
 	std::cout << "Finding the intersections with the cross-sectional plane... \n";
@@ -31,7 +31,7 @@ void CrossSection::init(const char* yarnfile, const int ply_num, const char* cur
 void CrossSection::init(const char* yarnfile, const int ply_num, const char* curvefile, const char* normfile,
 	const int seg_subdiv, const int num_planes, std::vector<yarnIntersect2D> &allPlaneIntersect) {
 	m_yarn.build(yarnfile, ply_num);
-	m_curve.init(curvefile, normfile, seg_subdiv);
+	m_curve.init_norm(curvefile, normfile, seg_subdiv);
 	std::vector<yarnIntersect> itsLists;
 	buildPlanes(num_planes, itsLists);
 	std::cout << "Finding the intersections with the cross-sectional plane... \n";
@@ -431,6 +431,42 @@ void preComputeEllipses(const std::vector<Ellipse> &ellipses, Eigen::MatrixXf &R
 	}
 }
 
+void preComputeEllipses(const std::vector<Ellipse> &ellipses, const std::vector<float> &theta_R, Eigen::MatrixXf &R1, 
+	Eigen::MatrixXf &R2, Eigen::MatrixXf &theta, Eigen::MatrixXf &rot) {
+	const int plane_num = ellipses.size();
+	R1.resize(plane_num, 4);
+	R2.resize(plane_num, 4);
+	theta.resize(plane_num, 4);
+	rot.resize(plane_num, 4);
+
+	for (int cs = 0; cs < plane_num; ++cs) {
+
+		//assign to R1
+		for (int i = 0; i < 4; ++i) {
+			R1(cs, i) = i % 2 ? ellipses[cs].shortR : ellipses[cs].longR;
+		}
+		//assign to R2
+		for (int i = 0; i < 4; ++i) {
+			R2(cs, i) = i % 2 ? ellipses[cs].longR : ellipses[cs].shortR;
+		}
+		//assign to theta
+		float angle = ellipses[cs].angle;
+		theta(cs, 0) = angle;
+		for (int i = 1; i < 4; ++i) {
+			angle += pi / 2.f;
+			angle = angle > 2.f*pi ? angle - 2.f*pi : angle;
+			theta(cs, i) = angle;
+		}
+		//assign to rotation
+		angle = theta_R[cs];
+		rot(cs, 0) = angle;
+		for (int i = 1; i < 4; ++i) {
+			angle += pi / 2.f;
+			angle = angle > 2.f*pi ? angle - 2.f*pi : angle;
+			rot(cs, i) = angle;
+		}
+	}
+}
 
 void costFunction(const Eigen::MatrixXf &R1, const Eigen::MatrixXf &R2, const Eigen::MatrixXf &theta, const std::vector<bool> &isValid, std::vector<Eigen::Matrix4f> &cost) {
 	assert(isValid[0]); //assumption
@@ -460,6 +496,42 @@ void costFunction(const Eigen::MatrixXf &R1, const Eigen::MatrixXf &R2, const Ei
 			}	
 			cost[i] = config;
 		}	
+	}
+}
+
+
+void costFunction(const Eigen::MatrixXf &R1, const Eigen::MatrixXf &R2, const Eigen::MatrixXf &theta, 
+	const Eigen::MatrixXf &rot, const std::vector<bool> &isValid, std::vector<Eigen::Matrix4f> &cost) {
+	assert(isValid[0]); //assumption
+	Eigen::Matrix4f config = Eigen::Matrix4f::Zero();
+	// for the ith cross-section, last valid one is known using isValid()
+	// so config is defined as a 4x4 matrix for all configs for two consecutive planes
+	cost.resize(isValid.size());
+	cost[0] = config;
+	for (int i = 1; i < cost.size(); ++i) { //started from 1
+		cost[i] = Eigen::Matrix4f::Zero(); //keep it zero for in-valid ones
+		if (isValid[i]) {
+			int ip = i - 1;
+			while (!isValid[ip])
+				ip = ip - 1; //ip is the last valid cs
+			for (int k_i = 0; k_i < 4; ++k_i) {
+				for (int k_ip = 0; k_ip < 4; ++k_ip) {
+					float w1 = 1.f / pow(0.05, 2); //yarn radius
+					float w2 = 1.f / pow(0.05, 2);
+					float w3 = 1.f / pow(2.f*pi, 2);
+					float w4 = 1.f / pow(2.f*pi, 2);
+					float dR1 = (R1(i, k_i) - R1(ip, k_ip)) / (i - ip);
+					float dR2 = (R2(i, k_i) - R2(ip, k_ip)) / (i - ip);
+					float dtheta = std::abs(theta(i, k_i) - theta(ip, k_ip));
+					dtheta = std::min(dtheta, 2.f*pi - dtheta) / (i - ip);
+					float drot = std::abs(rot(i, k_i) - rot(ip, k_ip));
+					drot = std::min(drot, 2.f*pi - drot) / (i - ip);
+					float g = (i - ip) * (w1*pow(dR1, 2) + w2*pow(dR1, 2) + w3*pow(dtheta, 2) + w4*pow(drot, 2));
+					config(k_i, k_ip) = g;
+				}
+			}
+			cost[i] = config;
+		}
 	}
 }
 
@@ -969,6 +1041,59 @@ void retreiveSol(const Eigen::MatrixXf &R1, const Eigen::MatrixXf &R2, const Eig
 	ell.angle = theta(0, opt_config);
 	validEllipses[0] = ell;
 }
+
+void retreiveSol(const Eigen::MatrixXf &R1, const Eigen::MatrixXf &R2, const Eigen::MatrixXf &theta, const Eigen::MatrixXf &rot,
+	const Eigen::MatrixXf &totalCost, const Eigen::MatrixXf &preConfig, const std::vector<bool> &isValid, 
+	std::vector<Ellipse> &validEllipses, std::vector<float> &validRot) {
+	const int n = isValid.size();
+	validEllipses.resize(n);
+	std::vector<int> solutions(n);
+	std::vector<float> cost_n{ totalCost(n - 1,0), totalCost(n - 1,1), totalCost(n - 1,2), totalCost(n - 1,3) };
+	int opt_config = std::min_element(cost_n.begin(), cost_n.end()) - cost_n.begin();
+	Ellipse ell;
+	int i = n - 1;
+	int ip = 0;
+	for (int i = n - 1; i > 0; --i)
+	{
+		if (R1(i, opt_config) != R1(i, opt_config) || R2(i, opt_config) != R2(i, opt_config)
+			|| theta(i, opt_config) != theta(i, opt_config) || rot(i, opt_config) != rot(i, opt_config) ) {
+			//std::cout << "\n" << i << "********************** " << opt_config << " " << R1(i, opt_config) << " " << R2(i, opt_config) << " " << theta(i, opt_config) << "\n";
+
+			solutions[i] = 0;
+			ell.longR = 1.f;
+			ell.shortR = 0.f;
+			ell.angle = 0.f;
+			validEllipses[i] = ell;
+			validRot[i] = 0.f;
+		}
+		else {
+			solutions[i] = opt_config;
+			ell.longR = R1(i, opt_config);
+			ell.shortR = R2(i, opt_config);
+			ell.angle = theta(i, opt_config);
+			validEllipses[i] = ell;
+			validRot[i] = rot(i, opt_config);
+		}
+
+		opt_config = preConfig(i, opt_config);
+		//if (isValid[i]) {
+		//	std::cout << " " << i;
+		//	ip = i - 1;
+		//	while (!isValid[ip])
+		//		ip = ip - 1;
+		//	i = ip;
+		//	std::cout << " **** " << i;
+		//}
+		//else
+		//	i = i - 1;
+	}
+	ell.longR = R1(0, opt_config);
+	ell.shortR = R2(0, opt_config);
+	ell.angle = theta(0, opt_config);
+	validEllipses[0] = ell;
+	validRot[0] = rot(0, opt_config);
+}
+
 void CrossSection::optimizeEllipses(const std::vector<Ellipse> &ellipses, const std::vector<float> &theta_R,
 	std::vector<Ellipse> &new_ellipses, std::vector<float> &new_theta_R) {
 	const int n = ellipses.size();
@@ -979,11 +1104,13 @@ void CrossSection::optimizeEllipses(const std::vector<Ellipse> &ellipses, const 
 	Eigen::MatrixXf R1(n, 4);
 	Eigen::MatrixXf R2(n, 4);
 	Eigen::MatrixXf theta(n, 4);
-	preComputeEllipses(ellipses, R1, R2, theta);
+	Eigen::MatrixXf rot(n, 4);
+	preComputeEllipses(ellipses, theta_R, R1, R2, theta, rot);
 
 	//2. precompute cost function 
 	std::cout << "Step 3: computing the cost function...\n";
 	std::vector<Eigen::Matrix4f> cost;
+	//costFunction(R1, R2, theta, rot, isValid, cost);
 	costFunction(R1, R2, theta, isValid, cost);
 
 	//3. dynamic programming
@@ -995,15 +1122,18 @@ void CrossSection::optimizeEllipses(const std::vector<Ellipse> &ellipses, const 
 	//4.retreive solution for valid cross-sections
 	std::cout << "Step 5: finalize optimum solution.\n";
 	std::vector<Ellipse> validEllipses(n);
+	std::vector<float> validRot(n);
+	validRot = theta_R;
+	//retreiveSol(R1, R2, theta, rot, totalCost, preConfig, isValid, validEllipses, validRot);
 	retreiveSol(R1, R2, theta, totalCost, preConfig, isValid, validEllipses);
 
 	//5. regularizing the parameters
-	std::cout << "Step 6: regularizing the parameters.\n\n";
-	std::vector<Ellipse> simple_ellipses;
-	std::vector<float> simple_theta_R1;
-	std::vector<float> simple_theta_R2;
-	regularizeEllipses(validEllipses, theta_R, simple_ellipses, simple_theta_R1, 10);
-	regularizeEllipses(simple_ellipses, simple_theta_R1, validEllipses, simple_theta_R2, 10);
+	//std::cout << "Step 6: regularizing the parameters.\n\n";
+	//std::vector<Ellipse> simple_ellipses;
+	//std::vector<float> simple_rot1;
+	//std::vector<float> simple_rot2;
+	//regularizeEllipses(validEllipses, validRot, simple_ellipses, simple_rot1, 10);
+	//regularizeEllipses(simple_ellipses, simple_rot1, validEllipses, validRot, 10);
 	
 	std::cout << "\n";
 
@@ -1011,7 +1141,7 @@ void CrossSection::optimizeEllipses(const std::vector<Ellipse> &ellipses, const 
 	//interpolateEllipses(validEllipses, isValid, ellipses);
 
 	new_ellipses = validEllipses;
-	new_theta_R = theta_R;
+	new_theta_R = validRot;
 }
 
 void CrossSection::parameterizeEllipses(const std::vector<Ellipse> &ellipses, std::vector<Ellipse> &simple_ellipses) {

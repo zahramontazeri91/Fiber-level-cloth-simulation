@@ -34,7 +34,8 @@ def visualize(Sx, Sy, thetaS, thetaR, title = "", fname = "", showWindow = True)
         thetaR[i] = nextTheta(thetaR[i - 1], thetaR[i])
     thetaS -= np.floor(0.25*(thetaS[0] + thetaS[-1])/np.pi + 0.5)*2.0*np.pi
     thetaR -= np.floor(0.25*(thetaR[0] + thetaR[-1])/np.pi + 0.5)*2.0*np.pi
-
+    
+    
     plt.figure(figsize=(8,10))
 
     plt.subplot(411)
@@ -112,7 +113,7 @@ Ty = []
 L2 = []
 
 #fname = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/x64/Release/compressParams.txt'
-fname = '../compressParams_regul.txt'
+fname = '../compressParams_seg.txt'
 
 with open(fname, 'r') as fin:
     N = int(fin.readline())
