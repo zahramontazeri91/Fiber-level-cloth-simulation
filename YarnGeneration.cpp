@@ -13,7 +13,7 @@ int main(int argc, const char **argv) {
 	Fiber::Yarn yarn;
 	yarn.parse(configfile);
 
-	int phase = 3;
+	int phase = 4;
 	//phase 0: test
 	//phase 1: fitting
 	//phase 2: training
@@ -98,8 +98,9 @@ int main(int argc, const char **argv) {
 		case 4: {
 			std::cout << "*** Generation phase *** \n";
 
-			const char* compressfile = "compressParams_seg.txt";
-			const char* curvefile = "centerYarn_compress.txt";
+			const char* compressfile = "compressParam_yarn.txt";
+			const char* curvefile = "frame00029_avg.txt";
+			const char* normfile = "frame00029_norms.txt";
 
 			std::ifstream fin1(compressfile);
 			std::ifstream fin2(curvefile);
@@ -108,8 +109,8 @@ int main(int argc, const char **argv) {
 
 			// Procedural step
 			yarn.yarn_simulate();
-			yarn.compress_yarn(compressfile);
-			yarn.curve_yarn(compressfile, curvefile);
+			//yarn.compress_yarn(compressfile);
+			yarn.curve_yarn(curvefile, normfile);
 			yarn.write_yarn(argv[2]);
 			break;
 		}

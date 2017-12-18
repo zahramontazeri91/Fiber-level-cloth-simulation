@@ -37,7 +37,7 @@ void hermiteTest1()
         for ( int i = 0; i <= nSeg; ++i )
             pts.push_back(Eigen::Vector3d(static_cast<double>(i), static_cast<double>(i % 2), std::sin(static_cast<double>(i))));
         HermiteCurve curve;
-        curve.init_norm(pts, 10);
+        curve.init(pts, 10);
 
         const int n = 200;
         Eigen::Vector3d vtx[n], tang[n], norm[n];
@@ -77,7 +77,7 @@ void hermiteTest2()
         for ( int i = 0; i <= nSeg; ++i )
             pts.push_back(Eigen::Vector3d(static_cast<double>(i), static_cast<double>(i % 2), std::sin(static_cast<double>(i))));
         HermiteCurve curve;
-        curve.init_norm(pts, 10);
+        curve.init(pts, 10);
 
         std::uniform_real_distribution<> distrb;
         std::mt19937_64 engine;
@@ -105,7 +105,7 @@ void hermiteTest3()
             norms.push_back(Eigen::Vector3d(std::cos(angle), std::sin(angle), 0.0));
         }
         HermiteCurve curve;
-        curve.init(pts, norms, 10);
+        curve.init_norm(pts, norms, 10);
 
         const int n = 200;
         Eigen::Vector3d vtx[n], tang[n], norm[n];

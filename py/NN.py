@@ -8,12 +8,12 @@ from keras.layers import Dense, Activation, Dropout
 ## Load data
 # In[] 
 def loadData():
-    X_train_all = np.random.rand(10,2)
-    Y_train_all = np.random.rand(10,1)
-    X_test_all = np.random.rand(10,2)
-#    X_train_all = np.loadtxt("data/X_train.txt",delimiter=None)
-#    Y_train_all = np.int64(np.loadtxt("data/Y_train.txt",delimiter=None))
-#    X_test_all = np.loadtxt("data/X_test.txt",delimiter=None)
+#    X_train_all = np.random.rand(10,2)
+#    Y_train_all = np.random.rand(10,1)
+#    X_test_all = np.random.rand(10,2)
+    X_train_all = np.loadtxt("../data/X_train.txt",delimiter=None)
+    Y_train_all = np.loadtxt("../data/Y_train.txt",delimiter=None)
+    X_test_all = np.loadtxt("../data/X_test.txt",delimiter=None)
     print("Original training data shape (X): ", X_train_all.shape)
     print("Original training data shape (Y): ", Y_train_all.shape)
     
@@ -21,6 +21,7 @@ def loadData():
     nb_features = X_train_all.shape[1]
     nb_traindata = X_train_all.shape[0]
     nb_halfdata = round(nb_traindata*0.8)
+    nb_outputs = Y_train_all.shape[1]
     
     # using subset data as training and validation
     X_train = X_train_all[0:nb_halfdata,:]
@@ -46,7 +47,7 @@ def loadData():
     print(Y_valid[0:10])
      
 #    return (X_train_, Y_train, X_valid_, Y_valid, nb_features, X_test_)
-    return (X_train, Y_train, X_valid, Y_valid, nb_features, X_test)
+    return (X_train, Y_train, X_valid, Y_valid, nb_features,nb_outputs, X_test)
 
 ## Build neural network model
 # In[]:
@@ -126,9 +127,9 @@ def predict(model, X_test):
 
 ## Main
 # In[]
-(X_train, Y_train, X_valid, Y_valid, nb_features, X_test) = loadData()
+(X_train, Y_train, X_valid, Y_valid, nb_features, nb_outputs, X_test) = loadData()
 
-model = buildModel(nb_features, 1)
+model = buildModel(nb_features, nb_outputs)
 
 model = trainModel(model, X_train, Y_train, X_valid, Y_valid)
 

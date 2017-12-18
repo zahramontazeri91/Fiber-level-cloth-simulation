@@ -8,12 +8,15 @@ x y z
 import matplotlib
 import matplotlib.pyplot as plt
 matplotlib.rcParams.update({'font.size': 16})
+from mpl_toolkits.mplot3d import axes3d, Axes3D
 
 fig = plt.figure(figsize=(10,20))
-ax = fig.gca(projection='3d')
+#ax = fig.gca(projection='3d')
+ax = Axes3D(fig)
 #ax.set_aspect('equal')
         
-with open('../../data/test_plyCenter.txt', 'r') as fin:
+#with open('../../data/test_plyCenter.txt', 'r') as fin:
+with open('../frame00029_avg.txt','r') as fin:
     n = int(fin.readline())  
         
     for j in range(0, n):
@@ -27,8 +30,8 @@ with open('../../data/test_plyCenter.txt', 'r') as fin:
         
 
 ax.view_init(azim=0., elev=0)
-ax.set_xlim3d(-0.1,0.1)
-ax.set_ylim3d(-0.1,0.1)
-ax.set_zlim3d(-8,8)
+#ax.set_xlim3d(-0.1,0.1)
+#ax.set_ylim3d(-0.1,0.1)
+#ax.set_zlim3d(-8,8)
 #plt.tight_layout()
 plt.show()
