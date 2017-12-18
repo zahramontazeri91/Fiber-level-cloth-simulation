@@ -7,6 +7,7 @@
 #include "tests/crossSectionTests.h"
 
 int main(int argc, const char **argv) {
+
 	const char* configfile = "config.txt";
 	std::ifstream fin1(configfile);
 	assert(fin1.is_open() && "config file wasn't found!\n");

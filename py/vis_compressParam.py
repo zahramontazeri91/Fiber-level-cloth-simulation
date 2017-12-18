@@ -57,7 +57,7 @@ def visualize(Sx, Sy, thetaS, thetaR, title = "", fname = "", showWindow = True)
     plt.subplot(414)
     plt.plot(L2, label='L2 error', color = 'r')
     plt.legend()
-#    plt.ylim([0,300])
+#    plt.ylim([0,1])
     
     plt.tight_layout()
     if fname != "":
@@ -139,28 +139,21 @@ title = 'dataset3\n compressed: simulated frame 11400 \n reference: simulated fr
 #title = 'compressed: synthetic frame 1 compressed \n reference: synthetic frame 1'
 visualize(lng, shrt, theta, rot, title, fname)
 
+###################################################
 #ind = np.arange(N) 
 #plt.figure(figsize=(15,10))
 #
 #plt.subplot(311)
-#plt.plot([200,200], [0, 0.06], color='black') 
-#plt.plot([1200,1200], [0, 0.06], color='black') 
-##plt.ylim(-0.2, 2.5)
-#plt.ylim(0.0, 2.5)
 #plt.plot(ind, lng, color='r', label='Sx')
 #plt.plot(ind, shrt, color='b', label='Sx')
 #plt.legend()
 #plt.title('Simulated data frame 29')
 #          
 #plt.subplot(312)         
-#plt.plot([200,200], [0, 3], color='black') 
-#plt.plot([1200,1200], [0, 3], color='black') 
 #plt.plot(ind, theta, color='g', label=r'$\theta_S$')
 #plt.legend()
 #
 #plt.subplot(313)         
-#plt.plot([200,200], [0, 3], color='black') 
-#plt.plot([1200,1200], [0, 3], color='black') 
 #plt.plot(ind, rot, color='y', label=r'$\theta_R$')
 #plt.legend()
 #

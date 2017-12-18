@@ -140,19 +140,16 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 
 	//optimize the solution and regularizing
 	cs.optimizeEllipses(ellipses, all_theta_R, new_ellipses, new_theta_R);
-	//new_ellipses = ellipses;
-	//new_theta_R = all_theta_R;
 
 	//non-periodic theta
 	std::vector<float> theta;
 	std::vector<float> theta_new;
-	for (int i = 0; i < new_ellipses.size(); ++i) 
+	for (int i = 0; i < new_ellipses.size(); ++i)
 		theta.push_back(new_ellipses[i].angle);
 	nonPeriodicTheta(theta, theta_new);
-	nonPeriodicTheta(new_theta_R, new_theta_R);
+	nonPeriodicTheta(all_theta_R, all_theta_R);
 	for (int i = 0; i < new_ellipses.size(); ++i)
 		new_ellipses[i].angle = theta_new[i];
-
 
 	FILE *fout;
 	if (fopen_s(&fout, compressFile, "wt") == 0) {
@@ -162,6 +159,7 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 		}
 		fclose(fout);
 	}
+
 
 	//constant fitting
 	std::cout << "Compression parameters are successfully written to the file!\n";
@@ -204,7 +202,7 @@ void nonPeriodicTheta(const std::vector<float> &theta, std::vector<float> &theta
 	for (int i = 0; i < m; ++i) {
 		theta_new[i] = nextTheta(theta_new[i-1], theta_new[i]);
 	}
-	float k = floor(0.25*(theta_new[0] + theta_new[-1]) / pi + 0.5)*2.0*pi;
+	float k = floor(0.25*(theta_new[0] + theta_new[m-1]) / pi + 0.5)*2.0*pi;
 	for (int i = 0; i < m; ++i) {
 		theta_new[i] -= k;
 	}
