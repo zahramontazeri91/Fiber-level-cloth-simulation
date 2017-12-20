@@ -90,7 +90,7 @@ void appendCenter_yarn(const std::vector<Fiber::Yarn::CenterLine> &centerlines, 
 	}
 }
 
-void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const char* compressFile, 
+void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const char* compressFile_vrtx, const char* compressFile_seg,
 	const char* curveFile, const int ply_num, const int vrtx_num, std::vector<Ellipse> &new_ellipses, std::vector<float> &new_theta_R)
 {
 	const int n = vrtx_num;
@@ -129,14 +129,6 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 	//	ellipses[i] = ell;
 	//}
 
-	FILE *fout0;
-	if (fopen_s(&fout0, "compressParams_org.txt", "wt") == 0) {
-		fprintf_s(fout0, "%d \n", ellipses.size());
-		for (int i = 0; i < ellipses.size(); ++i) {
-			fprintf_s(fout0, "%.6f %.6f %.6f %.6f \n", ellipses[i].longR, ellipses[i].shortR, ellipses[i].angle, all_theta_R[i]);
-		}
-		fclose(fout0);
-	}
 
 	//optimize the solution and regularizing
 	cs.optimizeEllipses(ellipses, all_theta_R, new_ellipses, new_theta_R);
@@ -152,7 +144,7 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 		new_ellipses[i].angle = theta_new[i];
 
 	FILE *fout;
-	if (fopen_s(&fout, compressFile, "wt") == 0) {
+	if (fopen_s(&fout, compressFile_vrtx, "wt") == 0) {
 		fprintf_s(fout, "%d \n", ellipses.size());
 		for (int i = 0; i < ellipses.size(); ++i) {
 			fprintf_s(fout, "%.6f %.6f %.6f %.6f \n", new_ellipses[i].longR, new_ellipses[i].shortR, new_ellipses[i].angle, new_theta_R[i]);
@@ -160,6 +152,17 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 		fclose(fout);
 	}
 
+	FILE *fout0;
+	if (fopen_s(&fout0, compressFile_seg, "wt") == 0) {
+		//fprintf_s(fout0, "%d \n", ellipses.size());
+		for (int i = 0; i < ellipses.size() - 1; ++i) {
+			fprintf_s(fout0, "%.6f %.6f %.6f %.6f \n", (new_ellipses[i].longR+ new_ellipses[i+1].longR)/2.f, 
+				(new_ellipses[i].shortR+ new_ellipses[i+1].shortR) / 2.f, 
+				(new_ellipses[i].angle+ new_ellipses[i+1].angle) / 2.f, 
+				(new_theta_R[i]+ new_theta_R[i+1]) / 2.f );
+		}
+		fclose(fout0);
+	}
 
 	//constant fitting
 	std::cout << "Compression parameters are successfully written to the file!\n";
@@ -255,7 +258,7 @@ void constFitting_compParam( const std::vector<Ellipse> &ellipses, const std::ve
 	status = lm4.minimize(x);
 	compress.rotation = x(0);
 
-	std::cout << "fitted compression params: " << compress.ellipse_long << " " << compress.ellipse_short << " " << compress.ellipse_theta << " " << compress.rotation << "\n";
+	//std::cout << "fitted compression params: " << compress.ellipse_long << " " << compress.ellipse_short << " " << compress.ellipse_theta << " " << compress.rotation << "\n";
 }
 
 void sinFitting_curve(const char* curveFile, const float trimPercent, Fiber::Yarn::CenterLine &curve) {
@@ -298,7 +301,7 @@ void sinFitting_curve(const char* curveFile, const float trimPercent, Fiber::Yar
 	curve.b = 2.f * pi / static_cast<float>(period); //TODO: pass this during fitting
 	curve.c = x(2);
 
-	std::cout << "curve params: " << curve.a << " " << curve.b << " compared to: " << 2.f * pi / static_cast<float>(period) << " " << curve.c << std::endl;
+	//std::cout << "curve params: " << curve.a << " " << curve.b << " compared to: " << 2.f * pi / static_cast<float>(period) << " " << curve.c << std::endl;
 
 	//for debug: 
 	std::ofstream fout("sineCurve.txt");

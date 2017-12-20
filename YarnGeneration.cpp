@@ -5,6 +5,7 @@
 
 #include "tests/hermiteTests.h"
 #include "tests/crossSectionTests.h"
+#include <string>
 
 int main(int argc, const char **argv) {
 
@@ -25,40 +26,41 @@ int main(int argc, const char **argv) {
 		case 1: {
 			std::cout << "*** Fitting phase ***\n";
 
-			const char* yarnfile1 = "data/1215_frame0000000.txt";
-			//const char* yarnfile1 = "data/1211_frame0000000.txt";
-			//const char* yarnfile1 = "data/genYarn_frame1_shuang.txt";
-			//const char* yarnfile1 = "data/1111_frame00001_scaled.txt";
-			//const char* yarnfile1 = "data/genYarn_frame1.txt"; 
+			const char* yarnfile1 = "data/1218_frame_0006000fiber_00.txt";
+			std::string s = "";
+			for (int i = 7; i < 8; i++) {
+				if (i < 10)
+					s = "frame_000" + std::to_string(i) + "000";
+				else 
+					s = "frame_00" + std::to_string(i) + "000";
 
-			const char* yarnfile2 = "data/1215_frame0011400.txt";
-			//const char* yarnfile2 = "data/1211_frame0011100.txt";
-			//const char* yarnfile2 = "data/1111_frame00001_scaled.txt";
-			//const char* yarnfile2 = "data/1111_frame00029_scaled.txt";
-			//const char* yarnfile2 = "data/genYarn_frame1_compressed_R.txt";
-			//const char* norm2 = "data/genYarn_frame29_norms.txt";
+				//const char* yarnfile2 = ("data/1218_" + s + "fiber_00.txt").c_str();
+				//const char* compressfile = ("NN/param_" + s + ".txt").c_str();
+				//const char* curvefile = ("centerYarn_" + s + ".txt").c_str();
 
-			const char* compressfile = "compressParams_seg.txt";
-			const char* curvefile = "centerYarn_compress_seg.txt";
+				const char* yarnfile2 = "data/1218_frame_0015000fiber_00.txt";
+				const char* compressfile_vrtx = "NN/param_frame_0015000.txt";
+				const char* curvefile = "centerYarn_frame_0015000.txt";
+				const char* compressfile_seg = "compressParams.txt";
 
-			std::ifstream fin1(yarnfile1);
-			std::ifstream fin2(yarnfile2);
-			assert(fin1.is_open() && "compressed-yarn file wasn't found!\n");
-			assert(fin2.is_open() && "reference-yarn file wasn't found!\n");
+				std::ifstream fin1(yarnfile1);
+				std::ifstream fin2(yarnfile2);
+				assert(fin1.is_open() && "reference-yarn file wasn't found!\n");
+				assert(fin2.is_open() && "compressed-yarn file wasn't found!\n");
 
-			//const int vrtx_num = yarn.getStepNum();
-			const int vrtx_num = 150;
-			std::vector<Ellipse> ellipses;
-			std::vector<float> theta_R;
-			extractCompress_seg(yarnfile1, yarnfile2, compressfile, curvefile, yarn.getPlyNum(), vrtx_num, ellipses, theta_R);
-			
-			Fiber::Yarn::Compress compress;
-			Fiber::Yarn::CenterLine curve;
-			const float trimPercent = 0.33;
 
-			constFitting_compParam(ellipses, theta_R, trimPercent, compress);
-			sinFitting_curve(curvefile, trimPercent, curve);
+				//const int vrtx_num = yarn.getStepNum();
+				const int vrtx_num = 150;
+				std::vector<Ellipse> ellipses;
+				std::vector<float> theta_R;
+				extractCompress_seg(yarnfile1, yarnfile2, compressfile_vrtx, compressfile_seg, curvefile, yarn.getPlyNum(), vrtx_num, ellipses, theta_R);
 
+				//Fiber::Yarn::Compress compress;
+				//Fiber::Yarn::CenterLine curve;
+				//const float trimPercent = 0.33;
+				//constFitting_compParam(ellipses, theta_R, trimPercent, compress);
+				//sinFitting_curve(curvefile, trimPercent, curve);
+			}
 			break;
 		}
 		case 2: {
