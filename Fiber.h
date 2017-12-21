@@ -194,6 +194,8 @@ namespace Fiber {
 		/* map the straight yarn on a curved spline */
 		void curve_yarn(const char* pntsFile, const char* normsFile, bool scaleXY = false);
 
+		void plotIntersections(const char* filename, const float trimPercent);
+
 		/* Find the yarn-radius for each cross-section */
 		//void shapeCrossSection(yarnIntersect2D &its, float &rLong, float &rShort);
 	};

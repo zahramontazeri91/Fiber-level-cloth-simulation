@@ -209,8 +209,11 @@ void HermiteCurve::getRotatedFrame(double t, Eigen::Vector3d &ex, Eigen::Vector3
 	//ey = B;
 
 	ez = T;
-	ex = -1*B;
-	ey = N;
+	//ex = -1*B;
+	//ey = N;
+
+	ex = N;
+	ey = B;
 
 	//ex = -1*N;
 	//ey = -1*B;

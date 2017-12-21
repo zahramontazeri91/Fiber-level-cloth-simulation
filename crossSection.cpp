@@ -49,13 +49,21 @@ void CrossSection::buildPlanes(const int num_planes, std::vector<yarnIntersect> 
 		float current_t = (i + 1) * crossSection_t;
 		Eigen::Vector3d curve_p = m_curve.eval(current_t);
 		Eigen::Vector3d curve_t = m_curve.evalTangent(current_t);
-		/* need binormal and normal of the plane to project 3D points on the plane */
-		Eigen::Vector3d curve_n = m_curve.evalNormal(current_t); //short axis
-		Eigen::Vector3d curve_b = curve_t.cross(curve_n); //long axis
+
+		// use rotated Frenet frame 
+		Eigen::Vector3d ex, ey, ez;
+		m_curve.getRotatedFrame(current_t, ex, ey, ez);
 		m_planesList[i].point = vec3f(curve_p[0], curve_p[1], curve_p[2]);
-		m_planesList[i].n = vec3f(curve_t[0], curve_t[1], curve_t[2]);
-		m_planesList[i].e1    = vec3f(curve_n[0], curve_n[1], curve_n[2]);
-		m_planesList[i].e2 = cross(m_planesList[i].n, m_planesList[i].e1);
+		m_planesList[i].n = vec3f(ez[0], ez[1], ez[2]);
+		m_planesList[i].e1 = vec3f(ex[0], ex[1], ex[2]);
+		m_planesList[i].e2 = vec3f(ey[0], ey[1], ey[2]);
+
+		/* need binormal and normal of the plane to project 3D points on the plane */
+		//Eigen::Vector3d curve_n = m_curve.evalNormal(current_t); //short axis
+		//Eigen::Vector3d curve_b = curve_t.cross(curve_n); //long axis
+		//m_planesList[i].n = vec3f(curve_t[0], curve_t[1], curve_t[2]);
+		//m_planesList[i].e1    = vec3f(curve_n[0], curve_n[1], curve_n[2]);
+		//m_planesList[i].e2 = cross(m_planesList[i].n, m_planesList[i].e1);
 		//assert(dot(m_planesList[i].n, m_planesList[i].e1) < EPS  && "n and e1 are not perpendicular\n");
 	}
 	std::vector<std::vector<vec3f>> plyCenters;

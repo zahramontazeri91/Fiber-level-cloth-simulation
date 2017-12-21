@@ -1,6 +1,7 @@
 #include "Fiber.h"
 #include "hermiteCurve.h"
 #include "crossSection.h"
+#include "fitting.h"
 
 namespace Fiber {
 
@@ -133,7 +134,7 @@ namespace Fiber {
 				assert(this->plys.size());
 				for (int i = 0; i < this->plys.size(); i++) {
 					int fiber_num = atoi(splits[1].c_str());
-					this->plys[i].fibers.resize(fiber_num + 1); //add one fiber for ply-center 
+					this->plys[i].fibers.resize(fiber_num ); //add one fiber for ply-center 
 				}
 			}
 			else if (p_name == "z_step_size:") {
@@ -469,8 +470,6 @@ namespace Fiber {
 		const int ply_num = this->plys.size();
 		for (int i = 0; i < ply_num; i++) {
 			float angle = 2 * pi * i / ply_num; // place ply centers in a circle with radius yarn-radius/2 
-
-												//TODO: this works well for 2-ply yarn only. How about 5-ply yarn?
 			this->plys[i].base_theta = angle;
 			this->plys[i].base_center = vec3f(base_radius / 2 * std::cosf(angle), base_radius / 2 * std::sinf(angle), 0);
 		}
@@ -543,18 +542,29 @@ namespace Fiber {
 				}
 			}
 		}
+		plotIntersections("../data/allCrossSection2D_simulate.txt",0.3);
 	} // yarn_simulate
 
 	void Yarn::readCompressFile(const char* filename, std::vector<Compress> &compress_params) {
+		compress_params.resize(this->z_step_num);
+		//initialize compressParam
+		for (int i = 0; i<this->z_step_num; ++i) {
+			Compress param;
+			param.ellipse_long = 1.0;
+			param.ellipse_short = 1.0;
+			param.ellipse_theta = 0.0;
+			param.rotation = 0.0;
+			compress_params[i] = param;
+		}
+
 		std::ifstream fin;
 		if (filename != NULL)
 			fin.open(filename);
-
 		std::string line;
 		std::getline(fin, line);
 		const int plane_num = atof(line.c_str());
-		int planeId = 0;
-		while (std::getline(fin, line)) {
+		for (int i=0; i<plane_num; ++i) {
+			std::getline(fin, line);
 			Compress param;
 			std::vector<std::string> splits = split(line, ' ');
 
@@ -562,8 +572,7 @@ namespace Fiber {
 			param.ellipse_short = atof(splits[1].c_str());
 			param.ellipse_theta = atof(splits[2].c_str());
 			param.rotation = atof(splits[3].c_str());
-			compress_params.push_back(param);
-			planeId++;
+			compress_params[i] = param ;
 		}
 	}
 
@@ -731,6 +740,9 @@ namespace Fiber {
 
 		std::vector<Compress> compress_params;
 		readCompressFile(filename, compress_params);
+		if (compress_params.size() != this->z_step_num)
+			std::cout << "# compress params: " << compress_params.size() << ", # cross-sections: " << this->z_step_num << std::endl;
+		assert (compress_params.size() == this->z_step_num);
 
 		// change the yarn cross-sections
 		//const int ply_num = this->plys.size();
@@ -754,7 +766,8 @@ namespace Fiber {
 					V << cos(ellipse_theta), -sin(ellipse_theta), sin(ellipse_theta), cos(ellipse_theta);
 					S = V*sigma*V.transpose();
 					R << cos(rotation), -sin(rotation), sin(rotation), cos(rotation);
-					transf = R *S;
+					transf = R *S; 
+					//transf = S; //if we handle twisting while mapping the yarn to the curve
 					Eigen::MatrixXf ref(2, 1);
 					ref << fiber.vertices[v].x, fiber.vertices[v].y;
 					Eigen::MatrixXf def(2, 1);
@@ -793,19 +806,24 @@ namespace Fiber {
 				}
 			}
 		}
+		plotIntersections("../data/allCrossSection2D_compress.txt", 0.3);
+	} // compress_yarn
+
+	void Yarn::plotIntersections(const char* filename, const float trimPercent = 0.2) {
 		// for debuging:
 		FILE *fout;
 		const int plane_num = this->z_step_num;
-		const int f_num = this->plys[0].fibers.size() - 1; //since the first fiber is the center
-		const int ignorPlanes = 0.1 * plane_num; // crop the first and last 10% of the yarn
-		if (fopen_s(&fout, "../data/allCrossSection2D_compress.txt", "wt") == 0) {
+		const int f_num = this->plys[0].fibers.size(); 
+		const int ignorPlanes = trimPercent * plane_num; // crop the first and last 10% of the yarn
+		if (fopen_s(&fout, filename, "wt") == 0) {
 			fprintf_s(fout, "plane_num: %d \n", plane_num - 2 * ignorPlanes);
-			fprintf_s(fout, "ply_num: %d \n \n", ply_num);
+			fprintf_s(fout, "ply_num: %d \n \n", this->plys.size());
 			for (int step_id = ignorPlanes; step_id < plane_num - ignorPlanes; step_id++) {
-				for (int i = 0; i < ply_num; i++) {
+				fprintf_s(fout, "index_plane : %d \n", step_id - ignorPlanes);
+				for (int i = 0; i < this->plys.size(); i++) {
 					fprintf_s(fout, "ply_fiber_num: %d\n", f_num);
 					fprintf_s(fout, "plyCenter: %.4f %.4f\n", this->plys[i].fibers[0].vertices[step_id].x, this->plys[i].fibers[0].vertices[step_id].y);
-					for (int f = 1; f < f_num + 1; ++f) {
+					for (int f = 0; f < f_num; ++f) {
 						fprintf_s(fout, "%.4f %.4f\n", this->plys[i].fibers[f].vertices[step_id].x, this->plys[i].fibers[f].vertices[step_id].y);
 					}
 				}
@@ -813,17 +831,16 @@ namespace Fiber {
 			}
 			fclose(fout);
 		}
-	} // compress_yarn
-
+	}
 
 	void Yarn::curve_yarn(const char* pntsFile, const char* normsFile, bool scaleXY) {
 		std::cout << "step8: map the straight yarn to the spline curve ..." << std::endl;
 
 		/* use hermite spline multiple segments */
 		HermiteCurve curve;
-		//curve.init(pntsFile, normsFile);
+		curve.init(pntsFile, normsFile);
 		//given normals:
-		curve.init_norm(pntsFile, normsFile);
+		//curve.init_norm(pntsFile, normsFile);
 
 		double zMin = std::numeric_limits<double>::max(), zMax = std::numeric_limits<double>::lowest();
 		for (const auto &ply : plys)
@@ -875,27 +892,7 @@ namespace Fiber {
 		//fout1.close();
 		}
 
-		// for debuging:
-		const int ply_num = this->plys.size();
-		FILE *fout;
-		const int plane_num = this->z_step_num;
-		const int f_num = this->plys[0].fibers.size() - 1; //since the first fiber is the center
-		const int ignorPlanes = 0.1 * plane_num; // crop the first and last 10% of the yarn
-		if (fopen_s(&fout, "../data/allCrossSection2D_curve.txt", "wt") == 0) {
-			fprintf_s(fout, "plane_num: %d \n", plane_num - 2 * ignorPlanes);
-			fprintf_s(fout, "ply_num: %d \n \n", ply_num);
-			for (int step_id = ignorPlanes; step_id < plane_num - ignorPlanes; step_id++) {
-				for (int i = 0; i < ply_num; i++) {
-					fprintf_s(fout, "ply_fiber_num: %d\n", f_num);
-					fprintf_s(fout, "plyCenter: %.4f %.4f\n", this->plys[i].fibers[0].vertices[step_id].x, this->plys[i].fibers[0].vertices[step_id].y);
-					for (int f = 1; f < f_num + 1; ++f) {
-						fprintf_s(fout, "%.4f %.4f\n", this->plys[i].fibers[f].vertices[step_id].x, this->plys[i].fibers[f].vertices[step_id].y);
-					}
-				}
-				fprintf_s(fout, "\n");
-			}
-			fclose(fout);
-		}
+		plotIntersections("../data/allCrossSection2D_curve.txt",0.3);
 	} // curve_yarn
 
 

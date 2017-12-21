@@ -28,12 +28,12 @@ def nextTheta(theta0, theta1):
 def visualize(Sx, Sy, thetaS, thetaR, title = "", fname = "", showWindow = True):
 #    assert Sx.shape == Sy.shape and Sx.shape == thetaS.shape and Sx.shape == thetaR.shape
 
-    m = len(thetaS)
-    for i in range(1, m):
-        thetaS[i] = nextTheta(thetaS[i - 1], thetaS[i])
-        thetaR[i] = nextTheta(thetaR[i - 1], thetaR[i])
-    thetaS -= np.floor(0.25*(thetaS[0] + thetaS[-1])/np.pi + 0.5)*2.0*np.pi
-    thetaR -= np.floor(0.25*(thetaR[0] + thetaR[-1])/np.pi + 0.5)*2.0*np.pi
+#    m = len(thetaS)
+#    for i in range(1, m):
+#        thetaS[i] = nextTheta(thetaS[i - 1], thetaS[i])
+#        thetaR[i] = nextTheta(thetaR[i - 1], thetaR[i])
+#    thetaS -= np.floor(0.25*(thetaS[0] + thetaS[-1])/np.pi + 0.5)*2.0*np.pi
+#    thetaR -= np.floor(0.25*(thetaR[0] + thetaR[-1])/np.pi + 0.5)*2.0*np.pi
     
     
     plt.figure(figsize=(8,10))
@@ -49,7 +49,7 @@ def visualize(Sx, Sy, thetaS, thetaR, title = "", fname = "", showWindow = True)
     plt.subplot(412)
     plt.plot(thetaS, label=r'$\theta_S$', color = 'g')
     plt.legend()
-
+    
     plt.subplot(413)
     plt.plot(thetaR, label=r'$\theta_R$')
     plt.legend()
@@ -57,7 +57,7 @@ def visualize(Sx, Sy, thetaS, thetaR, title = "", fname = "", showWindow = True)
     plt.subplot(414)
     plt.plot(L2, label='L2 error', color = 'r')
     plt.legend()
-#    plt.ylim([0,1])
+
     
     plt.tight_layout()
     if fname != "":
@@ -74,13 +74,14 @@ Tx = []
 Ty = []
 L2 = []
 
-
+path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/NN/'
+fname = path + 'param_1220_0002000.txt'
 #fname = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/x64/Release/compressParams.txt'
-#fname = '../compressParams_seg.txt'
-fname = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/NN/param_frame_0015000.txt'
+#fname = '../compressParams.txt'
+#fname = path + 'param_frame_0015000.txt'
 with open(fname, 'r') as fin:
 #    N = int(fin.readline())
-    N = 149
+    N = 299
     for i in range (0,N):
         compress = fin.readline().split()
 #        if i>65 and i<75:
@@ -88,8 +89,7 @@ with open(fname, 'r') as fin:
         shrt.append(float(compress[1]))
         theta.append(float(compress[2]))
         rot.append(float(compress[3]))
-#         Tx.append(float(compress[4]))
-#         Ty.append(float(compress[5]))
+
     fin.close()
  
 with open('D:/sandbox/fiberSimulation/yarn_generation_project/data/L2.txt', 'r') as finL2:

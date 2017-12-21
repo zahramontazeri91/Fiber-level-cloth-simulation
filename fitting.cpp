@@ -95,8 +95,10 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 {
 	const int n = vrtx_num;
 
+	
 	Fiber::Yarn yarn_tmp;
-	const char* centerYarn1 = "centerYarn_ref_seg.txt"; //TODO: maybe we can use z axis later
+
+	const char* centerYarn1 = "centerYarn_ref.txt"; //TODO: maybe we can use z axis later
 	yarn_tmp.yarnCenter(yarnfile1, centerYarn1);
 	std::vector<yarnIntersect2D> pnts_ref;
 	CrossSection cs2(yarnfile1, centerYarn1, ply_num, n, 100, pnts_ref);
@@ -172,12 +174,12 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 	const char* refFile = "../data/allCrossSection2D_ref.txt";
 	const char* deformedRefFile = "../data/allCrossSection2D_deformedRef.txt";
 	const char* deformedFile = "../data/allCrossSection2D_deformed.txt";
-
-	plotIntersections(pnts_ref, refFile);
+	const float trimPercent = 0.3;
+	plotIntersections(pnts_ref, refFile, trimPercent);
 	std::vector<yarnIntersect2D> ref_deformed;
 	deformRef(pnts_ref, ref_deformed, new_ellipses, new_theta_R);
-	plotIntersections(ref_deformed, deformedRefFile);
-	plotIntersections(pnts_trans, deformedFile);
+	plotIntersections(ref_deformed, deformedRefFile, trimPercent);
+	plotIntersections(pnts_trans, deformedFile, trimPercent);
 
 	std::vector<float> L2;
 	L2norm(ref_deformed, pnts_trans, L2, L2File);
@@ -333,18 +335,18 @@ void L2norm(const std::vector<yarnIntersect2D> &its_deform, const std::vector<ya
 	}
 }
 
-void plotIntersections(const std::vector<yarnIntersect2D> &its, const char* filename) {
+void plotIntersections(const std::vector<yarnIntersect2D> &its, const char* filename, const float trimPercent) {
 	FILE *fout;
 	// write the plycenters
 	if (fopen_s(&fout, filename, "wt") == 0) {
-		const int ignorPlanes = 0.2 * its.size(); // crop the first and last 10% of the yarn
+		const int ignorPlanes = trimPercent * its.size(); // crop the first and last 10% of the yarn
 
 		fprintf_s(fout, "plane_num: %d \n", its.size() - 2 * ignorPlanes);
 		fprintf_s(fout, "ply_num: %d \n", its[0].size());
 		fprintf_s(fout, "\n");
 
 		for (int i = ignorPlanes; i < its.size() - ignorPlanes; ++i) { //number of planes
-			fprintf_s(fout, "index plane : %d \n", i - ignorPlanes);
+			fprintf_s(fout, "index_plane : %d \n", i - ignorPlanes);
 			for (int p = 0; p < its[i].size(); ++p) { //number of plys
 				fprintf_s(fout, "ply_fiber_num: %d \n", its[i][p].size());
 				vec2f plyCenter(0.f);

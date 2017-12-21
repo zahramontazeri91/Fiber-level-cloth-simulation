@@ -149,6 +149,6 @@ void vis_allFrames() {
 
 		std::string t = "../data/allCrossSection2D_deformed_frame" + std::to_string(i) + ".txt";
 		const char* deformed = t.c_str();
-		plotIntersections(pnts, deformed);
+		plotIntersections(pnts, deformed, 0.3);
 	}
 }

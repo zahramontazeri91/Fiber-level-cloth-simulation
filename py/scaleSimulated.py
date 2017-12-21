@@ -13,8 +13,10 @@ for h in range (29,30): #iterate over all hair frames
     else:
         frame_num = 'frame000' + str(h)
 
-    list_fibers = []        
-    with open(hairs_path + '/hairs/' + frame_num + '_hairs.txt') as f:
+    list_fibers = []   
+    fn = hairs_path + '/hairs/' + frame_num + '_hairs.txt'  
+#    fn = '../data/1218_frame_0015000fiber_00.txt'
+    with open(fn) as f:
         while True:
             cnt = list(islice(f, 1) )
             if not cnt:
@@ -24,7 +26,9 @@ for h in range (29,30): #iterate over all hair frames
             list_fibers.append(next_n_lines)
     
     fiber_num = len(list_fibers)
-    yarn_file = open(hairs_path + '/scaledHairs/' + frame_num + '_scaled_1ply.txt','w') 
+    fn = hairs_path + '/scaledHairs/' + frame_num + '_scaled_1ply.txt'
+#    fn = '../data/1218_frame_15_scaled.txt'
+    yarn_file = open(fn,'w') 
     
     yarn_file.write( '%s \n' % str(fiber_num/2) )     
     for f in range (0,fiber_num/2):
