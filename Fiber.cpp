@@ -545,16 +545,45 @@ namespace Fiber {
 		plotIntersections("../data/allCrossSection2D_simulate.txt",0.3);
 	} // yarn_simulate
 
-	void Yarn::readCompressFile(const char* filename, std::vector<Compress> &compress_params) {
-		compress_params.resize(this->z_step_num);
+	//void Yarn::readCompressFile(const char* filename, std::vector<Compress> &compress_params) {
+	//	compress_params.resize(this->z_step_num);
+	//	//initialize compressParam
+	//	for (int i = 0; i<this->z_step_num; ++i) {
+	//		Compress param;
+	//		param.ellipse_long = 1.0;
+	//		param.ellipse_short = 1.0;
+	//		param.ellipse_theta = 0.0;
+	//		param.rotation = 0.0;
+	//		compress_params[i] = param;
+	//	}
+
+	//	std::ifstream fin;
+	//	if (filename != NULL)
+	//		fin.open(filename);
+	//	std::string line;
+	//	std::getline(fin, line);
+	//	const int plane_num = atof(line.c_str());
+	//	for (int i=0; i<plane_num; ++i) {
+	//		std::getline(fin, line);
+	//		Compress param;
+	//		std::vector<std::string> splits = split(line, ' ');
+
+	//		param.ellipse_long = atof(splits[0].c_str());
+	//		param.ellipse_short = atof(splits[1].c_str());
+	//		param.ellipse_theta = atof(splits[2].c_str());
+	//		param.rotation = atof(splits[3].c_str());
+	//		compress_params[i] = param ;
+	//	}
+	//}
+
+	void Yarn::readCompressFile(const char* filename, std::vector<Transform> &all_Transform) {
+		all_Transform.resize(this->z_step_num);
 		//initialize compressParam
 		for (int i = 0; i<this->z_step_num; ++i) {
-			Compress param;
-			param.ellipse_long = 1.0;
-			param.ellipse_short = 1.0;
-			param.ellipse_theta = 0.0;
-			param.rotation = 0.0;
-			compress_params[i] = param;
+			Transform trans;
+			trans.R = Eigen::Matrix2f::Zero();
+			trans.S = Eigen::Matrix2f::Zero();
+			all_Transform[i] = trans;
 		}
 
 		std::ifstream fin;
@@ -563,19 +592,20 @@ namespace Fiber {
 		std::string line;
 		std::getline(fin, line);
 		const int plane_num = atof(line.c_str());
-		for (int i=0; i<plane_num; ++i) {
+		for (int i = 0; i<plane_num; ++i) {
 			std::getline(fin, line);
-			Compress param;
+			Transform trans;
 			std::vector<std::string> splits = split(line, ' ');
 
-			param.ellipse_long = atof(splits[0].c_str());
-			param.ellipse_short = atof(splits[1].c_str());
-			param.ellipse_theta = atof(splits[2].c_str());
-			param.rotation = atof(splits[3].c_str());
-			compress_params[i] = param ;
+			float S00 = atof(splits[0].c_str());
+			float S11 = atof(splits[1].c_str());
+			float S01 = atof(splits[2].c_str());
+			float theta_R = atof(splits[3].c_str());
+			trans.R << cos(theta_R), -sin(theta_R), sin(theta_R), cos(theta_R);
+			trans.S << S00, S01, S01, S11;
+			all_Transform[i] = trans;
 		}
 	}
-
 
 	void Yarn::fitCircle(const yarnIntersect2D &pts, float &radius)
 	{
@@ -738,11 +768,11 @@ namespace Fiber {
 		}
 		fitCircleR_avg /= static_cast<float> (this->z_step_num);
 
-		std::vector<Compress> compress_params;
-		readCompressFile(filename, compress_params);
-		if (compress_params.size() != this->z_step_num)
-			std::cout << "# compress params: " << compress_params.size() << ", # cross-sections: " << this->z_step_num << std::endl;
-		assert (compress_params.size() == this->z_step_num);
+		std::vector<Transform> transforms;
+		readCompressFile(filename, transforms);
+		if (transforms.size() != this->z_step_num)
+			std::cout << "# compress params: " << transforms.size() << ", # cross-sections: " << this->z_step_num << std::endl;
+		assert (transforms.size() == this->z_step_num);
 
 		// change the yarn cross-sections
 		//const int ply_num = this->plys.size();
@@ -756,18 +786,8 @@ namespace Fiber {
 				//while (1);
 				for (int v = 0; v < vertices_num; v++) {
 
-					const float ellipse_long = compress_params[v].ellipse_long;
-					const float ellipse_short = compress_params[v].ellipse_short;
-					const float ellipse_theta = compress_params[v].ellipse_theta;
-					const float rotation = compress_params[v].rotation;
-
-					Eigen::Matrix2f R, S, V, sigma, transf;
-					sigma << ellipse_long, 0, 0, ellipse_short;
-					V << cos(ellipse_theta), -sin(ellipse_theta), sin(ellipse_theta), cos(ellipse_theta);
-					S = V*sigma*V.transpose();
-					R << cos(rotation), -sin(rotation), sin(rotation), cos(rotation);
-					transf = R *S; 
-					//transf = S; //if we handle twisting while mapping the yarn to the curve
+					Eigen::Matrix2f transf = transforms[v].R * transforms[v].S;
+					//Eigen::Matrix2f transf = transforms[v].S; //if we handle twisting while mapping the yarn to the curve
 					Eigen::MatrixXf ref(2, 1);
 					ref << fiber.vertices[v].x, fiber.vertices[v].y;
 					Eigen::MatrixXf def(2, 1);
@@ -838,9 +858,9 @@ namespace Fiber {
 
 		/* use hermite spline multiple segments */
 		HermiteCurve curve;
-		curve.init(pntsFile, normsFile);
+		//curve.init(pntsFile, normsFile);
 		//given normals:
-		//curve.init_norm(pntsFile, normsFile);
+		curve.init_norm(pntsFile, normsFile);
 
 		double zMin = std::numeric_limits<double>::max(), zMax = std::numeric_limits<double>::lowest();
 		for (const auto &ply : plys)
@@ -920,29 +940,29 @@ namespace Fiber {
 		printf("Writing vertices to file done!\n");
 
 		//for debugging:
-		//std::ofstream fout0("genYarn_ply0.txt");
-		//std::ofstream fout1("genYarn_ply1.txt");
-		//fout0 << total_fiber_num << std::endl; //TODO : generated yarn format should be same as simulated yarn 
-		//fout1 << total_fiber_num << std::endl;
-		//for (int i = 0; i < ply_num; i++) {
-		//	int fiber_num = this->plys[i].fibers.size();
-		//	for (int f = 0; f < fiber_num; f++) {
-		//		Fiber &fiber = this->plys[i].fibers[f];
-		//		int fiber_vertex_num = fiber.vertices.size();
-		//		if (i == 0)
-		//			fout0 << fiber_vertex_num << std::endl;
-		//		else
-		//			fout1 << fiber_vertex_num << std::endl;
-		//		for (int v = 0; v < fiber_vertex_num; v++) {
-		//			if (i == 0)
-		//				fout0 << fiber.vertices[v].x << " " << fiber.vertices[v].y << " " << fiber.vertices[v].z << std::endl;
-		//			else
-		//				fout1 << fiber.vertices[v].x << " " << fiber.vertices[v].y << " " << fiber.vertices[v].z << std::endl;
-		//		}
-		//	}
-		//}
-		//fout0.close();
-		//fout1.close();
+		std::ofstream fout0("genYarn_ply0.txt");
+		std::ofstream fout1("genYarn_ply1.txt");
+		fout0 << total_fiber_num << std::endl; //TODO : generated yarn format should be same as simulated yarn 
+		fout1 << total_fiber_num << std::endl;
+		for (int i = 0; i < ply_num; i++) {
+			int fiber_num = this->plys[i].fibers.size();
+			for (int f = 0; f < fiber_num; f++) {
+				Fiber &fiber = this->plys[i].fibers[f];
+				int fiber_vertex_num = fiber.vertices.size();
+				if (i == 0)
+					fout0 << fiber_vertex_num << std::endl;
+				else
+					fout1 << fiber_vertex_num << std::endl;
+				for (int v = 0; v < fiber_vertex_num; v++) {
+					if (i == 0)
+						fout0 << fiber.vertices[v].x << " " << fiber.vertices[v].y << " " << fiber.vertices[v].z << std::endl;
+					else
+						fout1 << fiber.vertices[v].x << " " << fiber.vertices[v].y << " " << fiber.vertices[v].z << std::endl;
+				}
+			}
+		}
+		fout0.close();
+		fout1.close();
 
 	}
 	//

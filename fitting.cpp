@@ -90,29 +90,71 @@ void appendCenter_yarn(const std::vector<Fiber::Yarn::CenterLine> &centerlines, 
 	}
 }
 
+void decomposeS(const Matrix_S &mat_S, Ellipse &ellipse) {
+	Eigen::Matrix2f S;
+	S << mat_S.S00, mat_S.S01, mat_S.S01, mat_S.S11;
+	Eigen::SelfAdjointEigenSolver<Eigen::Matrix2f> eigensolver(S);
+	Eigen::Matrix2f sigma = eigensolver.eigenvalues().asDiagonal();
+	Eigen::Matrix2f V = eigensolver.eigenvectors();
+
+	// S = V*sigma*V_T
+	ellipse.longR = std::max(sigma(0, 0), sigma(1, 1));
+	ellipse.shortR = std::min(sigma(0, 0), sigma(1, 1));
+	//Make V reflection free (if det(V) is negative)
+	Eigen::Matrix2f m;
+	m << 1, 0, 0, -1;
+	if (V.determinant() < 0)
+		V = V*m;
+	ellipse.angle = atan2(V(1, 0), V(0, 0));
+	ellipse.angle = ellipse.angle < 0 ? ellipse.angle + 2.f*pi : ellipse.angle;
+}
+
 void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const char* compressFile_vrtx, const char* compressFile_seg,
-	const char* curveFile, const int ply_num, const int vrtx_num, std::vector<Ellipse> &new_ellipses, std::vector<float> &new_theta_R)
+	const char* curveFile, const char* normFile, const int ply_num, const int vrtx_num, std::vector<Ellipse> &new_ellipses, std::vector<float> &new_theta_R)
 {
 	const int n = vrtx_num;
 
 	
 	Fiber::Yarn yarn_tmp;
 
+	const char* normYarn1 = "normYarn_ref.txt";
 	const char* centerYarn1 = "centerYarn_ref.txt"; //TODO: maybe we can use z axis later
 	yarn_tmp.yarnCenter(yarnfile1, centerYarn1);
 	std::vector<yarnIntersect2D> pnts_ref;
-	CrossSection cs2(yarnfile1, centerYarn1, ply_num, n, 100, pnts_ref);
+	CrossSection cs2(yarnfile1, centerYarn1, normYarn1, ply_num, n, 100, pnts_ref, false);
 
 	yarn_tmp.yarnCenter(yarnfile2, curveFile);
 	std::vector<yarnIntersect2D> pnts_trans;
-	CrossSection cs(yarnfile2, curveFile, ply_num, n, 100, pnts_trans);
+	CrossSection cs(yarnfile2, curveFile, normFile, ply_num, n, 100, pnts_trans, false);
 
 	//0. yarnShapeMatches:
 	//std::cout << "\n";
 	//std::cout << "Step 1: Shape matching between reference and compressed yarn.\n";
-	std::vector<Ellipse> ellipses;
+	std::vector<Matrix_S> all_mat_S;
 	std::vector<float> all_theta_R;
-	cs.yarnShapeMatches(pnts_trans, pnts_ref, ellipses, all_theta_R);
+	cs.yarnShapeMatches(pnts_trans, pnts_ref, all_mat_S, all_theta_R);
+
+
+	FILE *fout0;
+	if (fopen_s(&fout0, compressFile_seg, "wt") == 0) {
+		//fprintf_s(fout0, "%d \n", ellipses.size());
+		for (int i = 0; i < all_mat_S.size() - 1; ++i) {
+			fprintf_s(fout0, "%.6f %.6f %.6f %.6f \n", (all_mat_S[i].S00 + all_mat_S[i + 1].S00) / 2.f,
+				(all_mat_S[i].S11 + all_mat_S[i + 1].S11) / 2.f,
+				(all_mat_S[i].S01 + all_mat_S[i + 1].S01) / 2.f,
+				(all_theta_R[i] + all_theta_R[i + 1]) / 2.f);
+		}
+		fclose(fout0);
+	}
+
+	FILE *fout;
+	if (fopen_s(&fout, compressFile_vrtx, "wt") == 0) {
+		fprintf_s(fout, "%d \n", all_mat_S.size());
+		for (int i = 0; i < all_mat_S.size(); ++i) {
+			fprintf_s(fout, "%.6f %.6f %.6f %.6f \n", all_mat_S[i].S00, all_mat_S[i].S11, all_mat_S[i].S01, all_theta_R[i]);
+		}
+		fclose(fout);
+	}
 
 	/*use PCA */
 	//0. extract the ellipses 
@@ -131,6 +173,13 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 	//	ellipses[i] = ell;
 	//}
 
+	//decompose mat_S to ellipse
+	std::vector<Ellipse> ellipses;
+	for (int i = 0; i < n; ++i) {
+		Ellipse ellipse;
+		decomposeS(all_mat_S[i], ellipse);
+		ellipses.push_back(ellipse);
+	}
 
 	//optimize the solution and regularizing
 	//cs.optimizeEllipses(ellipses, all_theta_R, new_ellipses, new_theta_R);
@@ -146,27 +195,6 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 	//nonPeriodicTheta(new_theta_R, new_theta_R);
 	//for (int i = 0; i < new_ellipses.size(); ++i)
 	//	new_ellipses[i].angle = theta_new[i];
-
-	FILE *fout;
-	if (fopen_s(&fout, compressFile_vrtx, "wt") == 0) {
-		fprintf_s(fout, "%d \n", ellipses.size());
-		for (int i = 0; i < ellipses.size(); ++i) {
-			fprintf_s(fout, "%.6f %.6f %.6f %.6f \n", new_ellipses[i].longR, new_ellipses[i].shortR, new_ellipses[i].angle, new_theta_R[i]);
-		}
-		fclose(fout);
-	}
-
-	FILE *fout0;
-	if (fopen_s(&fout0, compressFile_seg, "wt") == 0) {
-		//fprintf_s(fout0, "%d \n", ellipses.size());
-		for (int i = 0; i < ellipses.size() - 1; ++i) {
-			fprintf_s(fout0, "%.6f %.6f %.6f %.6f \n", (new_ellipses[i].longR+ new_ellipses[i+1].longR)/2.f, 
-				(new_ellipses[i].shortR+ new_ellipses[i+1].shortR) / 2.f, 
-				(new_ellipses[i].angle+ new_ellipses[i+1].angle) / 2.f, 
-				(new_theta_R[i]+ new_theta_R[i+1]) / 2.f );
-		}
-		fclose(fout0);
-	}
 
 	//constant fitting
 	std::cout << "Compression parameters are successfully written to the file!\n";

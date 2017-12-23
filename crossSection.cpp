@@ -18,17 +18,17 @@ CrossSection::CrossSection(const Fiber::Yarn &yarn) {
 }
 #endif
 
-void CrossSection::init(const char* yarnfile, const int ply_num, const char* curvefile,
+void CrossSection::init(const char* yarnfile, const int ply_num, const char* curvefile, const char* normfile,
 	const int seg_subdiv, const int num_planes, std::vector<yarnIntersect2D> &allPlaneIntersect) {
 	m_yarn.build(yarnfile, ply_num);
 	//TODO: pass this to the func
-	m_curve.init(curvefile,"write2normals.txt", seg_subdiv);
+	m_curve.init(curvefile, normfile, seg_subdiv);
 	std::vector<yarnIntersect> itsLists;
 	buildPlanes(num_planes, itsLists);
 	std::cout << "Finding the intersections with the cross-sectional plane... \n";
 	PlanesIntersections2D(itsLists, allPlaneIntersect);
 }
-void CrossSection::init(const char* yarnfile, const int ply_num, const char* curvefile, const char* normfile,
+void CrossSection::init_norm(const char* yarnfile, const int ply_num, const char* curvefile, const char* normfile,
 	const int seg_subdiv, const int num_planes, std::vector<yarnIntersect2D> &allPlaneIntersect) {
 	m_yarn.build(yarnfile, ply_num);
 	m_curve.init_norm(curvefile, normfile, seg_subdiv);
@@ -174,7 +174,7 @@ bool CrossSection::allPlanesIntersections(std::vector<yarnIntersect> &itsLists) 
 	return false;
 }
 
-void CrossSection::shapeMatch(const Eigen::MatrixXf &pnt_trans, const Eigen::MatrixXf &pnt_ref, Ellipse &ellipse, float &theta_R) {
+void CrossSection::shapeMatch(const Eigen::MatrixXf &pnt_trans, const Eigen::MatrixXf &pnt_ref, Matrix_S &mat_S, float &theta_R) {
 
 	assert(pnt_trans.cols() == pnt_ref.cols());
 	const int n = pnt_trans.cols();
@@ -220,17 +220,16 @@ void CrossSection::shapeMatch(const Eigen::MatrixXf &pnt_trans, const Eigen::Mat
 	//	V = V*m;
 	//ellipse.angle = atan2(V(1, 0), V(0, 0));
 	//ellipse.angle = ellipse.angle < 0 ? ellipse.angle + 2.f*pi : ellipse.angle;
-	ellipse.longR = S(0, 0);
-	ellipse.shortR = S(1, 1);
-	ellipse.angle = S(0, 1);
-
-
+	
+	mat_S.S00 = S(0, 0);
+	mat_S.S11 = S(1, 1);
+	mat_S.S01 = S(0, 1);
 
 	theta_R = atan2(R(1, 0), R(0, 0));
 	theta_R = theta_R < 0 ? theta_R + 2.f*pi : theta_R;
 }
 
-void CrossSection::yarnShapeMatch(const yarnIntersect2D &pnts_trans, const yarnIntersect2D &pnts_ref, Ellipse &ellipse, float &theta_R) {
+void CrossSection::yarnShapeMatch(const yarnIntersect2D &pnts_trans, const yarnIntersect2D &pnts_ref, Matrix_S &mat_S, float &theta_R) {
 	//Find the total number of points for all plys
 	int sz_ref = 0, sz_trans = 0;
 	for (int p = 0; p < pnts_ref.size(); ++p)
@@ -260,32 +259,33 @@ void CrossSection::yarnShapeMatch(const yarnIntersect2D &pnts_trans, const yarnI
 			++c;
 		}
 	}
-	shapeMatch(all_trans, all_ref, ellipse, theta_R);
+	shapeMatch(all_trans, all_ref, mat_S, theta_R);
 }
 
 
 
 void CrossSection::yarnShapeMatches(const std::vector<yarnIntersect2D> &pnts_trans, const std::vector<yarnIntersect2D> &pnts_ref, 
-	std::vector<Ellipse> &ellipses, std::vector<float> &all_theta_R) {
+	std::vector<Matrix_S> &all_mat_S, std::vector<float> &all_theta_R) {
 
 	assert(pnts_trans.size() == pnts_trans.size());
 	const int n = pnts_trans.size();
-	ellipses.resize(n);
+	all_mat_S.resize(n);
 	all_theta_R.resize(n);
 
 	for (int i = 0; i < n; ++i) {
-		Ellipse ellipse;
+		Matrix_S mat_S;
 		float theta_R;
 		if (pnts_trans[i][0].size() != pnts_ref[i][0].size() || pnts_trans[i][1].size() != pnts_ref[i][1].size()) {
-			std::cout << i << " is not valid cross-section"  <<  "\n";
-			ellipses[i].shortR = 0.0;
-			ellipses[i].longR = 0.0;
+			std::cout << "Not equal number of points in simulated and procedural in " << i << "-th cross-section.\n";
+			all_mat_S[i].S00 = all_mat_S[i-1].S00;
+			all_mat_S[i].S01 = all_mat_S[i-1].S01;
+			all_mat_S[i].S11 = all_mat_S[i-1].S11;
 			all_theta_R[i] = all_theta_R[i-1];
 			continue;
 		}
 
-		yarnShapeMatch(pnts_trans[i], pnts_ref[i], ellipse, theta_R);
-		ellipses[i] = ellipse;
+		yarnShapeMatch(pnts_trans[i], pnts_ref[i], mat_S, theta_R);
+		all_mat_S[i] = mat_S;
 		all_theta_R[i] = theta_R;
 
 	}

@@ -28,7 +28,7 @@ int main(int argc, const char **argv) {
 
 			const char* yarnfile1 = "data/1220_frame_0000000fiber_00.txt";
 			
-			for (int i = 0; i < 35; i++) {
+			for (int i = 30; i < 31; i++) {
 				std::string s = "";
 				if (i*5 < 10)
 					s = "0000" + std::to_string(i*5) + "00";
@@ -44,6 +44,7 @@ int main(int argc, const char **argv) {
 
 				const char* compressfile_vrtx = "compressParams.txt";
 				const char* curvefile = "centerYarn_compress.txt";
+				const char* normfile = "normYarn_compress.txt";
 
 				std::ifstream fin1(yarnfile1);
 				std::ifstream fin2(yarnfile2);
@@ -54,7 +55,7 @@ int main(int argc, const char **argv) {
 				//const int vrtx_num = 300; //later read from the config file
 				std::vector<Ellipse> ellipses;
 				std::vector<float> theta_R;
-				extractCompress_seg(yarnfile1, yarnfile2, compressfile_vrtx, compressfile_seg, curvefile, yarn.getPlyNum(), vrtx_num, ellipses, theta_R);
+				extractCompress_seg(yarnfile1, yarnfile2, compressfile_vrtx, compressfile_seg, curvefile, normfile, yarn.getPlyNum(), vrtx_num, ellipses, theta_R);
 
 				//Fiber::Yarn::Compress compress;
 				//Fiber::Yarn::CenterLine curve;
@@ -102,9 +103,10 @@ int main(int argc, const char **argv) {
 		case 4: {
 			std::cout << "*** Generation phase *** \n";
 
+			//const char* compressfile = "testY_NN2.txt";
 			const char* compressfile = "compressParams.txt";
-			const char* curvefile = "centerYarn_frame_0015000.txt";
-			const char* normfile = "norms_frame_0015000.txt";
+			const char* curvefile = "centerYarn_compress.txt";
+			const char* normfile = "normYarn_compress.txt";
 
 			std::ifstream fin1(compressfile);
 			std::ifstream fin2(curvefile);
@@ -147,7 +149,7 @@ int main(int argc, const char **argv) {
 
 			//writeNormals();
 
-			render1fiber();
+			//render1fiber();
 			break;
 		}
 	}

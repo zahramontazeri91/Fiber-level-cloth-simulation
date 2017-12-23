@@ -1,6 +1,7 @@
 #pragma once
 #include "Util.h"
 #include "Curve.h"
+#include <Eigen/Dense>
 
 typedef std::vector<vec3f> fiber_t;
 typedef std::vector<fiber_t> yarn_t;
@@ -88,6 +89,11 @@ namespace Fiber {
 
 	public:
 		std::vector<Ply> plys;
+
+		struct Transform {
+			Eigen::Matrix2f R;
+			Eigen::Matrix2f S;
+		};
 
 		/* Define a set of parameters needed for compression*/    //TODO: unify this with the other crossSection/Elllipse Struct
 		struct Compress {
@@ -181,7 +187,7 @@ namespace Fiber {
 		void yarn_simulate();
 
 		/* compress yarn with theta, direction, a and b, cross section ellipse param. */
-		void readCompressFile(const char* filename, std::vector<Compress> &compress_params);
+		void readCompressFile(const char* filename, std::vector<Transform> &all_Transform);
 		/* Find the spanning circle for generated yarn before applying the compression */
 		void fitCircle(const yarnIntersect2D &pts, float &radius);
 		void yarn2crossSections(std::vector<yarnIntersect2D> &itsLists);

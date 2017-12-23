@@ -81,11 +81,11 @@ def appendAll(first_frame, last_frame, filename, test_out):
 path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/NN/'
 dataset = '1220'
 nb_seg = 299
-trimPercent = 0.25
-first_frame = 0
+trimPercent = 0.2
+first_frame = 3
 last_frame = 35
-test_frame = 20
-not_frame = 20
+test_frame = 32
+not_frame = 32
 test_out = 1
 sigma = 6 #window_size = 2*sigma + 1
 filename = 'trainY_'

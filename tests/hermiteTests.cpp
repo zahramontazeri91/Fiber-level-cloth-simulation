@@ -124,31 +124,31 @@ void hermiteTest3()
 
 
 void vis_allFrames() {
-	Fiber::Yarn yarn;
-	const char* configfile = "config.txt";
-	yarn.parse(configfile);
-	const int n = yarn.getStepNum();
-	const int ply_num = yarn.getPlyNum();
-
-	for (int i = 10; i < 30; ++i) {
-		std::string s;
-		if (i < 10)
-			s = "D:/sandbox/fiberSimulation/hairs/scaledHairs/frame0000" + std::to_string(i) + "_scaled.txt";
-		else
-			s = "D:/sandbox/fiberSimulation/hairs/scaledHairs/frame000" + std::to_string(i) + "_scaled.txt";
-		const char* yarnfile1 = s.c_str();
-		std::ifstream fin(yarnfile1);
-		std::cout << yarnfile1 << std::endl;
-		assert(fin.is_open() && "file wasn't found!\n");
-
-		Fiber::Yarn yarn_tmp;
-		const char* centerYarn1 = "centerYarn_ref.txt";
-		yarn_tmp.yarnCenter(yarnfile1, centerYarn1);
-		std::vector<yarnIntersect2D> pnts;
-		CrossSection cs2(yarnfile1, centerYarn1, ply_num, n, 100, pnts);
-
-		std::string t = "../data/allCrossSection2D_deformed_frame" + std::to_string(i) + ".txt";
-		const char* deformed = t.c_str();
-		plotIntersections(pnts, deformed, 0.3);
-	}
+//	Fiber::Yarn yarn;
+//	const char* configfile = "config.txt";
+//	yarn.parse(configfile);
+//	const int n = yarn.getStepNum();
+//	const int ply_num = yarn.getPlyNum();
+//
+//	for (int i = 10; i < 30; ++i) {
+//		std::string s;
+//		if (i < 10)
+//			s = "D:/sandbox/fiberSimulation/hairs/scaledHairs/frame0000" + std::to_string(i) + "_scaled.txt";
+//		else
+//			s = "D:/sandbox/fiberSimulation/hairs/scaledHairs/frame000" + std::to_string(i) + "_scaled.txt";
+//		const char* yarnfile1 = s.c_str();
+//		std::ifstream fin(yarnfile1);
+//		std::cout << yarnfile1 << std::endl;
+//		assert(fin.is_open() && "file wasn't found!\n");
+//
+//		Fiber::Yarn yarn_tmp;
+//		const char* centerYarn1 = "centerYarn_ref.txt";
+//		yarn_tmp.yarnCenter(yarnfile1, centerYarn1);
+//		std::vector<yarnIntersect2D> pnts;
+//		CrossSection cs2(yarnfile1, centerYarn1, ply_num, n, 100, pnts);
+//
+//		std::string t = "../data/allCrossSection2D_deformed_frame" + std::to_string(i) + ".txt";
+//		const char* deformed = t.c_str();
+//		plotIntersections(pnts, deformed, 0.3);
+//	}
 }

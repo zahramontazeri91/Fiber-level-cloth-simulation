@@ -50,7 +50,7 @@ def visualize(Sx, Sy, thetaS, thetaR, title = "", fname = "", showWindow = True)
     plt.plot(thetaS, label=r'S(0,1)', color = 'g')
     plt.legend()
     
-#    plt.subplot(413)
+#    plt.subplot(313)
 #    plt.plot(thetaR, label=r'$\theta_R$')
 #    plt.legend()
 #
@@ -88,6 +88,7 @@ for w in range (0,1):
 #        fname = path + 'param_1220_000' + str(f) +'00.txt'
 #    else :
 #        fname = path + 'param_1220_00' + str(f) +'00.txt'
+        
 #    fname = path + 'trainY_' + str(f) + '.txt'    
     fname = path + 'testY_NN.txt'
     #fname = '../compressParams.txt'
@@ -96,14 +97,14 @@ for w in range (0,1):
     with open(fname, 'r') as fin:
     #    N = int(fin.readline())
 #        N = 299
-        N = 122
+        N = 182
         for i in range (0,N):
             compress = fin.readline().split()
     #        if i>65 and i<75:
             lng.append(float(compress[0]))
             shrt.append(float(compress[1]))
             theta.append(float(compress[2]))
-    #        rot.append(float(compress[3]))
+#            rot.append(float(compress[3]))
     
         fin.close()
      
@@ -137,3 +138,11 @@ for w in range (0,1):
 #
 #plt.savefig("../../data/vis_crossSections/shapeMatch.png")
 #plt.show()
+    
+#################################################
+#y = np.loadtxt(p+'/testY_NN.txt',delimiter=None)    
+#x = np.loadtxt(p+'/testY_0.txt',delimiter=None)
+#R = x[:,-1]
+#R = np.resize(R,(182,1))
+#y2 = np.concatenate((y,R), axis=1)
+#np.savetxt(fn, y2, delimiter=' ',fmt='%.6f')

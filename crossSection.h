@@ -25,22 +25,27 @@ struct Ellipse {
 	float angle;
 };
 
+struct Matrix_S {
+	Matrix_S() : S00(0.f), S01(0.f), S11(0.f) {}
+	float S00;
+	float S01;
+	float S11;
+};
+
 class CrossSection {
 public:
 
 	/* constructor for simulated yarn */
-	CrossSection(const char* yarnfile, const char* curvefile, int ply_num, int plane_num, int subdiv_curve,
-		std::vector<yarnIntersect2D> &allPlaneIntersect) {
-		init(yarnfile, ply_num, curvefile, subdiv_curve, plane_num, allPlaneIntersect);
-	}
-	//constructor if having normfile as input
 	CrossSection(const char* yarnfile, const char* curvefile, const char* normfile, int ply_num, int plane_num, 
-		int subdiv_curve, std::vector<yarnIntersect2D> &allPlaneIntersect) {
-		init(yarnfile, ply_num, curvefile, normfile, subdiv_curve, plane_num, allPlaneIntersect);
+		int subdiv_curve, std::vector<yarnIntersect2D> &allPlaneIntersect, const bool hasNorm = false) {
+		if (hasNorm) //constructor if having normfile as input
+			init_norm(yarnfile, ply_num, curvefile, normfile, subdiv_curve, plane_num, allPlaneIntersect);
+		else
+			init(yarnfile, ply_num, curvefile, normfile, subdiv_curve, plane_num, allPlaneIntersect);
 	}
 
-	void init (const char* yarnfile, const int ply_num, const char* curvefile, const int subdiv, const int num_planes, std::vector<yarnIntersect2D> &allPlaneIntersect);
-	void init(const char* yarnfile, const int ply_num, const char* curvefile, const char* normfile, const int subdiv, const int num_planes, std::vector<yarnIntersect2D> &allPlaneIntersect);
+	void init (const char* yarnfile, const int ply_num, const char* curvefile, const char* normfile, const int subdiv, const int num_planes, std::vector<yarnIntersect2D> &allPlaneIntersect);
+	void init_norm(const char* yarnfile, const int ply_num, const char* curvefile, const char* normfile, const int subdiv, const int num_planes, std::vector<yarnIntersect2D> &allPlaneIntersect);
 	void buildPlanes (const int num_planes, std::vector<yarnIntersect> &itsLists);
 	/* Intersection between a segment, defined between start to end, with a plane */
 	bool linePlaneIntersection (const vec3f &start, const vec3f &end, const Plane &plane, vec3f &its);
@@ -71,10 +76,10 @@ public:
 	//void yarnShapeMatches(const std::vector<yarnIntersect2D> &pnts_trans, const std::vector<yarnIntersect2D> &pnts_ref,
 		//std::vector<Ellipse> &ellipses, std::vector<float> &all_theta_R, std::vector<Eigen::MatrixXf> &all_T);
 
-	void shapeMatch(const Eigen::MatrixXf &pnts_ref, const Eigen::MatrixXf &pnts_compress, Ellipse &ellipse, float &theta_R);
-	void yarnShapeMatch(const yarnIntersect2D &pnts_trans, const yarnIntersect2D &pnts_ref, Ellipse &ellipse, float &theta_R);
+	void shapeMatch(const Eigen::MatrixXf &pnt_trans, const Eigen::MatrixXf &pnt_ref, Matrix_S &mat_S, float &theta_R);
+	void yarnShapeMatch(const yarnIntersect2D &pnts_trans, const yarnIntersect2D &pnts_ref, Matrix_S &mat_S, float &theta_R);
 	void yarnShapeMatches(const std::vector<yarnIntersect2D> &pnts_trans, const std::vector<yarnIntersect2D> &pnts_ref, 
-		std::vector<Ellipse> &ellipses, std::vector<float> &all_theta_R);
+		std::vector<Matrix_S> &all_mat_S, std::vector<float> &all_theta_R);
 	
 	//void fitEllipse(const yarnIntersect2D &pts, Ellipse &ellipse, vec2f &axis1_old, vec2f &axis1_new, const int plane_indx);
 	void fitEllipses(const std::vector<yarnIntersect2D> &allpts, std::vector<Ellipse> &ellipses, std::vector<bool> &isValid);
