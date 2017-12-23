@@ -211,15 +211,20 @@ void CrossSection::shapeMatch(const Eigen::MatrixXf &pnt_trans, const Eigen::Mat
 	//RS decompose
 	Eigen::Matrix2f S = V*sigma*V.transpose();
 	Eigen::Matrix2f R = U*V.transpose();
-	ellipse.longR = std::max(sigma(0, 0), sigma(1, 1));
-	ellipse.shortR = std::min(sigma(0, 0), sigma(1, 1));
-	//Make V reflection free (if det(V) is negative)
-	Eigen::Matrix2f m;
-	m << 1, 0, 0, -1;
-	if (V.determinant() < 0)
-		V = V*m;
-	ellipse.angle = atan2(V(1, 0), V(0, 0));
-	ellipse.angle = ellipse.angle < 0 ? ellipse.angle + 2.f*pi : ellipse.angle;
+	//ellipse.longR = std::max(sigma(0, 0), sigma(1, 1));
+	//ellipse.shortR = std::min(sigma(0, 0), sigma(1, 1));
+	////Make V reflection free (if det(V) is negative)
+	//Eigen::Matrix2f m;
+	//m << 1, 0, 0, -1;
+	//if (V.determinant() < 0)
+	//	V = V*m;
+	//ellipse.angle = atan2(V(1, 0), V(0, 0));
+	//ellipse.angle = ellipse.angle < 0 ? ellipse.angle + 2.f*pi : ellipse.angle;
+	ellipse.longR = S(0, 0);
+	ellipse.shortR = S(1, 1);
+	ellipse.angle = S(0, 1);
+
+
 
 	theta_R = atan2(R(1, 0), R(0, 0));
 	theta_R = theta_R < 0 ? theta_R + 2.f*pi : theta_R;
@@ -272,7 +277,7 @@ void CrossSection::yarnShapeMatches(const std::vector<yarnIntersect2D> &pnts_tra
 		Ellipse ellipse;
 		float theta_R;
 		if (pnts_trans[i][0].size() != pnts_ref[i][0].size() || pnts_trans[i][1].size() != pnts_ref[i][1].size()) {
-			//std::cout << i << " is not valid cross-section"  <<  "\n";
+			std::cout << i << " is not valid cross-section"  <<  "\n";
 			ellipses[i].shortR = 0.0;
 			ellipses[i].longR = 0.0;
 			all_theta_R[i] = all_theta_R[i-1];

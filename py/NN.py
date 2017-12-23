@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import mltools as ml
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Dropout
+from sklearn.preprocessing import MinMaxScaler
+from keras.layers.normalization import BatchNormalization
 
 ## Load data
 # In[]
@@ -17,22 +19,29 @@ def loadData():
     print("Original training data shape (X): ", X_train_all.shape)
     print("Original training data shape (Y): ", Y_train_all.shape)
     
+    #rescale the data
+#    scaler = MinMaxScaler(feature_range=(0, 1))
+#    scaler.fit(X_train_all)
+#    X_train_all = scaler.transform(X_train_all)
+#    print(scaler.data_max_)
+#    scaler = MinMaxScaler(feature_range=(0, 1))
+#    scaler.fit(X_test_all)
+#    X_test_all = scaler.transform(X_test_all)
     
     nb_features = X_train_all.shape[1]
     nb_traindata = X_train_all.shape[0]
-    nb_halfdata = round(nb_traindata*0.8)
+    nb_halfdata = round(nb_traindata*0.7)
     nb_outputs = Y_train_all.shape[1]
     
     # using subset data as training and validation
-    all_train = np.concatenate((X_train_all,Y_train_all), axis=1)  
+    all_train = np.concatenate((X_train_all,Y_train_all), axis=1) 
+    
+    
     np.random.shuffle(all_train)
     X_train = all_train[0:nb_halfdata,0:nb_features]
     Y_train = all_train[0:nb_halfdata,nb_features:]   
     X_valid = all_train[nb_halfdata:,0:nb_features]
     Y_valid = all_train[nb_halfdata:,nb_features:] 
-    
-#    X_train = X_train_all
-#    Y_train = Y_train_all
     X_test = X_test_all
      
     # polynomio
@@ -43,29 +52,35 @@ def loadData():
     
     # Represent the targets as one-hot vectors: e.g. 0 -> [1,0];  1 -> [0, 1].
     print("Training Y matrix shape: ", Y_train.shape)
-#    print(Y_train[0:10])
     print("Validation Y matrix shape: ", Y_valid.shape)
-#    print(Y_valid[0:10])
+
      
-    return (X_train_, Y_train, X_valid_, Y_valid, nb_features,nb_outputs, X_test_)
-#    return (X_train, Y_train, X_valid, Y_valid, nb_features,nb_outputs, X_test)
+#    return (X_train_, Y_train, X_valid_, Y_valid, nb_features,nb_outputs, X_test_)
+    return (X_train, Y_train, X_valid, Y_valid, nb_features,nb_outputs, X_test, scaler)
 
 ## Build neural network model
 # In[]:
 def buildModel(input_dim, output_dim):
 
-    print(input_dim, output_dim)
     # Simple fully-connected neural network with 2 hidden layers.
     # Including dropout layer helps avoid overfitting.
     model = Sequential()
     
-    model.add(Dense(16, input_dim=input_dim))
-    model.add(Activation('tanh'))    
-#    model.add(Dropout(0.1));    
+#    model.add(Dense(64, input_dim=input_dim))
+#    model.add(Activation('relu'))            
+    
+    model.add(Dense(64, input_dim=input_dim))
+    model.add(Activation('relu'))   
+    model.add(BatchNormalization())
+    
+    model.add(Dense(64))
+    model.add(Activation('relu')) 
+    model.add(BatchNormalization())
+    
     model.add(Dense(output_dim))
     model.add(Activation('linear'))
     
-    model.compile(optimizer='sgd', loss='mse', metrics=['accuracy'])
+    model.compile(optimizer='adam', loss='mse', metrics=['mse'])
     
     return model
 
@@ -75,50 +90,51 @@ def trainModel(model, X_train, Y_train, X_valid, Y_valid):
     
     # Weights are updated one mini-batch at a time. A running average of the training loss is computed in real time, which is useful for identifying problems (e.g. the loss might explode or get stuck right). The validation loss is evaluated at the end of each epoch (without dropout).
 
-    history = model.fit(X_train, Y_train, batch_size = 16, epochs = 500, verbose = 2,
+    history = model.fit(X_train, Y_train, batch_size = 64, epochs = 100, verbose = 2,
                         validation_data=(X_valid, Y_valid))
         
     # Plot loss trajectory throughout training.
     plt.figure()
     plt.subplot(1,2,1)
-    plt.plot(history.history['loss'], label='train')
-    plt.plot(history.history['val_loss'], label='valid')
+    plt.plot(history.history['mean_squared_error'], label='train')
+    plt.plot(history.history['val_mean_squared_error'], label='valid')
     plt.xlabel('Epoch')
-    plt.ylabel('Cross-Entropy Loss')
+    plt.ylabel('mse')
     plt.legend()
     plt.show()
     
-    plt.subplot(1,2,2)
-    plt.plot(history.history['acc'], label='train')
-    plt.plot(history.history['val_acc'], label='valid')
-    plt.xlabel('Epoch')
-    plt.ylabel('Accuracy')
-    plt.legend()
-    plt.show()
+#    plt.subplot(1,2,2)
+#    plt.plot(history.history['acc'], label='train')
+#    plt.plot(history.history['val_acc'], label='valid')
+#    plt.xlabel('Epoch')
+#    plt.ylabel('Accuracy')
+#    plt.legend()
+#    plt.show()
     
     
     # ## Evaluate performance    
     # Note: when calling evaluate, dropout is automatically turned off.
     score = model.evaluate(X_valid, Y_valid, verbose=0)
-    print('Validation cross-entropy loss: %0.5f' % score[0])
-    print('Validation accuracy: %0.2f' % score[1])
+    print('Validation loss: %0.5f' % score[0])
 
     return model
 
 ## Prediction
 # In[]:
-def predict(model, X_test):
+def predict(model, X_test, scaler):
     
     predicted = model.predict(X_test, verbose=0)
-#    ID = np.arange(0,X_test.shape[0])
+#    all_test = np.concatenate((X_test,predicted), axis=1)
+#    all_test = scaler.inverse_transform(all_test)
+#    np.savetxt(path + 'testY_NN.txt', all_test[:, -3:], fmt='%.6f', delimiter=' ')
     np.savetxt(path + 'testY_NN.txt', predicted, fmt='%.6f', delimiter=' ')
 
 ## Main
 # In[]
-(X_train, Y_train, X_valid, Y_valid, nb_features, nb_outputs, X_test) = loadData()
+(X_train, Y_train, X_valid, Y_valid, nb_features, nb_outputs, X_test, scaler) = loadData()
 
 model = buildModel(nb_features, nb_outputs)
 
 model = trainModel(model, X_train, Y_train, X_valid, Y_valid)
 
-predict(model, X_test)
+predict(model, X_test, scaler)

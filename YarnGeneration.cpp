@@ -28,7 +28,7 @@ int main(int argc, const char **argv) {
 
 			const char* yarnfile1 = "data/1220_frame_0000000fiber_00.txt";
 			
-			for (int i = 1; i < 36; i++) {
+			for (int i = 0; i < 35; i++) {
 				std::string s = "";
 				if (i*5 < 10)
 					s = "0000" + std::to_string(i*5) + "00";

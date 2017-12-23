@@ -133,17 +133,19 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 
 
 	//optimize the solution and regularizing
-	cs.optimizeEllipses(ellipses, all_theta_R, new_ellipses, new_theta_R);
+	//cs.optimizeEllipses(ellipses, all_theta_R, new_ellipses, new_theta_R);
+	new_ellipses = ellipses;
+	new_theta_R = all_theta_R;
 
-	//non-periodic theta
-	std::vector<float> theta;
-	std::vector<float> theta_new;
-	for (int i = 0; i < new_ellipses.size(); ++i)
-		theta.push_back(new_ellipses[i].angle);
-	nonPeriodicTheta(theta, theta_new);
-	nonPeriodicTheta(all_theta_R, all_theta_R);
-	for (int i = 0; i < new_ellipses.size(); ++i)
-		new_ellipses[i].angle = theta_new[i];
+	////non-periodic theta
+	//std::vector<float> theta;
+	//std::vector<float> theta_new;
+	//for (int i = 0; i < new_ellipses.size(); ++i)
+	//	theta.push_back(new_ellipses[i].angle);
+	//nonPeriodicTheta(theta, theta_new);
+	//nonPeriodicTheta(new_theta_R, new_theta_R);
+	//for (int i = 0; i < new_ellipses.size(); ++i)
+	//	new_ellipses[i].angle = theta_new[i];
 
 	FILE *fout;
 	if (fopen_s(&fout, compressFile_vrtx, "wt") == 0) {
@@ -174,7 +176,7 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 	const char* refFile = "../data/allCrossSection2D_ref.txt";
 	const char* deformedRefFile = "../data/allCrossSection2D_deformedRef.txt";
 	const char* deformedFile = "../data/allCrossSection2D_deformed.txt";
-	const float trimPercent = 0.3;
+	const float trimPercent = 0.0;
 	plotIntersections(pnts_ref, refFile, trimPercent);
 	std::vector<yarnIntersect2D> ref_deformed;
 	deformRef(pnts_ref, ref_deformed, new_ellipses, new_theta_R);

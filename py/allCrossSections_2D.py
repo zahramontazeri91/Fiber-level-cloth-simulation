@@ -70,14 +70,14 @@ def plotIntersects(X1, Y1, X2, Y2, X3, Y3, scale, plane_num, ply_num, its_num, t
                 plt.title(title1 + ' - %d' %i)
                 
                 plt.subplot(312)
-                plt.scatter(X1[i][p][j]*scale, Y1[i][p][j]*scale, alpha=0.8, color = c, zorder = z, s = s)
+                plt.scatter(X2[i][p][j]*scale, Y2[i][p][j]*scale, alpha=0.8, color = c, zorder = z, s = s)
                 plt.tick_params(axis='both', which='major', labelsize=5)
                 plt.xlim(-0.1,0.1)
                 plt.ylim(-0.1,0.1)
                 plt.title(title2 + ' - %d' %i)
                 
                 plt.subplot(313)
-                plt.scatter(X1[i][p][j]*scale, Y1[i][p][j]*scale, alpha=0.8, color = c, zorder = z, s = s)
+                plt.scatter(X3[i][p][j]*scale, Y3[i][p][j]*scale, alpha=0.8, color = c, zorder = z, s = s)
                 plt.tick_params(axis='both', which='major', labelsize=5)
                 plt.xlim(-0.1,0.1)
                 plt.ylim(-0.1,0.1)
@@ -114,7 +114,7 @@ scale = 1
 title1 = 'Reference'
 title2 = 'Deformed-Ref'
 title3 = 'Simulated'
-plane_num = 60  
+plane_num = 300  
 ply_num = 2
 its_num = 80
 plotIntersects(X1, Y1, X2, Y2, X3, Y3, scale, plane_num, ply_num, its_num, title1, title2, title3)
