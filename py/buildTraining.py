@@ -86,9 +86,9 @@ nb_seg = 299
 trimPercent = 0.2
 first_frame = 3
 last_frame = 35
-test_frame = 32
-not_frame = 32
-test_out = 1
+test_frame = 3
+not_frame = -1
+test_out = 0
 sigma = 6 #window_size = 2*sigma + 1
 filename = 'trainY_'
 buildTrainY(dataset, nb_seg, trimPercent, first_frame, last_frame, not_frame, filename)

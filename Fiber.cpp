@@ -589,16 +589,16 @@ namespace Fiber {
 		std::ifstream fin;
 		fin.open(compress_S);
 		std::string line;
-		std::getline(fin, line);
+		//std::getline(fin, line);
 
 		std::ifstream fin2;
 		fin2.open(compress_R);
 		std::string line2;
 		std::getline(fin2, line2);
 
-		std::cout << atof(line.c_str()) << "  " << atof(line2.c_str()) << std::endl;
+		//std::cout << atof(line.c_str()) << "  " << atof(line2.c_str()) << std::endl;
 
-		const int plane_num = atof(line.c_str());
+		const int plane_num = atof(line2.c_str());
 		for (int i = 0; i<plane_num; ++i) {
 			std::getline(fin, line);
 			Transform trans;

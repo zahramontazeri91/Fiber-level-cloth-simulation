@@ -109,7 +109,7 @@ void decomposeS(const Matrix_S &mat_S, Ellipse &ellipse) {
 	ellipse.angle = ellipse.angle < 0 ? ellipse.angle + 2.f*pi : ellipse.angle;
 }
 
-void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const char* compress_R_vrtx, const char* compress_S_vrtx, const char* compressFile_seg,
+void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const char* compress_R, const char* compress_S, const char* compressFile_seg,
 	const char* curveFile, const char* normFile, const int ply_num, const int vrtx_num, std::vector<Ellipse> &new_ellipses, std::vector<float> &new_theta_R)
 {
 	const int n = vrtx_num;
@@ -148,7 +148,7 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 	}
 
 	FILE *foutR;
-	if (fopen_s(&foutR, compress_R_vrtx, "wt") == 0) {
+	if (fopen_s(&foutR, compress_R, "wt") == 0) {
 		fprintf_s(foutR, "%d \n", all_theta_R.size());
 		for (int i = 0; i < all_theta_R.size(); ++i) {
 			fprintf_s(foutR, "%.6f \n",all_theta_R[i]);
@@ -157,11 +157,17 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 	}
 
 	FILE *foutS;
-	if (fopen_s(&foutS, compress_S_vrtx, "wt") == 0) {
-		fprintf_s(foutS, "%d \n", all_mat_S.size());
-		for (int i = 0; i < all_mat_S.size(); ++i) {
-			fprintf_s(foutS, "%.6f %.6f %.6f \n", all_mat_S[i].S00, all_mat_S[i].S11, all_mat_S[i].S01);
+	if (fopen_s(&foutS, compress_S, "wt") == 0) {
+		//fprintf_s(foutS, "%d \n", all_mat_S.size());
+		for (int i = 0; i < all_mat_S.size()-1; ++i) {
+			fprintf_s(foutS, "%.6f %.6f %.6f \n", (all_mat_S[i].S00 + all_mat_S[i + 1].S00) / 2.f,
+				(all_mat_S[i].S11 + all_mat_S[i + 1].S11) / 2.f,
+				(all_mat_S[i].S01 + all_mat_S[i + 1].S01) / 2.f);
 		}
+		int i = all_mat_S.size() - 1;
+		fprintf_s(foutS, "%.6f %.6f %.6f \n", all_mat_S[i].S00 / 2.f,
+			all_mat_S[i].S11 / 2.f,
+			all_mat_S[i].S01 / 2.f);
 		fclose(foutS);
 	}
 

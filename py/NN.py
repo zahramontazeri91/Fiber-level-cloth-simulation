@@ -127,13 +127,13 @@ def trainModel(model, X_train, Y_train, X_valid, Y_valid):
 def extrapolate(predicted, totalNum, filename, nb_outputs):
     total = np.zeros(totalNum*nb_outputs).reshape(totalNum,nb_outputs)
     assert(predicted.shape[1] == total.shape[1])
-    r = floor (( totalNum - predicted.shape[0] )/2)
+    r = math.floor (( totalNum - predicted.shape[0] )/2)
     total[r:r+predicted.shape[0], :] = predicted
-    np.savetxt(path + filename, total, fmt='%.6f', delimiter=' ')
+    np.savetxt(filename, total, fmt='%.6f', delimiter=' ')
     
 ## Prediction
 # In[]:
-def predict(model, X_test, scaler, nb_outputs):
+def predict(model, X_test, scaler, nb_outputs, filename):
     
     predicted = model.predict(X_test, verbose=0)
 #    all_test = np.concatenate((X_test,predicted), axis=1)
@@ -141,7 +141,7 @@ def predict(model, X_test, scaler, nb_outputs):
 #    np.savetxt(path + 'testY_NN.txt', all_test[:, -3:], fmt='%.6f', delimiter=' ')
     np.savetxt(path + 'testY_NN.txt', predicted, fmt='%.6f', delimiter=' ')
     
-    extrapolate(predicted, 300, 'testY_NN_full.txt', nb_outputs)
+    extrapolate(predicted, 300, filename, nb_outputs)
 ## Main
 # In[]
 (X_train, Y_train, X_valid, Y_valid, nb_features, nb_outputs, X_test, scaler) = loadData()
@@ -150,6 +150,14 @@ model = buildModel(nb_features, nb_outputs)
 
 model = trainModel(model, X_train, Y_train, X_valid, Y_valid)
 
-predict(model, X_test, scaler, nb_outputs)
+predict(model, X_test, scaler, nb_outputs, 'testY_NN_full.txt')
 
-estrapolate()
+## Test other frames
+# In[]
+frame0 = 3
+frame1 = 36
+for i in range (0 , frame1-frame0):
+    f = i*5
+    X_test = np.loadtxt(path + "trainX_" + str(f) + ".txt",delimiter=None)
+    filename = "../input/testY_NN_" + str(f + frame0*5) + ".txt"
+    predict(model, X_test, scaler, nb_outputs, filename)
