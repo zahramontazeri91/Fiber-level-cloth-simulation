@@ -15,7 +15,7 @@ int main(int argc, const char **argv) {
 	Fiber::Yarn yarn;
 	yarn.parse(configfile);
 
-	int phase = 1;
+	int phase = 4;
 	//phase 0: test
 	//phase 1: fitting
 	//phase 2: training
@@ -42,7 +42,8 @@ int main(int argc, const char **argv) {
 				std::string tmp2 = "NN/param_1220_" + s + ".txt";
 				const char* compressfile_seg = tmp2.c_str();
 
-				const char* compressfile_vrtx = "compressParams.txt";
+				const char* compress_S_vrtx = "matrix_S.txt";
+				const char* compress_R_vrtx = "matrix_R.txt";
 				const char* curvefile = "centerYarn_compress.txt";
 				const char* normfile = "normYarn_compress.txt";
 
@@ -55,7 +56,8 @@ int main(int argc, const char **argv) {
 				//const int vrtx_num = 300; //later read from the config file
 				std::vector<Ellipse> ellipses;
 				std::vector<float> theta_R;
-				extractCompress_seg(yarnfile1, yarnfile2, compressfile_vrtx, compressfile_seg, curvefile, normfile, yarn.getPlyNum(), vrtx_num, ellipses, theta_R);
+				extractCompress_seg(yarnfile1, yarnfile2, compress_R_vrtx, compress_S_vrtx, compressfile_seg, 
+					curvefile, normfile, yarn.getPlyNum(), vrtx_num, ellipses, theta_R);
 
 				//Fiber::Yarn::Compress compress;
 				//Fiber::Yarn::CenterLine curve;
@@ -104,20 +106,23 @@ int main(int argc, const char **argv) {
 			std::cout << "*** Generation phase *** \n";
 
 			//const char* compressfile = "testY_NN2.txt";
-			const char* compressfile = "compressParams.txt";
+			const char* compress_S = "matrix_S.txt";
+			const char* compress_R = "matrix_R.txt";
 			const char* curvefile = "centerYarn_compress.txt";
 			const char* normfile = "normYarn_compress.txt";
 
-			std::ifstream fin1(compressfile);
-			std::ifstream fin2(curvefile);
-			//std::ifstream fin3(normfile);
-			assert(fin1.is_open() && "compressfile file wasn't found!\n");
-			assert(fin2.is_open() && "curvefile file wasn't found!\n");
-			//assert(fin3.is_open() && "normfile file wasn't found!\n");
+			std::ifstream fin1(compress_R);
+			std::ifstream fin2(compress_S);
+			std::ifstream fin3(curvefile);
+			std::ifstream fin4(normfile);
+			assert(fin1.is_open() && "compressfile_R file wasn't found!\n");
+			assert(fin2.is_open() && "compressfile_S file wasn't found!\n");
+			assert(fin3.is_open() && "curvefile file wasn't found!\n");
+			assert(fin4.is_open() && "normfile file wasn't found!\n");
 
 			// Procedural step
 			yarn.yarn_simulate();
-			yarn.compress_yarn(compressfile);
+			yarn.compress_yarn(compress_R, compress_S);
 			yarn.curve_yarn(curvefile, normfile);
 			yarn.write_yarn(argv[2]);
 			break;

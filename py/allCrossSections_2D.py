@@ -11,7 +11,7 @@ from matplotlib.patches import Ellipse
 import matplotlib.pyplot as plt
 import math
 
-
+# In[]:
 def visIntersections(fname = ""):  
     with open(fname, 'r') as fin:
         plane_num = int( fin.readline().split()[1] )
@@ -43,7 +43,7 @@ def visIntersections(fname = ""):
 
  
                 
-#####################
+# In[]:
 def plotIntersects(X1, Y1, X2, Y2, X3, Y3, scale, plane_num, ply_num, its_num, title1, title2, title3):
     for i in range(0, plane_num):  
         plt.figure(figsize=(5,15))
@@ -86,7 +86,7 @@ def plotIntersects(X1, Y1, X2, Y2, X3, Y3, scale, plane_num, ply_num, its_num, t
         
         plt.savefig("../../data/vis_crossSections/2Dcompare/plane%d.png" %i)
         plt.show()               
-#####################
+# In[]:
 # plot procedural data
 fname = '../../data/allCrossSection2D_simulate.txt'
 X1, Y1 = visIntersections(fname)
@@ -102,7 +102,8 @@ plane_num = 120
 ply_num = 2
 its_num = 80
 plotIntersects(X1, Y1, X2, Y2, X3, Y3, scale, plane_num, ply_num, its_num, title1, title2, title3)
-####################
+
+# In[]:
 ## plot simulated data
 #fname = '../../data/allCrossSection2D_ref.txt'
 #X1, Y1 = visIntersections(fname)

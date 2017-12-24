@@ -6,6 +6,7 @@ from keras.models import Sequential
 from keras.layers import Dense, Activation, Dropout
 from sklearn.preprocessing import MinMaxScaler
 from keras.layers.normalization import BatchNormalization
+import math
 
 ## Load data
 # In[]
@@ -18,11 +19,11 @@ def loadData():
     X_test_all = np.loadtxt(path + "testX_0.txt",delimiter=None)
     
     #duplicate data
-    X_train_all = np.concatenate((X_train_all,X_train_all), axis=0)
-    X_train_all = np.concatenate((X_train_all,X_train_all), axis=0)
-    Y_train_all = np.concatenate((Y_train_all,Y_train_all), axis=0)
-    Y_train_all = np.concatenate((Y_train_all,Y_train_all), axis=0)
-    
+#    X_train_all = np.concatenate((X_train_all,X_train_all), axis=0)
+#    X_train_all = np.concatenate((X_train_all,X_train_all), axis=0)
+#    Y_train_all = np.concatenate((Y_train_all,Y_train_all), axis=0)
+#    Y_train_all = np.concatenate((Y_train_all,Y_train_all), axis=0)
+ 
     print("Original training data shape (X): ", X_train_all.shape)
     print("Original training data shape (Y): ", Y_train_all.shape)
     
@@ -41,7 +42,7 @@ def loadData():
     
     nb_features = X_train_all.shape[1]
     nb_traindata = X_train_all.shape[0]
-    nb_halfdata = round(nb_traindata*0.7)
+    nb_halfdata = round(nb_traindata*0.95)
     nb_outputs = Y_train_all.shape[1]
     
     # using subset data as training and validation
@@ -114,15 +115,6 @@ def trainModel(model, X_train, Y_train, X_valid, Y_valid):
     plt.legend()
     plt.show()
     
-#    plt.subplot(1,2,2)
-#    plt.plot(history.history['acc'], label='train')
-#    plt.plot(history.history['val_acc'], label='valid')
-#    plt.xlabel('Epoch')
-#    plt.ylabel('Accuracy')
-#    plt.legend()
-#    plt.show()
-    
-    
     # ## Evaluate performance    
     # Note: when calling evaluate, dropout is automatically turned off.
     score = model.evaluate(X_valid, Y_valid, verbose=0)
@@ -130,16 +122,26 @@ def trainModel(model, X_train, Y_train, X_valid, Y_valid):
 
     return model
 
+## extrapolate
+# In[]:
+def extrapolate(predicted, totalNum, filename, nb_outputs):
+    total = np.zeros(totalNum*nb_outputs).reshape(totalNum,nb_outputs)
+    assert(predicted.shape[1] == total.shape[1])
+    r = floor (( totalNum - predicted.shape[0] )/2)
+    total[r:r+predicted.shape[0], :] = predicted
+    np.savetxt(path + filename, total, fmt='%.6f', delimiter=' ')
+    
 ## Prediction
 # In[]:
-def predict(model, X_test, scaler):
+def predict(model, X_test, scaler, nb_outputs):
     
     predicted = model.predict(X_test, verbose=0)
 #    all_test = np.concatenate((X_test,predicted), axis=1)
     predicted = scaler.inverse_transform(predicted)
 #    np.savetxt(path + 'testY_NN.txt', all_test[:, -3:], fmt='%.6f', delimiter=' ')
     np.savetxt(path + 'testY_NN.txt', predicted, fmt='%.6f', delimiter=' ')
-
+    
+    extrapolate(predicted, 300, 'testY_NN_full.txt', nb_outputs)
 ## Main
 # In[]
 (X_train, Y_train, X_valid, Y_valid, nb_features, nb_outputs, X_test, scaler) = loadData()
@@ -148,4 +150,6 @@ model = buildModel(nb_features, nb_outputs)
 
 model = trainModel(model, X_train, Y_train, X_valid, Y_valid)
 
-predict(model, X_test, scaler)
+predict(model, X_test, scaler, nb_outputs)
+
+estrapolate()

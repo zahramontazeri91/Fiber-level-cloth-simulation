@@ -187,12 +187,11 @@ namespace Fiber {
 		void yarn_simulate();
 
 		/* compress yarn with theta, direction, a and b, cross section ellipse param. */
-		void readCompressFile(const char* filename, std::vector<Transform> &all_Transform);
+		void readCompressFile(const char* compress_R, const char* compress_S, std::vector<Transform> &all_Transform);
 		/* Find the spanning circle for generated yarn before applying the compression */
 		void fitCircle(const yarnIntersect2D &pts, float &radius);
 		void yarn2crossSections(std::vector<yarnIntersect2D> &itsLists);
-		//void compress_yarn(const char* filename);
-		void compress_yarn(const char* filename);
+		void compress_yarn(const char* compress_R, const char* compress_S);
 
 		/* Write simulated data (single yarns) to disk */
 		void write_yarn(const char* filename);

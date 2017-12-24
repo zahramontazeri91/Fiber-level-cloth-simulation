@@ -576,7 +576,7 @@ namespace Fiber {
 	//	}
 	//}
 
-	void Yarn::readCompressFile(const char* filename, std::vector<Transform> &all_Transform) {
+	void Yarn::readCompressFile(const char* compress_R, const char* compress_S, std::vector<Transform> &all_Transform) {
 		all_Transform.resize(this->z_step_num);
 		//initialize compressParam
 		for (int i = 0; i<this->z_step_num; ++i) {
@@ -587,20 +587,30 @@ namespace Fiber {
 		}
 
 		std::ifstream fin;
-		if (filename != NULL)
-			fin.open(filename);
+		fin.open(compress_S);
 		std::string line;
 		std::getline(fin, line);
+
+		std::ifstream fin2;
+		fin2.open(compress_R);
+		std::string line2;
+		std::getline(fin2, line2);
+
+		std::cout << atof(line.c_str()) << "  " << atof(line2.c_str()) << std::endl;
+
 		const int plane_num = atof(line.c_str());
 		for (int i = 0; i<plane_num; ++i) {
 			std::getline(fin, line);
 			Transform trans;
 			std::vector<std::string> splits = split(line, ' ');
-
 			float S00 = atof(splits[0].c_str());
 			float S11 = atof(splits[1].c_str());
 			float S01 = atof(splits[2].c_str());
-			float theta_R = atof(splits[3].c_str());
+
+			std::getline(fin2, line2);
+			splits = split(line2, ' ');
+			float theta_R = atof(splits[0].c_str());
+
 			trans.R << cos(theta_R), -sin(theta_R), sin(theta_R), cos(theta_R);
 			trans.S << S00, S01, S01, S11;
 			all_Transform[i] = trans;
@@ -751,7 +761,7 @@ namespace Fiber {
 	} // compress_yarn
 #endif
 
-	void Yarn::compress_yarn(const char* filename) {
+	void Yarn::compress_yarn(const char* compress_R, const char* compress_S) {
 		std::cout << "step7: compress yarn cross-sections ..." << std::endl;
 
 		//first find the fitted circle around each cross-section
@@ -769,7 +779,7 @@ namespace Fiber {
 		fitCircleR_avg /= static_cast<float> (this->z_step_num);
 
 		std::vector<Transform> transforms;
-		readCompressFile(filename, transforms);
+		readCompressFile(compress_R, compress_S, transforms);
 		if (transforms.size() != this->z_step_num)
 			std::cout << "# compress params: " << transforms.size() << ", # cross-sections: " << this->z_step_num << std::endl;
 		assert (transforms.size() == this->z_step_num);
