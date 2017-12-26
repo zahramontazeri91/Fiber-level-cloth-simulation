@@ -27,8 +27,8 @@ int main(int argc, const char **argv) {
 			assert(fin1.is_open() && "config file wasn't found!\n");
 			Fiber::Yarn yarn;
 			yarn.parse(configfile);
-			const char* yarnfile1 = "data/1220_frame_0000000fiber_00.txt";
-			int frame0 = 3;
+			const char* yarnfile1 = "genYarn_ref.txt";
+			int frame0 = 35;
 			int frame1 = 36;
 
 
@@ -149,24 +149,23 @@ int main(int argc, const char **argv) {
 		}
 		case 4: {
 			std::cout << "*** Generation phase *** \n";
-			const char* configfile = argv[1];
+			const char* configfile = "config.txt";
 			std::ifstream fin1(configfile);
 			assert(fin1.is_open() && "config file wasn't found!\n");
 
 			Fiber::Yarn yarn;
 			yarn.parse(configfile);
 
-			const char* curvefile = argv[2];
 			//const char* curvefile = "centerYarn.txt";
-			const char* normfile = "normYarn.txt";
-			std::ifstream fin2(curvefile);
-			assert(fin2.is_open() && "curve file wasn't found!\n");
+			//const char* normfile = "normYarn.txt";
+			//std::ifstream fin2(curvefile);
+			//assert(fin2.is_open() && "curve file wasn't found!\n");
 
 			// Procedural step
 			yarn.yarn_simulate();
 			//yarn.compress_yarn(compress_R, compress_S);
-			yarn.curve_yarn(curvefile, normfile);
-			yarn.write_yarn(argv[3]);
+			//yarn.curve_yarn(curvefile, normfile);
+			yarn.write_yarn("genYarn_ref.txt");
 			break;
 		}
 		case 0: {
