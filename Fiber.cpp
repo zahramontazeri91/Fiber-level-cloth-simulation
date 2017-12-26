@@ -873,9 +873,9 @@ namespace Fiber {
 
 		/* use hermite spline multiple segments */
 		HermiteCurve centerCurve;
-		centerCurve.init(pntsFile, normsFile);
+		//centerCurve.init(pntsFile, normsFile);
 		//given normals:
-		//centerCurve.init_norm(pntsFile, normsFile);
+		centerCurve.init_norm(pntsFile, normsFile);
 
 		double zMin = std::numeric_limits<double>::max(), zMax = std::numeric_limits<double>::lowest();
 		for (const auto &ply : plys)
@@ -894,11 +894,7 @@ namespace Fiber {
 			printf(" (scale: %.4lf)", xyScale = curveLength / zSpan);
 		putchar('\n');
 
-		//
-		//bool firstTime = true;
-		//std::ofstream fout1("genYarn_frame29_norms.txt");
-		//fout1 << this->z_step_num << "\n";
-		//
+
 
 		for (auto &ply : plys)
 			for (auto &fiber : ply.fibers) {
@@ -914,22 +910,28 @@ namespace Fiber {
 
 					Eigen::Vector3d pos = centerCurve.eval(t);
 					Eigen::Vector3d pos1;
-					pos1 = pos +xyScale*(static_cast<double>(vertex.x)*ex + static_cast<double>(vertex.y)*ey);
-					
+
+					/** local to world **/
+					Eigen::Vector3d local;
+					local << vertex.x, vertex.y, 0.0; //since we are in 2D plane
+					Eigen::Matrix3d M;
+					M << ex[0], ey[0], ez[0],
+						ex[1], ey[1], ez[1],
+						ex[2], ey[2], ez[2];
+					pos1 = pos + M*local;
+
+					//or:
+					//pos1 = pos +xyScale*(static_cast<double>(vertex.x)*ex + static_cast<double>(vertex.y)*ey + 0.0*ez);
+
 					vertex.x = static_cast<float>(pos1[0]);
 					vertex.y = static_cast<float>(pos1[1]);
 					vertex.z = static_cast<float>(pos1[2]);
 
-					//for debugging (write normals to file):
-					//if (firstTime) {
-					//fout1 << ey[0] << " " << ey[1] << " " << ey[2] << std::endl;
-					//}
 				}
-		//firstTime = false;
-		//fout1.close();
+
 		}
 
-		plotIntersections("../data/allCrossSection2D_curve.txt",0.0);
+		//plotIntersections("../data/allCrossSection2D_curve.txt",0.0);
 	} // curve_yarn
 
 

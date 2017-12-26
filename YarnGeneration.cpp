@@ -80,7 +80,7 @@ int main(int argc, const char **argv) {
 				yarn.yarn_simulate();
 				yarn.compress_yarn(compress_R, compress_S);
 				yarn.curve_yarn(curvefile, normfile);
-				yarn.write_yarn(outfile);
+				yarn.write_yarn("genYarn.txt");
 
 				//std::string tmp4 = "output/genYarn_wo_" + std::to_string(i * 5) + ".txt";
 				//const char* outfile_wo = tmp4.c_str();
