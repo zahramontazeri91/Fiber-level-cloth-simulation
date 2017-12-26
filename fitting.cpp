@@ -189,17 +189,17 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 	//}
 
 	//decompose mat_S to ellipse
-	std::vector<Ellipse> ellipses;
-	for (int i = 0; i < n; ++i) {
-		Ellipse ellipse;
-		decomposeS(all_mat_S[i], ellipse);
-		ellipses.push_back(ellipse);
-	}
+	//std::vector<Ellipse> ellipses;
+	//for (int i = 0; i < n; ++i) {
+	//	Ellipse ellipse;
+	//	decomposeS(all_mat_S[i], ellipse);
+	//	ellipses.push_back(ellipse);
+	//}
 
 	//optimize the solution and regularizing
 	//cs.optimizeEllipses(ellipses, all_theta_R, new_ellipses, new_theta_R);
-	new_ellipses = ellipses;
-	new_theta_R = all_theta_R;
+	//new_ellipses = ellipses;
+	//new_theta_R = all_theta_R;
 
 	////non-periodic theta
 	//std::vector<float> theta;
@@ -222,12 +222,13 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 	const float trimPercent = 0.0;
 	plotIntersections(pnts_ref, refFile, trimPercent);
 	std::vector<yarnIntersect2D> ref_deformed;
-	deformRef(pnts_ref, ref_deformed, new_ellipses, new_theta_R);
+	//deformRef(pnts_ref, ref_deformed, new_ellipses, new_theta_R);
+	deformRef(pnts_ref, ref_deformed, all_mat_S, all_theta_R);
 	plotIntersections(ref_deformed, deformedRefFile, trimPercent);
 	plotIntersections(pnts_trans, deformedFile, trimPercent);
 
-	std::vector<float> L2;
-	L2norm(ref_deformed, pnts_trans, L2, L2File);
+	//std::vector<float> L2;
+	//L2norm(ref_deformed, pnts_trans, L2, L2File);
 }
 
 float nextTheta(float theta0, float theta1) {
@@ -408,6 +409,33 @@ void plotIntersections(const std::vector<yarnIntersect2D> &its, const char* file
 			fprintf_s(fout, "\n");
 		}
 		fclose(fout);
+	}
+}
+
+void deformRef(const std::vector<yarnIntersect2D> &its, std::vector<yarnIntersect2D> &its_deformed,
+	const std::vector<Matrix_S> &all_mat_S, const std::vector<float> &all_theta_R) {
+
+	its_deformed.resize(its.size());
+	Eigen::Matrix2f R, S, V, sigma, transf;
+	for (int i = 0; i < its_deformed.size(); ++i) { //number of planes
+		float S00 = all_mat_S[i].S00;
+		float S01 = all_mat_S[i].S01;
+		float S11 = all_mat_S[i].S11;
+		Eigen::Matrix2f S;
+		S << S00, S01, S01, S11;
+		R << cos(all_theta_R[i]), -sin(all_theta_R[i]), sin(all_theta_R[i]), cos(all_theta_R[i]);
+		transf = R *S;
+
+		its_deformed[i].resize(its[i].size());
+		for (int p = 0; p < its[i].size(); ++p) { //number of plys
+			its_deformed[i][p].resize(its[i][p].size());
+			for (int j = 0; j < its[i][p].size(); ++j) { //number of intersections
+				Eigen::VectorXf ref(2, 1);
+				ref << its[i][p][j].x, its[i][p][j].y;
+				Eigen::VectorXf deformedRef = transf*ref;
+				its_deformed[i][p][j] = vec2f(deformedRef(0, 0), deformedRef(1, 0));
+			}
+		}
 	}
 }
 
