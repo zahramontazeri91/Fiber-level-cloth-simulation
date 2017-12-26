@@ -121,7 +121,7 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 	const char* centerYarn1 = "centerYarn_ref.txt"; //TODO: maybe we can use z axis later
 	yarn_tmp.yarnCenter(yarnfile1, centerYarn1);
 	std::vector<yarnIntersect2D> pnts_ref;
-	CrossSection cs2(yarnfile1, centerYarn1, normYarn1, ply_num, n, 100, pnts_ref, false);
+	CrossSection cs2(yarnfile1, centerYarn1, normYarn1, ply_num, n, 100, pnts_ref, true);
 
 	yarn_tmp.yarnCenter(yarnfile2, curveFile);
 	std::vector<yarnIntersect2D> pnts_trans;
