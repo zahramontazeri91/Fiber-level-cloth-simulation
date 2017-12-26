@@ -900,7 +900,6 @@ namespace Fiber {
 				for (auto &vertex : fiber.vertices) {
 					double len = curveLength*(vertex.z - zMin) / zSpan;
 					double t = centerCurve.arcLengthInvApprox(len);
-					std::cout << t << std::endl;
 
 					// use rotated Frenet frame 
 					Eigen::Vector3d ex, ey, ez;

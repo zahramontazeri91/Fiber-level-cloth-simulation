@@ -70,9 +70,9 @@ void CrossSection::buildPlanes(const int num_planes, std::vector<yarnIntersect> 
 		m_planesList[i].e1 = vec3f(ex[0], ex[1], ex[2]);
 		m_planesList[i].e2 = vec3f(ey[0], ey[1], ey[2]);
 
-		//std::cout << ez[0] << ez[1] << ez[2] << std::endl;
-		//std::cout << ex[0] << ex[1] << ex[2] << std::endl;
-		//std::cout << ey[0] << ey[1] << ey[2] << std::endl;
+		//std::cout << ez[0] << "  " << ez[1] << "  " << ez[2] << std::endl;
+		//std::cout << ex[0] << "  " << ex[1] << "  " << ex[2] << std::endl;
+		//std::cout << ey[0] << "  " << ey[1] << "  " << ey[2] << std::endl;
 		//std::cout << std::endl;
 
 	}
