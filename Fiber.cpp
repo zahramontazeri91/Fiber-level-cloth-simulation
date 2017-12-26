@@ -894,15 +894,13 @@ namespace Fiber {
 			printf(" (scale: %.4lf)", xyScale = curveLength / zSpan);
 		putchar('\n');
 
-
-
 		for (auto &ply : plys)
 			for (auto &fiber : ply.fibers) {
+				int i = 0;
 				for (auto &vertex : fiber.vertices) {
 					double len = curveLength*(vertex.z - zMin) / zSpan;
 					double t = centerCurve.arcLengthInvApprox(len);
-
-					//std::cout << centerCurve.evalNormal(t) << std::endl << std::endl;
+					std::cout << t << std::endl;
 
 					// use rotated Frenet frame 
 					Eigen::Vector3d ex, ey, ez;
@@ -910,6 +908,7 @@ namespace Fiber {
 
 					Eigen::Vector3d pos = centerCurve.eval(t);
 					Eigen::Vector3d pos1;
+
 
 					/** local to world **/
 					Eigen::Vector3d local;
@@ -928,7 +927,6 @@ namespace Fiber {
 					vertex.z = static_cast<float>(pos1[2]);
 
 				}
-
 		}
 
 		//plotIntersections("../data/allCrossSection2D_curve.txt",0.0);

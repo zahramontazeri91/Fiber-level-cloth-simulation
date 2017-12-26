@@ -39,14 +39,17 @@ void CrossSection::init_norm(const char* yarnfile, const int ply_num, const char
 }
 
 void CrossSection::buildPlanes(const int num_planes, std::vector<yarnIntersect> &itsLists) {
-	const double curveLen = m_curve.totalLength();
-	//const double crossSectionLen = curveLen / static_cast<double>(num_planes - 1); //place plane at the very ends as well
-	const double crossSectionLen = curveLen / static_cast<double>(num_planes + 1); //don't place planes at the end-points
-	const double crossSection_t = m_curve.arcLengthInvApprox(crossSectionLen);
+	const double curveLength = m_curve.totalLength();
+	//const double crossSectionLen = curveLength / static_cast<double>(num_planes - 1); //place plane at the very ends as well
+	//const double crossSectionLen = curveLength / static_cast<double>(num_planes + 1); //don't place planes at the end-points
+	//const double crossSection_t = m_curve.arcLengthInvApprox(crossSectionLen);
 	m_planesList.resize(num_planes);
 	for (int i = 0; i < num_planes; ++i) {
 		//float current_t = i * crossSection_t;//place plane at the very ends as well
-		float current_t = (i + 1) * crossSection_t;
+		//float current_t = (i + 1) * crossSection_t;
+
+		float len = curveLength * (static_cast<double>(i) / static_cast<double>(num_planes-1));
+		const double current_t = m_curve.arcLengthInvApprox(len);
 		Eigen::Vector3d curve_p = m_curve.eval(current_t);
 		
 		//Eigen::Vector3d curve_t = m_curve.evalTangent(current_t);
