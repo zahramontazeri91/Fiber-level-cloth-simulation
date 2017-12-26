@@ -27,7 +27,7 @@ int main(int argc, const char **argv) {
 			assert(fin1.is_open() && "config file wasn't found!\n");
 			Fiber::Yarn yarn;
 			yarn.parse(configfile);
-			const char* yarnfile1 = "genYarn_ref.txt";
+			const char* yarnfile1 = "data/1220_frame_0000000fiber_00.txt";
 			int frame0 = 35;
 			int frame1 = 36;
 
@@ -73,13 +73,13 @@ int main(int argc, const char **argv) {
 				//sinFitting_curve(curvefile, trimPercent, curve);
 
 				/**************************************************/
-				//std::string tmp3 = "output/genYarn" + std::to_string(i * 5) + ".txt";
-				//const char* outfile = tmp3.c_str();
-				//// Procedural step
-				//yarn.yarn_simulate();
-				//yarn.compress_yarn(compress_R, compress_S);
-				//yarn.curve_yarn(curvefile, normfile);
-				//yarn.write_yarn(outfile);
+				std::string tmp3 = "output/genYarn" + std::to_string(i * 5) + ".txt";
+				const char* outfile = tmp3.c_str();
+				// Procedural step
+				yarn.yarn_simulate();
+				yarn.compress_yarn(compress_R, compress_S);
+				yarn.curve_yarn(curvefile, normfile);
+				yarn.write_yarn(outfile);
 
 				//std::string tmp4 = "output/genYarn_wo_" + std::to_string(i * 5) + ".txt";
 				//const char* outfile_wo = tmp4.c_str();

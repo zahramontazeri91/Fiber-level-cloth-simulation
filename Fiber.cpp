@@ -108,6 +108,7 @@ namespace Fiber {
 				}
 				sum_fibers /= static_cast<float>(fiber_num);
 				fprintf_s(fout, "%.6f %.6f %.6f \n", sum_fibers.x, sum_fibers.y, sum_fibers.z);
+				//fprintf_s(fout, "%.6f %.6f %.6f \n", 0.0, 0.0, sum_fibers.z);
 			}
 			fclose(fout);
 		}

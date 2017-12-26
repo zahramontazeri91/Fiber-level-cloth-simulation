@@ -89,6 +89,7 @@ def plotIntersects(X1, Y1, X2, Y2, X3, Y3, scale, plane_num, ply_num, its_num, t
 # In[]:
 # plot procedural data
 #fname = '../../data/allCrossSection2D_simulate.txt'
+#fname = '../../data/allCrossSection2D_deformed.txt'
 #X1, Y1 = visIntersections(fname)
 #fname = '../../data/allCrossSection2D_compress.txt'
 #X2, Y2 = visIntersections(fname)
