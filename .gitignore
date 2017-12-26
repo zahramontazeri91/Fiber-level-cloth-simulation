@@ -8,6 +8,7 @@ data/
 input/
 output/
 NN/
+genYarn.txt
 
 # User-specific files
 *.suo
