@@ -542,7 +542,7 @@ namespace Fiber {
 				}
 			}
 		}
-		plotIntersections("../data/allCrossSection2D_simulate.txt",0.3);
+		plotIntersections("../data/allCrossSection2D_simulate.txt",0.0);
 	} // yarn_simulate
 
 	//void Yarn::readCompressFile(const char* filename, std::vector<Compress> &compress_params) {
@@ -797,7 +797,10 @@ namespace Fiber {
 				for (int v = 0; v < vertices_num; v++) {
 
 					Eigen::Matrix2f transf = transforms[v].R * transforms[v].S;
-					//Eigen::Matrix2f transf = transforms[v].S; //if we handle twisting while mapping the yarn to the curve
+					//Eigen::Matrix2f R;
+					//float theta = pi / 2.f;
+					//R << cos(theta), -sin(theta), sin(theta), cos(theta);
+					//Eigen::Matrix2f transf = R * transforms[v].S ; //if we handle twisting while mapping the yarn to the curve
 					Eigen::MatrixXf ref(2, 1);
 					ref << fiber.vertices[v].x, fiber.vertices[v].y;
 					Eigen::MatrixXf def(2, 1);
@@ -836,7 +839,7 @@ namespace Fiber {
 				}
 			}
 		}
-		plotIntersections("../data/allCrossSection2D_compress.txt", 0.3);
+		plotIntersections("../data/allCrossSection2D_compress.txt", 0.0);
 	} // compress_yarn
 
 	void Yarn::plotIntersections(const char* filename, const float trimPercent = 0.2) {
@@ -844,7 +847,7 @@ namespace Fiber {
 		FILE *fout;
 		const int plane_num = this->z_step_num;
 		const int f_num = this->plys[0].fibers.size(); 
-		const int ignorPlanes = trimPercent * plane_num; // crop the first and last 10% of the yarn
+		const int ignorPlanes = trimPercent * plane_num; // crop the first and last % of the yarn
 		if (fopen_s(&fout, filename, "wt") == 0) {
 			fprintf_s(fout, "plane_num: %d \n", plane_num - 2 * ignorPlanes);
 			fprintf_s(fout, "ply_num: %d \n \n", this->plys.size());
@@ -863,14 +866,15 @@ namespace Fiber {
 		}
 	}
 
-	void Yarn::curve_yarn(const char* pntsFile, const char* normsFile, bool scaleXY) {
+
+	void Yarn::curve_yarn(const char* pntsFile, const char* normsFile , bool scaleXY) {
 		std::cout << "step8: map the straight yarn to the spline curve ..." << std::endl;
 
 		/* use hermite spline multiple segments */
-		HermiteCurve curve;
-		//curve.init(pntsFile, normsFile);
+		HermiteCurve centerCurve;
+		centerCurve.init(pntsFile, normsFile);
 		//given normals:
-		curve.init_norm(pntsFile, normsFile);
+		//centerCurve.init_norm(pntsFile, normsFile);
 
 		double zMin = std::numeric_limits<double>::max(), zMax = std::numeric_limits<double>::lowest();
 		for (const auto &ply : plys)
@@ -880,7 +884,7 @@ namespace Fiber {
 					zMax = std::max(zMax, static_cast<double>(vertex.z));
 				}
 		double zSpan = zMax - zMin;
-		double curveLength = curve.totalLength();
+		double curveLength = centerCurve.totalLength();
 		double xyScale = 1.0;
 
 		printf("  zMin: %.4lf, zMax: %.4lf, zSpan: %.4lf\n", zMin, zMax, zSpan);
@@ -899,16 +903,18 @@ namespace Fiber {
 			for (auto &fiber : ply.fibers) {
 				for (auto &vertex : fiber.vertices) {
 					double len = curveLength*(vertex.z - zMin) / zSpan;
-					double t = curve.arcLengthInvApprox(len);
+					double t = centerCurve.arcLengthInvApprox(len);
+
+					//std::cout << centerCurve.evalNormal(t) << std::endl << std::endl;
 
 					// use rotated Frenet frame 
 					Eigen::Vector3d ex, ey, ez;
-					curve.getRotatedFrame(t, ex, ey, ez);
+					centerCurve.getRotatedFrame(t, ex, ey, ez);
 
-					Eigen::Vector3d pos = curve.eval(t);
+					Eigen::Vector3d pos = centerCurve.eval(t);
 					Eigen::Vector3d pos1;
-					pos1 = pos + xyScale*(static_cast<double>(vertex.x)*ex + static_cast<double>(vertex.y)*ey);
-
+					pos1 = pos +xyScale*(static_cast<double>(vertex.x)*ex + static_cast<double>(vertex.y)*ey);
+					
 					vertex.x = static_cast<float>(pos1[0]);
 					vertex.y = static_cast<float>(pos1[1]);
 					vertex.z = static_cast<float>(pos1[2]);
@@ -922,7 +928,7 @@ namespace Fiber {
 		//fout1.close();
 		}
 
-		plotIntersections("../data/allCrossSection2D_curve.txt",0.3);
+		plotIntersections("../data/allCrossSection2D_curve.txt",0.0);
 	} // curve_yarn
 
 
@@ -949,30 +955,30 @@ namespace Fiber {
 		fout.close();
 		printf("Writing vertices to file done!\n");
 
-		//for debugging:
-		std::ofstream fout0("genYarn_ply0.txt");
-		std::ofstream fout1("genYarn_ply1.txt");
-		fout0 << total_fiber_num << std::endl; //TODO : generated yarn format should be same as simulated yarn 
-		fout1 << total_fiber_num << std::endl;
-		for (int i = 0; i < ply_num; i++) {
-			int fiber_num = this->plys[i].fibers.size();
-			for (int f = 0; f < fiber_num; f++) {
-				Fiber &fiber = this->plys[i].fibers[f];
-				int fiber_vertex_num = fiber.vertices.size();
-				if (i == 0)
-					fout0 << fiber_vertex_num << std::endl;
-				else
-					fout1 << fiber_vertex_num << std::endl;
-				for (int v = 0; v < fiber_vertex_num; v++) {
-					if (i == 0)
-						fout0 << fiber.vertices[v].x << " " << fiber.vertices[v].y << " " << fiber.vertices[v].z << std::endl;
-					else
-						fout1 << fiber.vertices[v].x << " " << fiber.vertices[v].y << " " << fiber.vertices[v].z << std::endl;
-				}
-			}
-		}
-		fout0.close();
-		fout1.close();
+		////for debugging:
+		//std::ofstream fout0("genYarn_ply0.txt");
+		//std::ofstream fout1("genYarn_ply1.txt");
+		//fout0 << total_fiber_num << std::endl; //TODO : generated yarn format should be same as simulated yarn 
+		//fout1 << total_fiber_num << std::endl;
+		//for (int i = 0; i < ply_num; i++) {
+		//	int fiber_num = this->plys[i].fibers.size();
+		//	for (int f = 0; f < fiber_num; f++) {
+		//		Fiber &fiber = this->plys[i].fibers[f];
+		//		int fiber_vertex_num = fiber.vertices.size();
+		//		if (i == 0)
+		//			fout0 << fiber_vertex_num << std::endl;
+		//		else
+		//			fout1 << fiber_vertex_num << std::endl;
+		//		for (int v = 0; v < fiber_vertex_num; v++) {
+		//			if (i == 0)
+		//				fout0 << fiber.vertices[v].x << " " << fiber.vertices[v].y << " " << fiber.vertices[v].z << std::endl;
+		//			else
+		//				fout1 << fiber.vertices[v].x << " " << fiber.vertices[v].y << " " << fiber.vertices[v].z << std::endl;
+		//		}
+		//	}
+		//}
+		//fout0.close();
+		//fout1.close();
 
 	}
 	//

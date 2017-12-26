@@ -197,7 +197,7 @@ namespace Fiber {
 		void write_yarn(const char* filename);
 
 		/* map the straight yarn on a curved spline */
-		void curve_yarn(const char* pntsFile, const char* normsFile, bool scaleXY = false);
+		void curve_yarn(const char* pntsFile, const char* normsFile="", bool scaleXY = false);
 
 		void plotIntersections(const char* filename, const float trimPercent);
 
