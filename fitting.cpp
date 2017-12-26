@@ -125,7 +125,7 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 
 	yarn_tmp.yarnCenter(yarnfile2, curveFile);
 	std::vector<yarnIntersect2D> pnts_trans;
-	CrossSection cs(yarnfile2, curveFile, normFile, ply_num, n, 100, pnts_trans, false);
+	CrossSection cs(yarnfile2, curveFile, normFile, ply_num, n, 100, pnts_trans, true);
 
 	//0. yarnShapeMatches:
 	//std::cout << "\n";

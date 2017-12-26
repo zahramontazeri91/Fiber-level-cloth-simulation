@@ -53,6 +53,7 @@ int main(int argc, const char **argv) {
 				const char* curvefile = tmp7.c_str();
 				std::string tmp8 = "input/normYarn_" + std::to_string(i * 5) + ".txt";
 				const char* normfile = tmp8.c_str();
+				//const char* normfile = "normYarn_0.txt";
 
 				std::ifstream fin1(yarnfile1);
 				std::ifstream fin2(yarnfile2);

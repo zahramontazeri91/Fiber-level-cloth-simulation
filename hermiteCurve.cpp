@@ -48,7 +48,10 @@ void HermiteCurve::init_norm(const char* pntsFILE, const char* normsFILE, int su
 	assert(!fin2.fail());
 	fin2 >> n;
 	std::vector<Eigen::Vector3d> norms(n);
-	for (int i = 0; i < n; ++i) fin2 >> norms[i][0] >> norms[i][1] >> norms[i][2];
+	for (int i = 0; i < n; ++i) {
+		fin2 >> norms[i][0] >> norms[i][1] >> norms[i][2];
+		//std::cout << norms[i][0] << norms[i][1] << norms[i][2] << std::endl;
+	}
 
 	init_norm(pts, norms, subdiv);
 }
@@ -212,8 +215,8 @@ void HermiteCurve::getRotatedFrame(double t, Eigen::Vector3d &ex, Eigen::Vector3
 	//ex = -1*B;
 	//ey = N;
 
-	ex = B;
-	ey = N;
+	ex = N;
+	ey = B;
 
 	assert(ex.norm() - 1.f < 1e-5);
 	assert(ey.norm() - 1.f < 1e-5);
