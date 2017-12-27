@@ -9,7 +9,7 @@
 
 int main(int argc, const char **argv) {
 
-	const char* configfile = "config.txt";
+	const char* configfile = argv[1];
 	std::ifstream fin1(configfile);
 	assert(fin1.is_open() && "config file wasn't found!\n");
 	Fiber::Yarn yarn;
@@ -19,11 +19,12 @@ int main(int argc, const char **argv) {
 	int frame1 = 32;
 	std::string dataset = "1220";
 
-	//phase 0: test
-	//phase 1: fitting
-	//phase 2: training
-	//phase 3: parameterization 
-	//phase 4: curved-yarn generation
+	//case 0: test
+	//case 1: fitting
+	//case 2: training
+	//case 3: per-ply shapematching 
+	//case 4: curved-yarn generation (for Chang)
+	//case 5: extract twisting (for Chang)
 
 	int phase = 1;
 
@@ -232,7 +233,7 @@ int main(int argc, const char **argv) {
 			break;
 		}
 		case 4: {
-			std::cout << "*** Generation phase (Chang use) *** \n";
+			std::cout << "*** Generating yarn on a curve (Chang use) *** \n";
 			//Generate a yarn mapped to a given curve
 			const char* configFile = argv[1];
 			std::ifstream fin1(configFile);
@@ -250,6 +251,41 @@ int main(int argc, const char **argv) {
 			yarn0.yarn_simulate();
 			yarn0.curve_yarn(curvefile);
 			yarn0.write_yarn(argv[3]);
+			break;
+		}
+		case 5: {
+			std::cout << "*** Extracting twisting angle (Chang use) *** \n";
+
+			if (argc != 4) {
+				std::cout << "Usage: YarnGeneration [config-file] [yarn-file] [twisting-file]\n";
+				return 1;
+			}
+
+			const char* yarnfile2 = argv[2];
+			std::ifstream fin2(yarnfile2);
+			assert(fin2.is_open() && "compressed-yarn file wasn't found!\n");
+
+			const char* compress_R = argv[3];
+			const char* compress_S = "matrix_S.txt";
+			const char* curvefile = "centerline.txt";
+			const char* normfile = "norms.txt";
+
+			// Procedural step
+			yarn.yarn_simulate();
+
+			std::vector<yarnIntersect2D> pnts_ref;
+			yarn.yarn2crossSections(pnts_ref);
+
+			Fiber::Yarn yarn_tmp;
+			yarn_tmp.yarnCenter(yarnfile2, curvefile);
+			std::vector<yarnIntersect2D> pnts_trans;
+			CrossSection cs2(yarnfile2, curvefile, normfile, yarn.getPlyNum(), yarn.getStepNum(), 100, pnts_trans, false);
+
+			std::vector<Matrix_S> all_mat_S;
+			std::vector<float> all_theta_R;
+			cs2.yarnShapeMatches(pnts_trans, pnts_ref, all_mat_S, all_theta_R);
+
+			writeParameters(all_mat_S, all_theta_R, compress_R, compress_S);
 			break;
 		}
 		case 0: {
