@@ -680,6 +680,43 @@ namespace Fiber {
 		}
 	}
 
+	void Yarn::getPlyCenter(std::vector<std::vector<vec2f>> &plyCenters) {
+		//first initialize the vectors
+		plyCenters.resize(this->z_step_num);
+		for (int i = 0; i < plyCenters.size(); ++i)
+			plyCenters[i].resize(this->plys.size(), 0.0);
+
+		std::vector<yarnIntersect2D> itsLists;
+		yarn2crossSections(itsLists);
+
+		for (int i = 0; i < itsLists.size(); ++i) {
+			for (int p = 0; p < itsLists[i].size(); ++p) {
+				vec2f cntr(0.f);
+				for (int v = 0; v < itsLists[i][p].size(); ++v) 
+					cntr += itsLists[i][p][v];
+
+				cntr /= static_cast<float> (itsLists[i][p].size());
+				plyCenters[i][p] = cntr;
+			}
+		}
+
+
+		////copy the yarn into new dataStructure
+		//for (int p = 0; p < this->plys.size(); ++p) {
+		//	for (int f = 0; f < this->plys[p].fibers.size(); ++f) {
+		//		vec3f cntr(0.f);
+		//		for (int v = 0; v < this->plys[p].fibers[f].vertices.size(); ++v) {
+		//			plyCenters[v][p] += this->plys[p].fibers[f].vertices[v];
+		//		}
+		//	}
+		//}
+
+		//for (int i = 0; i < plyCenters.size(); ++i)
+		//	for (int p = 0; p < plyCenters[i].size(); ++p)
+		//		plyCenters[i][p] /= static_cast<float> (plyCenters[i][p].size());
+		
+	}
+
 #if 0
 	void Yarn::compress_yarn(const char* filename) {
 		std::cout << "step7: compress yarn cross-sections ..." << std::endl;
@@ -846,6 +883,43 @@ namespace Fiber {
 		plotIntersections("../data/allCrossSection2D_compress.txt", 0.2);
 	} // compress_yarn
 
+	/* per-ply shapematching*/
+	void Yarn::compress_yarn(std::vector<std::vector<Eigen::MatrixXf>> &all_mat_S, std::vector<std::vector<float>> &all_theta_R,
+		std::vector<std::vector<Eigen::MatrixXf>> &all_T) {
+		std::cout << "step7: compress yarn cross-sections ..." << std::endl;
+
+		std::vector<std::vector<vec2f>> plyCenters;
+		getPlyCenter(plyCenters);
+
+		// change the yarn cross-sections
+		const int ply_num = this->plys.size();
+		for (int i = 0; i < ply_num; i++) {
+			const int fiber_num = this->plys[i].fibers.size();
+			for (int f = 0; f < fiber_num; f++) {
+				Fiber &fiber = this->plys[i].fibers[f];
+				const int vertices_num = this->plys[i].fibers[f].vertices.size();
+
+				for (int v = 0; v < vertices_num; v++) {
+
+					Eigen::Matrix2f S, R, transf;
+					S = all_mat_S[v][i];
+					R << cos(all_theta_R[v][i]), -sin(all_theta_R[v][i]), sin(all_theta_R[v][i]), cos(all_theta_R[v][i]);
+					transf = R * S;
+
+					Eigen::MatrixXf ref(2, 1);
+					ref << fiber.vertices[v].x - plyCenters[v][i].x, fiber.vertices[v].y - plyCenters[v][i].y; //-plycenter
+					Eigen::MatrixXf def(2, 1);
+					def = transf*ref + all_T[v][i];
+
+					fiber.vertices[v].x = def(0, 0);
+					fiber.vertices[v].y = def(1, 0);
+				}
+			}
+		}
+		plotIntersections("../data/allCrossSection2D_compress.txt", 0.2);
+	} // compress_yarn
+
+
 	void Yarn::plotIntersections(const char* filename, const float trimPercent = 0.2) {
 		// for debuging:
 		FILE *fout;
@@ -986,6 +1060,7 @@ namespace Fiber {
 		//fout1.close();
 
 	}
+
 	//
 	//void Yarn::shapeCrossSection(yarnIntersect2D &its, float &rLong, float &rShort) {
 

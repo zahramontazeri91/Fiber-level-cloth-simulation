@@ -1628,8 +1628,8 @@ void CrossSection::shapeMatch_T(const Eigen::MatrixXf &pnt_trans, const Eigen::M
 }
 #endif
 
-#if 0
-void CrossSection::shapeMatch_T(const Eigen::MatrixXf &pnt_trans, const Eigen::MatrixXf &pnt_ref, Ellipse &ellipse, float &theta_R, Eigen::MatrixXf &T) {
+
+void CrossSection::shapeMatch_T(const Eigen::MatrixXf &pnt_trans, const Eigen::MatrixXf &pnt_ref, Eigen::MatrixXf &mat_S, float &theta_R, Eigen::MatrixXf &T) {
 
 	assert(pnt_trans.cols() == pnt_ref.cols());
 	const int n = pnt_trans.cols();
@@ -1668,23 +1668,15 @@ void CrossSection::shapeMatch_T(const Eigen::MatrixXf &pnt_trans, const Eigen::M
 	//RS decompose
 	Eigen::Matrix2f S = V*sigma*V.transpose();
 	Eigen::Matrix2f R = U*V.transpose();
-	ellipse.longR = std::max(sigma(0, 0), sigma(1, 1));
-	ellipse.shortR = std::min(sigma(0, 0), sigma(1, 1));
-	//Make V reflection free (if det(V) is negative)
-	Eigen::Matrix2f m;
-	m << 1, 0, 0, -1;
-	if (V.determinant() < 0)
-		V = V*m;
-	ellipse.angle = atan2(V(1, 0), V(0, 0));
-	ellipse.angle = ellipse.angle < 0 ? ellipse.angle + 2.f*pi : ellipse.angle;
 
+	mat_S = S;
 	theta_R = atan2(R(1, 0), R(0, 0));
 	theta_R = theta_R < 0 ? theta_R + 2.f*pi : theta_R;
 }
-#endif
 
-#if 0
-void CrossSection::plyShapeMatch(const plyItersect2D &pnts_trans, const plyItersect2D &pnts_ref, Ellipse &ellipse, float &theta_R, Eigen::MatrixXf &T) {
+
+
+void CrossSection::plyShapeMatch(const plyIntersect2D &pnts_trans, const plyIntersect2D &pnts_ref, Eigen::MatrixXf &mat_S, float &theta_R, Eigen::MatrixXf &T) {
 
 	int sz_ref = 0, sz_trans = 0;
 	int p = 0;
@@ -1709,43 +1701,42 @@ void CrossSection::plyShapeMatch(const plyItersect2D &pnts_trans, const plyIters
 		++c;
 	}
 
-	shapeMatch_T(all_trans, all_ref, ellipse, theta_R, T);
+	shapeMatch_T(all_trans, all_ref, mat_S, theta_R, T);
 }
-#endif
 
-#if 0
-void CrossSection::yarnShapeMatch(const yarnIntersect2D &pnts_trans, const yarnIntersect2D &pnts_ref, std::vector<Ellipse> &ellipse, std::vector<float> &theta_R, std::vector<Eigen::MatrixXf> &T) {
+
+
+void CrossSection::yarnShapeMatch(const yarnIntersect2D &pnts_trans, const yarnIntersect2D &pnts_ref, std::vector<Eigen::MatrixXf> &mat_S_plys,
+	std::vector<float> &theta_R_plys, std::vector<Eigen::MatrixXf> &T) {
 	assert(pnts_trans.size() == pnts_ref.size());
 	const int ply_num = pnts_trans.size();
-	ellipse.resize(ply_num);
-	theta_R.resize(ply_num);
+	mat_S_plys.resize(ply_num);
+	theta_R_plys.resize(ply_num);
 	T.resize(ply_num);
 	for (int p = 0; p < ply_num; ++p) {
-		plyShapeMatch(pnts_trans[p], pnts_ref[p], ellipse[p], theta_R[p], T[p]);
+		plyShapeMatch(pnts_trans[p], pnts_ref[p], mat_S_plys[p], theta_R_plys[p], T[p]);
 	}
 }
-#endif
 
-#if 0
+
+
 void CrossSection::yarnShapeMatches(const std::vector<yarnIntersect2D> &pnts_trans, const std::vector<yarnIntersect2D> &pnts_ref,
-	std::vector<Ellipse> &ellipses, std::vector<float> &all_theta_R, std::vector<Eigen::MatrixXf> &all_T) {
+	std::vector<std::vector<Eigen::MatrixXf>> &all_mat_S, std::vector<std::vector<float>> &all_theta_R, std::vector<std::vector<Eigen::MatrixXf>> &all_T) {
 
 	assert(pnts_trans.size() == pnts_ref.size());
 	const int n = pnts_trans.size();
-	ellipses.resize(n);
+	all_mat_S.resize(n);
 	all_theta_R.resize(n);
 	all_T.resize(n);
 	for (int i = 0; i < n; ++i) {
-		std::vector<Ellipse> ellipse;
-		std::vector<float> theta_R;
+		std::vector<Eigen::MatrixXf> mat_S_plys;
+		std::vector<float> theta_R_plys;
 		std::vector<Eigen::MatrixXf> T;
-		yarnShapeMatch(pnts_trans[i], pnts_ref[i], ellipse, theta_R, T);
-		for (int p = 0; p < pnts_trans[i].size(); ++p) {
-			//compare parameters for each ply
-		}
-		ellipses[i] = ellipse[1];
-		all_theta_R[i] = theta_R[1];
-		all_T[i] = T[1];
+		yarnShapeMatch(pnts_trans[i], pnts_ref[i], mat_S_plys, theta_R_plys, T);
+
+		all_mat_S[i] = mat_S_plys;
+		all_theta_R[i] = theta_R_plys;
+		all_T[i] = T;
 	}
 }
-#endif 
+

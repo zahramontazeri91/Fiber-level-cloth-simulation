@@ -71,15 +71,15 @@ public:
 	inline void get_plane(const int i, Plane &plane) {
 		plane = m_planesList[i];
 	}
-	/* For 2D points gathered as an ellipse, return eigen values and eigen vectors in ellipse format */
-	//void plyShapeMatch(const plyItersect2D &pnts_trans, const plyItersect2D &pnts_ref, Ellipse &ellipse, float &theta_R, Eigen::MatrixXf &T);
-	//void shapeMatch_T(const Eigen::MatrixXf &pnt_trans, const Eigen::MatrixXf &pnt_ref, Eigen::MatrixXf &T);
-	//void shapeMatch_T(const Eigen::MatrixXf &pnt_trans, const Eigen::MatrixXf &pnt_ref, Ellipse &ellipse, float &theta_R, Eigen::MatrixXf &T);
-	//void yarnShapeMatch(const yarnIntersect2D &pnts_trans, const yarnIntersect2D &pnts_ref, std::vector<Ellipse> &ellipse, 
-		//std::vector<float> &theta_R, std::vector<Eigen::MatrixXf> &T);
-	//void yarnShapeMatches(const std::vector<yarnIntersect2D> &pnts_trans, const std::vector<yarnIntersect2D> &pnts_ref,
-		//std::vector<Ellipse> &ellipses, std::vector<float> &all_theta_R, std::vector<Eigen::MatrixXf> &all_T);
+	/* Shape matching per ply */
+	void plyShapeMatch(const plyIntersect2D &pnts_trans, const plyIntersect2D &pnts_ref, Eigen::MatrixXf &mat_S, float &theta_R, Eigen::MatrixXf &T);
+	void shapeMatch_T(const Eigen::MatrixXf &pnt_trans, const Eigen::MatrixXf &pnt_ref, Eigen::MatrixXf &mat_S, float &theta_R, Eigen::MatrixXf &T);
+	void yarnShapeMatch(const yarnIntersect2D &pnts_trans, const yarnIntersect2D &pnts_ref, std::vector<Eigen::MatrixXf> &mat_S_plys,
+	std::vector<float> &theta_R_plys, std::vector<Eigen::MatrixXf> &T);
+	void yarnShapeMatches(const std::vector<yarnIntersect2D> &pnts_trans, const std::vector<yarnIntersect2D> &pnts_ref,
+		std::vector<std::vector<Eigen::MatrixXf>> &all_mat_S, std::vector<std::vector<float>> &all_theta_R, std::vector<std::vector<Eigen::MatrixXf>> &all_T);
 
+	/* Shape matching per yarn */
 	void shapeMatch(const Eigen::MatrixXf &pnt_trans, const Eigen::MatrixXf &pnt_ref, Matrix_S &mat_S, float &theta_R);
 	void yarnShapeMatch(const yarnIntersect2D &pnts_trans, const yarnIntersect2D &pnts_ref, Matrix_S &mat_S, float &theta_R);
 	void yarnShapeMatches(const std::vector<yarnIntersect2D> &pnts_trans, const std::vector<yarnIntersect2D> &pnts_ref, 

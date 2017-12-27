@@ -70,14 +70,14 @@ def plotIntersects(X1, Y1, X2, Y2, X3, Y3, scale, plane_num, ply_num, its_num, t
 #                plt.title(title1 + ' - %d' %i)
                 
 #                plt.subplot(312)
-                plt.scatter(X2[i][p][j]*scale, Y2[i][p][j]*scale, alpha=1.0, color = 'g', zorder = z, s = s, label ='Reference')
+                plt.scatter(X2[i][p][j]*scale, Y2[i][p][j]*scale, alpha=1.0, color = 'g', zorder = z, s = s)
                 plt.tick_params(axis='both', which='major', labelsize=5)
                 plt.xlim(-0.1,0.1)
                 plt.ylim(-0.1,0.1)
                 plt.title(title2 + ' - %d' %i)
                 
 #                plt.subplot(313)
-                plt.scatter(X3[i][p][j]*scale, Y3[i][p][j]*scale, alpha=0.3, color = 'r', zorder = 500, s = s, label ='Simulated')
+                plt.scatter(X3[i][p][j]*scale, Y3[i][p][j]*scale, alpha=0.3, color = 'r', zorder = 500, s = s)
                 plt.tick_params(axis='both', which='major', labelsize=5)
                 plt.xlim(-0.1,0.1)
                 plt.ylim(-0.1,0.1)
@@ -88,37 +88,36 @@ def plotIntersects(X1, Y1, X2, Y2, X3, Y3, scale, plane_num, ply_num, its_num, t
 #        plt.legend()              
 # In[]:
 # plot procedural data
-fname = '../../data/allCrossSection2D_simulate.txt'
-X1, Y1 = visIntersections(fname)
+#fname = '../../data/allCrossSection2D_simulate.txt'
+#X1, Y1 = visIntersections(fname)
+##fname = '../../data/allCrossSection2D_compress.txt'
+#X2, Y2 = visIntersections(fname)
+##fname = '../../data/allCrossSection2D_deformed.txt'
+##fname = '../../data/allCrossSection2D_curve.txt' (doesnt make sense)
+#X3, Y3 = visIntersections(fname)
+#scale = 1
+#title1 = 'Generate yarn'
+#title2 = 'Compression'
+#title3 = 'Generated vs Simulated'
+#plane_num = 180 
+#ply_num = 2
+#its_num = 80
+#plotIntersects(X1, Y1, X2, Y2, X3, Y3, scale, plane_num, ply_num, its_num, title1, title2, title3)
+
+# In[]:
+## plot simulated data
 fname = '../../data/allCrossSection2D_ref.txt'
-#fname = '../../data/allCrossSection2D_compress.txt'
-X2, Y2 = visIntersections(fname)
-fname = '../../data/allCrossSection2D_simulate.txt'
-#fname = '../../data/allCrossSection2D_deformed.txt'
-#fname = '../../data/allCrossSection2D_curve.txt' (doesnt make sense)
+X1, Y1 = visIntersections(fname)
+fname = '../../data/allCrossSection2D_deformedRef.txt'
 X3, Y3 = visIntersections(fname)
+fname = '../../data/allCrossSection2D_deformed.txt'
+X2, Y2 = visIntersections(fname)
 scale = 1
-title1 = 'Generate yarn'
-title2 = 'Compression'
-title3 = 'Generated vs Simulated'
-plane_num = 180 
+title1 = 'Reference'
+title2 = 'Deformed-Ref'
+title3 = 'Simulated vs Reference'
+plane_num = 300  
 ply_num = 2
 its_num = 80
 plotIntersects(X1, Y1, X2, Y2, X3, Y3, scale, plane_num, ply_num, its_num, title1, title2, title3)
 
-# In[]:
-## plot simulated data
-#fname = '../../data/allCrossSection2D_ref.txt'
-#X1, Y1 = visIntersections(fname)
-#fname = '../../data/allCrossSection2D_deformedRef.txt'
-#X2, Y2 = visIntersections(fname)
-#fname = '../../data/allCrossSection2D_deformed.txt'
-#X3, Y3 = visIntersections(fname)
-#scale = 1
-#title1 = 'Reference'
-#title2 = 'Deformed-Ref'
-#title3 = 'Simulated vs Reference'
-#plane_num = 300  
-#ply_num = 2
-#its_num = 80
-#plotIntersects(X1, Y1, X2, Y2, X3, Y3, scale, plane_num, ply_num, its_num, title1, title2, title3)

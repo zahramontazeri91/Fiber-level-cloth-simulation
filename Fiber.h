@@ -2,6 +2,7 @@
 #include "Util.h"
 #include "Curve.h"
 #include <Eigen/Dense>
+//#include "fitting.h"
 
 typedef std::vector<vec3f> fiber_t;
 typedef std::vector<fiber_t> yarn_t;
@@ -191,7 +192,10 @@ namespace Fiber {
 		/* Find the spanning circle for generated yarn before applying the compression */
 		void fitCircle(const yarnIntersect2D &pts, float &radius);
 		void yarn2crossSections(std::vector<yarnIntersect2D> &itsLists);
+		void getPlyCenter(std::vector<std::vector<vec2f>> &plycenters);
 		void compress_yarn(const char* compress_R, const char* compress_S);
+		void compress_yarn(std::vector<std::vector<Eigen::MatrixXf>> &all_mat_S, std::vector<std::vector<float>> &all_theta_R,
+			std::vector<std::vector<Eigen::MatrixXf>> &all_T);
 
 		/* Write simulated data (single yarns) to disk */
 		void write_yarn(const char* filename);

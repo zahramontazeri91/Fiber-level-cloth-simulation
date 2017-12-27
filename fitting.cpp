@@ -4,6 +4,7 @@
 #include "fitting.h"
 #include "curveFitting.h"
 
+#if 0
 void interpolate(const std::vector<float> vals, const int interval, std::vector<float> newVals) {
 
 }
@@ -89,6 +90,7 @@ void appendCenter_yarn(const std::vector<Fiber::Yarn::CenterLine> &centerlines, 
 		fclose(fout);
 	}
 }
+#endif
 
 void decomposeS(const Matrix_S &mat_S, Ellipse &ellipse) {
 	Eigen::Matrix2f S;
@@ -132,6 +134,84 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 	std::vector<float> all_theta_R;
 	cs2.yarnShapeMatches(pnts_trans, pnts_ref, all_mat_S, all_theta_R);
 
+#if 0
+	/****************/
+	Matrix_S mat_S, mat_S1;
+	float theta_R, theta_R1;
+	Eigen::MatrixXf T, T1;
+	cs2.plyShapeMatch(pnts_trans[100][0], pnts_ref[100][0], mat_S, theta_R, T);
+	cs2.plyShapeMatch(pnts_trans[100][1], pnts_ref[100][1], mat_S1, theta_R1, T1);
+
+	FILE *fout1;
+	if (fopen_s(&fout1, "../data/plyShapeMatch_simul.txt", "wt") == 0) {
+		fprintf_s(fout1, "%d \n", pnts_trans[100][0].size() * 2);
+		for (int i = 0; i < pnts_trans[100][0].size(); ++i) {
+			fprintf_s(fout1, "%.6f %.6f\n", pnts_trans[100][0][i].x, pnts_trans[100][0][i].y);
+		}
+		for (int i = 0; i < pnts_trans[100][1].size(); ++i) {
+			fprintf_s(fout1, "%.6f %.6f\n", pnts_trans[100][1][i].x, pnts_trans[100][1][i].y);
+		}
+		fclose(fout1);
+	}
+
+	FILE *fout2;
+	if (fopen_s(&fout2, "../data/plyShapeMatch_proc.txt", "wt") == 0) {
+		fprintf_s(fout2, "%d \n", pnts_ref[100][0].size()*2);
+		float e = 0.f;
+
+		float S00 = mat_S.S00;
+		float S01 = mat_S.S01;
+		float S11 = mat_S.S11;
+		Eigen::Matrix2f S, R, transf;
+		S << S00, S01, S01, S11;
+		R << cos(theta_R), -sin(theta_R), sin(theta_R), cos(theta_R);
+		transf = R * S;
+
+		vec2f plyCenter(0.f);
+		for (int j = 0; j < pnts_ref[100][0].size(); ++j) { //number of intersections
+			plyCenter += pnts_ref[100][0][j];
+		}
+		plyCenter /= pnts_ref[100][0].size();
+
+		for (int i = 0; i < pnts_ref[100][0].size(); ++i) {
+			vec2f pnt = pnts_ref[100][0][i] - plyCenter;
+			Eigen::MatrixXf ref(2, 1);
+			ref << pnt.x, pnt.y;
+			ref = transf * ref + T;
+			fprintf_s(fout2, "%.6f %.6f \n", ref(0,0), ref(1,0) );
+			vec2f its_deform(ref(0, 0), ref(1, 0));
+			e += square_norm(pnts_trans[100][0][i] - its_deform);
+
+		}
+
+		/***/
+		S00 = mat_S1.S00;
+		S01 = mat_S1.S01;
+		S11 = mat_S1.S11;
+		S << S00, S01, S01, S11;
+		R << cos(theta_R1), -sin(theta_R1), sin(theta_R1), cos(theta_R1);
+		transf = R * S;
+
+		for (int j = 0; j < pnts_ref[100][1].size(); ++j) { //number of intersections
+			plyCenter += pnts_ref[100][1][j];
+		}
+		plyCenter /= pnts_ref[100][1].size();
+
+		for (int i = 0; i < pnts_ref[100][1].size(); ++i) {
+			vec2f pnt = pnts_ref[100][1][i] - plyCenter;
+			Eigen::MatrixXf ref(2, 1);
+			ref << pnt.x, pnt.y;
+			ref = transf * ref + T1;
+			fprintf_s(fout2, "%.6f %.6f \n", ref(0, 0), ref(1, 0));
+			vec2f its_deform(ref(0, 0), ref(1, 0));
+			e += square_norm(pnts_trans[100][1][i] - its_deform);
+		}
+		std::cout << "L2 error: " << e << std::endl;
+		fclose(fout2);
+	}
+	return;
+	/****************/
+#endif
 
 	FILE *foutR;
 	if (fopen_s(&foutR, compress_R, "wt") == 0) {
@@ -206,7 +286,7 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 	const char* refFile = "../data/allCrossSection2D_ref.txt";
 	const char* deformedRefFile = "../data/allCrossSection2D_deformedRef.txt";
 	const char* deformedFile = "../data/allCrossSection2D_deformed.txt";
-	const float trimPercent = 0.2;
+	const float trimPercent = 0.0;
 	plotIntersections(pnts_ref, refFile, trimPercent);
 	std::vector<yarnIntersect2D> ref_deformed;
 	//deformRef(pnts_ref, ref_deformed, new_ellipses, new_theta_R);
@@ -215,7 +295,7 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 	plotIntersections(pnts_trans, deformedFile, trimPercent);
 
 	std::vector<float> L2;
-	L2norm(ref_deformed, pnts_trans, L2, L2File);
+	L2norm(ref_deformed, pnts_trans, L2, L2File); //note that these have same size
 }
 
 float nextTheta(float theta0, float theta1) {
@@ -246,6 +326,7 @@ void nonPeriodicTheta(const std::vector<float> &theta, std::vector<float> &theta
 	}
 }
 
+#if 0
 void constFitting_compParam( const std::vector<Ellipse> &ellipses, const std::vector<float> &theta_R,
 	const float trimPercent, Fiber::Yarn::Compress &compress) {
 
@@ -347,6 +428,7 @@ void sinFitting_curve(const char* curveFile, const float trimPercent, Fiber::Yar
 	}
 	fout.close();
 }
+#endif 
 
 void L2norm(const std::vector<yarnIntersect2D> &its_deform, const std::vector<yarnIntersect2D> &its_trans, std::vector<float> &L2, const char* filename) {
 	assert(its_deform.size() == its_trans.size());
@@ -361,6 +443,8 @@ void L2norm(const std::vector<yarnIntersect2D> &its_deform, const std::vector<ya
 					e += square_norm(its_deform[i][p][j] - its_trans[i][p][j]);
 				}
 			}
+			if (i == 100)
+				std::cout << its_deform.size() << " " << e << std::endl;
 			L2.push_back(e);
 			fprintf_s(fout, "%.6f \n", e);
 		}
