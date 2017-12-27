@@ -9,51 +9,44 @@
 
 int main(int argc, const char **argv) {
 
-
+	const char* configfile = "config.txt";
+	std::ifstream fin1(configfile);
+	assert(fin1.is_open() && "config file wasn't found!\n");
+	Fiber::Yarn yarn;
+	yarn.parse(configfile);
+	
+	int frame0 = 35;
+	int frame1 = 36;
+	std::string dataset = "1220";
+	//std::string tmp0 = "data/" + dataset + "/simul_frame_0.txt";
+	//const char* yarnfile1 = tmp0.c_str();
+	const char* yarnfile1 = "genYarn_ref.txt";
 
 	//phase 0: test
 	//phase 1: fitting
 	//phase 2: training
 	//phase 3: parameterization 
 	//phase 4: curved-yarn generation
+
 	int phase = 1;
 
 
 	switch (phase) {
 		case 1: {
 			std::cout << "*** Fitting phase ***\n";
-			const char* configfile = "config.txt";
-			std::ifstream fin1(configfile);
-			assert(fin1.is_open() && "config file wasn't found!\n");
-			Fiber::Yarn yarn;
-			yarn.parse(configfile);
-			const char* yarnfile1 = "data/1220_frame_0000000fiber_00.txt";
-			int frame0 = 35;
-			int frame1 = 36;
 
+			for (int i = frame0; i < frame1; i++) {		
 
-			for (int i = frame0; i < frame1; i++) {
-				std::string s = "";
-				if (i*5 < 10)
-					s = "0000" + std::to_string(i*5) + "00";
-				else if (i*5<100)
-					s = "000" + std::to_string(i*5) + "00";
-				else 
-					s = "00" + std::to_string(i*5) + "00";
-
-				std::string tmp1 = "data/1220_frame_" + s + "fiber_00.txt";
+				std::string tmp1 = "data/" + dataset + "/simul_frame_" + std::to_string(i * 5) + ".txt";
 				const char* yarnfile2 = tmp1.c_str();
-				std::string tmp2 = "NN/param_1220_" + s + ".txt";
-				const char* compressfile_seg = tmp2.c_str();
-
-				std::string tmp5 = "input/matrix_R_" + std::to_string(i * 5) + ".txt";
-				const char* compress_R = tmp5.c_str();
-				const char* compress_S = "input/matrix_S.txt";
-				std::string tmp7 = "input/centerYarn_" + std::to_string(i * 5) + ".txt";
-				const char* curvefile = tmp7.c_str();
-				std::string tmp8 = "input/normYarn_" + std::to_string(i * 5) + ".txt";
-				const char* normfile = tmp8.c_str();
-				//const char* normfile = "normYarn_0.txt";
+				std::string tmp2 = "input/" + dataset + "/matrix_R_" + std::to_string(i * 5) + ".txt";
+				const char* compress_R = tmp2.c_str();
+				std::string tmp3 = "input/" + dataset + "/matrix_S_" + std::to_string(i * 5) + ".txt";
+				const char* compress_S = tmp3.c_str();
+				std::string tmp4 = "input/" + dataset + "/centerYarn_" + std::to_string(i * 5) + ".txt";
+				const char* curvefile = tmp4.c_str();
+				std::string tmp5 = "input/" + dataset + "/normYarn_" + std::to_string(i * 5) + ".txt";
+				const char* normfile = tmp5.c_str();
 
 				std::ifstream fin1(yarnfile1);
 				std::ifstream fin2(yarnfile2);
@@ -61,11 +54,8 @@ int main(int argc, const char **argv) {
 				assert(fin2.is_open() && "compressed-yarn file wasn't found!\n");
 
 				const int vrtx_num = yarn.getStepNum();
-				//const int vrtx_num = 300; //later read from the config file
-				std::vector<Ellipse> ellipses;
-				std::vector<float> theta_R;
-				extractCompress_seg(yarnfile1, yarnfile2, compress_R, compress_S, compressfile_seg, 
-					curvefile, normfile, yarn.getPlyNum(), vrtx_num, ellipses, theta_R);
+				extractCompress_seg(yarnfile1, yarnfile2, compress_R, compress_S, 
+					curvefile, normfile, yarn.getPlyNum(), vrtx_num);
 
 				//Fiber::Yarn::Compress compress;
 				//Fiber::Yarn::CenterLine curve;
@@ -74,16 +64,16 @@ int main(int argc, const char **argv) {
 				//sinFitting_curve(curvefile, trimPercent, curve);
 
 				/**************************************************/
-				std::string tmp3 = "output/genYarn" + std::to_string(i * 5) + ".txt";
-				const char* outfile = tmp3.c_str();
+				std::string tmp6 = "output/" + dataset + "/genYarn_" + std::to_string(i * 5) + ".txt";
+				const char* outfile = tmp6.c_str();
 				// Procedural step
 				yarn.yarn_simulate();
 				yarn.compress_yarn(compress_R, compress_S);
 				yarn.curve_yarn(curvefile, normfile);
-				yarn.write_yarn("genYarn.txt");
+				yarn.write_yarn(outfile);
 
-				//std::string tmp4 = "output/genYarn_wo_" + std::to_string(i * 5) + ".txt";
-				//const char* outfile_wo = tmp4.c_str();
+				//std::string tmp7 = "output/" + dataset + "/genYarn_wo_" + std::to_string(i * 5) + ".txt";
+				//const char* outfile_wo = tmp7.c_str();
 				//yarn.yarn_simulate();
 				////yarn.compress_yarn(compress_R, compress_S);
 				//yarn.curve_yarn(curvefile, normfile);
@@ -94,26 +84,26 @@ int main(int argc, const char **argv) {
 		case 2: {
 			std::cout << "*** Training phase ***\n";
 
-			//for (int i = frame0; i < frame1; i++) {
+			for (int i = frame0; i < frame1; i++) {
 
-			//	std::string tmp5 = "input/matrix_R_" + std::to_string(i * 5) + ".txt";
-			//	const char* compress_R = tmp5.c_str();
-			//	std::string tmp6 = "input/testY_NN_" + std::to_string(i * 5) + ".txt";
-			//	const char* compress_S = tmp6.c_str();
-			//	std::string tmp7 = "input/centerYarn_" + std::to_string(i * 5) + ".txt";
-			//	const char* curvefile = tmp7.c_str();
-			//	std::string tmp8 = "input/normYarn_" + std::to_string(i * 5) + ".txt";
-			//	const char* normfile = tmp8.c_str();
+				std::string tmp5 = "input/" + dataset + "/matrix_R_" + std::to_string(i * 5) + ".txt";
+				const char* compress_R = tmp5.c_str();
+				std::string tmp6 = "input/" + dataset + "/NN/testY_NN_full" + std::to_string(i * 5) + ".txt";
+				const char* compress_S = tmp6.c_str();
+				std::string tmp7 = "input/" + dataset + "/centerYarn_" + std::to_string(i * 5) + ".txt";
+				const char* curvefile = tmp7.c_str();
+				std::string tmp8 = "input/" + dataset + "/normYarn_" + std::to_string(i * 5) + ".txt";
+				const char* normfile = tmp8.c_str();
 
 
-			//	std::string tmp3 = "output/genYarn_NN_" + std::to_string(i * 5) + ".txt";
-			//	const char* outfile = tmp3.c_str();
-			//	// Procedural step
-			//	yarn.yarn_simulate();
-			//	yarn.compress_yarn(compress_R, compress_S);
-			//	yarn.curve_yarn(curvefile, normfile);
-			//	yarn.write_yarn(outfile);
-			//}
+				std::string tmp3 = "output/" + dataset + "/genYarn_NN_" + std::to_string(i * 5) + ".txt";
+				const char* outfile = tmp3.c_str();
+				// Procedural step
+				yarn.yarn_simulate();
+				yarn.compress_yarn(compress_R, compress_S);
+				yarn.curve_yarn(curvefile, normfile);
+				yarn.write_yarn(outfile);
+			}
 
 			break;
 		}
@@ -150,23 +140,23 @@ int main(int argc, const char **argv) {
 		}
 		case 4: {
 			std::cout << "*** Generation phase *** \n";
-			const char* configfile = "config.txt";
-			std::ifstream fin1(configfile);
+			//Generate a yarn mapped to a given curve
+			const char* configFile = argv[1];
+			std::ifstream fin1(configFile);
 			assert(fin1.is_open() && "config file wasn't found!\n");
 
-			Fiber::Yarn yarn;
-			yarn.parse(configfile);
+			Fiber::Yarn yarn0;
+			yarn0.parse(configFile);
 
-			//const char* curvefile = "centerYarn.txt";
+			const char* curvefile = argv[2];
 			//const char* normfile = "normYarn.txt";
-			//std::ifstream fin2(curvefile);
-			//assert(fin2.is_open() && "curve file wasn't found!\n");
+			std::ifstream fin2(curvefile);
+			assert(fin2.is_open() && "curve file wasn't found!\n");
 
 			// Procedural step
-			yarn.yarn_simulate();
-			//yarn.compress_yarn(compress_R, compress_S);
-			//yarn.curve_yarn(curvefile, normfile);
-			yarn.write_yarn("genYarn_ref.txt");
+			yarn0.yarn_simulate();
+			yarn0.curve_yarn(curvefile);
+			yarn0.write_yarn(argv[3]);
 			break;
 		}
 		case 0: {

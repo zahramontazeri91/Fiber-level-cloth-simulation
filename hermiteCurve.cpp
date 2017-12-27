@@ -3,6 +3,7 @@
 
 
 void HermiteCurve::init(const char* pntsFILE, const char* normsFILE, int subdiv) {
+	//std::cout << "###############\n";
     assert(pntsFILE);
 	std::ifstream fin(pntsFILE);
     assert(!fin.fail());
@@ -12,7 +13,7 @@ void HermiteCurve::init(const char* pntsFILE, const char* normsFILE, int subdiv)
 
     std::vector<Eigen::Vector3d> pts(n), norms(n);
     for ( int i = 0; i < n; ++i ) fin >> pts[i][0] >> pts[i][1] >> pts[i][2];
-	std::cout << "###############\n";
+
     init(pts, subdiv);
 	printNormals(normsFILE, subdiv);
 }
@@ -33,7 +34,7 @@ void HermiteCurve::printNormals(const char* normsFILE, const int subdiv) {
 }
 
 void HermiteCurve::init_norm(const char* pntsFILE, const char* normsFILE, int subdiv) {
-	std::cout << "********************\n";
+	//std::cout << "********************\n";
 	// import the points
 	assert(pntsFILE);
 	std::ifstream fin(pntsFILE);
@@ -209,8 +210,10 @@ void HermiteCurve::getRotatedFrame(double t, Eigen::Vector3d &ex, Eigen::Vector3
 	Eigen::Vector3d B = T.cross(N);
 
 	ez = T;
-	ex = B;
-	ey = -1*N;
+	ex = N;
+	ey = B;
+	//ex = B;
+	//ey = -1*N;
 
 	assert(ex.norm() - 1.f < 1e-5);
 	assert(ey.norm() - 1.f < 1e-5);

@@ -40,10 +40,11 @@ namespace Fiber {
 			fin.open(yarnfile);
 
 		const int num_of_cores = omp_get_num_procs();
-
+		int fiber_num = 0;
+		int vrtx_num = 0;
 		std::string line;
 		std::getline(fin, line);
-		int fiber_num = atoi(line.c_str()) / ply_num;
+		fiber_num = atoi(line.c_str()) / ply_num;
 		this->plys.resize(ply_num);
 #pragma omp parallel for num_threads(num_of_cores) 
 		for (int p = 0; p < ply_num; ++p) {
@@ -52,7 +53,7 @@ namespace Fiber {
 				Fiber &fiber = this->plys[p].fibers[f];
 				fiber.clear(); //clear the vertices list 
 				std::getline(fin, line);
-				int vrtx_num = atoi(line.c_str());
+				vrtx_num = atoi(line.c_str());
 				for (int v = 0; v < vrtx_num; ++v) {
 					std::getline(fin, line);
 					std::vector<std::string> splits = split(line, ' ');
@@ -61,6 +62,8 @@ namespace Fiber {
 				}
 			}
 		}
+
+		setStepNum(vrtx_num);
 		//printf("Yarn is initialized from the file. \n");
 	}
 
@@ -113,7 +116,7 @@ namespace Fiber {
 			fclose(fout);
 		}
 		
-		//printf("Centerfiber is written to the file. \n");
+		printf("Centerfiber is written to the file. \n");
 	}
 
 	void Yarn::parse(const char* filename) {
@@ -135,7 +138,7 @@ namespace Fiber {
 				assert(this->plys.size());
 				for (int i = 0; i < this->plys.size(); i++) {
 					int fiber_num = atoi(splits[1].c_str());
-					this->plys[i].fibers.resize(fiber_num ); //add one fiber for ply-center 
+					this->plys[i].fibers.resize(fiber_num ); 
 				}
 			}
 			else if (p_name == "z_step_size:") {
@@ -490,7 +493,7 @@ namespace Fiber {
 				fiber.init_theta = theta;
 				fiber.init_migration_theta = migration_theta;
 				fiber.init_vertex = this->plys[i].base_center +
-					vec3f(radius * std::cosf(theta), radius * std::sinf(theta), 0);
+					vec3f(radius * std::cosf(theta), radius * std::sinf(theta), 0.2);
 			}
 		}
 
@@ -543,7 +546,7 @@ namespace Fiber {
 				}
 			}
 		}
-		plotIntersections("../data/allCrossSection2D_simulate.txt",0.0);
+		plotIntersections("../data/allCrossSection2D_simulate.txt",0.2);
 	} // yarn_simulate
 
 	//void Yarn::readCompressFile(const char* filename, std::vector<Compress> &compress_params) {
@@ -840,7 +843,7 @@ namespace Fiber {
 				}
 			}
 		}
-		plotIntersections("../data/allCrossSection2D_compress.txt", 0.0);
+		plotIntersections("../data/allCrossSection2D_compress.txt", 0.2);
 	} // compress_yarn
 
 	void Yarn::plotIntersections(const char* filename, const float trimPercent = 0.2) {
@@ -873,9 +876,11 @@ namespace Fiber {
 
 		/* use hermite spline multiple segments */
 		HermiteCurve centerCurve;
-		//centerCurve.init(pntsFile, normsFile);
-		//given normals:
-		centerCurve.init_norm(pntsFile, normsFile);
+		if (normsFile == "") 
+			centerCurve.init(pntsFile, normsFile);
+		else 
+			//given normals:
+			centerCurve.init_norm(pntsFile, normsFile);
 
 		double zMin = std::numeric_limits<double>::max(), zMax = std::numeric_limits<double>::lowest();
 		for (const auto &ply : plys)

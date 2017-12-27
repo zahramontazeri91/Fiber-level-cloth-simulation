@@ -109,43 +109,29 @@ void decomposeS(const Matrix_S &mat_S, Ellipse &ellipse) {
 	ellipse.angle = ellipse.angle < 0 ? ellipse.angle + 2.f*pi : ellipse.angle;
 }
 
-void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const char* compress_R, const char* compress_S, const char* compressFile_seg,
-	const char* curveFile, const char* normFile, const int ply_num, const int vrtx_num, std::vector<Ellipse> &new_ellipses, std::vector<float> &new_theta_R)
+void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const char* compress_R, const char* compress_S,
+	const char* curveFile, const char* normFile, const int ply_num, const int vrtx_num)
 {
 	const int n = vrtx_num;
 
 	
 	Fiber::Yarn yarn_tmp;
 
-	const char* normYarn1 = "normYarn_ref.txt";
-	const char* centerYarn1 = "centerYarn_ref.txt";
-	yarn_tmp.yarnCenter(yarnfile1, centerYarn1);
+	//const char* centerYarn1 = "centerYarn_ref.txt";
+	//const char* normYarn1 = "normYarn_0.txt";
+	//yarn_tmp.yarnCenter(yarnfile1, centerYarn1);
 	std::vector<yarnIntersect2D> pnts_ref;
-	CrossSection cs2(yarnfile1, centerYarn1, normYarn1, ply_num, n, 100, pnts_ref, false);
+	//CrossSection cs1(yarnfile1, centerYarn1, normYarn1, ply_num, n, 100, pnts_ref, true);
+	CrossSection cs1(yarnfile1, ply_num, pnts_ref);
 
 	yarn_tmp.yarnCenter(yarnfile2, curveFile);
 	std::vector<yarnIntersect2D> pnts_trans;
-	CrossSection cs(yarnfile2, curveFile, normFile, ply_num, n, 100, pnts_trans, false);
+	CrossSection cs2(yarnfile2, curveFile, normFile, ply_num, n, 100, pnts_trans, false);
 
-	//0. yarnShapeMatches:
-	//std::cout << "\n";
-	//std::cout << "Step 1: Shape matching between reference and compressed yarn.\n";
 	std::vector<Matrix_S> all_mat_S;
 	std::vector<float> all_theta_R;
-	cs.yarnShapeMatches(pnts_trans, pnts_ref, all_mat_S, all_theta_R);
+	cs2.yarnShapeMatches(pnts_trans, pnts_ref, all_mat_S, all_theta_R);
 
-
-	FILE *fout0;
-	if (fopen_s(&fout0, compressFile_seg, "wt") == 0) {
-		//fprintf_s(fout0, "%d \n", ellipses.size());
-		for (int i = 0; i < all_mat_S.size() - 1; ++i) {
-			fprintf_s(fout0, "%.6f %.6f %.6f %.6f \n", (all_mat_S[i].S00 + all_mat_S[i + 1].S00) / 2.f,
-				(all_mat_S[i].S11 + all_mat_S[i + 1].S11) / 2.f,
-				(all_mat_S[i].S01 + all_mat_S[i + 1].S01) / 2.f,
-				(all_theta_R[i] + all_theta_R[i + 1]) / 2.f);
-		}
-		fclose(fout0);
-	}
 
 	FILE *foutR;
 	if (fopen_s(&foutR, compress_R, "wt") == 0) {
@@ -157,6 +143,7 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 	}
 
 	FILE *foutS;
+	// write S-matrix for each segment not vertex 
 	if (fopen_s(&foutS, compress_S, "wt") == 0) {
 		//fprintf_s(foutS, "%d \n", all_mat_S.size());
 		for (int i = 0; i < all_mat_S.size()-1; ++i) {
@@ -164,7 +151,7 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 				(all_mat_S[i].S11 + all_mat_S[i + 1].S11) / 2.f,
 				(all_mat_S[i].S01 + all_mat_S[i + 1].S01) / 2.f);
 		}
-		int i = all_mat_S.size() - 1;
+		int i = all_mat_S.size() - 1; 
 		fprintf_s(foutS, "%.6f %.6f %.6f \n", all_mat_S[i].S00 / 2.f,
 			all_mat_S[i].S11 / 2.f,
 			all_mat_S[i].S01 / 2.f);
@@ -219,7 +206,7 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 	const char* refFile = "../data/allCrossSection2D_ref.txt";
 	const char* deformedRefFile = "../data/allCrossSection2D_deformedRef.txt";
 	const char* deformedFile = "../data/allCrossSection2D_deformed.txt";
-	const float trimPercent = 0.0;
+	const float trimPercent = 0.2;
 	plotIntersections(pnts_ref, refFile, trimPercent);
 	std::vector<yarnIntersect2D> ref_deformed;
 	//deformRef(pnts_ref, ref_deformed, new_ellipses, new_theta_R);
@@ -227,8 +214,8 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 	plotIntersections(ref_deformed, deformedRefFile, trimPercent);
 	plotIntersections(pnts_trans, deformedFile, trimPercent);
 
-	//std::vector<float> L2;
-	//L2norm(ref_deformed, pnts_trans, L2, L2File);
+	std::vector<float> L2;
+	L2norm(ref_deformed, pnts_trans, L2, L2File);
 }
 
 float nextTheta(float theta0, float theta1) {

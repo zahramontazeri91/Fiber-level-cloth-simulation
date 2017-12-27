@@ -68,9 +68,9 @@ def visualize(Sx, Sy, thetaS, thetaR, title = "", fname = "", showWindow = True)
        
 
 
-path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/NN/'
+path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/1220/NN/'
 
-for w in range (0,1):
+for w in range (5,6):
 #for w in range (0,36):
     lng = []
     shrt = []
@@ -80,23 +80,14 @@ for w in range (0,1):
     Ty = []
     L2 = []
 
-    f = w*5
-
-#    if f < 10 :
-#        fname = path + 'param_1220_0000' + str(f) +'00.txt'
-#    elif f < 100 :
-#        fname = path + 'param_1220_000' + str(f) +'00.txt'
-#    else :
-#        fname = path + 'param_1220_00' + str(f) +'00.txt'
-        
-#    fname = path + 'trainY_' + str(f) + '.txt'    
-    fname = path + 'testY_NN.txt'
-    #fname = '../compressParams.txt'
+    f = w*5       
+    fname = '../input/
+#    fname = path + 'testY_NN_' + str(f) + '.txt'    
+    fname = path + 'trainY_' + str(f) + '.txt' 
     
     writefile = 'frame_' + str(f) 
     with open(fname, 'r') as fin:
     #    N = int(fin.readline())
-#        N = 299
         N = 182
         for i in range (0,N):
             compress = fin.readline().split()
@@ -108,12 +99,12 @@ for w in range (0,1):
     
         fin.close()
      
-    with open('D:/sandbox/fiberSimulation/yarn_generation_project/data/L2.txt', 'r') as finL2:
-        N2 = int(finL2.readline())
-        for i in range (0,N2):   
-            e = finL2.readline()
-            L2.append(float(e))
-        finL2.close()
+#    with open('D:/sandbox/fiberSimulation/yarn_generation_project/data/L2.txt', 'r') as finL2:
+#        N2 = int(finL2.readline())
+#        for i in range (0,N2):   
+#            e = finL2.readline()
+#            L2.append(float(e))
+#        finL2.close()
     
     title = 'dataset 1120\n compressed: simulated frame ' + str(f) +' \n reference: simulated frame 0'
     visualize(lng, shrt, theta, rot, title, writefile)

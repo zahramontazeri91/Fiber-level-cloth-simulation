@@ -10,8 +10,7 @@ path = 'D:/sandbox/fiberSimulation/dataSets/train_teeth1220/'
 vrtNum = 299
 fiberNum = 160
 
-path = 'D:/sandbox/fiberSimulation/dataSets/train_teeth1220/'
-for i in range (0,36):
+for i in range (0,59):
     if i*5 < 10 :
         frameNum = '0000'+ str(i*5) + '00'
     elif i*5 <100 :
@@ -19,7 +18,7 @@ for i in range (0,36):
     else:
        frameNum = '00'+ str(i*5) + '00' 
     fname_read = path + 'frame_' + frameNum + 'fiber_00.f3'
-    fname_write = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/NN/force_1220_' + frameNum + '.txt'
+    fname_write = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/1220/matrix_f3_' + str(i*5) + '.txt'
     
     force = np.zeros(vrtNum*9).reshape(vrtNum,9)
     with open(fname_write, 'w') as fout:

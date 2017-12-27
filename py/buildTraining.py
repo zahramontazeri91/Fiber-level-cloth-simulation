@@ -9,7 +9,7 @@ from shutil import copyfile
 
 
 # In[]:
-def buildTrainY(dataset, nb_seg, trimPercent, first_frame, last_frame, not_frame, filename):
+def buildTrainY(nb_seg, trimPercent, first_frame, last_frame, not_frame, filename):
     c=first_frame
     for i in range (first_frame,last_frame+1):
         if i==not_frame:
@@ -17,12 +17,7 @@ def buildTrainY(dataset, nb_seg, trimPercent, first_frame, last_frame, not_frame
         j = c*5
         fname_write = path + filename + str(j - first_frame*5) + '.txt'
         with open(fname_write, 'w') as fout:
-            if j < 10 :
-                fname_read = path + 'param_' + dataset + '_0000' + str(j) + '00.txt'
-            elif j < 100 :
-                fname_read = path + 'param_' + dataset + '_000' + str(j) + '00.txt'
-            else:
-                fname_read = path + 'param_' + dataset + '_00' + str(j) + '00.txt'
+            fname_read = path + 'matrix_S_' + str(j) + '.txt'
             with open(fname_read, 'r') as fin:
                 for cs in range (0,nb_seg):
                     line = fin.readline()
@@ -34,7 +29,7 @@ def buildTrainY(dataset, nb_seg, trimPercent, first_frame, last_frame, not_frame
         c = c+1
 # In[]:
 
-def buildTrainX_conv(dataset, nb_seg, trimPercent, first_frame, last_frame, not_frame, sigma, filename):
+def buildTrainX_conv(nb_seg, trimPercent, first_frame, last_frame, not_frame, sigma, filename):
     c = first_frame
     for i in range (first_frame,last_frame+1):
         if i==not_frame:
@@ -42,12 +37,7 @@ def buildTrainX_conv(dataset, nb_seg, trimPercent, first_frame, last_frame, not_
         j = c*5
         fname_write = path + filename + str(j - first_frame*5) + '.txt'
         with open(fname_write, 'w') as fout:
-            if j < 10 :
-                fname_read = path + 'force_' + dataset + '_0000' + str(j) + '00.txt'
-            elif j < 100 :
-                fname_read = path + 'force_' + dataset + '_000' + str(j) + '00.txt'
-            else:
-                fname_read = path + 'force_' + dataset + '_00' + str(j) + '00.txt'            
+            fname_read = path + 'matrix_f3_' + str(j) + '.txt'            
             with open(fname_read, 'r') as fin:
                 line = fin.read().splitlines()
                 assert(len(line) == nb_seg)
@@ -80,27 +70,26 @@ def appendAll(first_frame, last_frame, filename, test_out):
     print('all files appended!\n')
 
 # In[]:
-path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/NN/'
-dataset = '1220'
+path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/1220/'
 nb_seg = 299
 trimPercent = 0.2
-first_frame = 3
+first_frame = 1
 last_frame = 35
 test_frame = 3
 not_frame = -1
 test_out = 0
 sigma = 6 #window_size = 2*sigma + 1
-filename = 'trainY_'
-buildTrainY(dataset, nb_seg, trimPercent, first_frame, last_frame, not_frame, filename)
-filename = 'trainX_'
-buildTrainX_conv(dataset, nb_seg, trimPercent, first_frame, last_frame, not_frame, sigma, filename)
-appendAll(first_frame, last_frame, 'trainX_', test_out)
-appendAll(first_frame, last_frame, 'trainY_', test_out)
+filename = 'NN/trainY_'
+buildTrainY(nb_seg, trimPercent, first_frame, last_frame, not_frame, filename)
+filename = 'NN/trainX_'
+buildTrainX_conv(nb_seg, trimPercent, first_frame, last_frame, not_frame, sigma, filename)
+appendAll(first_frame, last_frame, 'NN/trainX_', test_out)
+appendAll(first_frame, last_frame, 'NN/trainY_', test_out)
 #build test data:
-first_frame = test_frame
-last_frame = test_frame
-not_frame = 0
-filename = 'testY_'
-buildTrainY(dataset, nb_seg, trimPercent, first_frame, last_frame, not_frame, filename)
-filename = 'testX_'
-buildTrainX_conv(dataset, nb_seg, trimPercent, first_frame, last_frame, not_frame, sigma, filename)
+#first_frame = 1
+#last_frame = 35
+#not_frame = 0
+#filename = 'NN/testY_'
+#buildTrainY(nb_seg, trimPercent, first_frame, last_frame, not_frame, filename)
+#filename = 'NN/testX_'
+#buildTrainX_conv(nb_seg, trimPercent, first_frame, last_frame, not_frame, sigma, filename)

@@ -10,13 +10,12 @@ import math
 
 ## Load data
 # In[]
-path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/NN/' 
+ 
 def loadData():
 
     X_train_all = np.loadtxt(path + "trainX_all.txt",delimiter=None)
     Y_train_all = np.loadtxt(path + "trainY_all.txt",delimiter=None)
     Y_train_all = Y_train_all[:, 0:3]
-    X_test_all = np.loadtxt(path + "testX_0.txt",delimiter=None)
     
     #duplicate data
 #    X_train_all = np.concatenate((X_train_all,X_train_all), axis=0)
@@ -54,7 +53,6 @@ def loadData():
     Y_train = all_train[0:nb_halfdata,nb_features:]   
     X_valid = all_train[nb_halfdata:,0:nb_features]
     Y_valid = all_train[nb_halfdata:,nb_features:] 
-    X_test = X_test_all
      
     # polynomio
     X_train_,params = ml.transforms.rescale(X_train);
@@ -129,7 +127,7 @@ def extrapolate(predicted, totalNum, filename, nb_outputs):
     assert(predicted.shape[1] == total.shape[1])
     r = math.floor (( totalNum - predicted.shape[0] )/2)
     total[r:r+predicted.shape[0], :] = predicted
-    np.savetxt(filename, total, fmt='%.6f', delimiter=' ')
+    np.savetxt(path + filename, total, fmt='%.6f', delimiter=' ')
     
 ## Prediction
 # In[]:
@@ -144,20 +142,21 @@ def predict(model, X_test, scaler, nb_outputs, filename):
     extrapolate(predicted, 300, filename, nb_outputs)
 ## Main
 # In[]
+path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/1220/NN/'
+    
 (X_train, Y_train, X_valid, Y_valid, nb_features, nb_outputs, X_test, scaler) = loadData()
 
 model = buildModel(nb_features, nb_outputs)
 
 model = trainModel(model, X_train, Y_train, X_valid, Y_valid)
 
-predict(model, X_test, scaler, nb_outputs, 'testY_NN_full.txt')
 
-## Test other frames
+## Test all frames
 # In[]
 frame0 = 3
 frame1 = 36
 for i in range (0 , frame1-frame0):
     f = i*5
     X_test = np.loadtxt(path + "trainX_" + str(f) + ".txt",delimiter=None)
-    filename = "../input/testY_NN_" + str(f + frame0*5) + ".txt"
+    filename = "testY_NN_full" + str(f + frame0*5) + ".txt"
     predict(model, X_test, scaler, nb_outputs, filename)
