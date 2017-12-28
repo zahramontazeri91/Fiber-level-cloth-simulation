@@ -287,10 +287,10 @@ void CrossSection::yarnShapeMatches(const std::vector<yarnIntersect2D> &pnts_tra
 		float theta_R;
 		if (pnts_trans[i][0].size() != pnts_ref[i][0].size() || pnts_trans[i][1].size() != pnts_ref[i][1].size()) {
 			std::cout << "Not equal number of points in simulated and procedural in " << i << "-th cross-section.\n";
-			all_mat_S[i].S00 = all_mat_S[i-1].S00;
-			all_mat_S[i].S01 = all_mat_S[i-1].S01;
-			all_mat_S[i].S11 = all_mat_S[i-1].S11;
-			all_theta_R[i] = all_theta_R[i-1];
+			all_mat_S[i].S00 = 0.0;
+			all_mat_S[i].S01 = 0.0;
+			all_mat_S[i].S11 = 0.0;
+			all_theta_R[i] = 0.0;
 			continue;
 		}
 

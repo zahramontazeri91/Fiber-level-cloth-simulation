@@ -119,11 +119,7 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 	
 	Fiber::Yarn yarn_tmp;
 
-	//const char* centerYarn1 = "centerYarn_ref.txt";
-	//const char* normYarn1 = "normYarn_0.txt";
-	//yarn_tmp.yarnCenter(yarnfile1, centerYarn1);
 	std::vector<yarnIntersect2D> pnts_ref;
-	//CrossSection cs1(yarnfile1, centerYarn1, normYarn1, ply_num, n, 100, pnts_ref, true);
 	CrossSection cs1(yarnfile1, ply_num, pnts_ref);
 
 	yarn_tmp.yarnCenter(yarnfile2, curveFile);
@@ -443,8 +439,6 @@ void L2norm(const std::vector<yarnIntersect2D> &its_deform, const std::vector<ya
 					e += square_norm(its_deform[i][p][j] - its_trans[i][p][j]);
 				}
 			}
-			if (i == 100)
-				std::cout << its_deform.size() << " " << e << std::endl;
 			L2.push_back(e);
 			fprintf_s(fout, "%.6f \n", e);
 		}

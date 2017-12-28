@@ -15,9 +15,9 @@ int main(int argc, const char **argv) {
 	Fiber::Yarn yarn;
 	yarn.parse(configfile);
 	
-	int frame0 = 31;
-	int frame1 = 32;
-	std::string dataset = "1220";
+	int frame0 = 21;
+	int frame1 = 22;
+	std::string dataset = "1222";
 	//std::string tmp0 = "data/" + dataset + "/simul_frame_0.txt";
 	//const char* yarnfile1 = tmp0.c_str();
 	const char* yarnfile1 = "genYarn_ref.txt";
@@ -37,15 +37,17 @@ int main(int argc, const char **argv) {
 
 			for (int i = frame0; i < frame1; i++) {		
 
-				std::string tmp1 = "data/" + dataset + "/simul_frame_" + std::to_string(i * 5) + ".txt";
+				int f = i * 10;
+
+				std::string tmp1 = "data/" + dataset + "/simul_frame_" + std::to_string(f) + ".txt";
 				const char* yarnfile2 = tmp1.c_str();
-				std::string tmp2 = "input/" + dataset + "/matrix_R_" + std::to_string(i * 5) + ".txt";
+				std::string tmp2 = "input/" + dataset + "/matrix_R_" + std::to_string(f) + ".txt";
 				const char* compress_R = tmp2.c_str();
-				std::string tmp3 = "input/" + dataset + "/matrix_S_" + std::to_string(i * 5) + ".txt";
+				std::string tmp3 = "input/" + dataset + "/matrix_S_" + std::to_string(f) + ".txt";
 				const char* compress_S = tmp3.c_str();
-				std::string tmp4 = "input/" + dataset + "/centerYarn_" + std::to_string(i * 5) + ".txt";
+				std::string tmp4 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + ".txt";
 				const char* curvefile = tmp4.c_str();
-				std::string tmp5 = "input/" + dataset + "/normYarn_" + std::to_string(i * 5) + ".txt";
+				std::string tmp5 = "input/" + dataset + "/normYarn_" + std::to_string(f) + ".txt";
 				const char* normfile = tmp5.c_str();
 
 				std::ifstream fin1(yarnfile1);
@@ -56,17 +58,9 @@ int main(int argc, const char **argv) {
 				const int vrtx_num = yarn.getStepNum();
 				extractCompress_seg(yarnfile1, yarnfile2, compress_R, compress_S, 
 					curvefile, normfile, yarn.getPlyNum(), vrtx_num);
-				
-				//return 0;
-
-				//Fiber::Yarn::Compress compress;
-				//Fiber::Yarn::CenterLine curve;
-				//const float trimPercent = 0.33;
-				//constFitting_compParam(ellipses, theta_R, trimPercent, compress);
-				//sinFitting_curve(curvefile, trimPercent, curve);
 
 				/**************************************************/
-				std::string tmp6 = "output/" + dataset + "/genYarn_" + std::to_string(i * 5) + ".txt";
+				std::string tmp6 = "output/" + dataset + "/genYarn_" + std::to_string(f) + ".txt";
 				const char* outfile = tmp6.c_str();
 				// Procedural step
 				yarn.yarn_simulate();
