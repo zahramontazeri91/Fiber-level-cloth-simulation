@@ -92,6 +92,35 @@ void appendCenter_yarn(const std::vector<Fiber::Yarn::CenterLine> &centerlines, 
 }
 #endif
 
+void writeParameters(std::vector<Matrix_S> &all_mat_S, std::vector<float> &all_theta_R, const char* compress_R, const char* compress_S)
+{
+
+	FILE *foutR;
+	if (fopen_s(&foutR, compress_R, "wt") == 0) {
+		fprintf_s(foutR, "%d \n", all_theta_R.size());
+		for (int i = 0; i < all_theta_R.size(); ++i) {
+			fprintf_s(foutR, "%.6f \n", all_theta_R[i]);
+		}
+		fclose(foutR);
+	}
+
+	FILE *foutS;
+	// write S-matrix for each segment not vertex 
+	if (fopen_s(&foutS, compress_S, "wt") == 0) {
+		//fprintf_s(foutS, "%d \n", all_mat_S.size());
+		for (int i = 0; i < all_mat_S.size() - 1; ++i) {
+			fprintf_s(foutS, "%.6f %.6f %.6f \n", (all_mat_S[i].S00 + all_mat_S[i + 1].S00) / 2.f,
+				(all_mat_S[i].S11 + all_mat_S[i + 1].S11) / 2.f,
+				(all_mat_S[i].S01 + all_mat_S[i + 1].S01) / 2.f);
+		}
+		int i = all_mat_S.size() - 1;
+		fprintf_s(foutS, "%.6f %.6f %.6f \n", all_mat_S[i].S00 / 2.f,
+			all_mat_S[i].S11 / 2.f,
+			all_mat_S[i].S01 / 2.f);
+		fclose(foutS);
+	}
+	std::cout << "Compression parameters are successfully written to the file!\n";
+}
 void decomposeS(const Matrix_S &mat_S, Ellipse &ellipse) {
 	Eigen::Matrix2f S;
 	S << mat_S.S00, mat_S.S01, mat_S.S01, mat_S.S11;
