@@ -2,24 +2,29 @@
 """
 Read obj file and write in the data format of simulated data
 """
-vrtNum = 300
+vrtNum = 50
+fiberNum = 158
 #path = 'D:/sandbox/fiberSimulation/dataSets/train_stretching1222/'
-path = 'D:/sandbox/fiberSimulation/dataSets/train_teeth1220/'
+#path = 'D:/sandbox/fiberSimulation/dataSets/train_teeth1220/'
+path = 'D:/sandbox/fiberSimulation/dataSets/nn_train_woven1224/'
+dataset = '1224'
 
-for i in range (0,36):
-    if i*5 < 10 :
-        frameNum = '0000'+ str(i*5) + '00'
-    elif i*5 <100 :
-       frameNum = '000'+ str(i*5) + '00' 
+for i in range (0,39):
+    f = i*10
+    if f < 10 :
+        frameNum = '0000'+ str(f) + '00'
+    elif f <100 :
+       frameNum = '000'+ str(f) + '00' 
     else:
-       frameNum = '00'+ str(i*5) + '00' 
+       frameNum = '00'+ str(f) + '00' 
 
     fname_read = path + 'frame_' + frameNum + 'fiber_00.obj'
-    fname_write = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/data/1220/simul_frame_' + str(i*5) + '.txt'
+    print(f)
+    fname_write = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/data/'+dataset+'/simul_frame_' + str(f) + '_0.txt'
     with open(fname_write, 'w') as fout:
         with open(fname_read, 'r') as fin:
-            fout.writelines('%d\n' %160)
-            for f in range (0,160):
+            fout.writelines('%d\n' %fiberNum)
+            for f in range (0,fiberNum):
                 fout.writelines('%d\n' %vrtNum) 
                 for v in range (0,vrtNum):
                     line = fin.readline().split()

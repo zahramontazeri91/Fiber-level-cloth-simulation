@@ -12,11 +12,12 @@ import math
 # In[]
  
 def loadData():
-
+    
     X_train_all = np.loadtxt(path + "trainX_all.txt",delimiter=None)
     Y_train_all = np.loadtxt(path + "trainY_all.txt",delimiter=None)
-    Y_train_all = Y_train_all[:, 0:3]
-    
+#    X_train_all = np.loadtxt("../input/trainX_all_1220_1222.txt",delimiter=None)
+#    Y_train_all = np.loadtxt("../input/trainY_all_1220_1222.txt",delimiter=None)
+  
     #duplicate data
 #    X_train_all = np.concatenate((X_train_all,X_train_all), axis=0)
 #    X_train_all = np.concatenate((X_train_all,X_train_all), axis=0)
@@ -55,10 +56,10 @@ def loadData():
     Y_valid = all_train[nb_halfdata:,nb_features:] 
      
     # polynomio
-    X_train_,params = ml.transforms.rescale(X_train);
-    X_valid_,_ = ml.transforms.rescale( X_valid, params);
-    X_test_,_ = ml.transforms.rescale( X_test, params);
-    nb_features = X_train_.shape[1]
+#    X_train_,params = ml.transforms.rescale(X_train);
+#    X_valid_,_ = ml.transforms.rescale( X_valid, params);
+#    X_test_,_ = ml.transforms.rescale( X_test, params);
+#    nb_features = X_train_.shape[1]
     
     # Represent the targets as one-hot vectors: e.g. 0 -> [1,0];  1 -> [0, 1].
     print("Training Y matrix shape: ", Y_train.shape)
@@ -131,7 +132,7 @@ def extrapolate(predicted, totalNum, filename, nb_outputs):
     
 ## Prediction
 # In[]:
-def predict(model, X_test, scaler, nb_outputs, filename):
+def predict(model, X_test, scaler, nb_outputs, filename, vrtxNum):
     
     predicted = model.predict(X_test, verbose=0)
 #    all_test = np.concatenate((X_test,predicted), axis=1)
@@ -139,10 +140,11 @@ def predict(model, X_test, scaler, nb_outputs, filename):
 #    np.savetxt(path + 'testY_NN.txt', all_test[:, -3:], fmt='%.6f', delimiter=' ')
     np.savetxt(path + 'testY_NN.txt', predicted, fmt='%.6f', delimiter=' ')
     
-    extrapolate(predicted, 300, filename, nb_outputs)
+    extrapolate(predicted, vrtxNum, filename, nb_outputs)
 ## Main
 # In[]
-path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/1220/NN/'
+vrtxNum = 50
+path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/1224/NN/'
     
 (X_train, Y_train, X_valid, Y_valid, nb_features, nb_outputs, X_test, scaler) = loadData()
 
@@ -153,10 +155,10 @@ model = trainModel(model, X_train, Y_train, X_valid, Y_valid)
 
 ## Test all frames
 # In[]
-frame0 = 3
-frame1 = 36
+frame0 = 0
+frame1 = 39
 for i in range (0 , frame1-frame0):
-    f = i*5
+    f = i*10
     X_test = np.loadtxt(path + "trainX_" + str(f) + ".txt",delimiter=None)
-    filename = "testY_NN_full" + str(f + frame0*5) + ".txt"
-    predict(model, X_test, scaler, nb_outputs, filename)
+    filename = "testY_NN_full_" + str(f + frame0*5) + ".txt"
+    predict(model, X_test, scaler, nb_outputs, filename, vrtxNum)

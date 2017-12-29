@@ -148,8 +148,14 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 	
 	Fiber::Yarn yarn_tmp;
 
+	//std::vector<yarnIntersect2D> pnts_ref;
+	//CrossSection cs1(yarnfile1, ply_num, pnts_ref);
+
+	const char* normYarn1 = "norms.txt";
+	const char* centerYarn1 = "centerYarn1.txt";
+	yarn_tmp.yarnCenter(yarnfile1, centerYarn1);
 	std::vector<yarnIntersect2D> pnts_ref;
-	CrossSection cs1(yarnfile1, ply_num, pnts_ref);
+	CrossSection cs1(yarnfile1, centerYarn1, normYarn1, ply_num, n, 100, pnts_ref, false);
 
 	yarn_tmp.yarnCenter(yarnfile2, curveFile);
 	std::vector<yarnIntersect2D> pnts_trans;
@@ -311,7 +317,7 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 	const char* refFile = "../data/allCrossSection2D_ref.txt";
 	const char* deformedRefFile = "../data/allCrossSection2D_deformedRef.txt";
 	const char* deformedFile = "../data/allCrossSection2D_deformed.txt";
-	const float trimPercent = 0.0;
+	const float trimPercent = 0.1;
 	plotIntersections(pnts_ref, refFile, trimPercent);
 	std::vector<yarnIntersect2D> ref_deformed;
 	//deformRef(pnts_ref, ref_deformed, new_ellipses, new_theta_R);
@@ -319,8 +325,8 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 	plotIntersections(ref_deformed, deformedRefFile, trimPercent);
 	plotIntersections(pnts_trans, deformedFile, trimPercent);
 
-	std::vector<float> L2;
-	L2norm(ref_deformed, pnts_trans, L2, L2File); //note that these have same size
+	//std::vector<float> L2;
+	//L2norm(ref_deformed, pnts_trans, L2, L2File); //note that these have same size
 }
 
 float nextTheta(float theta0, float theta1) {
@@ -456,6 +462,9 @@ void sinFitting_curve(const char* curveFile, const float trimPercent, Fiber::Yar
 #endif 
 
 void L2norm(const std::vector<yarnIntersect2D> &its_deform, const std::vector<yarnIntersect2D> &its_trans, std::vector<float> &L2, const char* filename) {
+
+	if (its_deform.size() != its_trans.size())
+		std::cout << its_deform.size() << " " << its_trans.size() << std::endl;
 	assert(its_deform.size() == its_trans.size());
 	FILE *fout;
 

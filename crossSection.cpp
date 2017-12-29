@@ -1170,6 +1170,7 @@ void CrossSection::extractNormals(std::vector<Ellipse> &ellipses, std::vector<ve
 void CrossSection::yarn2crossSections(std::vector<yarnIntersect2D> &itsLists) {
 	//first initialize the vectors
 	int vrtx_num = m_yarn.getStepNum();
+
 	itsLists.resize(vrtx_num);
 	for (int i = 0; i < itsLists.size(); ++i)
 		itsLists[i].resize(m_yarn.plys.size());

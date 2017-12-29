@@ -9,18 +9,21 @@
 
 int main(int argc, const char **argv) {
 
-	const char* configfile = "config.txt";
+	const char* yarnfile1 = "genYarn_ref_50.txt";
+	//const char* yarnfile1 = "genYarn_ref_300.txt";
+
+	const char* configfile = "config_50.txt";
+	//const char* configfile = "config_300.txt";
 	std::ifstream fin1(configfile);
 	assert(fin1.is_open() && "config file wasn't found!\n");
 	Fiber::Yarn yarn;
 	yarn.parse(configfile);
 	
-	int frame0 = 29;
-	int frame1 = 60;
-	std::string dataset = "1220";
-	//std::string tmp0 = "data/" + dataset + "/simul_frame_0.txt";
-	//const char* yarnfile1 = tmp0.c_str();
-	const char* yarnfile1 = "genYarn_ref.txt";
+	int frame0 = 0;
+	int frame1 = 39;
+	int yarnNum = 1;
+	std::string dataset = "1224";
+	int skipFactor = 10;
 
 	//phase 0: test
 	//phase 1: fitting
@@ -30,50 +33,56 @@ int main(int argc, const char **argv) {
 
 	int phase = 1;
 
-
 	switch (phase) {
 		case 1: {
 			std::cout << "*** Fitting phase ***\n";
+			int cnt = frame0 * skipFactor;
+			for (int i = frame0; i < frame1; i++) {	
+				int f = i * skipFactor;
+				
+				for (int y = 0; y < yarnNum; ++y) {
 
-			for (int i = frame0; i < frame1; i++) {		
+					std::string tmp1 = "data/" + dataset + "/simul_frame_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+					const char* yarnfile2 = tmp1.c_str();
+					std::string tmp2 = "input/" + dataset + "/matrix_R_" + std::to_string(cnt) + ".txt";
+					const char* compress_R = tmp2.c_str();
+					std::string tmp3 = "input/" + dataset + "/matrix_S_" + std::to_string(cnt) + ".txt";
+					const char* compress_S = tmp3.c_str();
+					std::string tmp4 = "input/" + dataset + "/centerYarn_" + std::to_string(cnt) + ".txt";
+					const char* curvefile = tmp4.c_str();
+					std::string tmp5 = "input/" + dataset + "/normYarn_" + std::to_string(cnt) + ".txt";
+					const char* normfile = tmp5.c_str();
 
-				int f = i * 10;
+					std::ifstream fin1(yarnfile1);
+					std::ifstream fin2(yarnfile2);
+					std::cout << yarnfile2 << std::endl;
 
-				std::string tmp1 = "data/" + dataset + "/simul_frame_" + std::to_string(f) + ".txt";
-				const char* yarnfile2 = tmp1.c_str();
-				std::string tmp2 = "input/" + dataset + "/matrix_R_" + std::to_string(f) + ".txt";
-				const char* compress_R = tmp2.c_str();
-				std::string tmp3 = "input/" + dataset + "/matrix_S_" + std::to_string(f) + ".txt";
-				const char* compress_S = tmp3.c_str();
-				std::string tmp4 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + ".txt";
-				const char* curvefile = tmp4.c_str();
-				std::string tmp5 = "input/" + dataset + "/normYarn_" + std::to_string(f) + ".txt";
-				const char* normfile = tmp5.c_str();
+					assert(fin1.is_open() && "reference-yarn file wasn't found!\n");
+					assert(fin2.is_open() && "compressed-yarn file wasn't found!\n");
 
-				std::ifstream fin1(yarnfile1);
-				std::ifstream fin2(yarnfile2);
-				assert(fin1.is_open() && "reference-yarn file wasn't found!\n");
-				assert(fin2.is_open() && "compressed-yarn file wasn't found!\n");
+					const int vrtx_num = yarn.getStepNum();
 
-				const int vrtx_num = yarn.getStepNum();
-				extractCompress_seg(yarnfile1, yarnfile2, compress_R, compress_S, 
-					curvefile, normfile, yarn.getPlyNum(), vrtx_num);
+					extractCompress_seg(yarnfile1, yarnfile2, compress_R, compress_S,
+						curvefile, normfile, yarn.getPlyNum(), vrtx_num);
 
-				/**************************************************/
-				//std::string tmp6 = "output/" + dataset + "/genYarn_" + std::to_string(f) + ".txt";
-				//const char* outfile = tmp6.c_str();
-				//// Procedural step
-				//yarn.yarn_simulate();
-				//yarn.compress_yarn(compress_R, compress_S);
-				//yarn.curve_yarn(curvefile, normfile);
-				//yarn.write_yarn(outfile);
+					/**************************************************/
+					std::string tmp6 = "output/" + dataset + "/genYarn_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+					const char* outfile = tmp6.c_str();
+					//// Procedural step
+					yarn.yarn_simulate();
+					yarn.compress_yarn(compress_R, compress_S);
+					yarn.curve_yarn(curvefile, normfile);
+					yarn.write_yarn(outfile);
 
-				std::string tmp7 = "output/" + dataset + "/genYarn_wo_" + std::to_string(f) + ".txt";
-				const char* outfile_wo = tmp7.c_str();
-				yarn.yarn_simulate();
-				//yarn.compress_yarn(compress_R, compress_S);
-				yarn.curve_yarn(curvefile, normfile);
-				yarn.write_yarn(outfile_wo);
+					std::string tmp7 = "output/" + dataset + "/genYarn_wo_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+					const char* outfile_wo = tmp7.c_str();
+					yarn.yarn_simulate();
+					yarn.compress_yarn(compress_R, compress_S);
+					yarn.curve_yarn(curvefile, normfile);
+					yarn.write_yarn(outfile_wo);
+
+					cnt += skipFactor;
+				}
 			}
 			break;
 		}
@@ -82,23 +91,25 @@ int main(int argc, const char **argv) {
 
 			for (int i = frame0; i < frame1; i++) {
 
-				std::string tmp5 = "input/" + dataset + "/matrix_R_" + std::to_string(i * 5) + ".txt";
+				int f = i * skipFactor;
+				std::string tmp5 = "input/" + dataset + "/matrix_R_" + std::to_string(f) + ".txt";
 				const char* compress_R = tmp5.c_str();
-				std::string tmp6 = "input/" + dataset + "/NN/testY_NN_full" + std::to_string(i * 5) + ".txt";
+				std::string tmp6 = "input/" + dataset + "/NN/testY_NN_full_" + std::to_string(f) + ".txt";
 				const char* compress_S = tmp6.c_str();
-				std::string tmp7 = "input/" + dataset + "/centerYarn_" + std::to_string(i * 5) + ".txt";
+				std::string tmp7 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + ".txt";
 				const char* curvefile = tmp7.c_str();
-				std::string tmp8 = "input/" + dataset + "/normYarn_" + std::to_string(i * 5) + ".txt";
+				std::string tmp8 = "input/" + dataset + "/normYarn_" + std::to_string(f) + ".txt";
 				const char* normfile = tmp8.c_str();
 
 
-				std::string tmp3 = "output/" + dataset + "/genYarn_NN_" + std::to_string(i * 5) + ".txt";
+				std::string tmp3 = "output/" + dataset + "/genYarn_NN_" + std::to_string(f) + "_0.txt";
 				const char* outfile = tmp3.c_str();
 				// Procedural step
 				yarn.yarn_simulate();
 				yarn.compress_yarn(compress_R, compress_S);
 				yarn.curve_yarn(curvefile, normfile);
 				yarn.write_yarn(outfile);
+				std::cout << outfile << std::endl;
 			}
 
 			break;

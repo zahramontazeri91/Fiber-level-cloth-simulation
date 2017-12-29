@@ -14,8 +14,8 @@ def buildTrainY(nb_seg, trimPercent, first_frame, last_frame, not_frame, filenam
     for i in range (first_frame,last_frame+1):
         if i==not_frame:
             continue
-        j = c*5
-        fname_write = path + filename + str(j - first_frame*5) + '.txt'
+        j = c*skipFactor
+        fname_write = path + filename + str(j - first_frame*skipFactor) + '.txt'
         with open(fname_write, 'w') as fout:
             fname_read = path + 'matrix_S_' + str(j) + '.txt'
             with open(fname_read, 'r') as fin:
@@ -34,8 +34,8 @@ def buildTrainX_conv(nb_seg, trimPercent, first_frame, last_frame, not_frame, si
     for i in range (first_frame,last_frame+1):
         if i==not_frame:
             continue
-        j = c*5
-        fname_write = path + filename + str(j - first_frame*5) + '.txt'
+        j = c*skipFactor
+        fname_write = path + filename + str(j - first_frame*skipFactor) + '.txt'
         with open(fname_write, 'w') as fout:
             fname_read = path + 'matrix_f3_' + str(j) + '.txt'            
             with open(fname_read, 'r') as fin:
@@ -44,7 +44,6 @@ def buildTrainX_conv(nb_seg, trimPercent, first_frame, last_frame, not_frame, si
                 ignor = int(nb_seg*trimPercent)  
                 for cs in range (0,nb_seg):                 
                     if (cs >= ignor and cs <= nb_seg - ignor):
-                                               
                         total = ""
                         for w in range (sigma ,0, -1): 
                             total += line[cs - w] + ' ' 
@@ -61,7 +60,7 @@ def appendAll(first_frame, last_frame, filename, test_out):
     fname_write = path + filename + 'all.txt'
     with open(fname_write, 'w') as fout:
         for i in range (first_frame,last_frame+1-test_out): #-1 because one frame is gone for testing
-            fname_read = path + filename + str(i*5 - first_frame*5) + '.txt'
+            fname_read = path + filename + str(i*skipFactor - first_frame*skipFactor) + '.txt'
             with open(fname_read, 'r') as fin:
                 for j in range (0,nb_seg):
                     line = fin.readline()
@@ -70,15 +69,17 @@ def appendAll(first_frame, last_frame, filename, test_out):
     print('all files appended!\n')
 
 # In[]:
-path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/1220/'
-nb_seg = 299
-trimPercent = 0.2
-first_frame = 1
-last_frame = 35
+dataset = '1224'
+path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/'
+nb_seg = 50-1
+skipFactor = 10
+trimPercent = 0.1
+first_frame = 0
+last_frame = 38
 test_frame = 3
 not_frame = -1
 test_out = 0
-sigma = 6 #window_size = 2*sigma + 1
+sigma = 3 #window_size = 2*sigma + 1
 filename = 'NN/trainY_'
 buildTrainY(nb_seg, trimPercent, first_frame, last_frame, not_frame, filename)
 filename = 'NN/trainX_'
