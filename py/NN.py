@@ -13,10 +13,10 @@ import math
  
 def loadData():
     
-    X_train_all = np.loadtxt(path + "trainX_all.txt",delimiter=None)
-    Y_train_all = np.loadtxt(path + "trainY_all.txt",delimiter=None)
-#    X_train_all = np.loadtxt("../input/trainX_all_1220_1222.txt",delimiter=None)
-#    Y_train_all = np.loadtxt("../input/trainY_all_1220_1222.txt",delimiter=None)
+#    X_train_all = np.loadtxt(path + "trainX_all.txt",delimiter=None)
+#    Y_train_all = np.loadtxt(path + "trainY_all.txt",delimiter=None)
+    X_train_all = np.loadtxt("../input/trainX_all_1220_1222.txt",delimiter=None)
+    Y_train_all = np.loadtxt("../input/trainY_all_1220_1222.txt",delimiter=None)
   
     #duplicate data
 #    X_train_all = np.concatenate((X_train_all,X_train_all), axis=0)
@@ -67,7 +67,7 @@ def loadData():
 
      
 #    return (X_train_, Y_train, X_valid_, Y_valid, nb_features,nb_outputs, X_test_)
-    return (X_train, Y_train, X_valid, Y_valid, nb_features,nb_outputs, X_test, scaler)
+    return (X_train, Y_train, X_valid, Y_valid, nb_features,nb_outputs, scaler)
 
 ## Build neural network model
 # In[]:
@@ -143,10 +143,11 @@ def predict(model, X_test, scaler, nb_outputs, filename, vrtxNum):
     extrapolate(predicted, vrtxNum, filename, nb_outputs)
 ## Main
 # In[]
-vrtxNum = 50
-path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/1224/NN/'
+vrtxNum = 300
+dataset = '1220'
+path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
     
-(X_train, Y_train, X_valid, Y_valid, nb_features, nb_outputs, X_test, scaler) = loadData()
+(X_train, Y_train, X_valid, Y_valid, nb_features, nb_outputs, scaler) = loadData()
 
 model = buildModel(nb_features, nb_outputs)
 
@@ -155,10 +156,14 @@ model = trainModel(model, X_train, Y_train, X_valid, Y_valid)
 
 ## Test all frames
 # In[]
+#f = 100
+#X_test = np.loadtxt(path + "trainX_" + str(f) + ".txt",delimiter=None)
+#predict(model, X_test, scaler, nb_outputs, "testY_NN_full.txt", vrtxNum)
+
 frame0 = 0
-frame1 = 39
+frame1 = 36
 for i in range (0 , frame1-frame0):
-    f = i*10
+    f = i*5
     X_test = np.loadtxt(path + "trainX_" + str(f) + ".txt",delimiter=None)
     filename = "testY_NN_full_" + str(f + frame0*5) + ".txt"
     predict(model, X_test, scaler, nb_outputs, filename, vrtxNum)

@@ -69,17 +69,17 @@ def appendAll(first_frame, last_frame, filename, test_out):
     print('all files appended!\n')
 
 # In[]:
-dataset = '1224'
+dataset = '1220'
 path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/'
-nb_seg = 50-1
-skipFactor = 10
-trimPercent = 0.1
+nb_seg = 300-1
+skipFactor = 5
+trimPercent = 0.2
 first_frame = 0
-last_frame = 38
+last_frame = 35
 test_frame = 3
 not_frame = -1
 test_out = 0
-sigma = 3 #window_size = 2*sigma + 1
+sigma = 6 #window_size = 2*sigma + 1
 filename = 'NN/trainY_'
 buildTrainY(nb_seg, trimPercent, first_frame, last_frame, not_frame, filename)
 filename = 'NN/trainX_'
@@ -94,3 +94,19 @@ appendAll(first_frame, last_frame, 'NN/trainY_', test_out)
 #buildTrainY(nb_seg, trimPercent, first_frame, last_frame, not_frame, filename)
 #filename = 'NN/testX_'
 #buildTrainX_conv(nb_seg, trimPercent, first_frame, last_frame, not_frame, sigma, filename)
+
+# In[]:
+# Use this to append two datasets together
+#path1 = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/1220/NN/'
+#path2 = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/1222/NN/'
+#X_train_all_1 = np.loadtxt(path1 + "trainX_all.txt",delimiter=None)
+#Y_train_all_1 = np.loadtxt(path1 + "trainY_all.txt",delimiter=None)
+#X_train_all_2 = np.loadtxt(path2 + "trainX_all.txt",delimiter=None)
+#Y_train_all_2 = np.loadtxt(path2 + "trainY_all.txt",delimiter=None)
+#
+#X_train_all = np.concatenate((X_train_all_1,X_train_all_2), axis=0)
+#Y_train_all = np.concatenate((Y_train_all_1,Y_train_all_2), axis=0)
+#
+#w_path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'
+#np.savetxt(w_path+'trainX_all_1220_1222.txt', X_train_all, fmt='%.6f', delimiter=' ')
+#np.savetxt(w_path+'trainY_all_1220_1222.txt', Y_train_all, fmt='%.6f', delimiter=' ')

@@ -67,8 +67,9 @@ def visualize(Sx, Sy, thetaS, thetaR, title = "", fname = "", showWindow = True)
 
        
 
-
-path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/1220/NN/'
+################################
+dataset = '1220'
+path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
 
 for w in range (5,6):
 #for w in range (0,36):
@@ -80,10 +81,10 @@ for w in range (5,6):
     Ty = []
     L2 = []
 
-    f = w*5       
-    fname = '../input/
-#    fname = path + 'testY_NN_' + str(f) + '.txt'    
-    fname = path + 'trainY_' + str(f) + '.txt' 
+#    f = w*5       
+    f=100
+    fname = path + 'testY_NN.txt'    
+#    fname = path + 'trainY_' + str(f) + '.txt' 
     
     writefile = 'frame_' + str(f) 
     with open(fname, 'r') as fin:

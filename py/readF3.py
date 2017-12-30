@@ -8,13 +8,13 @@ import numpy as np
 
 #path = 'D:/sandbox/fiberSimulation/dataSets/train_teeth1220/'
 path = 'D:/sandbox/fiberSimulation/dataSets/train_stretching1222/'
-path = 'D:/sandbox/fiberSimulation/dataSets/nn_train_woven1224/'
-dataset = '1224'
+#path = 'D:/sandbox/fiberSimulation/dataSets/nn_train_woven1224/'
+dataset = '1222'
 
-vrtNum = 50-1
-fiberNum = 158
+vrtNum = 300-1
+fiberNum = 160
 
-for i in range (0,39):
+for i in range (0,30):
     f = i * 10
     if f < 10 :
         frameNum = '0000'+ str(f) + '00'
