@@ -118,6 +118,6 @@ title2 = 'Deformed-Ref'
 title3 = 'Simulated '
 plane_num = 40 
 ply_num = 2
-its_num = 79
+its_num = 80
 plotIntersects(X1, Y1, X2, Y2, X3, Y3, scale, plane_num, ply_num, its_num, title1, title2, title3)
 

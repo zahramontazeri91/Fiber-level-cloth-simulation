@@ -18,11 +18,12 @@ int main(int argc, const char **argv) {
 	assert(fin0.is_open() && "config file wasn't found!\n");
 	Fiber::Yarn yarn;
 	yarn.parse(configfile);
-	
+
+
 	int frame0 = 0;
-	int frame1 = 35;
+	int frame1 = 1;
 	int yarnNum = 1;
-	std::string dataset = "1220";
+	std::string dataset = "1224";
 	int skipFactor = 5;
 
 	//phase 0: test
@@ -31,7 +32,7 @@ int main(int argc, const char **argv) {
 	//phase 3: parameterization 
 	//phase 4: curved-yarn generation
 
-	int phase = 2;
+	int phase = 6;
 
 	switch (phase) {
 		case 1: {
@@ -44,7 +45,8 @@ int main(int argc, const char **argv) {
 
 					//std::string tmp1 = "data/" + dataset + "/simul_frame_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
 					std::string tmp1 = "data/" + dataset + "/simul_frame_" + std::to_string(f) + ".txt";
-					const char* yarnfile2 = tmp1.c_str();
+					//const char* yarnfile2 = tmp1.c_str();
+					const char* yarnfile2 = "yarn09.txt";
 					std::string tmp2 = "input/" + dataset + "/matrix_R_" + std::to_string(cnt) + ".txt";
 					const char* compress_R = tmp2.c_str();
 					std::string tmp3 = "input/" + dataset + "/matrix_S_" + std::to_string(cnt) + ".txt";
@@ -233,14 +235,14 @@ int main(int argc, const char **argv) {
 		case 4: {
 			std::cout << "*** Generation phase (Chang use) *** \n";
 			//Generate a yarn mapped to a given curve
-			const char* configFile = argv[1];
+			const char* configFile = "config_50.txt";;
 			std::ifstream fin1(configFile);
 			assert(fin1.is_open() && "config file wasn't found!\n");
 
 			Fiber::Yarn yarn0;
 			yarn0.parse(configFile);
 
-			const char* curvefile = argv[2];
+			const char* curvefile ="curve01.txt";
 			//const char* normfile = "normYarn.txt";
 			std::ifstream fin2(curvefile);
 			assert(fin2.is_open() && "curve file wasn't found!\n");
@@ -248,7 +250,7 @@ int main(int argc, const char **argv) {
 			// Procedural step
 			yarn0.yarn_simulate();
 			yarn0.curve_yarn(curvefile);
-			yarn0.write_yarn(argv[3]);
+			yarn0.write_yarn("yarn01.txt");
 			break;
 		}
 		case 5: {
@@ -321,6 +323,25 @@ int main(int argc, const char **argv) {
 			//const char* outfile_wo = tmp7.c_str();
 			//yarn.curve_yarn(curvefile, normfile);
 			//yarn.write_yarn(outfile_wo);
+			break;
+		}
+		case 6: {
+			std::cout << " *** test flyaways *** ";
+			yarn.simulate_ply();
+			yarn.write_plys("test_ply.txt");
+			const int K = yarn.getPlyNum();
+			yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
+			//yarn.yarn_simulate();
+			yarn.build("test_fly.txt", K);
+
+			const char* compress_R = "matrix_R_175.txt";
+			const char* compress_S = "matrix_S_175.txt";
+			const char* curvefile = "centerYarn_175.txt";
+			const char* normfile = "normYarn_175.txt";
+
+			yarn.compress_yarn(compress_R, compress_S);
+			yarn.curve_yarn(curvefile, normfile);
+			yarn.write_yarn("test_fly.txt");
 			break;
 		}
 		case 0: {

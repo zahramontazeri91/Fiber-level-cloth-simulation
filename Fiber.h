@@ -2,7 +2,9 @@
 #include "Util.h"
 #include "Curve.h"
 #include <Eigen/Dense>
-//#include "fitting.h"
+
+#define IMPROVED_FLYAWAYS
+
 
 typedef std::vector<vec3f> fiber_t;
 typedef std::vector<fiber_t> yarn_t;
@@ -17,6 +19,9 @@ namespace Fiber {
 	/* Define a fiber */
 	struct Fiber {
 		std::vector<vec3f> vertices;	 // world-space positions for this fiber
+#ifndef IMPROVED_FLYAWAYS
+		std::vector<std::vector<vec3f> > fly_vertices_list; // world-space positions for fly away part
+#endif
 		vec3f init_vertex;				 // initial vertex of this fiber on z=0 normal plane, separate from the previous vertices
 										 // because we might need fiber migration 
 		float init_radius;				 // initial radius sampled with Section 4.1 Cross-Sectional Fiber Distribution
@@ -24,6 +29,11 @@ namespace Fiber {
 		float init_migration_theta;		 // initial migration theta for this fiber
 		void clear() {
 			vertices.clear();
+#ifndef IMPROVED_FLYAWAYS
+			for (int i = 0; i < fly_vertices_list.size(); i++)
+				fly_vertices_list[i].clear();
+			fly_vertices_list.clear();
+#endif
 		}
 	};
 
@@ -31,6 +41,9 @@ namespace Fiber {
 	struct Ply {
 		/* Fibers in this ply */
 		std::vector<Fiber> fibers;
+#ifndef IMPROVED_FLYAWAYS
+		int fly_fiber_num;
+#endif
 
 		/* Base center and theta on z=0 normal plane, and default radius = yarn_radius/2 */
 		vec3f base_center;
@@ -54,10 +67,22 @@ namespace Fiber {
 		float ellipse_long, ellipse_short; // e_i and d_i in original paper
 		bool clock_wise;		 // This parameter determines twisting direction of the fibers in ply 
 
+#ifdef IMPROVED_FLYAWAYS
+								 /* Parameters for Fly-aways */
+		float flyaway_hair_density;
+		float flyaway_hair_ze_mu, flyaway_hair_ze_sigma;
+		float flyaway_hair_r0_mu, flyaway_hair_r0_sigma;
+		float flyaway_hair_re_mu, flyaway_hair_re_sigma;
+		float flyaway_hair_pe_mu, flyaway_hair_pe_sigma;
+
+		float flyaway_loop_density;
+		float flyaway_loop_r1_mu, flyaway_loop_r1_sigma;
+#else
 								 /* Parameters and functions for Section 4.4 Hairiness */
 		float mu, sigma;		 // Flyaway fiber length ~ NormalDistribution(mu, sigma)
 		int flyaway_num;		 // Flyaway fiber number in this ply
 		float fly_step_size;	 // Flyaway step size 
+#endif
 
 	};
 
@@ -74,6 +99,9 @@ namespace Fiber {
 		float yarn_alpha;		// Plys twisting in yarn
 		float yarn_radius;		// Radius for yarn circle in which plys twist
 
+#ifdef IMPROVED_FLYAWAYS
+		bool use_flyaways;
+#endif
 
 		std::string config_file;  // Config parameters filename
 		std::string output_file;  // Data output filename 
@@ -186,6 +214,14 @@ namespace Fiber {
 		float extractFiberTwist(const char *fiberTwistFile);
 		void yarn_simulate(const char *plyCenter, const char *fiberTwistFile);
 		void yarn_simulate();
+
+		/* Simulate yarn with flyaways*/
+		/* Simulate ply  */
+		void simulate_ply();
+		/* Load unrolled plys*/
+		void roll_plys(const int K, const std::string &ply_fn, const std::string &fiber_fn);
+		/* Write simulated data (separate plys) to disk */
+		void write_plys(const char *filename = NULL);
 
 		/* compress yarn with theta, direction, a and b, cross section ellipse param. */
 		void readCompressFile(const char* compress_R, const char* compress_S, std::vector<Transform> &all_Transform);

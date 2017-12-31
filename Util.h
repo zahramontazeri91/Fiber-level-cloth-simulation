@@ -1,7 +1,7 @@
 #pragma once
 #include "nvVector.h"
 #include "nvMatrix.h"
-#include "Rng.h"
+//#include "Rng.h"
 //#include "PerlinNoise.h"
 #include <random>
 #include <cmath>
@@ -20,6 +20,8 @@
 #include <iomanip>  
 #include <omp.h>
 
+
+
 const float e = 2.71828182845904523536f;
 const float pi = 3.14159265358979323846f;
 const float eps = 1e-5f;
@@ -35,7 +37,7 @@ typedef nv::matrix4<float>     mat4f;
 
 #define BINARY_FILE
 extern std::string WORK_PATH; 
-extern std::vector<Rng> rngs;
+//extern std::vector<Rng> rngs;
 
 static void wait(int seconds) {
 	int endwait;
@@ -45,30 +47,30 @@ static void wait(int seconds) {
 	}
 }
 
-static float rand01() {
-	int threadID = omp_get_thread_num();
-	assert(threadID >= 0 && threadID < rngs.size());
-	return rngs[threadID].rand(0.f, 1.f);
-}
+//static float rand01() {
+//	int threadID = omp_get_thread_num();
+//	assert(threadID >= 0 && threadID < rngs.size());
+//	return rngs[threadID].rand(0.f, 1.f);
+//}
+//
+//static float rand_range(float r_min, float r_max) {
+//	int threadID = omp_get_thread_num();
+//	assert(threadID >= 0 && threadID < rngs.size());
+//	return rngs[threadID].rand(r_min, r_max);
+//}
 
-static float rand_range(float r_min, float r_max) {
-	int threadID = omp_get_thread_num();
-	assert(threadID >= 0 && threadID < rngs.size());
-	return rngs[threadID].rand(r_min, r_max);
-}
-
-static float rand_range(const vec2f &range) {
-	return rand_range(range.x, range.y);
-}
+//static float rand_range(const vec2f &range) {
+	//return rand_range(range.x, range.y);
+//}
 
 static float my_round(float number)
 {
 	return number < 0.0f ? std::ceil(number - 0.5f) : std::floor(number + 0.5f);
 }
 
-static bool coin_flip() {
-	return rand01() > .5f;
-}
+//static bool coin_flip() {
+	//return rand01() > .5f;
+//}
 
 /* rotate the vector by angle in radian*/
 static vec2f rot2D(const vec2f &v, const float angle) {
@@ -168,6 +170,19 @@ static struct AABB {
 		return lerp_p;
 	}
 };
+
+//static vec3f perlin_vector_field(
+//	PerlinNoise &noise1,
+//	PerlinNoise &noise2,
+//	PerlinNoise &noise3,
+//	const vec3f &vertex,
+//	const float &bbox_scaler) {
+//	vec3f p = vertex / bbox_scaler, r;
+//	r[0] = noise1.noise(p[0], p[1], p[2]);
+//	r[1] = noise2.noise(p[0], p[1], p[2]);
+//	r[2] = noise3.noise(p[0], p[1], p[2]);
+//	return normalize(r);
+//}
 
 // Matrix rotation
 static vec4f rotvec(const vec3f &a, const vec3f &b) {

@@ -165,6 +165,8 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 	std::vector<float> all_theta_R;
 	cs2.yarnShapeMatches(pnts_trans, pnts_ref, all_mat_S, all_theta_R);
 
+	std::cout << pnts_ref[3][0].size() << " " << pnts_trans[3][0].size() << std::endl;
+
 #if 0
 	/****************/
 	Matrix_S mat_S, mat_S1;
