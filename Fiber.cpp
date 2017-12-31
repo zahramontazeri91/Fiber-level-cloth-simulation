@@ -598,7 +598,12 @@ namespace Fiber {
 					world_y = local_y;
 #endif
 					vec3f verIn = vec3f(world_x, world_y, z);
-					fiber.vertices.push_back(verIn);
+					//fiber.vertices.push_back(verIn);
+					
+					this->aabb_procedural.grow(verIn);
+					if (this->aabb_micro_ct.in(verIn))
+						fiber.vertices.push_back(verIn);
+
 				}
 			}
 		}
