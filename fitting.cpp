@@ -9,7 +9,7 @@ void interpolate(const std::vector<float> vals, const int interval, std::vector<
 
 }
 
-void appendCompress_yarn(const std::vector<Fiber::Yarn::Compress> &compress_segs, const int seg_vrtx, 
+void appendCompress_yarn(const std::vector<Fiber::Yarn::Compress> &compress_segs, const int seg_vrtx,
 	const int yarn_vrtx, const char* compressFile) {
 	const int seg_num = compress_segs.size();
 	assert(seg_num * seg_vrtx < yarn_vrtx);
@@ -30,7 +30,7 @@ void appendCompress_yarn(const std::vector<Fiber::Yarn::Compress> &compress_segs
 	}
 	//mirror the values for the leftover vertices  (if the end of yarn hasn't been assign)
 	int c = 1;
-	for (int l = indx+1; l < yarn_vrtx; ++l) {
+	for (int l = indx + 1; l < yarn_vrtx; ++l) {
 		allCompress[l].ellipse_long = allCompress[indx - c].ellipse_long;
 		allCompress[l].ellipse_short = allCompress[indx - c].ellipse_short;
 		allCompress[l].ellipse_theta = allCompress[indx - c].ellipse_theta;
@@ -85,7 +85,7 @@ void appendCenter_yarn(const std::vector<Fiber::Yarn::CenterLine> &centerlines, 
 			float b = 2 * pi / (seg_vrtx_new); //stretch the curve to fit the new length
 			float y = allCenterlines[i].a* sin(b * v) + allCenterlines[i].c;
 			fprintf_s(fout, "0.0 %.4f \n", y); //TODO: this should be in 3D
-			//fprintf_s(fout, "%.4f %.4f %.4f\n", allCenterlines[i].a, allCenterlines[i].b, allCenterlines[i].c);
+											   //fprintf_s(fout, "%.4f %.4f %.4f\n", allCenterlines[i].a, allCenterlines[i].b, allCenterlines[i].c);
 		}
 		fclose(fout);
 	}
@@ -145,7 +145,7 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 {
 	const int n = vrtx_num;
 
-	
+
 	Fiber::Yarn yarn_tmp;
 
 	//std::vector<yarnIntersect2D> pnts_ref;
@@ -189,7 +189,7 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 
 	FILE *fout2;
 	if (fopen_s(&fout2, "../data/plyShapeMatch_proc.txt", "wt") == 0) {
-		fprintf_s(fout2, "%d \n", pnts_ref[100][0].size()*2);
+		fprintf_s(fout2, "%d \n", pnts_ref[100][0].size() * 2);
 		float e = 0.f;
 
 		float S00 = mat_S.S00;
@@ -211,7 +211,7 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 			Eigen::MatrixXf ref(2, 1);
 			ref << pnt.x, pnt.y;
 			ref = transf * ref + T;
-			fprintf_s(fout2, "%.6f %.6f \n", ref(0,0), ref(1,0) );
+			fprintf_s(fout2, "%.6f %.6f \n", ref(0, 0), ref(1, 0));
 			vec2f its_deform(ref(0, 0), ref(1, 0));
 			e += square_norm(pnts_trans[100][0][i] - its_deform);
 
@@ -250,7 +250,7 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 	if (fopen_s(&foutR, compress_R, "wt") == 0) {
 		fprintf_s(foutR, "%d \n", all_theta_R.size());
 		for (int i = 0; i < all_theta_R.size(); ++i) {
-			fprintf_s(foutR, "%.6f \n",all_theta_R[i]);
+			fprintf_s(foutR, "%.6f \n", all_theta_R[i]);
 		}
 		fclose(foutR);
 	}
@@ -259,12 +259,12 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 	// write S-matrix for each segment not vertex 
 	if (fopen_s(&foutS, compress_S, "wt") == 0) {
 		//fprintf_s(foutS, "%d \n", all_mat_S.size());
-		for (int i = 0; i < all_mat_S.size()-1; ++i) {
+		for (int i = 0; i < all_mat_S.size() - 1; ++i) {
 			fprintf_s(foutS, "%.6f %.6f %.6f \n", (all_mat_S[i].S00 + all_mat_S[i + 1].S00) / 2.f,
 				(all_mat_S[i].S11 + all_mat_S[i + 1].S11) / 2.f,
 				(all_mat_S[i].S01 + all_mat_S[i + 1].S01) / 2.f);
 		}
-		int i = all_mat_S.size() - 1; 
+		int i = all_mat_S.size() - 1;
 		fprintf_s(foutS, "%.6f %.6f %.6f \n", all_mat_S[i].S00 / 2.f,
 			all_mat_S[i].S11 / 2.f,
 			all_mat_S[i].S01 / 2.f);
@@ -351,16 +351,16 @@ void nonPeriodicTheta(const std::vector<float> &theta, std::vector<float> &theta
 	theta_new.resize(m);
 	theta_new = theta;
 	for (int i = 0; i < m; ++i) {
-		theta_new[i] = nextTheta(theta_new[i-1], theta_new[i]);
+		theta_new[i] = nextTheta(theta_new[i - 1], theta_new[i]);
 	}
-	float k = floor(0.25*(theta_new[0] + theta_new[m-1]) / pi + 0.5)*2.0*pi;
+	float k = floor(0.25*(theta_new[0] + theta_new[m - 1]) / pi + 0.5)*2.0*pi;
 	for (int i = 0; i < m; ++i) {
 		theta_new[i] -= k;
 	}
 }
 
 #if 0
-void constFitting_compParam( const std::vector<Ellipse> &ellipses, const std::vector<float> &theta_R,
+void constFitting_compParam(const std::vector<Ellipse> &ellipses, const std::vector<float> &theta_R,
 	const float trimPercent, Fiber::Yarn::Compress &compress) {
 
 	const int ignorPlanes = trimPercent * ellipses.size();

@@ -48,10 +48,10 @@ void CrossSection::buildPlanes(const int num_planes, std::vector<yarnIntersect> 
 		//float current_t = i * crossSection_t;//place plane at the very ends as well
 		//float current_t = (i + 1) * crossSection_t;
 
-		float len = curveLength * (static_cast<double>(i) / static_cast<double>(num_planes-1));
+		float len = curveLength * (static_cast<double>(i) / static_cast<double>(num_planes - 1));
 		const double current_t = m_curve.arcLengthInvApprox(len);
 		Eigen::Vector3d curve_p = m_curve.eval(current_t);
-		
+
 		//Eigen::Vector3d curve_t = m_curve.evalTangent(current_t);
 		//Eigen::Vector3d curve_n = m_curve.evalNormal(current_t);
 		//Eigen::Vector3d curve_b = curve_t.cross(curve_n);
@@ -156,7 +156,7 @@ bool CrossSection::yarnPlaneIntersection(const Plane &plane, yarnIntersect &itsL
 					hitFiberNum++;
 				}
 			}
-			if (hitFiberNum) 
+			if (hitFiberNum)
 				itsList[p].push_back(closest_its);
 		}
 	}
@@ -230,7 +230,7 @@ void CrossSection::shapeMatch(const Eigen::MatrixXf &pnt_trans, const Eigen::Mat
 	//	V = V*m;
 	//ellipse.angle = atan2(V(1, 0), V(0, 0));
 	//ellipse.angle = ellipse.angle < 0 ? ellipse.angle + 2.f*pi : ellipse.angle;
-	
+
 	mat_S.S00 = S(0, 0);
 	mat_S.S11 = S(1, 1);
 	mat_S.S01 = S(0, 1);
@@ -274,7 +274,7 @@ void CrossSection::yarnShapeMatch(const yarnIntersect2D &pnts_trans, const yarnI
 
 
 
-void CrossSection::yarnShapeMatches(const std::vector<yarnIntersect2D> &pnts_trans, const std::vector<yarnIntersect2D> &pnts_ref, 
+void CrossSection::yarnShapeMatches(const std::vector<yarnIntersect2D> &pnts_trans, const std::vector<yarnIntersect2D> &pnts_ref,
 	std::vector<Matrix_S> &all_mat_S, std::vector<float> &all_theta_R) {
 
 	assert(pnts_trans.size() == pnts_trans.size());
@@ -348,7 +348,7 @@ void CrossSection::write_PlanesIntersections3D(const char* filename, std::vector
 		fprintf_s(fout, "ply_num: %d \n", ply_num);
 		fprintf_s(fout, "\n");
 
-		for (int cs = 0; cs < itsLists.size(); ++cs) { 
+		for (int cs = 0; cs < itsLists.size(); ++cs) {
 			/* write all the intersections for each ply */
 			for (int p = 0; p < ply_num; ++p) { //for each ply 
 				fprintf_s(fout, "ply_fiber_num: %d \n", itsLists[cs][p].size());
@@ -441,7 +441,7 @@ void preComputeEllipses(const std::vector<Ellipse> &ellipses, Eigen::MatrixXf &R
 		}
 		//assign to R2
 		for (int i = 0; i < 4; ++i) {
-			R2(cs, i) = i % 2  ? ellipses[cs].longR : ellipses[cs].shortR;
+			R2(cs, i) = i % 2 ? ellipses[cs].longR : ellipses[cs].shortR;
 		}
 		//assign to theta
 		float angle = ellipses[cs].angle;
@@ -450,7 +450,7 @@ void preComputeEllipses(const std::vector<Ellipse> &ellipses, Eigen::MatrixXf &R
 			angle += pi / 2.f;
 			angle = angle > 2.f*pi ? angle - 2.f*pi : angle;
 			theta(cs, i) = angle;
-		}	
+		}
 	}
 }
 
@@ -469,19 +469,19 @@ void costFunction(const Eigen::MatrixXf &R1, const Eigen::MatrixXf &R2, const Ei
 				ip = ip - 1; //ip is the last valid cs
 			for (int k_i = 0; k_i < 4; ++k_i) {
 				for (int k_ip = 0; k_ip < 4; ++k_ip) {
-					float w1 = 1.f / pow(0.05,2); //yarn radius
-					float w2 = 1.f / pow(0.05,2);
+					float w1 = 1.f / pow(0.05, 2); //yarn radius
+					float w2 = 1.f / pow(0.05, 2);
 					float w3 = 1.f / pow(2.f*pi, 2);
 					float dR1 = (R1(i, k_i) - R1(ip, k_ip)) / (i - ip);
 					float dR2 = (R2(i, k_i) - R2(ip, k_ip)) / (i - ip);
-					float dtheta = std::abs(theta(i, k_i) - theta(ip, k_ip) );
-					dtheta = std::min(dtheta, 2.f*pi - dtheta)/(i - ip);
-					float g = (i - ip) * ( w1*pow(dR1, 2) + w2*pow(dR1,2) + w3*pow(dtheta, 2) );
+					float dtheta = std::abs(theta(i, k_i) - theta(ip, k_ip));
+					dtheta = std::min(dtheta, 2.f*pi - dtheta) / (i - ip);
+					float g = (i - ip) * (w1*pow(dR1, 2) + w2*pow(dR1, 2) + w3*pow(dtheta, 2));
 					config(k_i, k_ip) = g;
 				}
-			}	
+			}
 			cost[i] = config;
-		}	
+		}
 	}
 }
 
@@ -501,7 +501,7 @@ void dynamicProgramming(const std::vector<bool> &isValid, const std::vector<Eige
 			while (!isValid[ip])
 				ip = ip - 1; //ip is the last valid cs
 			for (int k_i = 0; k_i < 4; ++k_i) {
-				totalCost(i,k_i) = std::numeric_limits<float>::max();
+				totalCost(i, k_i) = std::numeric_limits<float>::max();
 				for (int k_ip = 0; k_ip < 4; ++k_ip) {
 					float val = totalCost(ip, k_ip) + cost[i](k_i, k_ip);
 					if (val < totalCost(i, k_i)) {
@@ -516,20 +516,20 @@ void dynamicProgramming(const std::vector<bool> &isValid, const std::vector<Eige
 }
 
 void interpolateEllipses(const std::vector<Ellipse> &ellipses, const std::vector<bool> &isValid, std::vector<Ellipse> &ellipses_smooth) {
-	ellipses_smooth.resize(ellipses.size() );
-	assert(ellipses.size() == isValid.size() );
+	ellipses_smooth.resize(ellipses.size());
+	assert(ellipses.size() == isValid.size());
 	assert(isValid[0]); //assumption: handle this later
 	int i = 0;
 	while (i < isValid.size()) {
 		if (!isValid[i]) { // i-1 is valid 
-			int j = i+1;
+			int j = i + 1;
 			while (!isValid[j]) // j is valid
 				j++;
 			//interpolate values between i-1 and j 
-			float delta_indx = (j) - (i - 1) - 1;
-			float delta_longR = ellipses[j ].longR - ellipses[i - 1].longR;
-			float delta_shortR = ellipses[j ].shortR - ellipses[i - 1].shortR;
-			float delta_angle = ellipses[j ].angle - ellipses[i - 1].angle;
+			float delta_indx = (j)-(i - 1) - 1;
+			float delta_longR = ellipses[j].longR - ellipses[i - 1].longR;
+			float delta_shortR = ellipses[j].shortR - ellipses[i - 1].shortR;
+			float delta_angle = ellipses[j].angle - ellipses[i - 1].angle;
 			int cnt = 1;
 			for (int cs = i; cs < j; ++cs) {
 				ellipses_smooth[cs].longR = ellipses[i - 1].longR + cnt * delta_longR / delta_indx;
@@ -538,7 +538,7 @@ void interpolateEllipses(const std::vector<Ellipse> &ellipses, const std::vector
 				cnt++;
 			}
 			//interpolate from other direction
-			if (std::abs(delta_angle) > 2.f*pi - std::abs(delta_angle)) { 
+			if (std::abs(delta_angle) > 2.f*pi - std::abs(delta_angle)) {
 				delta_angle = 2.f*pi - std::abs(ellipses[j].angle - ellipses[i - 1].angle);
 				delta_angle = ellipses[j].angle > ellipses[i - 1].angle ? -delta_angle : delta_angle;
 				int cnt = 1;
@@ -621,7 +621,7 @@ void CrossSection::fitEllipses(const std::vector<yarnIntersect2D> &allpts, std::
 		//if (std::abs(eigen_val[0] - eigen_val[1]) < std::max(eigen_val[0], eigen_val[1]) / 2.f) {
 		//	isValid[cs] = false;
 		//}
-		
+
 	}
 	std::cout << "here in fitellipse " << ellipses[10].longR << std::endl;
 }
@@ -675,8 +675,8 @@ void CrossSection::fitEllipse(const yarnIntersect2D &pts, Ellipse &ellipse, vec2
 	else {
 		//compare the angle between two new axis with the axis1_old
 
-		float angle0 = std::min( pi - acos (dot(eigen_vecs[0], axis1_old)) , acos(dot(eigen_vecs[0], axis1_old)) );
-		float angle1 = std::min( pi - acos (dot(eigen_vecs[1], axis1_old)) , acos(dot(eigen_vecs[1], axis1_old)) );
+		float angle0 = std::min(pi - acos(dot(eigen_vecs[0], axis1_old)), acos(dot(eigen_vecs[0], axis1_old)));
+		float angle1 = std::min(pi - acos(dot(eigen_vecs[1], axis1_old)), acos(dot(eigen_vecs[1], axis1_old)));
 
 		if (dot(eigen_vecs[0], axis1_old) >= 1 || dot(eigen_vecs[1], axis1_old) >= 1)
 		{//handle nan (when axis-new and old are the same)
@@ -720,10 +720,10 @@ void CrossSection::fitEllipse(const yarnIntersect2D &pts, Ellipse &ellipse, vec2
 	ellipse.shortR = eigen_val[1];
 	ellipse.angle = atan2(axis1_new.y, axis1_new.x); // orientation in radians
 
-	//vec2f p1 = ellipse.center + vec2f(axis1_new.x * eigen_val[0], axis1_new.y * eigen_val[0]);
-	//vec2f p2 = ellipse.center - vec2f(axis2_new.x * eigen_val[1], axis2_new.y * eigen_val[1]);
-	//vec2f long_axis = p1 - ellipse.center;
-	//vec2f short_axis = p2 - ellipse.center;
+													 //vec2f p1 = ellipse.center + vec2f(axis1_new.x * eigen_val[0], axis1_new.y * eigen_val[0]);
+													 //vec2f p2 = ellipse.center - vec2f(axis2_new.x * eigen_val[1], axis2_new.y * eigen_val[1]);
+													 //vec2f long_axis = p1 - ellipse.center;
+													 //vec2f short_axis = p2 - ellipse.center;
 }
 #endif
 
@@ -927,7 +927,7 @@ void CrossSection::extractCompressParam(const std::vector<yarnIntersect2D> &allP
 	Eigen::MatrixXf R2(n, 4);
 	Eigen::MatrixXf theta(n, 4);
 	preComputeEllipses(allEllipses, R1, R2, theta);
-	
+
 	//3. find optimal ellipse for valid ones
 	std::vector<Ellipse> validEllipses;
 	greedyOpt(R1, R2, theta, isValid, validEllipses);
@@ -945,17 +945,17 @@ void CrossSection::extractCompressParam(const std::vector<yarnIntersect2D> &allP
 	std::cout << "Compression parameters for each cross-sections are written to the file! \n";
 }
 
-void retreiveSol(const Eigen::MatrixXf &R1, const Eigen::MatrixXf &R2, const Eigen::MatrixXf &theta, const Eigen::MatrixXf &totalCost, 
+void retreiveSol(const Eigen::MatrixXf &R1, const Eigen::MatrixXf &R2, const Eigen::MatrixXf &theta, const Eigen::MatrixXf &totalCost,
 	const Eigen::MatrixXf &preConfig, const std::vector<bool> &isValid, std::vector<Ellipse> &validEllipses) {
 	const int n = isValid.size();
 	validEllipses.resize(n);
 	std::vector<int> solutions(n);
-	std::vector<float> cost_n{ totalCost(n-1,0), totalCost(n-1,1), totalCost(n-1,2), totalCost(n-1,3) };
+	std::vector<float> cost_n{ totalCost(n - 1,0), totalCost(n - 1,1), totalCost(n - 1,2), totalCost(n - 1,3) };
 	int opt_config = std::min_element(cost_n.begin(), cost_n.end()) - cost_n.begin();
 	Ellipse ell;
 	int i = n - 1;
 	int ip = 0;
-	for (int i = n -1; i > 0; --i )
+	for (int i = n - 1; i > 0; --i)
 	{
 		if (R1(i, opt_config) != R1(i, opt_config) || R2(i, opt_config) != R2(i, opt_config) || theta(i, opt_config) != theta(i, opt_config)) {
 			//std::cout << "\n" << i << "********************** " << opt_config << " " << R1(i, opt_config) << " " << R2(i, opt_config) << " " << theta(i, opt_config) << "\n";
@@ -973,7 +973,7 @@ void retreiveSol(const Eigen::MatrixXf &R1, const Eigen::MatrixXf &R2, const Eig
 			ell.angle = theta(i, opt_config);
 			validEllipses[i] = ell;
 		}
-		
+
 		opt_config = preConfig(i, opt_config);
 		//if (isValid[i]) {
 		//	std::cout << " " << i;
@@ -1029,7 +1029,7 @@ void CrossSection::optimizeEllipses(const std::vector<Ellipse> &ellipses, const 
 	std::vector<float> simple_rot2;
 	regularizeEllipses(validEllipses, validRot, simple_ellipses, simple_rot1, 10);
 	regularizeEllipses(simple_ellipses, simple_rot1, validEllipses, validRot, 10);
-	
+
 	std::cout << "\n";
 
 	////5. interpolate for not valid ones
@@ -1127,12 +1127,12 @@ void CrossSection::planeIts2world(Plane &plane, vec2f &plane_point, vec3f &world
 
 	vec3f local(plane_point.x, plane_point.y, 0.f); //as the point exists on the plane
 
-	/*world = [e1 e2 n] * local
-	local = [e1; e2; n] * world*/
+													/*world = [e1 e2 n] * local
+													local = [e1; e2; n] * world*/
 
 
-	// ****** e1 maps to y and e2 maps to x *********
-	//*************************************************
+													// ****** e1 maps to y and e2 maps to x *********
+													//*************************************************
 	world_point.x = dot(vec3f(e1.x, e2.x, n.x), local) + plane.point.x;
 	world_point.y = dot(vec3f(e1.y, e2.y, n.y), local) + plane.point.y;
 	world_point.z = dot(vec3f(e1.z, e2.z, n.z), local) + plane.point.z;
@@ -1297,7 +1297,7 @@ void CrossSection::parameterizePlyCenter(const char *plyCenterFile, const char *
 	allR_regularized.resize(allR.size());
 	allTheta_regularized.resize(allTheta.size());
 	//copy ellipse to simple_ellipse to fill up the two ends before and after sigma 
-	for (int i = 0; i <  m_planesList.size(); ++i) {
+	for (int i = 0; i < m_planesList.size(); ++i) {
 		allR_regularized[i] = allR[i];
 		allTheta_regularized[i] = allTheta[i];
 	}
@@ -1431,7 +1431,7 @@ void CrossSection::fiberTwisting(const std::vector<yarnIntersect2D> &decompressP
 		float theta_avg = 0;
 		const int fiber_num = std::min(fiberCntrVector[i].size(), fiberCntrVector[i + 1].size()); //At the endpoints, next plane might not have as many as the current plane
 		for (int v = 0; v < fiber_num; ++v) { // fiber-centers for each plane
-			//compute the angle between two vec2f
+											  //compute the angle between two vec2f
 			float cos = dot(fiberCntrVector[i][v], fiberCntrVector[i + 1][v]) / (length(fiberCntrVector[i + 1][v]) * length(fiberCntrVector[i][v]));
 			if (1.f - cos > 1e-7) // skip the nan that are generated duo to small acos()
 				theta_avg += acos(cos);
@@ -1446,11 +1446,11 @@ void CrossSection::fiberTwisting(const std::vector<yarnIntersect2D> &decompressP
 
 
 void CrossSection::regularizeEllipses(const std::vector<Ellipse> &ellipses, const std::vector<float> &theta_R, std::vector<Ellipse> &simple_ellipses, std::vector<float> &simple_theta_R, const int sigma) {
-	
+
 	simple_theta_R.resize(ellipses.size());
 	simple_ellipses.resize(ellipses.size());
 	//copy ellipse to simple_ellipse to fill up the two ends before and after sigma 
-	for (int i = 0; i < ellipses.size() ; ++i) {
+	for (int i = 0; i < ellipses.size(); ++i) {
 		simple_ellipses[i].longR = ellipses[i].longR;
 		simple_ellipses[i].shortR = ellipses[i].shortR;
 		simple_ellipses[i].angle = ellipses[i].angle;
@@ -1497,12 +1497,12 @@ void CrossSection::regularizeEllipses(const std::vector<Ellipse> &ellipses, cons
 			if (isFluctuate) { //negate angle[i-s] if it's on the wrong side
 				angle_s = ellipses[i - s].angle > pi ? ellipses[i - s].angle - 2.f * pi : ellipses[i - s].angle;
 				angle__s = ellipses[i + s].angle > pi ? ellipses[i + s].angle - 2.f * pi : ellipses[i + s].angle;
-			}			
+			}
 			sum_angle += angle_s;
 			sum_angle += angle__s;
 
 			/* theta_R */
-			float angle_s_R = theta_R[i-s];
+			float angle_s_R = theta_R[i - s];
 			float angle__s_R = theta_R[i + s];
 			//handle the case of 2*pi and zero
 			if (isFluctuate_R) { //negate angle[i-s] if it's on the wrong side
@@ -1515,7 +1515,7 @@ void CrossSection::regularizeEllipses(const std::vector<Ellipse> &ellipses, cons
 
 		sum_lng += ellipses[i].longR;
 		sum_shrt += ellipses[i].shortR;
-		sum_angle += ( isFluctuate && ellipses[i].angle > pi ) ? ellipses[i].angle - 2.f * pi : ellipses[i].angle;
+		sum_angle += (isFluctuate && ellipses[i].angle > pi) ? ellipses[i].angle - 2.f * pi : ellipses[i].angle;
 		sum_theta_R += (isFluctuate_R && theta_R[i] > pi) ? theta_R[i] - 2.f * pi : theta_R[i];
 
 		float span = 2.f * sigma + 1.f;
