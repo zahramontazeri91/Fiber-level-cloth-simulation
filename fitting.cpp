@@ -259,15 +259,9 @@ void extractCompress_seg(const char* configfile, const char* yarnfile1, const ch
 	// write S-matrix for each segment not vertex 
 	if (fopen_s(&foutS, compress_S, "wt") == 0) {
 		//fprintf_s(foutS, "%d \n", all_mat_S.size());
-		for (int i = 0; i < all_mat_S.size() - 1; ++i) {
-			fprintf_s(foutS, "%.6f %.6f %.6f \n", (all_mat_S[i].S00 + all_mat_S[i + 1].S00) / 2.f,
-				(all_mat_S[i].S11 + all_mat_S[i + 1].S11) / 2.f,
-				(all_mat_S[i].S01 + all_mat_S[i + 1].S01) / 2.f);
+		for (int i = 0; i < all_mat_S.size() ; ++i) {
+			fprintf_s(foutS, "%.6f %.6f %.6f \n", all_mat_S[i].S00, all_mat_S[i].S11 , all_mat_S[i].S01) ;
 		}
-		int i = all_mat_S.size() - 1;
-		fprintf_s(foutS, "%.6f %.6f %.6f \n", all_mat_S[i].S00 / 2.f,
-			all_mat_S[i].S11 / 2.f,
-			all_mat_S[i].S01 / 2.f);
 		fclose(foutS);
 	}
 

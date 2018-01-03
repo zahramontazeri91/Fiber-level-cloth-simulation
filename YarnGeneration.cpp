@@ -24,8 +24,8 @@ int main(int argc, const char **argv) {
 	//return 0;
 
 
-	int frame0 = 1;
-	int frame1 = 18;
+	int frame0 = 0;
+	int frame1 = 17;
 	int yarnNum = 1;
 	std::string dataset = "1231";
 	int skipFactor = 10;
@@ -36,7 +36,7 @@ int main(int argc, const char **argv) {
 	//phase 3: parameterization 
 	//phase 4: curved-yarn generation
 
-	int phase = 1;
+	int phase = 2;
 
 	switch (phase) {
 	case 1: {

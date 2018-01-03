@@ -1183,14 +1183,6 @@ namespace Fiber {
 	  //}
 
 	void Yarn::readCompressFile(const char* compress_R, const char* compress_S, std::vector<Transform> &all_Transform) {
-		//all_Transform.resize(this->z_step_num);
-		//initialize compressParam
-		//for (int i = 0; i<this->z_step_num; ++i) {
-		//	Transform trans;
-		//	trans.R = Eigen::Matrix2f::Zero();
-		//	trans.S = Eigen::Matrix2f::Zero();
-		//	all_Transform.push_back(trans);
-		//}
 
 		std::ifstream fin;
 		fin.open(compress_S);
