@@ -106,8 +106,10 @@ def plotIntersects(X1, Y1, X2, Y2, X3, Y3, scale, plane_num, ply_num, its_num, t
 
 # In[]:
 ## plot simulated data
-fname = '../../data/allCrossSection2D_ref.txt'
+#fname = '../../data/allCrossSection2D_ref.txt'
+fname = '../../data/allCrossSection2D_compress.txt'
 X1, Y1 = visIntersections(fname)
+#fname = '../../data/allCrossSection2D_simulate.txt'
 fname = '../../data/allCrossSection2D_deformedRef.txt'
 X3, Y3 = visIntersections(fname)
 fname = '../../data/allCrossSection2D_deformed.txt'
@@ -116,7 +118,7 @@ scale = 1
 title1 = 'Reference'
 title2 = 'Deformed-Ref'
 title3 = 'Simulated '
-plane_num = 40 
+plane_num = 120 
 ply_num = 2
 its_num = 80
 plotIntersects(X1, Y1, X2, Y2, X3, Y3, scale, plane_num, ply_num, its_num, title1, title2, title3)

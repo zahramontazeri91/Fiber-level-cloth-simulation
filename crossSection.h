@@ -43,8 +43,9 @@ public:
 		else
 			init(yarnfile, ply_num, curvefile, normfile, subdiv_curve, plane_num, allPlaneIntersect);
 	}
-	CrossSection(const char* yarnfile, int ply_num, std::vector<yarnIntersect2D> &allPlaneIntersect) {
-		m_yarn.build(yarnfile, ply_num);
+	CrossSection(const char* yarnfile, const char* configfile, std::vector<yarnIntersect2D> &allPlaneIntersect) {
+		m_yarn.parse(configfile);
+		m_yarn.build(yarnfile, m_yarn.getPlyNum());
 		yarn2crossSections(allPlaneIntersect);
 	}
 

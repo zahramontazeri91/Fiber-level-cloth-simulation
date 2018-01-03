@@ -2,14 +2,12 @@
 """
 Read obj file and write in the data format of simulated data
 """
-vrtNum = 50
-fiberNum = 158
-#path = 'D:/sandbox/fiberSimulation/dataSets/train_stretching1222/'
-#path = 'D:/sandbox/fiberSimulation/dataSets/train_teeth1220/'
-path = 'D:/sandbox/fiberSimulation/dataSets/nn_train_woven1224/'
-dataset = '1224'
+vrtNum = 300
+fiberNum = 160
+path = 'D:/sandbox/fiberSimulation/dataSets/train_teeth1231_ready/'
+dataset = '1231'
 
-for i in range (0,39):
+for i in range (0,18):
     f = i*10
     if f < 10 :
         frameNum = '0000'+ str(f) + '00'

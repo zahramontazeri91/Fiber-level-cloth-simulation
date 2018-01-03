@@ -19,12 +19,16 @@ int main(int argc, const char **argv) {
 	Fiber::Yarn yarn;
 	yarn.parse(configfile);
 
+	//yarn.yarn_simulate();
+	//yarn.write_yarn(yarnfile1);
+	//return 0;
 
-	int frame0 = 0;
-	int frame1 = 1;
+
+	int frame0 = 1;
+	int frame1 = 18;
 	int yarnNum = 1;
-	std::string dataset = "1224";
-	int skipFactor = 5;
+	std::string dataset = "1231";
+	int skipFactor = 10;
 
 	//phase 0: test
 	//phase 1: fitting
@@ -32,7 +36,7 @@ int main(int argc, const char **argv) {
 	//phase 3: parameterization 
 	//phase 4: curved-yarn generation
 
-	int phase = 6;
+	int phase = 1;
 
 	switch (phase) {
 	case 1: {
@@ -43,10 +47,8 @@ int main(int argc, const char **argv) {
 
 			for (int y = 0; y < yarnNum; ++y) {
 
-				//std::string tmp1 = "data/" + dataset + "/simul_frame_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
-				std::string tmp1 = "data/" + dataset + "/simul_frame_" + std::to_string(f) + ".txt";
-				//const char* yarnfile2 = tmp1.c_str();
-				const char* yarnfile2 = "yarn09.txt";
+				std::string tmp1 = "data/" + dataset + "/simul_frame_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+				const char* yarnfile2 = tmp1.c_str();
 				std::string tmp2 = "input/" + dataset + "/matrix_R_" + std::to_string(cnt) + ".txt";
 				const char* compress_R = tmp2.c_str();
 				std::string tmp3 = "input/" + dataset + "/matrix_S_" + std::to_string(cnt) + ".txt";
@@ -65,12 +67,11 @@ int main(int argc, const char **argv) {
 
 				const int vrtx_num = yarn.getStepNum();
 
-				extractCompress_seg(yarnfile1, yarnfile2, compress_R, compress_S,
+				extractCompress_seg(configfile, yarnfile1, yarnfile2, compress_R, compress_S,
 					curvefile, normfile, yarn.getPlyNum(), vrtx_num);
 
-				/**************************************************/
-				//std::string tmp6 = "output/" + dataset + "/genYarn_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
-				std::string tmp6 = "output/" + dataset + "/genYarn_" + std::to_string(f) + ".txt";
+				/*************************************************/
+				std::string tmp6 = "output/" + dataset + "/genYarn_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
 				const char* outfile = tmp6.c_str();
 				//// Procedural step
 				yarn.yarn_simulate();

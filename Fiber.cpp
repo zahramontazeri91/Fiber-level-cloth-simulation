@@ -51,7 +51,6 @@ namespace Fiber {
 		const int num_of_cores = omp_get_num_procs();
 		int fiber_num = 0;
 		int vrtx_num = 0;
-		int zStepNum = 0, flyStepNum = 0;
 		std::string line;
 		std::getline(fin, line);
 		fiber_num = atoi(line.c_str()) / ply_num;
@@ -1149,7 +1148,7 @@ namespace Fiber {
 				}
 			}
 		}
-		//plotIntersections("../data/allCrossSection2D_simulate.txt",0.2);
+		plotIntersections("../data/allCrossSection2D_simulate.txt",0.2);
 	} // yarn_simulate
 
 	  //void Yarn::readCompressFile(const char* filename, std::vector<Compress> &compress_params) {
@@ -1491,7 +1490,7 @@ namespace Fiber {
 				}
 			}
 		}
-		//plotIntersections("../data/allCrossSection2D_compress.txt", 0.2);
+		plotIntersections("../data/allCrossSection2D_compress.txt", 0.2);
 	} // compress_yarn
 
 	  /* per-ply shapematching*/

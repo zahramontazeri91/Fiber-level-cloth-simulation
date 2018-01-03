@@ -140,32 +140,32 @@ void decomposeS(const Matrix_S &mat_S, Ellipse &ellipse) {
 	ellipse.angle = ellipse.angle < 0 ? ellipse.angle + 2.f*pi : ellipse.angle;
 }
 
-void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const char* compress_R, const char* compress_S,
+void extractCompress_seg(const char* configfile, const char* yarnfile1, const char* yarnfile2, const char* compress_R, const char* compress_S,
 	const char* curveFile, const char* normFile, const int ply_num, const int vrtx_num)
 {
-	const int n = vrtx_num;
 
+
+	const int n = vrtx_num;
+	
+	std::vector<yarnIntersect2D> pnts_ref;
+	CrossSection cs1(yarnfile1, configfile, pnts_ref);
+
+	//const char* normYarn1 = "norms.txt";
+	//const char* centerYarn1 = "centerYarn1.txt";
+	//yarn_tmp.yarnCenter(yarnfile1, centerYarn1);
+	//std::vector<yarnIntersect2D> pnts_ref;
+	//CrossSection cs1(yarnfile1, centerYarn1, normYarn1, ply_num, n, 100, pnts_ref, false);
 
 	Fiber::Yarn yarn_tmp;
-
-	//std::vector<yarnIntersect2D> pnts_ref;
-	//CrossSection cs1(yarnfile1, ply_num, pnts_ref);
-
-	const char* normYarn1 = "norms.txt";
-	const char* centerYarn1 = "centerYarn1.txt";
-	yarn_tmp.yarnCenter(yarnfile1, centerYarn1);
-	std::vector<yarnIntersect2D> pnts_ref;
-	CrossSection cs1(yarnfile1, centerYarn1, normYarn1, ply_num, n, 100, pnts_ref, false);
-
 	yarn_tmp.yarnCenter(yarnfile2, curveFile);
 	std::vector<yarnIntersect2D> pnts_trans;
 	CrossSection cs2(yarnfile2, curveFile, normFile, ply_num, n, 100, pnts_trans, false);
+	std::cout << pnts_ref.size();
 
 	std::vector<Matrix_S> all_mat_S;
 	std::vector<float> all_theta_R;
 	cs2.yarnShapeMatches(pnts_trans, pnts_ref, all_mat_S, all_theta_R);
 
-	std::cout << pnts_ref[3][0].size() << " " << pnts_trans[3][0].size() << std::endl;
 
 #if 0
 	/****************/
@@ -271,6 +271,7 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 		fclose(foutS);
 	}
 
+#if 0
 	/*use PCA */
 	//0. extract the ellipses 
 	//std::vector<float> all_theta_R (n, 0.f);
@@ -310,6 +311,7 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 	//nonPeriodicTheta(new_theta_R, new_theta_R);
 	//for (int i = 0; i < new_ellipses.size(); ++i)
 	//	new_ellipses[i].angle = theta_new[i];
+#endif 
 
 	//constant fitting
 	std::cout << "Compression parameters are successfully written to the file!\n";
@@ -319,7 +321,7 @@ void extractCompress_seg(const char* yarnfile1, const char* yarnfile2, const cha
 	const char* refFile = "../data/allCrossSection2D_ref.txt";
 	const char* deformedRefFile = "../data/allCrossSection2D_deformedRef.txt";
 	const char* deformedFile = "../data/allCrossSection2D_deformed.txt";
-	const float trimPercent = 0.1;
+	const float trimPercent = 0.2;
 	plotIntersections(pnts_ref, refFile, trimPercent);
 	std::vector<yarnIntersect2D> ref_deformed;
 	//deformRef(pnts_ref, ref_deformed, new_ellipses, new_theta_R);
