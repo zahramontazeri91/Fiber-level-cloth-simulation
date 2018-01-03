@@ -101,7 +101,7 @@ def trainModel(model, X_train, Y_train, X_valid, Y_valid):
     
     # Weights are updated one mini-batch at a time. A running average of the training loss is computed in real time, which is useful for identifying problems (e.g. the loss might explode or get stuck right). The validation loss is evaluated at the end of each epoch (without dropout).
 
-    history = model.fit(X_train, Y_train, batch_size = 16, epochs = 100, verbose = 2,
+    history = model.fit(X_train, Y_train, batch_size = 16, epochs = 80, verbose = 2,
                         validation_data=(X_valid, Y_valid))
         
     # Plot loss trajectory throughout training.
@@ -143,10 +143,7 @@ def predict(model, X_test, scaler, nb_outputs, filename, vrtxNum):
     extrapolate(predicted, vrtxNum, filename, nb_outputs)
 ## Main
 # In[]
-vrtxNum = 300
-dataset = '1231'
-path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
-    
+  
 (X_train, Y_train, X_valid, Y_valid, nb_features, nb_outputs, scaler) = loadData()
 
 model = buildModel(nb_features, nb_outputs)
@@ -160,6 +157,10 @@ model = trainModel(model, X_train, Y_train, X_valid, Y_valid)
 #X_test = np.loadtxt(path + "trainX_" + str(f) + ".txt",delimiter=None)
 #predict(model, X_test, scaler, nb_outputs, "testY_NN_full.txt", vrtxNum)
 
+vrtxNum = 300
+dataset = '1231'
+path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+  
 frame0 = 0
 frame1 = 16
 for i in range (0 , frame1-frame0):

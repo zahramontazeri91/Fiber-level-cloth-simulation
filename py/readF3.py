@@ -64,9 +64,10 @@ def readInternal(fname_read):
     
 # main
 # In[]: 
+path = 'D:/sandbox/fiberSimulation/dataSets/test_teeth1231_ready/'
 #path = 'D:/sandbox/fiberSimulation/dataSets/train_teeth1231_ready/'
-path = 'D:/sandbox/fiberSimulation/dataSets/train_stretch1233_ready/'
-dataset = '1233'
+#path = 'D:/sandbox/fiberSimulation/dataSets/train_stretch1233_ready/'
+dataset = '1231_test'
 vrtNum = 300
 ds_vrtNum = vrtNum/3
 wrt_path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/' + dataset 
@@ -79,7 +80,7 @@ for i in range (0,18):
     else:
        frameNum = '00'+ str(f) + '00' 
     fn_write = wrt_path + '/physical_' + str(f) + '.txt'
-    fn_read_ext = path + 'frame_' + frameNum + 'fiber_00_RED.fe'
+    fn_read_ext = path + 'frame_' + frameNum + 'fiber_00.fe'
     fn_read_int = path + 'frame_' + frameNum + 'fiber_00.sforce'
     
     ext_force = np.zeros((vrtNum)*9).reshape((vrtNum),9)
@@ -92,6 +93,6 @@ for i in range (0,18):
             for v in range (0,vrtNum):
                 for i in range (0,9): # write 3x3 force matrix
                     fout.writelines('%.8f ' % (ext_force[v,i]) )
-                for i in range (0,6): # write internal force
-                    fout.writelines('%.8f ' % (int_force[v,i]) )
+#                for i in range (0,6): # write internal force
+#                    fout.writelines('%.8f ' % (int_force[v,i]) )
                 fout.writelines('\n')

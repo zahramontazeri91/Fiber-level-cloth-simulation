@@ -27,7 +27,7 @@ int main(int argc, const char **argv) {
 	int frame0 = 0;
 	int frame1 = 17;
 	int yarnNum = 1;
-	std::string dataset = "1231_test";
+	std::string dataset = "1231";
 	int skipFactor = 10;
 
 	//phase 0: test

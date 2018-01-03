@@ -39,7 +39,7 @@ def buildTrainX_conv(vrtNum, trimPercent, first_frame, last_frame, not_frame, si
         with open(fname_write, 'w') as fout:
             fname_read = path + 'physical_' + str(j) + '.txt'            
             with open(fname_read, 'r') as fin:
-                line = fin.read().splitlines()
+                line = fin.read().splitlines() #read the whole file as a list of string
                 assert(len(line) == vrtNum)
                 ignor = int(vrtNum*trimPercent)  
                 for cs in range (0,vrtNum):                 
@@ -69,7 +69,22 @@ def appendAll(first_frame, last_frame, filename, test_out):
     print('all files appended!\n')
 
 # In[]:
-dataset = '1233'
+def appendDatasets():
+    path1 = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/1231/NN/'
+    path2 = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/1233/NN/'
+    X_train_all_1 = np.loadtxt(path1 + "trainX_all.txt",delimiter=None)
+    Y_train_all_1 = np.loadtxt(path1 + "trainY_all.txt",delimiter=None)
+    X_train_all_2 = np.loadtxt(path2 + "trainX_all.txt",delimiter=None)
+    Y_train_all_2 = np.loadtxt(path2 + "trainY_all.txt",delimiter=None)
+    
+    X_train_all = np.concatenate((X_train_all_1,X_train_all_2), axis=0)
+    Y_train_all = np.concatenate((Y_train_all_1,Y_train_all_2), axis=0)
+    
+    w_path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'
+    np.savetxt(w_path+'trainX_all_1231_1233.txt', X_train_all, fmt='%.6f', delimiter=' ')
+    np.savetxt(w_path+'trainY_all_1231_1233.txt', Y_train_all, fmt='%.6f', delimiter=' ')
+# In[]:
+dataset = '1231'
 path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/'
 vrtNum = 300
 skipFactor = 10
@@ -87,6 +102,8 @@ buildTrainX_conv(vrtNum, trimPercent, first_frame, last_frame, not_frame, sigma,
 appendAll(first_frame, last_frame, 'NN/trainX_', test_out)
 appendAll(first_frame, last_frame, 'NN/trainY_', test_out)
 
+#appendDatasets()
+
 # In[]:
 #build test data:
 #first_frame = 1
@@ -97,18 +114,4 @@ appendAll(first_frame, last_frame, 'NN/trainY_', test_out)
 #filename = 'NN/testX_'
 #buildTrainX_conv(nb_seg, trimPercent, first_frame, last_frame, not_frame, sigma, filename)
 
-# In[]:
-# Use this to append two datasets together
-#path1 = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/1231/NN/'
-#path2 = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/1233/NN/'
-#X_train_all_1 = np.loadtxt(path1 + "trainX_all.txt",delimiter=None)
-#Y_train_all_1 = np.loadtxt(path1 + "trainY_all.txt",delimiter=None)
-#X_train_all_2 = np.loadtxt(path2 + "trainX_all.txt",delimiter=None)
-#Y_train_all_2 = np.loadtxt(path2 + "trainY_all.txt",delimiter=None)
-#
-#X_train_all = np.concatenate((X_train_all_1,X_train_all_2), axis=0)
-#Y_train_all = np.concatenate((Y_train_all_1,Y_train_all_2), axis=0)
-#
-#w_path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'
-#np.savetxt(w_path+'trainX_all_1231_1233.txt', X_train_all, fmt='%.6f', delimiter=' ')
-#np.savetxt(w_path+'trainY_all_1231_1233.txt', Y_train_all, fmt='%.6f', delimiter=' ')
+

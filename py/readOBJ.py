@@ -5,8 +5,8 @@ Read obj file and write in the data format of simulated data
 vrtNum = 300
 fiberNum = 160
 #path = 'D:/sandbox/fiberSimulation/dataSets/train_teeth1231_ready/'
-path = 'D:/sandbox/fiberSimulation/dataSets/train_stretch1233_ready/'
-dataset = '1233'
+#path = 'D:/sandbox/fiberSimulation/dataSets/train_stretch1233_ready/'
+dataset = '1231'
 
 for i in range (0,18):
     f = i*10
