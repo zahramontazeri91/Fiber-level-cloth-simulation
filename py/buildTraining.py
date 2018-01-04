@@ -89,12 +89,12 @@ path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/
 vrtNum = 300
 skipFactor = 10
 trimPercent = 0.2
-first_frame = 1
+first_frame = 0
 last_frame = 17
 test_frame = 3
 not_frame = -1
 test_out = 0
-sigma = 4 #window_size = 2*sigma + 1
+sigma = 6 #window_size = 2*sigma + 1
 filename = 'NN/trainY_'
 buildTrainY(vrtNum, trimPercent, first_frame, last_frame, not_frame, filename)
 filename = 'NN/trainX_'

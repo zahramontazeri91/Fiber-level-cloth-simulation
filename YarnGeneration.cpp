@@ -24,10 +24,10 @@ int main(int argc, const char **argv) {
 	//return 0;
 
 
-	int frame0 = 0;
-	int frame1 = 17;
+	int frame0 = 17;
+	int frame1 = 18;
 	int yarnNum = 1;
-	std::string dataset = "1231_test";
+	std::string dataset = "1231";
 	int skipFactor = 10;
 
 	//phase 0: test
@@ -79,13 +79,11 @@ int main(int argc, const char **argv) {
 				yarn.curve_yarn(curvefile, normfile);
 				yarn.write_yarn(outfile);
 
-				//std::string tmp7 = "output/" + dataset + "/genYarn_wo_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
-				//std::string tmp7 = "output/" + dataset + "/genYarn_wo_" + std::to_string(f) + ".txt";
-				//const char* outfile_wo = tmp7.c_str();
-				//yarn.yarn_simulate();
-				//yarn.compress_yarn(compress_R, compress_S);
-				//yarn.curve_yarn(curvefile, normfile);
-				//yarn.write_yarn(outfile_wo);
+				std::string tmp7 = "output/" + dataset + "/genYarn_wo_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+				const char* outfile_wo = tmp7.c_str();
+				yarn.yarn_simulate();
+				yarn.curve_yarn(curvefile, normfile);
+				yarn.write_yarn(outfile_wo);
 
 				cnt += skipFactor;
 			}
@@ -110,7 +108,7 @@ int main(int argc, const char **argv) {
 			std::ifstream fin1(compress_R);
 			assert(fin1.is_open() && "compress_R file wasn't found!\n");
 			std::ifstream fin2(compress_S);
-			assert(fin2.is_open() && "compress_S file wasn't found!\n");
+			assert(fin2.is_open() && "compress_S_NN file wasn't found!\n");
 			std::ifstream fin3(curvefile);
 			assert(fin3.is_open() && "curvefile file wasn't found!\n");
 			std::ifstream fin4(normfile);
@@ -255,75 +253,50 @@ int main(int argc, const char **argv) {
 		break;
 	}
 	case 5: {
-		std::cout << "*** Fitting phase using generated yarn as ref (no loop) ***\n";
+		std::cout << "*** Convert external force to local coordinate ***\n";
 
-		int i = 175;
-		//std::string tmp1 = "data/" + dataset + "/simul_frame_" + std::to_string(i * 5) + ".txt";
-		//const char* yarnfile2 = tmp1.c_str();
-		//std::string tmp2 = "input/" + dataset + "/matrix_R_" + std::to_string(i * 5) + ".txt";
-		//const char* compress_R = tmp2.c_str();
-		//std::string tmp3 = "input/" + dataset + "/matrix_S_" + std::to_string(i * 5) + ".txt";
-		//const char* compress_S = tmp3.c_str();
-		//std::string tmp4 = "input/" + dataset + "/centerYarn_" + std::to_string(i * 5) + ".txt";
-		//const char* curvefile = tmp4.c_str();
-		//std::string tmp5 = "input/" + dataset + "/normYarn_" + std::to_string(i * 5) + ".txt";
-		//const char* normfile = tmp5.c_str();
+		for (int i = frame0; i < frame1; i++) {
 
-		std::string tmp1 = "data/" + dataset + "/simul_frame_" + std::to_string(i) + ".txt";
-		const char* yarnfile2 = tmp1.c_str();
-		const char* compress_R = "matrix_R.txt";
-		const char* compress_S = "matrix_S.txt";
-		const char* curvefile = "centerline.txt";
-		const char* normfile = "norms.txt";
+			int f = i * skipFactor;
 
-		std::ifstream fin2(yarnfile2);
-		assert(fin2.is_open() && "compressed-yarn file wasn't found!\n");
+			HermiteCurve curve;
+			int seg_subdiv = 100;
 
-		// Procedural step
-		yarn.yarn_simulate();
+			std::string tmp7 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + ".txt";
+			const char* curvefile = tmp7.c_str();
+			std::string tmp8 = "input/" + dataset + "/normYarn_" + std::to_string(f) + ".txt";
+			const char* normfile = tmp8.c_str();
+			std::string tmp9 = "input/" + dataset + "/physicalParam/phyisical_" + std::to_string(f) + "_world.txt";
+			const char* physical_world = tmp9.c_str();
+			std::string tmp10 = "input/" + dataset + "/phyisical_" + std::to_string(f) + ".txt";
+			const char* physical_local = tmp10.c_str();
 
-		std::vector<yarnIntersect2D> pnts_ref;
-		yarn.yarn2crossSections(pnts_ref);
+			std::ifstream fin3(curvefile);
+			assert(fin3.is_open() && "curvefile file wasn't found!\n");
+			std::ifstream fin4(physical_world);
+			assert(fin3.is_open() && "physical_world file wasn't found!\n");
 
-		Fiber::Yarn yarn_tmp;
-		yarn_tmp.yarnCenter(yarnfile2, curvefile);
-		std::vector<yarnIntersect2D> pnts_trans;
-		CrossSection cs2(yarnfile2, curvefile, normfile, yarn.getPlyNum(), yarn.getStepNum(), 100, pnts_trans, false);
+			curve.init(curvefile, normfile, seg_subdiv);
 
-		std::vector<Matrix_S> all_mat_S;
-		std::vector<float> all_theta_R;
-		cs2.yarnShapeMatches(pnts_trans, pnts_ref, all_mat_S, all_theta_R);
+			const int vrtx_num = yarn.getStepNum();
+			for (int v = 0; v < vrtx_num; ++v) {
+			
+				const double t = v;
+				Eigen::Vector3d ex, ey, ez;
+				curve.getRotatedFrame(t, ex, ey, ez);
 
-		writeParameters(all_mat_S, all_theta_R, compress_R, compress_S);
+				/** local to world **/
+				Eigen::Matrix3f local, world;
+				local << 1,2, 0.0; //since we are in 2D plane
 
-		/**************************************************/
-		////for debug: visualization
-		//const char* L2File = "../data/L2.txt";
-		//const char* refFile = "../data/allCrossSection2D_ref.txt";
-		//const char* deformedRefFile = "../data/allCrossSection2D_deformedRef.txt";
-		//const char* deformedFile = "../data/allCrossSection2D_deformed.txt";
-		//const float trimPercent = 0.0;
-		//plotIntersections(pnts_ref, refFile, trimPercent);
-		//std::vector<yarnIntersect2D> ref_deformed;
-		////deformRef(pnts_ref, ref_deformed, new_ellipses, new_theta_R);
-		//deformRef(pnts_ref, ref_deformed, all_mat_S, all_theta_R);
-		//plotIntersections(ref_deformed, deformedRefFile, trimPercent);
-		//plotIntersections(pnts_trans, deformedFile, trimPercent);
-		//std::vector<float> L2;
-		//L2norm(ref_deformed, pnts_trans, L2, L2File); //note that these have same size
-		/**************************************************/
+				Eigen::Matrix3d M;
+				M << ex[0], ex[1], ex[2],
+					ey[0], ey[1], ey[2],
+					ez[0], ez[1], ez[2];
+				local = M*world;
+			}
 
-		std::string tmp6 = "output/" + dataset + "/genYarn_" + std::to_string(i * 5) + ".txt";
-		const char* outfile = tmp6.c_str();
-
-		yarn.compress_yarn(compress_R, compress_S);
-		yarn.curve_yarn(curvefile, normfile);
-		yarn.write_yarn(outfile);
-
-		//std::string tmp7 = "output/" + dataset + "/genYarn_wo_" + std::to_string(i * 5) + ".txt";
-		//const char* outfile_wo = tmp7.c_str();
-		//yarn.curve_yarn(curvefile, normfile);
-		//yarn.write_yarn(outfile_wo);
+		}
 		break;
 	}
 	case 6: {
