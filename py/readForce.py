@@ -146,6 +146,7 @@ for i in range (0,18):
     
     fn_write_cntr = wrt_path + '/centerYarn_' + str(f) + '_ds.txt' 
     with open(fn_write_cntr, 'w') as fout:
+        fout.writelines('%d \n' % (vrtNum) )
         for v in range (0,vrtNum):
                 fout.writelines('%.8f %.8f %.8f \n' % (centerYarn[v,0], centerYarn[v,1], centerYarn[v,2]) )
             

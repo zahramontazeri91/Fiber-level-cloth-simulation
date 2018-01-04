@@ -27,7 +27,7 @@ int main(int argc, const char **argv) {
 	int frame0 = 17;
 	int frame1 = 18;
 	int yarnNum = 1;
-	std::string dataset = "1231";
+	std::string dataset = "1231_test";
 	int skipFactor = 10;
 
 	//phase 0: test
@@ -36,7 +36,7 @@ int main(int argc, const char **argv) {
 	//phase 3: parameterization 
 	//phase 4: curved-yarn generation
 
-	int phase = 2;
+	int phase = 5;
 
 	switch (phase) {
 	case 1: {
@@ -262,11 +262,11 @@ int main(int argc, const char **argv) {
 			HermiteCurve curve;
 			int seg_subdiv = 100;
 
-			std::string tmp7 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + ".txt";
+			std::string tmp7 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_ds.txt";
 			const char* curvefile = tmp7.c_str();
-			std::string tmp8 = "input/" + dataset + "/normYarn_" + std::to_string(f) + ".txt";
+			std::string tmp8 = "input/" + dataset + "/normYarn_" + std::to_string(f) + "_ds.txt";
 			const char* normfile = tmp8.c_str();
-			std::string tmp9 = "input/" + dataset + "/physicalParam/phyisical_" + std::to_string(f) + "_world.txt";
+			std::string tmp9 = "input/" + dataset + "/physicalParam/physical_" + std::to_string(f) + "_world.txt";
 			const char* physical_world = tmp9.c_str();
 			std::string tmp10 = "input/" + dataset + "/phyisical_" + std::to_string(f) + ".txt";
 			const char* physical_local = tmp10.c_str();
@@ -274,27 +274,56 @@ int main(int argc, const char **argv) {
 			std::ifstream fin3(curvefile);
 			assert(fin3.is_open() && "curvefile file wasn't found!\n");
 			std::ifstream fin4(physical_world);
-			assert(fin3.is_open() && "physical_world file wasn't found!\n");
+			assert(fin4.is_open() && "physical_world file wasn't found!\n");
 
 			curve.init(curvefile, normfile, seg_subdiv);
 
+			return 0; 
+
+			std::ifstream fin5(normfile);
+			assert(fin5.is_open() && "normfile file wasn't found!\n");
+
+			std::ifstream fin;
+			fin.open(physical_world);
+			std::string line;
+			std::ofstream fout(physical_local);
+			
 			const int vrtx_num = yarn.getStepNum();
 			for (int v = 0; v < vrtx_num; ++v) {
-			
+				std::getline(fin, line);
+				std::vector<std::string> splits = split(line, ' ');
+				float S00 = atof(splits[0].c_str());
+				float S01 = atof(splits[1].c_str());
+				float S02 = atof(splits[2].c_str());
+				float S10 = atof(splits[3].c_str());
+				float S11 = atof(splits[4].c_str());
+				float S12 = atof(splits[5].c_str());
+				float S20 = atof(splits[6].c_str());
+				float S21 = atof(splits[7].c_str());
+				float S22 = atof(splits[8].c_str());
+
 				const double t = v;
 				Eigen::Vector3d ex, ey, ez;
 				curve.getRotatedFrame(t, ex, ey, ez);
 
 				/** local to world **/
 				Eigen::Matrix3f local, world;
-				local << 1,2, 0.0; //since we are in 2D plane
+				world << S00, S01, S02,
+					S10, S11, S12,
+					S20, S21, S22;
 
-				Eigen::Matrix3d M;
+				Eigen::Matrix3f M;
 				M << ex[0], ex[1], ex[2],
 					ey[0], ey[1], ey[2],
 					ez[0], ez[1], ez[2];
 				local = M*world;
+
+				//write converted parameters
+				fout << local(0,0) << " " << local(0,1) << " " << local(0, 2) << " " <<
+					local(1,0) << " " << local(1,1) << " " << local(1,2) << " " << 
+					local(2, 0) << " " << local(2, 1) << " " << local(2, 2) <<  std::endl;
 			}
+			//fout.close();
 
 		}
 		break;

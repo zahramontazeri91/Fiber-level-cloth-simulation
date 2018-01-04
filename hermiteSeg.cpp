@@ -1,6 +1,7 @@
 #include <algorithm>
 #include "hermiteSeg.h"
 
+#include <iostream>
 
 #define POLYSOLVER_EPS  1e-8
 
@@ -54,6 +55,8 @@ void HermiteSpline::build(int _subdiv, Eigen::Vector3d _norm0, Eigen::Vector3d _
     std::vector<Eigen::Vector3d> positions(subdiv + 1);
     tangents.resize(subdiv + 1);
     for ( int i = 0; i <= subdiv; ++i ) {
+		std::cout << i << std::endl;
+
         double t = static_cast<double>(i)/subdiv;
         positions[i] = eval(t);
         tangents[i] = evalTangent(t);
