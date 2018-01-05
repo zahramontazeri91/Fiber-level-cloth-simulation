@@ -11,16 +11,16 @@ import math
 ## Load data
 # In[]
 vrtxNum = 300
-dataset = '1233'
+dataset = '1231'
 path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
  
  
 def loadData():
     
-#    X_train_all = np.loadtxt(path + "trainX_all.txt",delimiter=None)
-#    Y_train_all = np.loadtxt(path + "trainY_all.txt",delimiter=None)
-    X_train_all = np.loadtxt("../input/trainX_all_1231_1233.txt",delimiter=None)
-    Y_train_all = np.loadtxt("../input/trainY_all_1231_1233.txt",delimiter=None)
+    X_train_all = np.loadtxt(path + "trainX_all.txt",delimiter=None)
+    Y_train_all = np.loadtxt(path + "trainY_all.txt",delimiter=None)
+#    X_train_all = np.loadtxt("../input/trainX_all_1231_1233.txt",delimiter=None)
+#    Y_train_all = np.loadtxt("../input/trainY_all_1231_1233.txt",delimiter=None)
 
     #duplicate data
 #    X_train_all = np.concatenate((X_train_all,X_train_all), axis=0)
@@ -157,15 +157,11 @@ model = trainModel(model, X_train, Y_train, X_valid, Y_valid)
 
 ## Test all frames
 # In[]
-#f = 100
-#X_test = np.loadtxt(path + "trainX_" + str(f) + ".txt",delimiter=None)
-#predict(model, X_test, scaler, nb_outputs, "testY_NN_full.txt", vrtxNum)
-
- 
+skipFactor = 5
 frame0 = 0
-frame1 = 34
-for i in range (0 , frame1-frame0):
-    f = i*5
-    X_test = np.loadtxt(path + "trainX_" + str(f) + ".txt",delimiter=None)
-    filename = "testY_NN_full_" + str(f + frame0*5) + ".txt"
+frame1 = int(165/skipFactor + 1)
+for i in range (frame0, frame1):
+    f = i*skipFactor
+    X_test = np.loadtxt(path + "testX_" + str(f) + ".txt",delimiter=None)
+    filename = "testY_NN_full_" + str(f ) + ".txt"
     predict(model, X_test, scaler, nb_outputs, filename, vrtxNum)

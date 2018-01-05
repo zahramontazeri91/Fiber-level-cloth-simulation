@@ -37,10 +37,11 @@ def buildTrainX_conv(vrtNum, trimPercent, first_frame, last_frame, not_frame, si
         j = c*skipFactor
         fname_write = path + filename + str(j - first_frame*skipFactor) + '.txt'
         with open(fname_write, 'w') as fout:
-#            fname_read = path + 'physicalParam/physical_' + str(j) + '_world.txt'
             fname_read = path + 'physical_' + str(j) + '.txt'            
             with open(fname_read, 'r') as fin:
                 line = fin.read().splitlines() #read the whole file as a list of string
+                if (len(line) != vrtNum) :
+                    print (len(line), vrtNum)
                 assert(len(line) == vrtNum)
                 ignor = int(vrtNum*trimPercent)  
                 for cs in range (0,vrtNum):                 
@@ -85,34 +86,29 @@ def appendDatasets():
     np.savetxt(w_path+'trainX_all_1231_1233.txt', X_train_all, fmt='%.6f', delimiter=' ')
     np.savetxt(w_path+'trainY_all_1231_1233.txt', Y_train_all, fmt='%.6f', delimiter=' ')
 # In[]:
-dataset = '1233'
+dataset = '1231'
 path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/'
 vrtNum = 300
 skipFactor = 5
 trimPercent = 0.2
 first_frame = 0
-last_frame = 190/skipFactor 
-test_frame = 3
+last_frame = 165/skipFactor 
+test_frame = -1
 not_frame = -1
-test_out = 0
+test_out = 0 #binary flag  
 sigma = 6 #window_size = 2*sigma + 1
-filename = 'NN/trainY_'
-buildTrainY(vrtNum, trimPercent, first_frame, last_frame, not_frame, filename)
-filename = 'NN/trainX_'
-buildTrainX_conv(vrtNum, trimPercent, first_frame, last_frame, not_frame, sigma, filename)
-appendAll(first_frame, last_frame, 'NN/trainX_', test_out)
-appendAll(first_frame, last_frame, 'NN/trainY_', test_out)
+#filename = 'NN/trainY_'
+#buildTrainY(vrtNum, trimPercent, first_frame, last_frame, not_frame, filename)
+#filename = 'NN/trainX_'
+#buildTrainX_conv(vrtNum, trimPercent, first_frame, last_frame, not_frame, sigma, filename)
+#appendAll(first_frame, last_frame, 'NN/trainX_', test_out)
+#appendAll(first_frame, last_frame, 'NN/trainY_', test_out)
 
 #appendDatasets()
 
 # In[]:
 #build test data:
-#first_frame = 1
-#last_frame = 35
-#not_frame = 0
-#filename = 'NN/testY_'
-#buildTrainY(nb_seg, trimPercent, first_frame, last_frame, not_frame, filename)
-#filename = 'NN/testX_'
-#buildTrainX_conv(nb_seg, trimPercent, first_frame, last_frame, not_frame, sigma, filename)
+filename = 'NN/testX_'
+buildTrainX_conv(vrtNum, trimPercent, first_frame, last_frame, not_frame, sigma, filename)
 
 

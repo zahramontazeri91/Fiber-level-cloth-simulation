@@ -72,19 +72,7 @@ def readCenterYarn(fname_read):
             cntr[v,0] = float(line[1]) * 0.25
             cntr[v,1] = float(line[2]) * 0.25
             cntr[v,2] = float(line[3]) * 0.25
-            twist[v] = float(line[4]) 
-        
-        # interpolate two values between each two
-        cntr2 = np.zeros((vrtNum)*3).reshape((vrtNum),3)
-        cntr2[0] = cntr[0]
-        i = 1
-        for v in range (0,len(cntr)-1):
-            cntr2[i] = cntr[v]
-            cntr2[i+1] = (cntr[v+1] - cntr[v])/3.0 + cntr[v]
-            cntr2[i+2] = 2.0*(cntr[v+1] - cntr[v])/3.0 + cntr[v]
-            i = i+3
-        cntr2[i] = cntr[len(cntr)-1]
-        cntr2[i+1] = cntr[len(cntr)-1]
+#            twist[v] = float(line[4]) 
         
         # interpolate two values between each two
         twist2 = np.zeros((vrtNum))
@@ -98,19 +86,19 @@ def readCenterYarn(fname_read):
         twist2[i] = twist[len(twist)-1]
         twist2[i+1] = twist[len(twist)-1]
 
-        return cntr2, twist2
+        return cntr, twist2
     print('read centerline done!')     
 # main
 # In[]: 
-path = 'D:/sandbox/fiberSimulation/dataSets/test_teeth1231/'
-#path = 'D:/sandbox/fiberSimulation/dataSets/train_teeth1231_ready/'
+#path = 'D:/sandbox/fiberSimulation/dataSets/test_teeth1231/'
+path = 'D:/sandbox/fiberSimulation/dataSets/train_teeth1231_ready/'
 #path = 'D:/sandbox/fiberSimulation/dataSets/train_stretch1233_ready/'
-dataset = '1231_test'
+dataset = '1231' #####CHANGE FILE FORMAT CENTERLINE FOR TEST DATA#####
 vrtNum = 300
 ds_vrtNum = vrtNum/3
 skipFactor = 5 
 wrt_path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/' + dataset 
-for i in range (0,245/5+1):
+for i in range (0,165/5+1):
     f = i * skipFactor
     if f < 10 :
         frameNum = '0000'+ str(f) + '00'
@@ -121,7 +109,7 @@ for i in range (0,245/5+1):
     fn_write_force = wrt_path + '/physicalParam/physical_' + str(f) + '_world.txt'
     fn_read_ext = path + 'frame_' + frameNum + 'fiber_00.fe'
     fn_read_int = path + 'frame_' + frameNum + 'fiber_00.sforce'
-    fn_read_center = path + 'frame_' + frameNum + 'fiber_00.obj'
+    fn_read_center = path + 'frame_' + frameNum + 'fiber_00_RED.obj'
     
     ext_force = np.zeros((vrtNum)*9).reshape((vrtNum),9)
     ext_force =  readExternal(fn_read_ext) 
@@ -147,13 +135,14 @@ for i in range (0,245/5+1):
     
     fn_write_cntr = wrt_path + '/centerYarn_' + str(f) + '_ds.txt' 
     with open(fn_write_cntr, 'w') as fout:
-        fout.writelines('%d \n' % (vrtNum) )
-        for v in range (0,vrtNum):
+        fout.writelines('%d \n' % (ds_vrtNum) )
+        for v in range (0,ds_vrtNum):
                 fout.writelines('%.8f %.8f %.8f \n' % (centerYarn[v,0], centerYarn[v,1], centerYarn[v,2]) )
             
-    fn_write_twist = wrt_path + '/matrix_R_' + str(f) + '_ds.txt' 
+    fn_write_twist = wrt_path + '/twist_' + str(f) + '.txt' 
     with open(fn_write_twist, 'w') as fout:
         r = 0.0
+        fout.writelines('%d \n' % (vrtNum) )
         for v in range (0,vrtNum):         
             r = r + twist[v]
             fout.writelines('%.8f \n' % (r) )

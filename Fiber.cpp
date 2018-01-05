@@ -1485,6 +1485,69 @@ namespace Fiber {
 		plotIntersections("../data/allCrossSection2D_compress.txt", 0.2);
 	} // compress_yarn
 
+	void readDeformGradFile(const char* deformGrad, std::vector<Eigen::Matrix3f> &F) {
+		std::ifstream fin;
+		fin.open(deformGrad);
+		std::string line;
+
+		while (std::getline(fin, line)) {
+		std::vector<std::string> splits = split(line, ' ');
+		Eigen::Matrix3f deformGrad;
+		deformGrad << atof(splits[0].c_str()), atof(splits[1].c_str()), atof(splits[2].c_str()),
+			atof(splits[3].c_str()), atof(splits[4].c_str()), atof(splits[5].c_str()),
+				atof(splits[6].c_str()), atof(splits[7].c_str()), atof(splits[8].c_str());
+		F.push_back(deformGrad);
+		}
+		fin.close();
+	}
+
+	void Yarn::compress_yarn3D(const char* deformGrad) {
+		std::cout << "step7: compress yarn cross-sections ..." << std::endl;
+
+		double zMin = std::numeric_limits<double>::max(), zMax = std::numeric_limits<double>::lowest();
+		for (const auto &ply : plys)
+			for (const auto &fiber : ply.fibers)
+				for (const auto &vertex : fiber.vertices) {
+					zMin = std::min(zMin, static_cast<double>(vertex.z));
+					zMax = std::max(zMax, static_cast<double>(vertex.z));
+				}
+		double zSpan = zMax - zMin;
+
+		const int ply_num = this->plys.size();
+		std::vector<Eigen::Matrix3f> F;
+		readDeformGradFile(deformGrad, F);
+		if (F.size() != this->z_step_num)
+			std::cout << "# deforGrad : " << F.size() << ", # cross-sections: " << this->z_step_num << std::endl;
+		assert(F.size() == this->z_step_num);
+
+		// change the yarn cross-sections
+		for (int i = 0; i < ply_num; i++) {
+			const int fiber_num = this->plys[i].fibers.size();
+			for (int f = 0; f < fiber_num; f++) {
+				Fiber &fiber = this->plys[i].fibers[f];
+				const int vertices_num = this->plys[i].fibers[f].vertices.size();
+
+				for (int v = 0; v < vertices_num; v++) {
+
+					int indx = static_cast<int> ((fiber.vertices[v].z - zMin) / this->z_step_size);
+
+					Eigen::Matrix3f transf = F[v];
+
+					Eigen::MatrixXf ref(3, 1);
+					ref << fiber.vertices[v].x, fiber.vertices[v].y, fiber.vertices[v].z;
+					Eigen::MatrixXf def(3, 1);
+					def = transf*ref;
+					fiber.vertices[v].x = def(0, 0);
+					fiber.vertices[v].y = def(1, 0);
+					fiber.vertices[v].z = def(2, 0);
+
+				}
+			}
+		}
+		plotIntersections("../data/allCrossSection2D_compress.txt", 0.2);
+	} // compress_yarn
+
+
 	  /* per-ply shapematching*/
 	void Yarn::compress_yarn(std::vector<std::vector<Eigen::MatrixXf>> &all_mat_S, std::vector<std::vector<float>> &all_theta_R,
 		std::vector<std::vector<Eigen::MatrixXf>> &all_T) {
