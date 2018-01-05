@@ -23,18 +23,12 @@ int main(int argc, const char **argv) {
 	//yarn.write_yarn(yarnfile1);
 	//return 0;
 
-
-	int frame0 = 17;
-	int frame1 = 18;
+	int skipFactor = 5;
+	int frame0 = 0;
+	int frame1 = 165/ skipFactor + 1;
 	int yarnNum = 1;
-	std::string dataset = "1231_test";
-	int skipFactor = 10;
-
-	//phase 0: test
-	//phase 1: fitting
-	//phase 2: training
-	//phase 3: parameterization 
-	//phase 4: curved-yarn generation
+	std::string dataset = "1231";
+	
 
 	int phase = 5;
 
@@ -47,7 +41,8 @@ int main(int argc, const char **argv) {
 
 			for (int y = 0; y < yarnNum; ++y) {
 
-				std::string tmp1 = "data/" + dataset + "/simul_frame_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+				//std::string tmp1 = "data/" + dataset + "/simul_frame_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+				std::string tmp1 = "data/" + dataset + "/simul_frame_" + std::to_string(f) + ".txt";
 				const char* yarnfile2 = tmp1.c_str();
 				std::string tmp2 = "input/" + dataset + "/matrix_R_" + std::to_string(cnt) + ".txt";
 				const char* compress_R = tmp2.c_str();
@@ -60,7 +55,6 @@ int main(int argc, const char **argv) {
 
 				std::ifstream fin1(yarnfile1);
 				std::ifstream fin2(yarnfile2);
-				std::cout << yarnfile2 << std::endl;
 
 				assert(fin1.is_open() && "reference-yarn file wasn't found!\n");
 				assert(fin2.is_open() && "compressed-yarn file wasn't found!\n");
@@ -262,13 +256,13 @@ int main(int argc, const char **argv) {
 			HermiteCurve curve;
 			int seg_subdiv = 100;
 
-			std::string tmp7 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_ds.txt";
+			std::string tmp7 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + ".txt"; //don't use upsampled centerline
 			const char* curvefile = tmp7.c_str();
-			std::string tmp8 = "input/" + dataset + "/normYarn_" + std::to_string(f) + "_ds.txt";
+			std::string tmp8 = "input/" + dataset + "/normYarn_" + std::to_string(f) + ".txt";//don't use upsampled normals for now
 			const char* normfile = tmp8.c_str();
 			std::string tmp9 = "input/" + dataset + "/physicalParam/physical_" + std::to_string(f) + "_world.txt";
 			const char* physical_world = tmp9.c_str();
-			std::string tmp10 = "input/" + dataset + "/phyisical_" + std::to_string(f) + ".txt";
+			std::string tmp10 = "input/" + dataset + "/physical_" + std::to_string(f) + ".txt";
 			const char* physical_local = tmp10.c_str();
 
 			std::ifstream fin3(curvefile);
@@ -278,29 +272,21 @@ int main(int argc, const char **argv) {
 
 			curve.init(curvefile, normfile, seg_subdiv);
 
-			return 0; 
 
 			std::ifstream fin5(normfile);
 			assert(fin5.is_open() && "normfile file wasn't found!\n");
 
-			std::ifstream fin;
-			fin.open(physical_world);
-			std::string line;
+			std::ifstream fin (physical_world);
 			std::ofstream fout(physical_local);
 			
+			float S00, S01, S02, S10, S11, S12, S20, S21, S22;
+			float A0, A1, A2;
+			float B0, B1, B2;
 			const int vrtx_num = yarn.getStepNum();
 			for (int v = 0; v < vrtx_num; ++v) {
-				std::getline(fin, line);
-				std::vector<std::string> splits = split(line, ' ');
-				float S00 = atof(splits[0].c_str());
-				float S01 = atof(splits[1].c_str());
-				float S02 = atof(splits[2].c_str());
-				float S10 = atof(splits[3].c_str());
-				float S11 = atof(splits[4].c_str());
-				float S12 = atof(splits[5].c_str());
-				float S20 = atof(splits[6].c_str());
-				float S21 = atof(splits[7].c_str());
-				float S22 = atof(splits[8].c_str());
+				fin >> S00 >> S01 >> S02 >> S10 >> S11 >> S12 >> S20 >> S21 >> S22
+					>> A0 >> A1 >> A2
+					>> B0 >> B1 >> B2;
 
 				const double t = v;
 				Eigen::Vector3d ex, ey, ez;
@@ -316,15 +302,22 @@ int main(int argc, const char **argv) {
 				M << ex[0], ex[1], ex[2],
 					ey[0], ey[1], ey[2],
 					ez[0], ez[1], ez[2];
-				local = M*world;
+				local = M*world*M.transpose();
 
 				//write converted parameters
-				fout << local(0,0) << " " << local(0,1) << " " << local(0, 2) << " " <<
-					local(1,0) << " " << local(1,1) << " " << local(1,2) << " " << 
-					local(2, 0) << " " << local(2, 1) << " " << local(2, 2) <<  std::endl;
-			}
-			//fout.close();
+				fout << local(0, 0) << " " << local(0, 1) << " " << local(0, 2) << " " <<
+					local(1, 0) << " " << local(1, 1) << " " << local(1, 2) << " " <<
+					local(2, 0) << " " << local(2, 1) << " " << local(2, 2) << " ";
 
+				Eigen::Vector3f localA, localB, worldA, worldB;
+				worldA << A0, A1, A2;
+				worldB << B0, B1, B2;
+				localA = M*worldA;
+				localB = M*worldB;
+				fout << localA(0) << " " << localA(1) << " " << localA(2) << " " <<
+					localB(0) << " " << localB(1) << " " << localB(2) << std::endl;
+			}
+			fout.close();
 		}
 		break;
 	}

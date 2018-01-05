@@ -160,7 +160,6 @@ void extractCompress_seg(const char* configfile, const char* yarnfile1, const ch
 	yarn_tmp.yarnCenter(yarnfile2, curveFile);
 	std::vector<yarnIntersect2D> pnts_trans;
 	CrossSection cs2(yarnfile2, curveFile, normFile, ply_num, n, 100, pnts_trans, false);
-	std::cout << pnts_ref.size();
 
 	std::vector<Matrix_S> all_mat_S;
 	std::vector<float> all_theta_R;

@@ -95,7 +95,6 @@ public:
 		//assert(q.norm() > HERMITE_EPS);
 		//assert(v.norm() > HERMITE_EPS);
 		//assert(v.cross(q).norm() > 1e-3);
-		//assert(v.cross(q).cross(v).norm() > HERMITE_EPS);
 
 
         ret = v.cross(q).cross(v);

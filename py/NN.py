@@ -10,6 +10,10 @@ import math
 
 ## Load data
 # In[]
+vrtxNum = 300
+dataset = '1233'
+path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+ 
  
 def loadData():
     
@@ -157,14 +161,11 @@ model = trainModel(model, X_train, Y_train, X_valid, Y_valid)
 #X_test = np.loadtxt(path + "trainX_" + str(f) + ".txt",delimiter=None)
 #predict(model, X_test, scaler, nb_outputs, "testY_NN_full.txt", vrtxNum)
 
-vrtxNum = 300
-dataset = '1233'
-path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
-  
+ 
 frame0 = 0
-frame1 = 18
+frame1 = 34
 for i in range (0 , frame1-frame0):
-    f = i*10
+    f = i*5
     X_test = np.loadtxt(path + "trainX_" + str(f) + ".txt",delimiter=None)
     filename = "testY_NN_full_" + str(f + frame0*5) + ".txt"
     predict(model, X_test, scaler, nb_outputs, filename, vrtxNum)

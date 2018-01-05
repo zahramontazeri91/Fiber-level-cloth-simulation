@@ -37,6 +37,7 @@ def buildTrainX_conv(vrtNum, trimPercent, first_frame, last_frame, not_frame, si
         j = c*skipFactor
         fname_write = path + filename + str(j - first_frame*skipFactor) + '.txt'
         with open(fname_write, 'w') as fout:
+#            fname_read = path + 'physicalParam/physical_' + str(j) + '_world.txt'
             fname_read = path + 'physical_' + str(j) + '.txt'            
             with open(fname_read, 'r') as fin:
                 line = fin.read().splitlines() #read the whole file as a list of string
@@ -84,13 +85,13 @@ def appendDatasets():
     np.savetxt(w_path+'trainX_all_1231_1233.txt', X_train_all, fmt='%.6f', delimiter=' ')
     np.savetxt(w_path+'trainY_all_1231_1233.txt', Y_train_all, fmt='%.6f', delimiter=' ')
 # In[]:
-dataset = '1231'
+dataset = '1233'
 path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/'
 vrtNum = 300
-skipFactor = 10
+skipFactor = 5
 trimPercent = 0.2
 first_frame = 0
-last_frame = 17
+last_frame = 190/skipFactor 
 test_frame = 3
 not_frame = -1
 test_out = 0
