@@ -184,6 +184,57 @@ bool CrossSection::allPlanesIntersections(std::vector<yarnIntersect> &itsLists) 
 	return false;
 }
 
+void CrossSection::shapeMatch_A(const Eigen::MatrixXf &pnt_trans, const Eigen::MatrixXf &pnt_ref, Eigen::Matrix2f &A) {
+
+	Matrix_S mat_S; float theta_R;
+
+	assert(pnt_trans.cols() == pnt_ref.cols());
+	const int n = pnt_trans.cols();
+	Eigen::Matrix2f Apq = Eigen::Matrix2f::Zero();
+	Eigen::Matrix2f Aqq_1 = Eigen::Matrix2f::Zero();
+	Eigen::Matrix2f Aqq = Eigen::Matrix2f::Zero();
+
+	Eigen::MatrixXf Qtrans = pnt_ref.transpose();
+	Eigen::MatrixXf cm_ref = Eigen::MatrixXf::Zero(2, 1);
+	Eigen::MatrixXf cm_trans = Eigen::MatrixXf::Zero(2, 1);
+	if (0) { //allow translation
+		for (int i = 0; i < n; ++i) {
+			cm_ref += pnt_ref.col(i);
+			cm_trans += pnt_trans.col(i);
+		}
+		cm_ref /= n;
+		cm_trans /= n;
+	}
+
+	for (int i = 0; i < n; ++i) {
+		Apq += (pnt_trans.col(i) - cm_trans)  *  (pnt_ref.col(i) - cm_ref).transpose() / n;
+		Aqq_1 += (pnt_ref.col(i) - cm_ref) *  (pnt_ref.col(i) - cm_ref).transpose() / n;
+	}
+
+	assert(Aqq_1.determinant() != 0);
+	Aqq = Aqq_1.inverse();
+
+	A = Apq*Aqq;
+	//std::cout << Apq*Aqq << std::endl;
+
+	////SVD decomposition
+	//Eigen::JacobiSVD<Eigen::MatrixXf> svd(Apq*Aqq, Eigen::ComputeThinU | Eigen::ComputeThinV);
+	//Eigen::Matrix2f U = svd.matrixU();
+	//Eigen::Matrix2f sigma = svd.singularValues().asDiagonal();
+	//Eigen::Matrix2f V = svd.matrixV();
+
+	////RS decompose
+	//Eigen::Matrix2f S = V*sigma*V.transpose();
+	//Eigen::Matrix2f R = U*V.transpose();
+	//mat_S.S00 = S(0, 0);
+	//mat_S.S11 = S(1, 1);
+	//mat_S.S01 = S(0, 1);
+
+	//theta_R = atan2(R(1, 0), R(0, 0));
+	//theta_R = theta_R < 0 ? theta_R + 2.f*pi : theta_R;
+
+}
+
 void CrossSection::shapeMatch(const Eigen::MatrixXf &pnt_trans, const Eigen::MatrixXf &pnt_ref, Matrix_S &mat_S, float &theta_R) {
 
 	assert(pnt_trans.cols() == pnt_ref.cols());
@@ -237,6 +288,42 @@ void CrossSection::shapeMatch(const Eigen::MatrixXf &pnt_trans, const Eigen::Mat
 
 	theta_R = atan2(R(1, 0), R(0, 0));
 	theta_R = theta_R < 0 ? theta_R + 2.f*pi : theta_R;
+
+	//std::cout << atan2(R(1, 0), R(0, 0)) << std::endl;
+
+}
+
+void CrossSection::yarnShapeMatch_A(const yarnIntersect2D &pnts_trans, const yarnIntersect2D &pnts_ref, Eigen::Matrix2f &A) {
+	//Find the total number of points for all plys
+	int sz_ref = 0, sz_trans = 0;
+	for (int p = 0; p < pnts_ref.size(); ++p)
+		sz_ref += pnts_ref[p].size();
+	for (int p = 0; p < pnts_trans.size(); ++p)
+		sz_trans += pnts_trans[p].size();
+
+	assert(sz_ref == sz_trans);
+	const int n = sz_ref;
+	Eigen::MatrixXf all_ref(2, n);
+	Eigen::MatrixXf all_trans(2, n);
+
+	int c = 0;
+	for (int p = 0; p < pnts_ref.size(); ++p) {
+		for (int i = 0; i < pnts_ref[p].size(); ++i) {
+			all_ref(0, c) = pnts_ref[p][i].x;
+			all_ref(1, c) = pnts_ref[p][i].y;
+			++c;
+		}
+	}
+
+	c = 0;
+	for (int p = 0; p < pnts_trans.size(); ++p) {
+		for (int i = 0; i < pnts_trans[p].size(); ++i) {
+			all_trans(0, c) = pnts_trans[p][i].x;
+			all_trans(1, c) = pnts_trans[p][i].y;
+			++c;
+		}
+	}
+	shapeMatch_A(all_trans, all_ref, A);
 }
 
 void CrossSection::yarnShapeMatch(const yarnIntersect2D &pnts_trans, const yarnIntersect2D &pnts_ref, Matrix_S &mat_S, float &theta_R) {
@@ -273,6 +360,28 @@ void CrossSection::yarnShapeMatch(const yarnIntersect2D &pnts_trans, const yarnI
 }
 
 
+void CrossSection::yarnShapeMatches_A(const std::vector<yarnIntersect2D> &pnts_trans, const std::vector<yarnIntersect2D> &pnts_ref,
+	std::vector<Eigen::Matrix2f> &all_A) {
+
+	assert(pnts_trans.size() == pnts_trans.size());
+	const int n = pnts_trans.size();
+	all_A.resize(n);
+
+	for (int i = 0; i < n; ++i) {
+		Eigen::Matrix2f A;
+		if (pnts_trans[i][0].size() != pnts_ref[i][0].size() || pnts_trans[i][1].size() != pnts_ref[i][1].size()) {
+			std::cout << "Not equal number of points in simulated and procedural in " << i << "-th cross-section.\n";
+			A(0, 0) = 0.0;
+			A(0, 1) = 0.0;
+			A(1, 0) = 0.0;
+			A(1, 1) = 0.0;
+			continue;
+		}
+		yarnShapeMatch_A(pnts_trans[i], pnts_ref[i], A);
+		all_A[i] = A;
+
+	}
+}
 
 void CrossSection::yarnShapeMatches(const std::vector<yarnIntersect2D> &pnts_trans, const std::vector<yarnIntersect2D> &pnts_ref,
 	std::vector<Matrix_S> &all_mat_S, std::vector<float> &all_theta_R) {

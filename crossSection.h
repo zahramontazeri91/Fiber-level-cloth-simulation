@@ -72,6 +72,13 @@ public:
 	inline void get_plane(const int i, Plane &plane) {
 		plane = m_planesList[i];
 	}
+
+	/* shape matching pass transformation matrix A */
+	void shapeMatch_A(const Eigen::MatrixXf &pnt_trans, const Eigen::MatrixXf &pnt_ref, Eigen::Matrix2f &A);
+	void yarnShapeMatch_A(const yarnIntersect2D &pnts_trans, const yarnIntersect2D &pnts_ref, Eigen::Matrix2f &A);
+	void yarnShapeMatches_A(const std::vector<yarnIntersect2D> &pnts_trans, const std::vector<yarnIntersect2D> &pnts_ref,
+		std::vector<Eigen::Matrix2f> &all_A);
+
 	/* Shape matching per ply */
 	void plyShapeMatch(const plyIntersect2D &pnts_trans, const plyIntersect2D &pnts_ref, Eigen::MatrixXf &mat_S, float &theta_R, Eigen::MatrixXf &T);
 	void shapeMatch_T(const Eigen::MatrixXf &pnt_trans, const Eigen::MatrixXf &pnt_ref, Eigen::MatrixXf &mat_S, float &theta_R, Eigen::MatrixXf &T);

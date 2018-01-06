@@ -73,7 +73,7 @@ int main(int argc, const char **argv) {
 				yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
 				yarn.build("test_fly.txt", K);
 
-				yarn.compress_yarn(compress_R, compress_S);
+				//yarn.compress_yarn(compress_R, compress_S);
 				yarn.curve_yarn(curvefile, normfile);
 				yarn.write_yarn(outfile);
 
