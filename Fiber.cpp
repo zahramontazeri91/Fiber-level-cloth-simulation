@@ -350,89 +350,6 @@ namespace Fiber {
 	Yarn::Yarn() {}
 	Yarn::~Yarn() {}
 
-	void Yarn::assignParameterizePlyCenters(const char *plyCenterFile) {
-		std::ifstream fin;
-		fin.open(plyCenterFile);
-		const int ply_num = this->plys.size();
-		std::string line;
-		std::getline(fin, line);
-		float plane_num = atoi(line.c_str());
-		/* initialize first fiber for each ply as the ply-center */
-		for (int step_id = 0; step_id < plane_num; step_id++) {
-			const float z = this->z_step_size * (step_id - this->z_step_num / 2.f); // devided by 2 Bcuz yarn lies between neg and pos z
-			std::string line;
-			std::getline(fin, line);
-			std::vector<std::string> splits = split(line, ' ');
-
-			float R = atof(splits[0].c_str());
-			float theta = atof(splits[1].c_str());
-
-			for (int i = 0; i < ply_num; i++) {
-
-				float world_x = R * cos(theta + i * 2 * pi / ply_num);
-				float world_y = R * sin(theta + i * 2 * pi / ply_num);
-
-				vec3f verIn = vec3f(world_x, world_y, z), verOut;
-				verOut = verIn;
-
-				this->aabb_procedural.grow(verOut);
-				if (this->aabb_micro_ct.in(verOut))
-					this->plys[i].fibers[0].vertices.push_back(verOut);
-			}
-		}
-		fin.close();
-	}
-
-	void Yarn::assignPlyCenters(const char *plyCenterFile) {
-		std::ifstream fin;
-		fin.open(plyCenterFile);
-		const int ply_num = this->plys.size();
-
-		/* initialize first fiber for each ply as the ply-center */
-		for (int step_id = 0; step_id < this->z_step_num; step_id++) {
-			for (int i = 0; i < ply_num; i++) {
-				const float z = this->z_step_size * (step_id - this->z_step_num / 2.f); // devided by 2 Bcuz yarn lies between neg and pos z
-				std::string line;
-				std::getline(fin, line);
-				std::vector<std::string> splits = split(line, ' ');
-				float world_x = atof(splits[0].c_str());
-				float world_y = atof(splits[1].c_str());
-
-				vec3f verIn = vec3f(world_x, world_y, z), verOut;
-				verOut = verIn;
-
-				this->aabb_procedural.grow(verOut);
-				if (this->aabb_micro_ct.in(verOut))
-					this->plys[i].fibers[0].vertices.push_back(verOut);
-			}
-			std::string whitespace;
-			std::getline(fin, whitespace);
-		}
-		fin.close();
-	}
-
-	float Yarn::extractFiberTwist(const char *fiberTwistFile) {
-		std::ifstream fin;
-		if (fiberTwistFile != NULL)
-			fin.open(fiberTwistFile);
-
-		float fiberTwistAVG = 0.f;
-		std::string line;
-		std::getline(fin, line);
-		int plane_num = atoi(line.c_str());
-		const int ignorPlanes = 0.1 * plane_num; // crop the first and last 10% of the yarn
-		int i = 0;
-		for (i = 0; i < plane_num; ++i) {
-			std::getline(fin, line);
-			if (i > ignorPlanes && i < plane_num - ignorPlanes) {
-				float fiberTwist = atof(line.c_str());
-				fiberTwistAVG += fiberTwist;
-			}
-		}
-		fiberTwistAVG /= static_cast<float>(plane_num - 2 * ignorPlanes);
-		return fiberTwistAVG;
-	}
-
 
 	void Yarn::simulate_ply() {
 
@@ -940,132 +857,6 @@ namespace Fiber {
 	}
 
 
-	void Yarn::yarn_simulate(const char *plyCenterFile, const char *fiberTwistFile) {
-
-		std::cout << "step1: yarn center ...\n";
-		const float base_radius = this->yarn_radius;
-		this->aabb_procedural.reset();
-
-		std::cout << "step2: initial plys centers ... \n";
-		const int ply_num = this->plys.size();
-		for (int i = 0; i < ply_num; i++) {
-			float angle = 2 * pi * i / ply_num; // place ply centers in a circle with radius yarn-radius/2 
-
-			this->plys[i].base_theta = angle;
-			this->plys[i].base_center = vec3f(base_radius / 2 * std::cosf(angle), base_radius / 2 * std::sinf(angle), 0);
-		}
-
-		const int num_of_cores = omp_get_num_procs();
-
-		std::cout << "step3: initial plys locations ... \n";
-		for (int i = 0; i < ply_num; i++) {
-			const int fiber_num = this->plys[i].fibers.size();
-#pragma omp parallel for num_threads(num_of_cores) 
-			for (int f = 0; f < fiber_num; f++) {
-				Fiber &fiber = this->plys[i].fibers[f];
-				float radius = this->plys[i].sampleR();
-				float theta = 2 * pi * (float)rand() / (RAND_MAX);
-				float migration_theta = 2 * pi * (float)rand() / (RAND_MAX);
-				fiber.init_radius = radius;
-				fiber.init_theta = theta;
-				fiber.init_migration_theta = migration_theta;
-				fiber.init_vertex = this->plys[i].base_center +
-					vec3f(radius * std::cosf(theta), radius * std::sinf(theta), 0);
-			}
-		}
-
-		std::cout << "step4-5-6: rotate ply-centers around yarn-center and fibers around ply-centers and apply the compression ... \n";
-#pragma omp parallel for num_threads(num_of_cores)
-		/* initialize the yarn fibers by assigning the ply-center to the fiber[0]*/
-		//assignPlyCenters(plyCenterFile);
-		assignParameterizePlyCenters(plyCenterFile);
-		/* Calculate the fiber twisting by averaging each fiber rotation in two consecutive cross-section and average over all planes */
-		const float fiber_theta_avg = extractFiberTwist(fiberTwistFile);
-
-		for (int i = 0; i < ply_num; i++) {
-			const int fiber_num = this->plys[i].fibers.size();
-			// generate all fibers around ply-center
-			for (int f = 1; f < fiber_num; f++) { //starts from index 1 because index0 is reserved for ply-center
-				Fiber &fiber = this->plys[i].fibers[f];
-				fiber.clear(); //clear the vertices list 
-				for (int step_id = 0; step_id < this->z_step_num; step_id++) {
-					const float z = this->z_step_size * (step_id - this->z_step_num / 2.f); // devided by 2 Bcuz yarn lies between neg and pos z
-																							//const float fiber_theta = this->plys[i].clock_wise ? -z * 2 * pi / this->plys[i].alpha : z * 2 * pi / this->plys[i].alpha;
-					const float fiber_theta = fiber_theta_avg;
-
-					const float yarn_theta = this->clock_wise ? -z * 2 * pi / this->yarn_alpha : z * 2 * pi / this->yarn_alpha;
-					float local_x, local_y, world_x, world_y;
-
-					// std::cout << "step5: generate ply after fiber migration ... \n";
-					// translate positions to rotate around ply center (use fiber_theta)
-					this->plys[i].helixXYZ(fiber.init_radius, fiber.init_theta, fiber_theta, use_migration, fiber.init_migration_theta, local_x, local_y);
-
-					// std::cout << "step5: eliptical compression ... \n";
-					vec3f short_axis = nv::normalize(this->plys[i].base_center), long_axis = vec3f(-short_axis.y, short_axis.x, 0);
-					// short axis is [ply-center - 0] because its a vector pointing to origin starting at first cross section, the long axis is perpendicular to this.
-					vec3f local_p = vec3f(local_x, local_y, 0.f);
-					float _local_x = nv::dot(local_p, short_axis), _local_y = nv::dot(local_p, long_axis);
-					// scale the shape of cross section
-					_local_x *= this->plys[i].ellipse_short;
-					_local_y *= this->plys[i].ellipse_long;
-					local_p = _local_x * short_axis + _local_y * long_axis;
-					local_x = local_p.x;
-					local_y = local_p.y;
-
-					// translate it to ply-center (fiber_0)
-					float plyCenter_x = this->plys[i].fibers[0].vertices[step_id].x;
-					float plyCenter_y = this->plys[i].fibers[0].vertices[step_id].y;
-					world_x = local_x + plyCenter_x;
-					world_y = local_y + plyCenter_y;
-
-					//render only the plyCenters
-					//world_x = plyCenter_x;
-					//world_y = plyCenter_y;
-
-					vec3f verIn = vec3f(world_x, world_y, z), verOut;
-					verOut = verIn;
-
-					this->aabb_procedural.grow(verOut);
-					if (this->aabb_micro_ct.in(verOut))
-						fiber.vertices.push_back(verOut);
-				}
-			}
-		}
-		/*
-		// for debuging:
-		FILE *fout;
-		if (fopen_s(&fout, "../data/plyCenter_proc.txt", "wt") == 0) {
-		for (int step_id = 0; step_id < this->z_step_num; step_id++) {
-		for (int i = 0; i < ply_num; i++) {
-		fprintf_s(fout, "%.6f %.6f\n", this->plys[i].fibers[0].vertices[step_id].x, this->plys[i].fibers[0].vertices[step_id].y);
-		}
-		fprintf_s(fout, "\n");
-		}
-		fclose(fout);
-		}
-		*/
-		FILE *fout;
-		// for debuging:
-		const int plane_num = this->z_step_num;
-		const int f_num = this->plys[0].fibers.size() - 1; //since the first fiber is the center
-		const int ignorPlanes = 0.1 * plane_num; // crop the first and last 10% of the yarn
-		if (fopen_s(&fout, "../data/allCrossSection2D_proc.txt", "wt") == 0) {
-			fprintf_s(fout, "plane_num: %d \n", plane_num - 2 * ignorPlanes);
-			fprintf_s(fout, "ply_num: %d \n \n", ply_num);
-			for (int step_id = ignorPlanes; step_id < plane_num - ignorPlanes; step_id++) {
-				for (int i = 0; i < ply_num; i++) {
-					fprintf_s(fout, "ply_fiber_num: %d\n", f_num);
-					fprintf_s(fout, "plyCenter: %.4f %.4f\n", this->plys[i].fibers[0].vertices[step_id].x, this->plys[i].fibers[0].vertices[step_id].y);
-					for (int f = 1; f < f_num + 1; ++f) {
-						fprintf_s(fout, "%.4f %.4f\n", this->plys[i].fibers[f].vertices[step_id].x, this->plys[i].fibers[f].vertices[step_id].y);
-					}
-				}
-				fprintf_s(fout, "\n");
-			}
-			fclose(fout);
-		}
-	} // yarn_simulate
-
 	void Yarn::yarn_simulate() {
 
 		std::cout << "step1: yarn center ...\n";
@@ -1151,36 +942,7 @@ namespace Fiber {
 		plotIntersections("../data/allCrossSection2D_simulate.txt",0.2);
 	} // yarn_simulate
 
-	  //void Yarn::readCompressFile(const char* filename, std::vector<Compress> &compress_params) {
-	  //	compress_params.resize(this->z_step_num);
-	  //	//initialize compressParam
-	  //	for (int i = 0; i<this->z_step_num; ++i) {
-	  //		Compress param;
-	  //		param.ellipse_long = 1.0;
-	  //		param.ellipse_short = 1.0;
-	  //		param.ellipse_theta = 0.0;
-	  //		param.rotation = 0.0;
-	  //		compress_params[i] = param;
-	  //	}
 
-	  //	std::ifstream fin;
-	  //	if (filename != NULL)
-	  //		fin.open(filename);
-	  //	std::string line;
-	  //	std::getline(fin, line);
-	  //	const int plane_num = atof(line.c_str());
-	  //	for (int i=0; i<plane_num; ++i) {
-	  //		std::getline(fin, line);
-	  //		Compress param;
-	  //		std::vector<std::string> splits = split(line, ' ');
-
-	  //		param.ellipse_long = atof(splits[0].c_str());
-	  //		param.ellipse_short = atof(splits[1].c_str());
-	  //		param.ellipse_theta = atof(splits[2].c_str());
-	  //		param.rotation = atof(splits[3].c_str());
-	  //		compress_params[i] = param ;
-	  //	}
-	  //}
 
 	void Yarn::readCompressFile(const char* compress_R, const char* compress_S, std::vector<Transform> &all_Transform) {
 
@@ -1214,46 +976,6 @@ namespace Fiber {
 
 			all_Transform.push_back(trans);
 		}
-	}
-
-	void Yarn::fitCircle(const yarnIntersect2D &pts, float &radius)
-	{
-		//Find the total number of points for all plys
-		int sz = 0;
-		for (int p = 0; p < pts.size(); ++p)
-			sz += pts[p].size();
-		assert(sz);
-		cv::Mat data_pts(sz, 2, CV_32FC1, cv::Scalar::all(0));
-
-		int c = data_pts.rows;
-		for (int p = 0; p < pts.size(); ++p) {
-			for (int i = 0; i < pts[p].size(); ++i) {
-
-				data_pts.at<float>(c, 0) = pts[p][i].x;
-				data_pts.at<float>(c, 1) = pts[p][i].y;
-				--c;
-			}
-		}
-
-		//Perform PCA analysis
-		cv::PCA pca_analysis(data_pts, cv::Mat(), cv::PCA::DATA_AS_ROW, 2);
-
-		//Store the center of the object
-		vec2f center = vec2f(pca_analysis.mean.at<float>(0, 0), pca_analysis.mean.at<float>(0, 1));
-		//Store the eigenvalues and eigenvectors
-		std::vector<vec2f> eigen_vecs(1);
-		//std::vector<float> eigen_val(1);
-		eigen_vecs[0] = vec2f(pca_analysis.eigenvectors.at<float>(0, 0),
-			pca_analysis.eigenvectors.at<float>(0, 1));
-
-		//find eigen values by projecting the points on eigenVectors
-		float max = std::numeric_limits<float>::min();
-		for (int i = 0; i < data_pts.rows; ++i) {
-			float prj = eigen_vecs[0].x * data_pts.at<float>(i, 0) + eigen_vecs[0].y * data_pts.at<float>(i, 1);
-			if (std::abs(prj) > max)
-				max = std::abs(prj);
-		}
-		radius = max;
 	}
 
 
@@ -1312,90 +1034,7 @@ namespace Fiber {
 
 	}
 
-#if 0
-	void Yarn::compress_yarn(const char* filename) {
-		std::cout << "step7: compress yarn cross-sections ..." << std::endl;
 
-		//first find the fitted circle around each cross-section
-		std::vector<float> fitCircleR;
-		const int ply_num = this->plys.size();
-		std::vector<yarnIntersect2D> itsLists;
-		yarn2crossSections(itsLists);
-		float fitCircleR_avg = 0.f;
-		for (int i = 0; i < this->z_step_num; ++i) {
-			float radius;
-			fitCircle(itsLists[i], radius);
-			fitCircleR.push_back(radius);
-			fitCircleR_avg += radius;
-		}
-		fitCircleR_avg /= static_cast<float> (this->z_step_num);
-
-		std::vector<Compress> compress_params;
-		readCompressFile(filename, compress_params);
-
-		// change the yarn cross-sections
-		//const int ply_num = this->plys.size();
-		for (int i = 0; i < ply_num; i++) {
-			const int fiber_num = this->plys[i].fibers.size();
-			for (int f = 0; f < fiber_num; f++) {
-				Fiber &fiber = this->plys[i].fibers[f];
-				const int vertices_num = this->plys[i].fibers[f].vertices.size();
-				//assert(compress_params.size() == vertices_num);
-				//std::cout << compress_params.size() << " " <<  vertices_num << std::endl;
-				//while (1);
-				for (int v = 0; v < vertices_num; v++) {
-
-					const float ellipse_long = compress_params[v].ellipse_long;
-					const float ellipse_short = compress_params[v].ellipse_short;
-					const float ellipse_theta = compress_params[v].ellipse_theta;
-
-					//obtain ellipse axis
-					const vec2f ellipse_axis_long = vec2f(cos(ellipse_theta), sin(ellipse_theta));
-					const vec2f ellipse_axis_short = vec2f(-sin(ellipse_theta), cos(ellipse_theta));
-
-					//transfer from x-y space to ellipse space
-					vec2f world_p(fiber.vertices[v].x, fiber.vertices[v].y);
-					vec2f ellipse_p(0.f);
-					ellipse_p.x = nv::dot(ellipse_axis_long, world_p);
-					ellipse_p.y = nv::dot(ellipse_axis_short, world_p);
-
-					//apply the scaling 
-					ellipse_p.x *= ellipse_long / fitCircleR_avg;
-					ellipse_p.y *= ellipse_short / fitCircleR_avg;
-					//ellipse_p.x *= ellipse_long / fitCircleR[v];
-					//ellipse_p.y *= ellipse_short / fitCircleR[v];
-
-					//transfer back to x-y
-					world_p.x = nv::dot(vec2f(ellipse_axis_long.x, ellipse_axis_short.x), ellipse_p);
-					world_p.y = nv::dot(vec2f(ellipse_axis_long.y, ellipse_axis_short.y), ellipse_p);
-
-					fiber.vertices[v].x = world_p.x;
-					fiber.vertices[v].y = world_p.y;
-				}
-			}
-		}
-		// for debuging:
-		FILE *fout;
-		const int plane_num = this->z_step_num;
-		const int f_num = this->plys[0].fibers.size() - 1; //since the first fiber is the center
-		const int ignorPlanes = 0.1 * plane_num; // crop the first and last 10% of the yarn
-		if (fopen_s(&fout, "../data/allCrossSection2D_compress.txt", "wt") == 0) {
-			fprintf_s(fout, "plane_num: %d \n", plane_num - 2 * ignorPlanes);
-			fprintf_s(fout, "ply_num: %d \n \n", ply_num);
-			for (int step_id = ignorPlanes; step_id < plane_num - ignorPlanes; step_id++) {
-				for (int i = 0; i < ply_num; i++) {
-					fprintf_s(fout, "ply_fiber_num: %d\n", f_num);
-					fprintf_s(fout, "plyCenter: %.4f %.4f\n", this->plys[i].fibers[0].vertices[step_id].x, this->plys[i].fibers[0].vertices[step_id].y);
-					for (int f = 1; f < f_num + 1; ++f) {
-						fprintf_s(fout, "%.4f %.4f\n", this->plys[i].fibers[f].vertices[step_id].x, this->plys[i].fibers[f].vertices[step_id].y);
-					}
-				}
-				fprintf_s(fout, "\n");
-			}
-			fclose(fout);
-		}
-	} // compress_yarn
-#endif
 
 	void Yarn::compress_yarn(const char* compress_R, const char* compress_S) {
 		std::cout << "step7: compress yarn cross-sections ..." << std::endl;
@@ -1485,18 +1124,22 @@ namespace Fiber {
 		plotIntersections("../data/allCrossSection2D_compress.txt", 0.2);
 	} // compress_yarn
 
-	void readDeformGradFile(const char* deformGrad, std::vector<Eigen::Matrix3f> &F) {
+	void readDeformGradFile(const char* deformGrad, std::vector<Eigen::Matrix3f> &F, std::vector<Eigen::Vector3f> &T) {
 		std::ifstream fin;
 		fin.open(deformGrad);
 		std::string line;
 
 		while (std::getline(fin, line)) {
-		std::vector<std::string> splits = split(line, ' ');
-		Eigen::Matrix3f deformGrad;
-		deformGrad << atof(splits[0].c_str()), atof(splits[1].c_str()), atof(splits[2].c_str()),
-			atof(splits[3].c_str()), atof(splits[4].c_str()), atof(splits[5].c_str()),
-				atof(splits[6].c_str()), atof(splits[7].c_str()), atof(splits[8].c_str());
-		F.push_back(deformGrad);
+			std::vector<std::string> splits = split(line, ' ');
+			Eigen::Matrix3f deformGrad;
+			deformGrad << atof(splits[0].c_str()), atof(splits[1].c_str()), atof(splits[2].c_str()),
+				atof(splits[3].c_str()), atof(splits[4].c_str()), atof(splits[5].c_str()),
+					atof(splits[6].c_str()), atof(splits[7].c_str()), atof(splits[8].c_str());
+			F.push_back(deformGrad);
+
+			Eigen::Vector3f t;
+			t << atof(splits[9].c_str()), atof(splits[10].c_str()), atof(splits[11].c_str());
+			T.push_back(t);
 		}
 		fin.close();
 	}
@@ -1515,7 +1158,8 @@ namespace Fiber {
 
 		const int ply_num = this->plys.size();
 		std::vector<Eigen::Matrix3f> F;
-		readDeformGradFile(deformGrad, F);
+		std::vector<Eigen::Vector3f> T;
+		readDeformGradFile(deformGrad, F, T);
 		if (F.size() != this->z_step_num)
 			std::cout << "# deforGrad : " << F.size() << ", # cross-sections: " << this->z_step_num << std::endl;
 		assert(F.size() == this->z_step_num);
@@ -1532,15 +1176,17 @@ namespace Fiber {
 					int indx = static_cast<int> ((fiber.vertices[v].z - zMin) / this->z_step_size);
 
 					Eigen::Matrix3f transf = F[v];
-					if (f == 0) {
-						std::cout << transf(0, 0) << " " << transf(0, 1) << " " << transf(0, 2) << " " <<
-							transf(1, 0) << " " << transf(1, 1) << " " << transf(1, 2) <<
-							transf(2, 0) << " " << transf(2, 1) << " " << transf(2, 2) << std::endl;
-					}
+					Eigen::Vector3f t = T[v];
+
+					//if (f == 0) {
+					//	std::cout << transf(0, 0) << " " << transf(0, 1) << " " << transf(0, 2) << " " <<
+					//		transf(1, 0) << " " << transf(1, 1) << " " << transf(1, 2) <<
+					//		transf(2, 0) << " " << transf(2, 1) << " " << transf(2, 2) << std::endl;
+					//}
 					Eigen::MatrixXf ref(3, 1);
 					ref << fiber.vertices[v].x, fiber.vertices[v].y, fiber.vertices[v].z;
 					Eigen::MatrixXf def(3, 1);
-					def = transf*ref;
+					def = transf*ref +t;
 					fiber.vertices[v].x = def(0, 0);
 					fiber.vertices[v].y = def(1, 0);
 					fiber.vertices[v].z = def(2, 0);
@@ -1730,32 +1376,6 @@ namespace Fiber {
 
 	}
 
-	//
-	//void Yarn::shapeCrossSection(yarnIntersect2D &its, float &rLong, float &rShort) {
-
-	//	//Find the total number of points for all plys
-	//	int sz = 0;
-	//	std::vector<vec2f> pnts;
-	//	for (int p = 0; p < its.size(); ++p) {
-	//		sz += its[p].size();
-	//		for (int v = 0; v < its[p].size(); ++v) {
-	//			pnts.push_back( its[p][v] );
-	//		}
-	//	}
-
-
-	//	//find eigen values by projecting the points on eigenVectors
-	//	float max0 = std::numeric_limits<float>::min();
-	//	float max1 = std::numeric_limits<float>::min();
-	//	for (int i = 0; i < sz; ++i) {
-	//		if (std::abs(pnts[i].x) > max0)
-	//			max0 = std::abs(pnts[i].x);
-	//		if (std::abs(pnts[i].y) > max1)
-	//			max1 = std::abs(pnts[i].y);
-	//	}
-	//	rLong = std::max(max0,max1);
-	//	rShort = std::min(max0,max1);
-	//}
 
 	void Yarn::write_plys(const char *fn) {
 #ifdef VERBOSE
@@ -1825,5 +1445,411 @@ namespace Fiber {
 		printf("Writing vertices to file done!\n");
 #endif
 	}
+
+
+#if 0	
+	void Yarn::shapeCrossSection(yarnIntersect2D &its, float &rLong, float &rShort) {
+
+		//Find the total number of points for all plys
+		int sz = 0;
+		std::vector<vec2f> pnts;
+		for (int p = 0; p < its.size(); ++p) {
+			sz += its[p].size();
+			for (int v = 0; v < its[p].size(); ++v) {
+				pnts.push_back(its[p][v]);
+			}
+		}
+
+
+		//find eigen values by projecting the points on eigenVectors
+		float max0 = std::numeric_limits<float>::min();
+		float max1 = std::numeric_limits<float>::min();
+		for (int i = 0; i < sz; ++i) {
+			if (std::abs(pnts[i].x) > max0)
+				max0 = std::abs(pnts[i].x);
+			if (std::abs(pnts[i].y) > max1)
+				max1 = std::abs(pnts[i].y);
+		}
+		rLong = std::max(max0, max1);
+		rShort = std::min(max0, max1);
+	}
+#endif
+
+#if 0
+	void Yarn::assignParameterizePlyCenters(const char *plyCenterFile) {
+		std::ifstream fin;
+		fin.open(plyCenterFile);
+		const int ply_num = this->plys.size();
+		std::string line;
+		std::getline(fin, line);
+		float plane_num = atoi(line.c_str());
+		/* initialize first fiber for each ply as the ply-center */
+		for (int step_id = 0; step_id < plane_num; step_id++) {
+			const float z = this->z_step_size * (step_id - this->z_step_num / 2.f); // devided by 2 Bcuz yarn lies between neg and pos z
+			std::string line;
+			std::getline(fin, line);
+			std::vector<std::string> splits = split(line, ' ');
+
+			float R = atof(splits[0].c_str());
+			float theta = atof(splits[1].c_str());
+
+			for (int i = 0; i < ply_num; i++) {
+
+				float world_x = R * cos(theta + i * 2 * pi / ply_num);
+				float world_y = R * sin(theta + i * 2 * pi / ply_num);
+
+				vec3f verIn = vec3f(world_x, world_y, z), verOut;
+				verOut = verIn;
+
+				this->aabb_procedural.grow(verOut);
+				if (this->aabb_micro_ct.in(verOut))
+					this->plys[i].fibers[0].vertices.push_back(verOut);
+			}
+		}
+		fin.close();
+	}
+#endif
+
+#if 0
+	void Yarn::assignPlyCenters(const char *plyCenterFile) {
+		std::ifstream fin;
+		fin.open(plyCenterFile);
+		const int ply_num = this->plys.size();
+
+		/* initialize first fiber for each ply as the ply-center */
+		for (int step_id = 0; step_id < this->z_step_num; step_id++) {
+			for (int i = 0; i < ply_num; i++) {
+				const float z = this->z_step_size * (step_id - this->z_step_num / 2.f); // devided by 2 Bcuz yarn lies between neg and pos z
+				std::string line;
+				std::getline(fin, line);
+				std::vector<std::string> splits = split(line, ' ');
+				float world_x = atof(splits[0].c_str());
+				float world_y = atof(splits[1].c_str());
+
+				vec3f verIn = vec3f(world_x, world_y, z), verOut;
+				verOut = verIn;
+
+				this->aabb_procedural.grow(verOut);
+				if (this->aabb_micro_ct.in(verOut))
+					this->plys[i].fibers[0].vertices.push_back(verOut);
+			}
+			std::string whitespace;
+			std::getline(fin, whitespace);
+		}
+		fin.close();
+	}
+#endif 
+
+#if 0
+	float Yarn::extractFiberTwist(const char *fiberTwistFile) {
+		std::ifstream fin;
+		if (fiberTwistFile != NULL)
+			fin.open(fiberTwistFile);
+
+		float fiberTwistAVG = 0.f;
+		std::string line;
+		std::getline(fin, line);
+		int plane_num = atoi(line.c_str());
+		const int ignorPlanes = 0.1 * plane_num; // crop the first and last 10% of the yarn
+		int i = 0;
+		for (i = 0; i < plane_num; ++i) {
+			std::getline(fin, line);
+			if (i > ignorPlanes && i < plane_num - ignorPlanes) {
+				float fiberTwist = atof(line.c_str());
+				fiberTwistAVG += fiberTwist;
+			}
+		}
+		fiberTwistAVG /= static_cast<float>(plane_num - 2 * ignorPlanes);
+		return fiberTwistAVG;
+	}
+#endif
+
+#if 0
+	void Yarn::yarn_simulate(const char *plyCenterFile, const char *fiberTwistFile) {
+
+		std::cout << "step1: yarn center ...\n";
+		const float base_radius = this->yarn_radius;
+		this->aabb_procedural.reset();
+
+		std::cout << "step2: initial plys centers ... \n";
+		const int ply_num = this->plys.size();
+		for (int i = 0; i < ply_num; i++) {
+			float angle = 2 * pi * i / ply_num; // place ply centers in a circle with radius yarn-radius/2 
+
+			this->plys[i].base_theta = angle;
+			this->plys[i].base_center = vec3f(base_radius / 2 * std::cosf(angle), base_radius / 2 * std::sinf(angle), 0);
+		}
+
+		const int num_of_cores = omp_get_num_procs();
+
+		std::cout << "step3: initial plys locations ... \n";
+		for (int i = 0; i < ply_num; i++) {
+			const int fiber_num = this->plys[i].fibers.size();
+#pragma omp parallel for num_threads(num_of_cores) 
+			for (int f = 0; f < fiber_num; f++) {
+				Fiber &fiber = this->plys[i].fibers[f];
+				float radius = this->plys[i].sampleR();
+				float theta = 2 * pi * (float)rand() / (RAND_MAX);
+				float migration_theta = 2 * pi * (float)rand() / (RAND_MAX);
+				fiber.init_radius = radius;
+				fiber.init_theta = theta;
+				fiber.init_migration_theta = migration_theta;
+				fiber.init_vertex = this->plys[i].base_center +
+					vec3f(radius * std::cosf(theta), radius * std::sinf(theta), 0);
+			}
+		}
+
+		std::cout << "step4-5-6: rotate ply-centers around yarn-center and fibers around ply-centers and apply the compression ... \n";
+#pragma omp parallel for num_threads(num_of_cores)
+		/* initialize the yarn fibers by assigning the ply-center to the fiber[0]*/
+		//assignPlyCenters(plyCenterFile);
+		assignParameterizePlyCenters(plyCenterFile);
+		/* Calculate the fiber twisting by averaging each fiber rotation in two consecutive cross-section and average over all planes */
+		const float fiber_theta_avg = extractFiberTwist(fiberTwistFile);
+
+		for (int i = 0; i < ply_num; i++) {
+			const int fiber_num = this->plys[i].fibers.size();
+			// generate all fibers around ply-center
+			for (int f = 1; f < fiber_num; f++) { //starts from index 1 because index0 is reserved for ply-center
+				Fiber &fiber = this->plys[i].fibers[f];
+				fiber.clear(); //clear the vertices list 
+				for (int step_id = 0; step_id < this->z_step_num; step_id++) {
+					const float z = this->z_step_size * (step_id - this->z_step_num / 2.f); // devided by 2 Bcuz yarn lies between neg and pos z
+																							//const float fiber_theta = this->plys[i].clock_wise ? -z * 2 * pi / this->plys[i].alpha : z * 2 * pi / this->plys[i].alpha;
+					const float fiber_theta = fiber_theta_avg;
+
+					const float yarn_theta = this->clock_wise ? -z * 2 * pi / this->yarn_alpha : z * 2 * pi / this->yarn_alpha;
+					float local_x, local_y, world_x, world_y;
+
+					// std::cout << "step5: generate ply after fiber migration ... \n";
+					// translate positions to rotate around ply center (use fiber_theta)
+					this->plys[i].helixXYZ(fiber.init_radius, fiber.init_theta, fiber_theta, use_migration, fiber.init_migration_theta, local_x, local_y);
+
+					// std::cout << "step5: eliptical compression ... \n";
+					vec3f short_axis = nv::normalize(this->plys[i].base_center), long_axis = vec3f(-short_axis.y, short_axis.x, 0);
+					// short axis is [ply-center - 0] because its a vector pointing to origin starting at first cross section, the long axis is perpendicular to this.
+					vec3f local_p = vec3f(local_x, local_y, 0.f);
+					float _local_x = nv::dot(local_p, short_axis), _local_y = nv::dot(local_p, long_axis);
+					// scale the shape of cross section
+					_local_x *= this->plys[i].ellipse_short;
+					_local_y *= this->plys[i].ellipse_long;
+					local_p = _local_x * short_axis + _local_y * long_axis;
+					local_x = local_p.x;
+					local_y = local_p.y;
+
+					// translate it to ply-center (fiber_0)
+					float plyCenter_x = this->plys[i].fibers[0].vertices[step_id].x;
+					float plyCenter_y = this->plys[i].fibers[0].vertices[step_id].y;
+					world_x = local_x + plyCenter_x;
+					world_y = local_y + plyCenter_y;
+
+					//render only the plyCenters
+					//world_x = plyCenter_x;
+					//world_y = plyCenter_y;
+
+					vec3f verIn = vec3f(world_x, world_y, z), verOut;
+					verOut = verIn;
+
+					this->aabb_procedural.grow(verOut);
+					if (this->aabb_micro_ct.in(verOut))
+						fiber.vertices.push_back(verOut);
+				}
+			}
+		}
+		/*
+		// for debuging:
+		FILE *fout;
+		if (fopen_s(&fout, "../data/plyCenter_proc.txt", "wt") == 0) {
+		for (int step_id = 0; step_id < this->z_step_num; step_id++) {
+		for (int i = 0; i < ply_num; i++) {
+		fprintf_s(fout, "%.6f %.6f\n", this->plys[i].fibers[0].vertices[step_id].x, this->plys[i].fibers[0].vertices[step_id].y);
+		}
+		fprintf_s(fout, "\n");
+		}
+		fclose(fout);
+		}
+		*/
+		FILE *fout;
+		// for debuging:
+		const int plane_num = this->z_step_num;
+		const int f_num = this->plys[0].fibers.size() - 1; //since the first fiber is the center
+		const int ignorPlanes = 0.1 * plane_num; // crop the first and last 10% of the yarn
+		if (fopen_s(&fout, "../data/allCrossSection2D_proc.txt", "wt") == 0) {
+			fprintf_s(fout, "plane_num: %d \n", plane_num - 2 * ignorPlanes);
+			fprintf_s(fout, "ply_num: %d \n \n", ply_num);
+			for (int step_id = ignorPlanes; step_id < plane_num - ignorPlanes; step_id++) {
+				for (int i = 0; i < ply_num; i++) {
+					fprintf_s(fout, "ply_fiber_num: %d\n", f_num);
+					fprintf_s(fout, "plyCenter: %.4f %.4f\n", this->plys[i].fibers[0].vertices[step_id].x, this->plys[i].fibers[0].vertices[step_id].y);
+					for (int f = 1; f < f_num + 1; ++f) {
+						fprintf_s(fout, "%.4f %.4f\n", this->plys[i].fibers[f].vertices[step_id].x, this->plys[i].fibers[f].vertices[step_id].y);
+					}
+				}
+				fprintf_s(fout, "\n");
+			}
+			fclose(fout);
+		}
+	} // yarn_simulate
+#endif
+#if 0
+	void Yarn::readCompressFile(const char* filename, std::vector<Compress> &compress_params) {
+		compress_params.resize(this->z_step_num);
+		//initialize compressParam
+		for (int i = 0; i<this->z_step_num; ++i) {
+			Compress param;
+			param.ellipse_long = 1.0;
+			param.ellipse_short = 1.0;
+			param.ellipse_theta = 0.0;
+			param.rotation = 0.0;
+			compress_params[i] = param;
+		}
+
+		std::ifstream fin;
+		if (filename != NULL)
+			fin.open(filename);
+		std::string line;
+		std::getline(fin, line);
+		const int plane_num = atof(line.c_str());
+		for (int i = 0; i<plane_num; ++i) {
+			std::getline(fin, line);
+			Compress param;
+			std::vector<std::string> splits = split(line, ' ');
+
+			param.ellipse_long = atof(splits[0].c_str());
+			param.ellipse_short = atof(splits[1].c_str());
+			param.ellipse_theta = atof(splits[2].c_str());
+			param.rotation = atof(splits[3].c_str());
+			compress_params[i] = param;
+		}
+	}
+#endif
+
+
+#if 0
+	void Yarn::fitCircle(const yarnIntersect2D &pts, float &radius)
+	{
+		//Find the total number of points for all plys
+		int sz = 0;
+		for (int p = 0; p < pts.size(); ++p)
+			sz += pts[p].size();
+		assert(sz);
+		cv::Mat data_pts(sz, 2, CV_32FC1, cv::Scalar::all(0));
+
+		int c = data_pts.rows;
+		for (int p = 0; p < pts.size(); ++p) {
+			for (int i = 0; i < pts[p].size(); ++i) {
+
+				data_pts.at<float>(c, 0) = pts[p][i].x;
+				data_pts.at<float>(c, 1) = pts[p][i].y;
+				--c;
+			}
+		}
+
+		//Perform PCA analysis
+		cv::PCA pca_analysis(data_pts, cv::Mat(), cv::PCA::DATA_AS_ROW, 2);
+
+		//Store the center of the object
+		vec2f center = vec2f(pca_analysis.mean.at<float>(0, 0), pca_analysis.mean.at<float>(0, 1));
+		//Store the eigenvalues and eigenvectors
+		std::vector<vec2f> eigen_vecs(1);
+		//std::vector<float> eigen_val(1);
+		eigen_vecs[0] = vec2f(pca_analysis.eigenvectors.at<float>(0, 0),
+			pca_analysis.eigenvectors.at<float>(0, 1));
+
+		//find eigen values by projecting the points on eigenVectors
+		float max = std::numeric_limits<float>::min();
+		for (int i = 0; i < data_pts.rows; ++i) {
+			float prj = eigen_vecs[0].x * data_pts.at<float>(i, 0) + eigen_vecs[0].y * data_pts.at<float>(i, 1);
+			if (std::abs(prj) > max)
+				max = std::abs(prj);
+		}
+		radius = max;
+	}
+#endif
+
+#if 0
+	void Yarn::compress_yarn(const char* filename) {
+		std::cout << "step7: compress yarn cross-sections ..." << std::endl;
+
+		//first find the fitted circle around each cross-section
+		std::vector<float> fitCircleR;
+		const int ply_num = this->plys.size();
+		std::vector<yarnIntersect2D> itsLists;
+		yarn2crossSections(itsLists);
+		float fitCircleR_avg = 0.f;
+		for (int i = 0; i < this->z_step_num; ++i) {
+			float radius;
+			fitCircle(itsLists[i], radius);
+			fitCircleR.push_back(radius);
+			fitCircleR_avg += radius;
+		}
+		fitCircleR_avg /= static_cast<float> (this->z_step_num);
+
+		std::vector<Compress> compress_params;
+		readCompressFile(filename, compress_params);
+
+		// change the yarn cross-sections
+		//const int ply_num = this->plys.size();
+		for (int i = 0; i < ply_num; i++) {
+			const int fiber_num = this->plys[i].fibers.size();
+			for (int f = 0; f < fiber_num; f++) {
+				Fiber &fiber = this->plys[i].fibers[f];
+				const int vertices_num = this->plys[i].fibers[f].vertices.size();
+				//assert(compress_params.size() == vertices_num);
+				//std::cout << compress_params.size() << " " <<  vertices_num << std::endl;
+				//while (1);
+				for (int v = 0; v < vertices_num; v++) {
+
+					const float ellipse_long = compress_params[v].ellipse_long;
+					const float ellipse_short = compress_params[v].ellipse_short;
+					const float ellipse_theta = compress_params[v].ellipse_theta;
+
+					//obtain ellipse axis
+					const vec2f ellipse_axis_long = vec2f(cos(ellipse_theta), sin(ellipse_theta));
+					const vec2f ellipse_axis_short = vec2f(-sin(ellipse_theta), cos(ellipse_theta));
+
+					//transfer from x-y space to ellipse space
+					vec2f world_p(fiber.vertices[v].x, fiber.vertices[v].y);
+					vec2f ellipse_p(0.f);
+					ellipse_p.x = nv::dot(ellipse_axis_long, world_p);
+					ellipse_p.y = nv::dot(ellipse_axis_short, world_p);
+
+					//apply the scaling 
+					ellipse_p.x *= ellipse_long / fitCircleR_avg;
+					ellipse_p.y *= ellipse_short / fitCircleR_avg;
+					//ellipse_p.x *= ellipse_long / fitCircleR[v];
+					//ellipse_p.y *= ellipse_short / fitCircleR[v];
+
+					//transfer back to x-y
+					world_p.x = nv::dot(vec2f(ellipse_axis_long.x, ellipse_axis_short.x), ellipse_p);
+					world_p.y = nv::dot(vec2f(ellipse_axis_long.y, ellipse_axis_short.y), ellipse_p);
+
+					fiber.vertices[v].x = world_p.x;
+					fiber.vertices[v].y = world_p.y;
+				}
+			}
+		}
+		// for debuging:
+		FILE *fout;
+		const int plane_num = this->z_step_num;
+		const int f_num = this->plys[0].fibers.size() - 1; //since the first fiber is the center
+		const int ignorPlanes = 0.1 * plane_num; // crop the first and last 10% of the yarn
+		if (fopen_s(&fout, "../data/allCrossSection2D_compress.txt", "wt") == 0) {
+			fprintf_s(fout, "plane_num: %d \n", plane_num - 2 * ignorPlanes);
+			fprintf_s(fout, "ply_num: %d \n \n", ply_num);
+			for (int step_id = ignorPlanes; step_id < plane_num - ignorPlanes; step_id++) {
+				for (int i = 0; i < ply_num; i++) {
+					fprintf_s(fout, "ply_fiber_num: %d\n", f_num);
+					fprintf_s(fout, "plyCenter: %.4f %.4f\n", this->plys[i].fibers[0].vertices[step_id].x, this->plys[i].fibers[0].vertices[step_id].y);
+					for (int f = 1; f < f_num + 1; ++f) {
+						fprintf_s(fout, "%.4f %.4f\n", this->plys[i].fibers[f].vertices[step_id].x, this->plys[i].fibers[f].vertices[step_id].y);
+					}
+				}
+				fprintf_s(fout, "\n");
+			}
+			fclose(fout);
+		}
+	} // compress_yarn
+#endif
 
 } // namespace Fiber

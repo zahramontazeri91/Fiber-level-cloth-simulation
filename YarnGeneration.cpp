@@ -24,10 +24,10 @@ int main(int argc, const char **argv) {
 	//return 0;
 
 	int skipFactor = 5;
-	int frame0 = 20;
-	int frame1 = 21; // 165 / skipFactor + 1;
+	int frame0 = 30;
+	int frame1 = 31; // 165 / skipFactor + 1;
 	int yarnNum = 1;
-	std::string dataset = "1231_test";
+	std::string dataset = "1231";
 	
 
 	int phase = 7;
@@ -67,16 +67,27 @@ int main(int argc, const char **argv) {
 				std::string tmp6 = "output/" + dataset + "/genYarn_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
 				const char* outfile = tmp6.c_str();
 				//// Procedural step
-				yarn.yarn_simulate();
+				yarn.simulate_ply();
+				yarn.write_plys("test_ply.txt");
+				const int K = yarn.getPlyNum();
+				yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
+				yarn.build("test_fly.txt", K);
+
 				yarn.compress_yarn(compress_R, compress_S);
 				yarn.curve_yarn(curvefile, normfile);
 				yarn.write_yarn(outfile);
 
-				std::string tmp7 = "output/" + dataset + "/genYarn_wo_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
-				const char* outfile_wo = tmp7.c_str();
-				yarn.yarn_simulate();
-				yarn.curve_yarn(curvefile, normfile);
-				yarn.write_yarn(outfile_wo);
+				/*************************************************/
+				//std::string tmp7 = "output/" + dataset + "/genYarn_wo_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+				//const char* outfile_wo = tmp7.c_str();
+				//yarn.simulate_ply();
+				//yarn.write_plys("test_ply.txt");
+				//const int K = yarn.getPlyNum();
+				//yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
+				//yarn.build("test_fly.txt", K);
+
+				//yarn.curve_yarn(curvefile, normfile);
+				//yarn.write_yarn(outfile_wo);
 
 				cnt += skipFactor;
 			}
@@ -111,7 +122,11 @@ int main(int argc, const char **argv) {
 			std::string tmp3 = "output/" + dataset + "/genYarn_NN_" + std::to_string(f) + ".txt";
 			const char* outfile = tmp3.c_str();
 			// Procedural step
-			yarn.yarn_simulate();
+			yarn.simulate_ply();
+			yarn.write_plys("test_ply.txt");
+			const int K = yarn.getPlyNum();
+			yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
+			yarn.build("test_fly.txt", K);
 			yarn.compress_yarn(compress_R, compress_S);
 			yarn.curve_yarn(curvefile, normfile);
 			yarn.write_yarn(outfile);
@@ -354,8 +369,8 @@ int main(int argc, const char **argv) {
 				const char* curvefile = tmp1.c_str();
 				std::string tmp2 = "input/" + dataset + "/normYarn_" + std::to_string(cnt) + "_ds.txt";
 				const char* normfile = tmp2.c_str();
-				std::string tmp3 = "input/" + dataset + "/physicalParam/physical_" + std::to_string(cnt) + "_world.txt";
-				//std::string tmp3 = "input/" + dataset + "/physical_" + std::to_string(cnt) + ".txt";
+				//std::string tmp3 = "input/" + dataset + "/physicalParam/physical_" + std::to_string(cnt) + "_world.txt";
+				std::string tmp3 = "input/" + dataset + "/deformGrad_" + std::to_string(cnt) + ".txt";
 				const char* physical_local = tmp3.c_str();
 
 				std::ifstream fin1(curvefile);
@@ -374,7 +389,7 @@ int main(int argc, const char **argv) {
 				const int K = yarn.getPlyNum();
 				yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
 				yarn.build("test_fly.txt", K);
-				//yarn.compress_yarn3D(physical_local);
+				yarn.compress_yarn3D(physical_local);
 				yarn.curve_yarn(curvefile, normfile);
 				yarn.write_yarn(outfile_wo);
 

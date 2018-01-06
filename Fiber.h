@@ -3,7 +3,7 @@
 #include "Curve.h"
 #include <Eigen/Dense>
 
-#define IMPROVED_FLYAWAYS
+//#define IMPROVED_FLYAWAYS
 
 
 typedef std::vector<vec3f> fiber_t;
@@ -209,10 +209,10 @@ namespace Fiber {
 		void parse(const char *filename = NULL);
 
 		/* Simulate yarn */
-		void assignParameterizePlyCenters(const char *plyCenterFile);
-		void assignPlyCenters(const char *plyCenterFile);
-		float extractFiberTwist(const char *fiberTwistFile);
-		void yarn_simulate(const char *plyCenter, const char *fiberTwistFile);
+		//void assignParameterizePlyCenters(const char *plyCenterFile);
+		//void assignPlyCenters(const char *plyCenterFile);
+		//float extractFiberTwist(const char *fiberTwistFile);
+		//void yarn_simulate(const char *plyCenter, const char *fiberTwistFile);
 		void yarn_simulate();
 
 		/* Simulate yarn with flyaways*/
