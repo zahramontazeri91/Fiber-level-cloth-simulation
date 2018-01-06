@@ -1532,7 +1532,11 @@ namespace Fiber {
 					int indx = static_cast<int> ((fiber.vertices[v].z - zMin) / this->z_step_size);
 
 					Eigen::Matrix3f transf = F[v];
-
+					if (f == 0) {
+						std::cout << transf(0, 0) << " " << transf(0, 1) << " " << transf(0, 2) << " " <<
+							transf(1, 0) << " " << transf(1, 1) << " " << transf(1, 2) <<
+							transf(2, 0) << " " << transf(2, 1) << " " << transf(2, 2) << std::endl;
+					}
 					Eigen::MatrixXf ref(3, 1);
 					ref << fiber.vertices[v].x, fiber.vertices[v].y, fiber.vertices[v].z;
 					Eigen::MatrixXf def(3, 1);

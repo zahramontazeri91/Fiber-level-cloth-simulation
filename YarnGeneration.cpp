@@ -24,10 +24,10 @@ int main(int argc, const char **argv) {
 	//return 0;
 
 	int skipFactor = 5;
-	int frame0 = 30;
-	int frame1 = 31; // 165 / skipFactor + 1;
+	int frame0 = 20;
+	int frame1 = 21; // 165 / skipFactor + 1;
 	int yarnNum = 1;
-	std::string dataset = "1231";
+	std::string dataset = "1231_test";
 	
 
 	int phase = 7;
@@ -326,11 +326,11 @@ int main(int argc, const char **argv) {
 	}
 	case 6: {
 		std::cout << " *** test flyaways *** ";
+
 		yarn.simulate_ply();
 		yarn.write_plys("test_ply.txt");
 		const int K = yarn.getPlyNum();
 		yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
-		//yarn.yarn_simulate();
 		yarn.build("test_fly.txt", K);
 
 		const char* compress_R = "matrix_R_175.txt";
@@ -354,29 +354,33 @@ int main(int argc, const char **argv) {
 				const char* curvefile = tmp1.c_str();
 				std::string tmp2 = "input/" + dataset + "/normYarn_" + std::to_string(cnt) + "_ds.txt";
 				const char* normfile = tmp2.c_str();
-				std::string tmp3 = "input/" + dataset + "/physical_" + std::to_string(f) + ".txt";
+				std::string tmp3 = "input/" + dataset + "/physicalParam/physical_" + std::to_string(cnt) + "_world.txt";
+				//std::string tmp3 = "input/" + dataset + "/physical_" + std::to_string(cnt) + ".txt";
 				const char* physical_local = tmp3.c_str();
 
 				std::ifstream fin1(curvefile);
 				std::ifstream fin2(normfile);
 				std::ifstream fin3(physical_local);
 
-				assert(fin1.is_open() && "reference-yarn file wasn't found!\n");
+				assert(fin1.is_open() && "curvefile file wasn't found!\n");
 				assert(fin2.is_open() && "compressed-yarn file wasn't found!\n");
-				assert(fin3.is_open() && "physical_local file wasn't found!\n");
+				assert(fin3.is_open() && "physical_local file wasn't found!\n"); 
 
 
 				std::string tmp4 = "data/" + dataset + "/simul_yarnlevel_frame_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
 				const char* outfile_wo = tmp4.c_str();
-				yarn.yarn_simulate();
-				yarn.compress_yarn3D(physical_local);
+				yarn.simulate_ply();
+				yarn.write_plys("test_ply.txt");
+				const int K = yarn.getPlyNum();
+				yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
+				yarn.build("test_fly.txt", K);
+				//yarn.compress_yarn3D(physical_local);
 				yarn.curve_yarn(curvefile, normfile);
 				yarn.write_yarn(outfile_wo);
 
 				cnt += skipFactor;
 			}
 		}
-
 		break;
 	}
 	case 0: {
