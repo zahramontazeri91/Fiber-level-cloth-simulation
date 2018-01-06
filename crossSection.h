@@ -89,8 +89,8 @@ public:
 	//void fitEllipse(const yarnIntersect2D &pts, Ellipse &ellipse, vec2f &axis1_old, vec2f &axis1_new, const int plane_indx);
 	void fitEllipses(const std::vector<yarnIntersect2D> &allpts, std::vector<Ellipse> &ellipses, std::vector<bool> &isValid);
 	/* Regularize and then Parameterize the extracted ellipse parameters */
-	void regularizeEllipses(const std::vector<Ellipse> &ellipse, std::vector<Ellipse> &simple_ellipse, const int sigma);
-	void regularizeEllipses(const std::vector<Ellipse> &ellipses, const std::vector<float> &theta_R, std::vector<Ellipse> &simple_ellipses, std::vector<float> &simple_theta_R, const int sigma);
+	//void regularizeEllipses(const std::vector<Ellipse> &ellipse, std::vector<Ellipse> &simple_ellipse, const int sigma);
+	//void regularizeEllipses(const std::vector<Ellipse> &ellipses, const std::vector<float> &theta_R, std::vector<Ellipse> &simple_ellipses, std::vector<float> &simple_theta_R, const int sigma);
 	
 	void parameterizeEllipses(const std::vector<Ellipse> &ellipses, std::vector<Ellipse> &simple_ellipses);
 	/* Get ellipse a, b and angle for each cross-section and write it to the file */
@@ -98,7 +98,7 @@ public:
 	/* de-compress simulated yarn */
 	void deCompressYarn(const std::vector<yarnIntersect2D> &PlaneIts, const float yarn_radius, std::vector<Ellipse> &ellipses, std::vector<yarnIntersect2D> &deCompressPlaneIts);
 	/* get R and theta for ply-centers*/
-	void parameterizePlyCenter(const char *plyCenterFile, const char *ParameterizePlyCntrFile);
+	//void parameterizePlyCenter(const char *plyCenterFile, const char *ParameterizePlyCntrFile);
 	void extractPlyTwist(const std::vector<yarnIntersect2D> &decompressPlaneIts, const char *plyCenterFile);
 	/* transfer from e1-e2 space to world x-y space */
 	void transferLocal2XY(const std::vector<yarnIntersect2D> &e1e2_Its, std::vector<yarnIntersect2D> &xy_Its);
@@ -107,13 +107,13 @@ public:
 		return m_curve;
 	}
 	/*For each plane, store the vector from ply-center to all fiber-centers for only first ply */
-	void extractFiberVectors(const std::vector<yarnIntersect2D> &decompressPlaneIts, std::vector<plyIntersect2D> &fiberCntrVector);
+	//void extractFiberVectors(const std::vector<yarnIntersect2D> &decompressPlaneIts, std::vector<plyIntersect2D> &fiberCntrVector);
 	/*find the theta for fiber-centers rotating around the ply-center for each cross section*/
-	void fiberTwisting(const std::vector<yarnIntersect2D> &decompressPlaneIts, std::vector<float> &fiber_theta, const char *fiberTwistFile);
+	//void fiberTwisting(const std::vector<yarnIntersect2D> &decompressPlaneIts, std::vector<float> &fiber_theta, const char *fiberTwistFile);
 
 	/* optimization related functions */
-	void optimizeEllipses(const std::vector<Ellipse> &ellipses, const std::vector<float> &theta_R,
-		std::vector<Ellipse> &new_ellipses, std::vector<float> &new_theta_R);
+	//void optimizeEllipses(const std::vector<Ellipse> &ellipses, const std::vector<float> &theta_R,
+		//std::vector<Ellipse> &new_ellipses, std::vector<float> &new_theta_R);
 	
 	//for debug:
 	/* constructor for procedural yarn (for debug use) */

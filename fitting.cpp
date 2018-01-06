@@ -4,94 +4,6 @@
 #include "fitting.h"
 #include "curveFitting.h"
 
-#if 0
-void interpolate(const std::vector<float> vals, const int interval, std::vector<float> newVals) {
-
-}
-
-void appendCompress_yarn(const std::vector<Fiber::Yarn::Compress> &compress_segs, const int seg_vrtx,
-	const int yarn_vrtx, const char* compressFile) {
-	const int seg_num = compress_segs.size();
-	assert(seg_num * seg_vrtx < yarn_vrtx);
-	std::vector<Fiber::Yarn::Compress> allCompress;
-	allCompress.resize(yarn_vrtx);
-
-	const int seg_vrtx_new = yarn_vrtx / seg_num;
-	//interpolate old segment to new one
-	int indx = 0;
-	for (int i = 0; i < seg_num; ++i) {
-		for (int v = 0; v < seg_vrtx_new; ++v) {
-			indx = i*seg_vrtx_new + v;
-			allCompress[indx].ellipse_long = compress_segs[i].ellipse_long;
-			allCompress[indx].ellipse_short = compress_segs[i].ellipse_short;
-			allCompress[indx].ellipse_theta = compress_segs[i].ellipse_theta;
-			allCompress[indx].rotation = compress_segs[i].rotation;
-		}
-	}
-	//mirror the values for the leftover vertices  (if the end of yarn hasn't been assign)
-	int c = 1;
-	for (int l = indx + 1; l < yarn_vrtx; ++l) {
-		allCompress[l].ellipse_long = allCompress[indx - c].ellipse_long;
-		allCompress[l].ellipse_short = allCompress[indx - c].ellipse_short;
-		allCompress[l].ellipse_theta = allCompress[indx - c].ellipse_theta;
-		allCompress[l].rotation = allCompress[indx - c].rotation;
-		c++;
-	}
-
-	//write to file
-	FILE *fout;
-	//write ellipses to file for testing
-	if (fopen_s(&fout, compressFile, "wt") == 0) {
-		fprintf_s(fout, "%d \n", yarn_vrtx);
-		for (int i = 0; i < yarn_vrtx; ++i) {
-			fprintf_s(fout, "%.4f %.4f %.4f %.4f\n", allCompress[i].ellipse_long, allCompress[i].ellipse_short, allCompress[i].ellipse_theta, allCompress[i].rotation);
-		}
-		fclose(fout);
-	}
-}
-
-void appendCenter_yarn(const std::vector<Fiber::Yarn::CenterLine> &centerlines, const int seg_vrtx, const int yarn_vrtx, const char* curveFile) {
-	const int seg_num = centerlines.size();
-	assert(seg_num * seg_vrtx < yarn_vrtx);
-	std::vector<Fiber::Yarn::CenterLine> allCenterlines;
-	allCenterlines.resize(yarn_vrtx);
-	const int seg_vrtx_new = yarn_vrtx / seg_num;
-	//interpolate old segment to new one
-	int indx = 0;
-	for (int i = 0; i < seg_num; ++i) {
-		for (int v = 0; v < seg_vrtx_new; ++v) {
-			indx = i*seg_vrtx_new + v;
-			allCenterlines[indx].a = centerlines[i].a;
-			allCenterlines[indx].b = centerlines[i].b;
-			allCenterlines[indx].c = centerlines[i].c;
-		}
-	}
-	//mirror the values for the leftover vertices  (if the end of yarn hasn't been assign)
-	int c = 1;
-	for (int l = indx + 1; l < yarn_vrtx; ++l) {
-		allCenterlines[l].a = centerlines[indx - c].a;
-		allCenterlines[l].b = centerlines[indx - c].b;
-		allCenterlines[l].c = centerlines[indx - c].c;
-		c++;
-	}
-
-	//write to file
-	FILE *fout;
-	//write ellipses to file for testing
-	if (fopen_s(&fout, curveFile, "wt") == 0) {
-		fprintf_s(fout, "%d \n", yarn_vrtx);
-		for (int i = 0; i < yarn_vrtx; ++i) {
-			int v = i%seg_vrtx_new;
-			float b = 2 * pi / (seg_vrtx_new); //stretch the curve to fit the new length
-			float y = allCenterlines[i].a* sin(b * v) + allCenterlines[i].c;
-			fprintf_s(fout, "0.0 %.4f \n", y); //TODO: this should be in 3D
-											   //fprintf_s(fout, "%.4f %.4f %.4f\n", allCenterlines[i].a, allCenterlines[i].b, allCenterlines[i].c);
-		}
-		fclose(fout);
-	}
-}
-#endif
-
 void writeParameters(std::vector<Matrix_S> &all_mat_S, std::vector<float> &all_theta_R, const char* compress_R, const char* compress_S)
 {
 
@@ -354,109 +266,6 @@ void nonPeriodicTheta(const std::vector<float> &theta, std::vector<float> &theta
 	}
 }
 
-#if 0
-void constFitting_compParam(const std::vector<Ellipse> &ellipses, const std::vector<float> &theta_R,
-	const float trimPercent, Fiber::Yarn::Compress &compress) {
-
-	const int ignorPlanes = trimPercent * ellipses.size();
-	Point2DVector points_R1;
-	Point2DVector points_R2;
-	Point2DVector points_theta;
-	Point2DVector points_rot;
-
-	for (int i = ignorPlanes; i < ellipses.size() - ignorPlanes; ++i) {
-		Eigen::Vector2d point;
-		point(0) = i - ignorPlanes;
-		point(1) = ellipses[i].longR;
-		points_R1.push_back(point);
-
-		point(1) = ellipses[i].shortR;
-		points_R2.push_back(point);
-
-		point(1) = ellipses[i].angle;
-		points_theta.push_back(point);
-
-		point(1) = theta_R[i];
-		points_rot.push_back(point);
-	}
-	Eigen::VectorXd x(1);
-	x.fill(0.f);
-	MyFunctorNumericalDiff functor;
-	functor.Points = points_R1;
-	Eigen::LevenbergMarquardt<MyFunctorNumericalDiff> lm(functor);
-	Eigen::LevenbergMarquardtSpace::Status status = lm.minimize(x);
-	compress.ellipse_long = x(0);
-
-	functor.Points = points_R2;
-	Eigen::LevenbergMarquardt<MyFunctorNumericalDiff> lm2(functor);
-	status = lm2.minimize(x);
-	compress.ellipse_short = x(0);
-
-	functor.Points = points_theta;
-	Eigen::LevenbergMarquardt<MyFunctorNumericalDiff> lm3(functor);
-	status = lm3.minimize(x);
-	compress.ellipse_theta = x(0);
-
-	functor.Points = points_rot;
-	Eigen::LevenbergMarquardt<MyFunctorNumericalDiff> lm4(functor);
-	status = lm4.minimize(x);
-	compress.rotation = x(0);
-
-	//std::cout << "fitted compression params: " << compress.ellipse_long << " " << compress.ellipse_short << " " << compress.ellipse_theta << " " << compress.rotation << "\n";
-}
-
-void sinFitting_curve(const char* curveFile, const float trimPercent, Fiber::Yarn::CenterLine &curve) {
-	//read the curve points
-	std::vector<float> curvePnts;
-	std::ifstream fin;
-	if (curveFile != NULL)
-		fin.open(curveFile);
-	std::string line;
-	std::getline(fin, line);
-	const int plane_num = atof(line.c_str());
-	for (int i = 0; i < plane_num; ++i) {
-		std::getline(fin, line);
-		float pnt = atof(line.c_str());
-		curvePnts.push_back(pnt);
-	}
-
-	const int ignorPlanes = trimPercent * curvePnts.size();
-	Point2DVector points;
-
-	for (int i = ignorPlanes; i < curvePnts.size() - ignorPlanes; ++i) {
-		Eigen::Vector2d point;
-		point(0) = i - ignorPlanes;
-		point(1) = curvePnts[i];
-		points.push_back(point);
-	}
-	const int period = curvePnts.size() - 2 * ignorPlanes;
-	Eigen::VectorXd x(3);
-	x(0) = 1.f;
-	x(1) = 2.f * pi / static_cast<float>(period);
-	x(2) = 0.f;
-
-
-	MyFunctorNumericalDiff functor;
-	functor.Points = points;
-	Eigen::LevenbergMarquardt<MyFunctorNumericalDiff> lm(functor);
-	Eigen::LevenbergMarquardtSpace::Status status = lm.minimize(x);
-	curve.a = x(0);
-	//curve.b = x(1);
-	curve.b = 2.f * pi / static_cast<float>(period); //TODO: pass this during fitting
-	curve.c = x(2);
-
-	//std::cout << "curve params: " << curve.a << " " << curve.b << " compared to: " << 2.f * pi / static_cast<float>(period) << " " << curve.c << std::endl;
-
-	//for debug: 
-	std::ofstream fout("sineCurve.txt");
-	fout << points.size() << std::endl;
-	for (int i = 0; i < points.size(); ++i) {
-		float y = curve.a * cos(curve.b*i) + curve.c;
-		fout << y << std::endl;
-	}
-	fout.close();
-}
-#endif 
 
 void L2norm(const std::vector<yarnIntersect2D> &its_deform, const std::vector<yarnIntersect2D> &its_trans, std::vector<float> &L2, const char* filename) {
 
@@ -564,6 +373,112 @@ void deformRef(const std::vector<yarnIntersect2D> &its, std::vector<yarnIntersec
 	}
 }
 
+
+#if 0
+void constFitting_compParam(const std::vector<Ellipse> &ellipses, const std::vector<float> &theta_R,
+	const float trimPercent, Fiber::Yarn::Compress &compress) {
+
+	const int ignorPlanes = trimPercent * ellipses.size();
+	Point2DVector points_R1;
+	Point2DVector points_R2;
+	Point2DVector points_theta;
+	Point2DVector points_rot;
+
+	for (int i = ignorPlanes; i < ellipses.size() - ignorPlanes; ++i) {
+		Eigen::Vector2d point;
+		point(0) = i - ignorPlanes;
+		point(1) = ellipses[i].longR;
+		points_R1.push_back(point);
+
+		point(1) = ellipses[i].shortR;
+		points_R2.push_back(point);
+
+		point(1) = ellipses[i].angle;
+		points_theta.push_back(point);
+
+		point(1) = theta_R[i];
+		points_rot.push_back(point);
+	}
+	Eigen::VectorXd x(1);
+	x.fill(0.f);
+	MyFunctorNumericalDiff functor;
+	functor.Points = points_R1;
+	Eigen::LevenbergMarquardt<MyFunctorNumericalDiff> lm(functor);
+	Eigen::LevenbergMarquardtSpace::Status status = lm.minimize(x);
+	compress.ellipse_long = x(0);
+
+	functor.Points = points_R2;
+	Eigen::LevenbergMarquardt<MyFunctorNumericalDiff> lm2(functor);
+	status = lm2.minimize(x);
+	compress.ellipse_short = x(0);
+
+	functor.Points = points_theta;
+	Eigen::LevenbergMarquardt<MyFunctorNumericalDiff> lm3(functor);
+	status = lm3.minimize(x);
+	compress.ellipse_theta = x(0);
+
+	functor.Points = points_rot;
+	Eigen::LevenbergMarquardt<MyFunctorNumericalDiff> lm4(functor);
+	status = lm4.minimize(x);
+	compress.rotation = x(0);
+
+	//std::cout << "fitted compression params: " << compress.ellipse_long << " " << compress.ellipse_short << " " << compress.ellipse_theta << " " << compress.rotation << "\n";
+}
+
+void sinFitting_curve(const char* curveFile, const float trimPercent, Fiber::Yarn::CenterLine &curve) {
+	//read the curve points
+	std::vector<float> curvePnts;
+	std::ifstream fin;
+	if (curveFile != NULL)
+		fin.open(curveFile);
+	std::string line;
+	std::getline(fin, line);
+	const int plane_num = atof(line.c_str());
+	for (int i = 0; i < plane_num; ++i) {
+		std::getline(fin, line);
+		float pnt = atof(line.c_str());
+		curvePnts.push_back(pnt);
+	}
+
+	const int ignorPlanes = trimPercent * curvePnts.size();
+	Point2DVector points;
+
+	for (int i = ignorPlanes; i < curvePnts.size() - ignorPlanes; ++i) {
+		Eigen::Vector2d point;
+		point(0) = i - ignorPlanes;
+		point(1) = curvePnts[i];
+		points.push_back(point);
+	}
+	const int period = curvePnts.size() - 2 * ignorPlanes;
+	Eigen::VectorXd x(3);
+	x(0) = 1.f;
+	x(1) = 2.f * pi / static_cast<float>(period);
+	x(2) = 0.f;
+
+
+	MyFunctorNumericalDiff functor;
+	functor.Points = points;
+	Eigen::LevenbergMarquardt<MyFunctorNumericalDiff> lm(functor);
+	Eigen::LevenbergMarquardtSpace::Status status = lm.minimize(x);
+	curve.a = x(0);
+	//curve.b = x(1);
+	curve.b = 2.f * pi / static_cast<float>(period); //TODO: pass this during fitting
+	curve.c = x(2);
+
+	//std::cout << "curve params: " << curve.a << " " << curve.b << " compared to: " << 2.f * pi / static_cast<float>(period) << " " << curve.c << std::endl;
+
+	//for debug: 
+	std::ofstream fout("sineCurve.txt");
+	fout << points.size() << std::endl;
+	for (int i = 0; i < points.size(); ++i) {
+		float y = curve.a * cos(curve.b*i) + curve.c;
+		fout << y << std::endl;
+	}
+	fout.close();
+}
+#endif 
+
+#if 0
 void fittingCompress(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const char* compressFile) {
 
 	//transfer from e1-e2 to x-y plane
@@ -617,7 +532,9 @@ void fittingCompress(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIn
 
 
 }
+#endif 
 
+#if 0
 void fittingPlyCenter(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const float yarn_radius, const char* plyCenterFile)
 {
 	//fit the ellipse and find the compression param
@@ -640,7 +557,9 @@ void fittingPlyCenter(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneI
 	//write plyCenters as R and theta and parameterize them
 	cs.parameterizePlyCenter(plyCenterFile, plyCenterFile);
 }
+#endif
 
+#if 0
 void fittingFiberTwisting(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const float yarn_radius, const char* fiberTwistFile)
 {
 	//fit the ellipse and find the compression param
@@ -665,3 +584,93 @@ void fittingFiberTwisting(CrossSection & cs, std::vector<yarnIntersect2D> &allPl
 	//extract ply-centers helix positions
 	//cs.extractPlyTwist(xy_Its, plyCenterFile);
 }
+#endif
+
+
+#if 0
+void interpolate(const std::vector<float> vals, const int interval, std::vector<float> newVals) {
+
+}
+
+void appendCompress_yarn(const std::vector<Fiber::Yarn::Compress> &compress_segs, const int seg_vrtx,
+	const int yarn_vrtx, const char* compressFile) {
+	const int seg_num = compress_segs.size();
+	assert(seg_num * seg_vrtx < yarn_vrtx);
+	std::vector<Fiber::Yarn::Compress> allCompress;
+	allCompress.resize(yarn_vrtx);
+
+	const int seg_vrtx_new = yarn_vrtx / seg_num;
+	//interpolate old segment to new one
+	int indx = 0;
+	for (int i = 0; i < seg_num; ++i) {
+		for (int v = 0; v < seg_vrtx_new; ++v) {
+			indx = i*seg_vrtx_new + v;
+			allCompress[indx].ellipse_long = compress_segs[i].ellipse_long;
+			allCompress[indx].ellipse_short = compress_segs[i].ellipse_short;
+			allCompress[indx].ellipse_theta = compress_segs[i].ellipse_theta;
+			allCompress[indx].rotation = compress_segs[i].rotation;
+		}
+	}
+	//mirror the values for the leftover vertices  (if the end of yarn hasn't been assign)
+	int c = 1;
+	for (int l = indx + 1; l < yarn_vrtx; ++l) {
+		allCompress[l].ellipse_long = allCompress[indx - c].ellipse_long;
+		allCompress[l].ellipse_short = allCompress[indx - c].ellipse_short;
+		allCompress[l].ellipse_theta = allCompress[indx - c].ellipse_theta;
+		allCompress[l].rotation = allCompress[indx - c].rotation;
+		c++;
+	}
+
+	//write to file
+	FILE *fout;
+	//write ellipses to file for testing
+	if (fopen_s(&fout, compressFile, "wt") == 0) {
+		fprintf_s(fout, "%d \n", yarn_vrtx);
+		for (int i = 0; i < yarn_vrtx; ++i) {
+			fprintf_s(fout, "%.4f %.4f %.4f %.4f\n", allCompress[i].ellipse_long, allCompress[i].ellipse_short, allCompress[i].ellipse_theta, allCompress[i].rotation);
+		}
+		fclose(fout);
+	}
+}
+
+void appendCenter_yarn(const std::vector<Fiber::Yarn::CenterLine> &centerlines, const int seg_vrtx, const int yarn_vrtx, const char* curveFile) {
+	const int seg_num = centerlines.size();
+	assert(seg_num * seg_vrtx < yarn_vrtx);
+	std::vector<Fiber::Yarn::CenterLine> allCenterlines;
+	allCenterlines.resize(yarn_vrtx);
+	const int seg_vrtx_new = yarn_vrtx / seg_num;
+	//interpolate old segment to new one
+	int indx = 0;
+	for (int i = 0; i < seg_num; ++i) {
+		for (int v = 0; v < seg_vrtx_new; ++v) {
+			indx = i*seg_vrtx_new + v;
+			allCenterlines[indx].a = centerlines[i].a;
+			allCenterlines[indx].b = centerlines[i].b;
+			allCenterlines[indx].c = centerlines[i].c;
+		}
+	}
+	//mirror the values for the leftover vertices  (if the end of yarn hasn't been assign)
+	int c = 1;
+	for (int l = indx + 1; l < yarn_vrtx; ++l) {
+		allCenterlines[l].a = centerlines[indx - c].a;
+		allCenterlines[l].b = centerlines[indx - c].b;
+		allCenterlines[l].c = centerlines[indx - c].c;
+		c++;
+	}
+
+	//write to file
+	FILE *fout;
+	//write ellipses to file for testing
+	if (fopen_s(&fout, curveFile, "wt") == 0) {
+		fprintf_s(fout, "%d \n", yarn_vrtx);
+		for (int i = 0; i < yarn_vrtx; ++i) {
+			int v = i%seg_vrtx_new;
+			float b = 2 * pi / (seg_vrtx_new); //stretch the curve to fit the new length
+			float y = allCenterlines[i].a* sin(b * v) + allCenterlines[i].c;
+			fprintf_s(fout, "0.0 %.4f \n", y); //TODO: this should be in 3D
+											   //fprintf_s(fout, "%.4f %.4f %.4f\n", allCenterlines[i].a, allCenterlines[i].b, allCenterlines[i].c);
+		}
+		fclose(fout);
+	}
+}
+#endif

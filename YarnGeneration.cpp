@@ -30,7 +30,7 @@ int main(int argc, const char **argv) {
 	std::string dataset = "1231";
 	
 
-	int phase = 7;
+	int phase = 1;
 
 	switch (phase) {
 	case 1: {
