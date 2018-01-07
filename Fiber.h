@@ -224,6 +224,7 @@ namespace Fiber {
 		void write_plys(const char *filename = NULL);
 
 		/* compress yarn with theta, direction, a and b, cross section ellipse param. */
+		void readCompressFile_A(const char* compress_S, std::vector<Eigen::Matrix2f> &all_A);
 		void readCompressFile(const char* compress_R, const char* compress_S, std::vector<Transform> &all_Transform);
 		/* Find the spanning circle for generated yarn before applying the compression */
 		void fitCircle(const yarnIntersect2D &pts, float &radius);
@@ -233,6 +234,7 @@ namespace Fiber {
 		void compress_yarn(std::vector<std::vector<Eigen::MatrixXf>> &all_mat_S, std::vector<std::vector<float>> &all_theta_R,
 			std::vector<std::vector<Eigen::MatrixXf>> &all_T);
 		void compress_yarn3D(const char* deformGrad);
+		void compress_yarn_A(const char* compress_S);
 
 		/* Write simulated data (single yarns) to disk */
 		void write_yarn(const char* filename);

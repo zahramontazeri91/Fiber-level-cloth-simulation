@@ -55,8 +55,6 @@ void decomposeS(const Matrix_S &mat_S, Ellipse &ellipse) {
 void extractCompress_seg(const char* configfile, const char* yarnfile1, const char* yarnfile2, const char* compress_R, const char* compress_S,
 	const char* curveFile, const char* normFile, const int ply_num, const int vrtx_num)
 {
-
-
 	const int n = vrtx_num;
 	
 	std::vector<yarnIntersect2D> pnts_ref;
@@ -184,7 +182,7 @@ void extractCompress_seg(const char* configfile, const char* yarnfile1, const ch
 	//if (fopen_s(&foutS, compress_S, "wt") == 0) {
 	//	//fprintf_s(foutS, "%d \n", all_mat_S.size());
 	//	for (int i = 0; i < all_mat_S.size() ; ++i) {
-	//		fprintf_s(foutS, "%.6f %.6f %.6f \n", all_mat_S[i].S00, all_mat_S[i].S11 , all_mat_S[i].S01) ;
+	//		fprintf_s(foutS, "%.6f %.6f %.6f %.6f \n", all_mat_S[i].S00, all_mat_S[i].S11 , all_mat_S[i].S01, all_theta_R[i]) ;
 	//	}
 	//	fclose(foutS);
 	//}

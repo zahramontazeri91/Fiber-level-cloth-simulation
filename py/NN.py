@@ -17,10 +17,10 @@ path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/
  
 def loadData():
     
-    X_train_all = np.loadtxt(path + "trainX_all.txt",delimiter=None)
-    Y_train_all = np.loadtxt(path + "trainY_all.txt",delimiter=None)
-#    X_train_all = np.loadtxt("../input/trainX_all_1231_1233.txt",delimiter=None)
-#    Y_train_all = np.loadtxt("../input/trainY_all_1231_1233.txt",delimiter=None)
+#    X_train_all = np.loadtxt(path + "trainX_all.txt",delimiter=None)
+#    Y_train_all = np.loadtxt(path + "trainY_all.txt",delimiter=None)
+    X_train_all = np.loadtxt("../input/trainX_all_1231_1233.txt",delimiter=None)
+    Y_train_all = np.loadtxt("../input/trainY_all_1231_1233.txt",delimiter=None)
 
     #duplicate data
 #    X_train_all = np.concatenate((X_train_all,X_train_all), axis=0)
@@ -84,11 +84,11 @@ def buildModel(input_dim, output_dim):
 #    model.add(Dense(64, input_dim=input_dim))
 #    model.add(Activation('relu'))            
     
-    model.add(Dense(64, input_dim=input_dim))
+    model.add(Dense(126, input_dim=input_dim))
     model.add(Activation('relu'))   
     model.add(BatchNormalization())
     
-    model.add(Dense(64))
+    model.add(Dense(126))
     model.add(Activation('relu')) 
     model.add(BatchNormalization())
     
@@ -162,6 +162,6 @@ frame0 = 0
 frame1 = int(165/skipFactor + 1)
 for i in range (frame0, frame1):
     f = i*skipFactor
-    X_test = np.loadtxt(path + "testX_" + str(f) + ".txt",delimiter=None)
+    X_test = np.loadtxt(path + "trainX_" + str(f) + ".txt",delimiter=None)
     filename = "testY_NN_full_" + str(f ) + ".txt"
     predict(model, X_test, scaler, nb_outputs, filename, vrtxNum)

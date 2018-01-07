@@ -86,7 +86,7 @@ def appendDatasets():
     np.savetxt(w_path+'trainX_all_1231_1233.txt', X_train_all, fmt='%.6f', delimiter=' ')
     np.savetxt(w_path+'trainY_all_1231_1233.txt', Y_train_all, fmt='%.6f', delimiter=' ')
 # In[]:
-dataset = '1231'
+dataset = '1233'
 path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/'
 vrtNum = 300
 skipFactor = 5
@@ -96,13 +96,13 @@ last_frame = 165/skipFactor
 test_frame = -1
 not_frame = -1
 test_out = 0 #binary flag  
-sigma = 6 #window_size = 2*sigma + 1
-#filename = 'NN/trainY_'
-#buildTrainY(vrtNum, trimPercent, first_frame, last_frame, not_frame, filename)
-#filename = 'NN/trainX_'
-#buildTrainX_conv(vrtNum, trimPercent, first_frame, last_frame, not_frame, sigma, filename)
-#appendAll(first_frame, last_frame, 'NN/trainX_', test_out)
-#appendAll(first_frame, last_frame, 'NN/trainY_', test_out)
+sigma = 2 #window_size = 2*sigma + 1
+filename = 'NN/trainY_'
+buildTrainY(vrtNum, trimPercent, first_frame, last_frame, not_frame, filename)
+filename = 'NN/trainX_'
+buildTrainX_conv(vrtNum, trimPercent, first_frame, last_frame, not_frame, sigma, filename)
+appendAll(first_frame, last_frame, 'NN/trainX_', test_out)
+appendAll(first_frame, last_frame, 'NN/trainY_', test_out)
 
 #appendDatasets()
 

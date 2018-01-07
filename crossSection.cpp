@@ -215,23 +215,6 @@ void CrossSection::shapeMatch_A(const Eigen::MatrixXf &pnt_trans, const Eigen::M
 	Aqq = Aqq_1.inverse();
 
 	A = Apq*Aqq;
-	//std::cout << Apq*Aqq << std::endl;
-
-	////SVD decomposition
-	//Eigen::JacobiSVD<Eigen::MatrixXf> svd(Apq*Aqq, Eigen::ComputeThinU | Eigen::ComputeThinV);
-	//Eigen::Matrix2f U = svd.matrixU();
-	//Eigen::Matrix2f sigma = svd.singularValues().asDiagonal();
-	//Eigen::Matrix2f V = svd.matrixV();
-
-	////RS decompose
-	//Eigen::Matrix2f S = V*sigma*V.transpose();
-	//Eigen::Matrix2f R = U*V.transpose();
-	//mat_S.S00 = S(0, 0);
-	//mat_S.S11 = S(1, 1);
-	//mat_S.S01 = S(0, 1);
-
-	//theta_R = atan2(R(1, 0), R(0, 0));
-	//theta_R = theta_R < 0 ? theta_R + 2.f*pi : theta_R;
 
 }
 

@@ -8,7 +8,39 @@ import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 
 
-
+# In[]:
+def readExternal_trans(fname_read):
+    with open(fname_read, 'r') as fin:
+        force = np.zeros((ds_vrtNum-1)*12).reshape((ds_vrtNum-1),12)
+        for v in range (0,ds_vrtNum-1):
+            line = np.fromstring( fin.readline(), dtype=float, sep=' ' )
+            force[v] = line
+        # use average to use them for vertx not segment
+        force1 = np.zeros((ds_vrtNum)*12).reshape((ds_vrtNum),12)
+        force1[0] = force[0]
+        for v in range (0,len(force)-1):
+            force1[v+1] = (force[v] + force[v+1] )/2.0
+        force1[len(force)] = force[len(force)-1]        
+        
+        
+        # interpolate two values between each two
+        force2 = np.zeros((vrtNum)*12).reshape((vrtNum),12)
+        force2[0] = force1[0]
+        i = 1
+        for v in range (0,len(force1)-1):
+            force2[i] = force1[v]
+            force2[i+1] = (force1[v+1] - force1[v])/3.0 + force1[v]
+            force2[i+2] = 2.0*(force1[v+1] - force1[v])/3.0 + force1[v]
+            i = i+3
+        force2[i] = force1[len(force1)-1]
+        force2[i+1] = force1[len(force1)-1]
+        
+#        for v in range (0,len(force2)):
+#            force2[v] = force[50]
+            
+        return force2
+    print('read external done!')  
+    
 # In[]:
 def readExternal(fname_read):
     with open(fname_read, 'r') as fin:
@@ -98,7 +130,7 @@ vrtNum = 300
 ds_vrtNum = vrtNum/3
 skipFactor = 5 
 wrt_path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/' + dataset 
-for i in range (0,165/5+1):
+for i in range (30,31):
     f = i * skipFactor
     if f < 10 :
         frameNum = '0000'+ str(f) + '00'
@@ -108,6 +140,8 @@ for i in range (0,165/5+1):
        frameNum = '00'+ str(f) + '00' 
     fn_write_force = wrt_path + '/physicalParam/physical_' + str(f) + '_world.txt'
     fn_read_ext = path + 'frame_' + frameNum + 'fiber_00.fe'
+#    fn_read_ext_trans = path + 'frame_' + frameNum + 'fiber_00_trans.fe' #transformed deformation gradient
+    fn_write_force_trans = wrt_path + '/physical_' + str(f) + '_trans.txt'
     fn_read_int = path + 'frame_' + frameNum + 'fiber_00.sforce'
     fn_read_center = path + 'frame_' + frameNum + 'fiber_00_RED.obj'
     
@@ -127,7 +161,15 @@ for i in range (0,165/5+1):
                 for i in range (0,6): # write internal force
                     fout.writelines('%.8f ' % (int_force[v,i]) )
                 fout.writelines('\n')
-    
+#################################################               
+    ext_force_trans = np.zeros((vrtNum)*12).reshape((vrtNum),12)
+    ext_force_trans =  readExternal_trans(fn_read_ext_trans) 
+    with open(fn_write_force_trans, 'w') as fout:
+            for v in range (0,vrtNum):
+                for i in range (0,12): # write 3x3 force matrix
+                    fout.writelines('%.8f ' % (ext_force_trans[v,i]) )
+                fout.writelines('\n')
+#################################################
     centerYarn = np.zeros((vrtNum)*3).reshape((vrtNum),3)
     twist = np.zeros(vrtNum)          
     centerYarn, twist = readCenterYarn(fn_read_center);

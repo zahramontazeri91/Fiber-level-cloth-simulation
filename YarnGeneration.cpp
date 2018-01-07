@@ -30,7 +30,7 @@ int main(int argc, const char **argv) {
 	std::string dataset = "1231";
 	
 
-	int phase = 1;
+	int phase = 7;
 
 	switch (phase) {
 	case 1: {
@@ -64,18 +64,17 @@ int main(int argc, const char **argv) {
 					curvefile, normfile, yarn.getPlyNum(), vrtx_num);
 
 				/*************************************************/
-				std::string tmp6 = "output/" + dataset + "/genYarn_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
-				const char* outfile = tmp6.c_str();
-				//// Procedural step
-				yarn.simulate_ply();
-				yarn.write_plys("test_ply.txt");
-				const int K = yarn.getPlyNum();
-				yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
-				yarn.build("test_fly.txt", K);
-
-				//yarn.compress_yarn(compress_R, compress_S);
-				yarn.curve_yarn(curvefile, normfile);
-				yarn.write_yarn(outfile);
+				//std::string tmp6 = "output/" + dataset + "/genYarn_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+				//const char* outfile = tmp6.c_str();
+				////// Procedural step
+				//yarn.simulate_ply();
+				//yarn.write_plys("test_ply.txt");
+				//const int K = yarn.getPlyNum();
+				//yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
+				//yarn.build("test_fly.txt", K);
+				//yarn.compress_yarn_A(compress_S);
+				//yarn.curve_yarn(curvefile, normfile);
+				//yarn.write_yarn(outfile);
 
 				/*************************************************/
 				//std::string tmp7 = "output/" + dataset + "/genYarn_wo_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
@@ -110,8 +109,6 @@ int main(int argc, const char **argv) {
 			std::string tmp8 = "input/" + dataset + "/normYarn_" + std::to_string(f) + "_ds.txt";
 			const char* normfile = tmp8.c_str();
 
-			std::ifstream fin1(compress_R);
-			assert(fin1.is_open() && "compress_R file wasn't found!\n");
 			std::ifstream fin2(compress_S);
 			assert(fin2.is_open() && "compress_S_NN file wasn't found!\n");
 			std::ifstream fin3(curvefile);
@@ -127,7 +124,7 @@ int main(int argc, const char **argv) {
 			const int K = yarn.getPlyNum();
 			yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
 			yarn.build("test_fly.txt", K);
-			yarn.compress_yarn(compress_R, compress_S);
+			yarn.compress_yarn_A(compress_S);
 			yarn.curve_yarn(curvefile, normfile);
 			yarn.write_yarn(outfile);
 			std::cout << outfile << std::endl;
@@ -370,8 +367,9 @@ int main(int argc, const char **argv) {
 				std::string tmp2 = "input/" + dataset + "/normYarn_" + std::to_string(cnt) + "_ds.txt";
 				const char* normfile = tmp2.c_str();
 				//std::string tmp3 = "input/" + dataset + "/physicalParam/physical_" + std::to_string(cnt) + "_world.txt";
-				std::string tmp3 = "input/" + dataset + "/deformGrad_" + std::to_string(cnt) + ".txt";
-				const char* physical_local = tmp3.c_str();
+				//std::string tmp3 = "input/" + dataset + "/physical_" + std::to_string(cnt) + "_trans.txt";
+				//const char* physical_local = tmp3.c_str();
+				const char* physical_local = "D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/py/deforGrad/physical_150.txt";
 
 				std::ifstream fin1(curvefile);
 				std::ifstream fin2(normfile);
@@ -384,13 +382,20 @@ int main(int argc, const char **argv) {
 
 				std::string tmp4 = "data/" + dataset + "/simul_yarnlevel_frame_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
 				const char* outfile_wo = tmp4.c_str();
+
 				yarn.simulate_ply();
 				yarn.write_plys("test_ply.txt");
 				const int K = yarn.getPlyNum();
 				yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
 				yarn.build("test_fly.txt", K);
+
+				//std::string tmp5 = "data/" + dataset + "/simul_frame_" + std::to_string(0) + "_" + std::to_string(y) + "_4x.txt";
+				//const char* yarnfile = tmp5.c_str();
+				//yarn.parse(configfile);
+				//yarn.build(yarnfile, 2);
+
+				
 				yarn.compress_yarn3D(physical_local);
-				yarn.curve_yarn(curvefile, normfile);
 				yarn.write_yarn(outfile_wo);
 
 				cnt += skipFactor;
@@ -431,5 +436,5 @@ int main(int argc, const char **argv) {
 	}
 
 	//	std::system("pause"); //add breakpoint instead
-	return 0;
+return 0;
 }
