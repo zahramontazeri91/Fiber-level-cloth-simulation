@@ -1,7 +1,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-import mltools as ml
+#import mltools as ml
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Dropout
 from sklearn.preprocessing import MinMaxScaler
@@ -17,10 +17,10 @@ path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/
  
 def loadData():
     
-#    X_train_all = np.loadtxt(path + "trainX_all.txt",delimiter=None)
-#    Y_train_all = np.loadtxt(path + "trainY_all.txt",delimiter=None)
-    X_train_all = np.loadtxt("../input/trainX_all_1231_1233.txt",delimiter=None)
-    Y_train_all = np.loadtxt("../input/trainY_all_1231_1233.txt",delimiter=None)
+    X_train_all = np.loadtxt(path + "trainX_all.txt",delimiter=None)
+    Y_train_all = np.loadtxt(path + "trainY_all.txt",delimiter=None)
+#    X_train_all = np.loadtxt("../input/trainX_all_1231_1233.txt",delimiter=None)
+#    Y_train_all = np.loadtxt("../input/trainY_all_1231_1233.txt",delimiter=None)
 
     #duplicate data
 #    X_train_all = np.concatenate((X_train_all,X_train_all), axis=0)

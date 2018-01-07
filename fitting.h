@@ -10,7 +10,7 @@ void decomposeS(const Matrix_S &mat_S, Ellipse &ellipse);
 
 void writeParameters(std::vector<Matrix_S> &all_mat_S, std::vector<float> &all_theta_R, const char* compress_R, const char* compress_S);
 
-void extractCompress_seg(const char* configfile, const char* yarnfile1, const char* yarnfile2, const char* compress_R, const char* compress_S,
+void extractCompress_seg(const char* configfile, const char* yarnfile1, const char* yarnfile2, const char* deformGrad, const char* compress_S,
 	const char* curveFile, const char* normFile, const int ply_num, const int vrtx_num );
 
 //void constFitting_compParam(const std::vector<Ellipse> &ellipses, const std::vector<float> &theta_R,

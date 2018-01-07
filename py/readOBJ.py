@@ -4,12 +4,15 @@ Read obj file and write in the data format of simulated data
 """
 vrtNum = 300
 fiberNum = 160
-path = 'D:/sandbox/fiberSimulation/dataSets/train_teeth1231_ready/'
+#path = 'D:/sandbox/fiberSimulation/dataSets/teeth_spacing2_ready/'
+#path = 'D:/sandbox/fiberSimulation/dataSets/train_teeth1231_ready/'
 #path = 'D:/sandbox/fiberSimulation/dataSets/train_stretch1233_ready/'
-dataset = '1231'
+#path = 'D:/sandbox/fiberSimulation/dataSets/training_tmp/'
+path = "D:/sandbox/fiberSimulation/dataSets/pipeline2/training/spacing0/fiber/"
+dataset = 'spacing0'
 skipFactor = 5 
 
-for i in range (0,245/5 + 1):
+for i in range (0,165/5 + 1):
     f = i*skipFactor
     if f < 10 :
         frameNum = '0000'+ str(f) + '00'

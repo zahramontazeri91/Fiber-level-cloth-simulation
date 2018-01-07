@@ -234,6 +234,7 @@ namespace Fiber {
 		void compress_yarn(std::vector<std::vector<Eigen::MatrixXf>> &all_mat_S, std::vector<std::vector<float>> &all_theta_R,
 			std::vector<std::vector<Eigen::MatrixXf>> &all_T);
 		void compress_yarn3D(const char* deformGrad);
+		void compress_yarn3D(const char* deformGrad, const char* compress_S);
 		void compress_yarn_A(const char* compress_S);
 
 		/* Write simulated data (single yarns) to disk */

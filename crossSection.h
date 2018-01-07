@@ -48,6 +48,13 @@ public:
 		m_yarn.build(yarnfile, m_yarn.getPlyNum());
 		yarn2crossSections(allPlaneIntersect);
 	}
+	CrossSection(const char* yarnfile, const char* deformGrad, const char* configfile, std::vector<yarnIntersect2D> &allPlaneIntersect) {
+		m_yarn.parse(configfile);
+		m_yarn.build(yarnfile, m_yarn.getPlyNum());
+		m_yarn.compress_yarn3D(deformGrad);
+		m_yarn.write_yarn("test_dg.txt");
+		yarn2crossSections(allPlaneIntersect);
+	}
 
 	void init (const char* yarnfile, const int ply_num, const char* curvefile, const char* normfile, const int subdiv, const int num_planes, std::vector<yarnIntersect2D> &allPlaneIntersect);
 	void init_norm(const char* yarnfile, const int ply_num, const char* curvefile, const char* normfile, const int subdiv, const int num_planes, std::vector<yarnIntersect2D> &allPlaneIntersect);

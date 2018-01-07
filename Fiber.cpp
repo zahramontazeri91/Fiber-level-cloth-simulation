@@ -1210,6 +1210,78 @@ namespace Fiber {
 		}
 		fin.close();
 	}
+	void Yarn::compress_yarn3D(const char* deformGrad, const char* compress_S) {
+		std::cout << "step7: compress yarn cross-sections ..." << std::endl;
+
+		double zMin = std::numeric_limits<double>::max(), zMax = std::numeric_limits<double>::lowest();
+		for (const auto &ply : plys)
+			for (const auto &fiber : ply.fibers)
+				for (const auto &vertex : fiber.vertices) {
+					zMin = std::min(zMin, static_cast<double>(vertex.z));
+					zMax = std::max(zMax, static_cast<double>(vertex.z));
+				}
+		double zSpan = zMax - zMin;
+
+		
+		const int ply_num = this->plys.size();
+		std::vector<Eigen::Matrix3f> F;
+		std::vector<Eigen::Vector3f> T;
+		readDeformGradFile(deformGrad, F, T);
+		if (F.size() != this->z_step_num)
+			std::cout << "# deforGrad : " << F.size() << ", # cross-sections: " << this->z_step_num << std::endl;
+		assert(F.size() == this->z_step_num);
+
+		/***/
+		std::vector<Eigen::Matrix2f> A;
+		readCompressFile_A(compress_S, A);
+		if (A.size() != this->z_step_num)
+			std::cout << "# compress params: " << A.size() << ", # cross-sections: " << this->z_step_num << std::endl;
+		assert(A.size() == this->z_step_num);
+		/***/
+
+		// change the yarn cross-sections
+		for (int i = 0; i < ply_num; i++) {
+			const int fiber_num = this->plys[i].fibers.size();
+			for (int f = 0; f < fiber_num; f++) {
+				Fiber &fiber = this->plys[i].fibers[f];
+				const int vertices_num = this->plys[i].fibers[f].vertices.size();
+
+				for (int v = 0; v < vertices_num; v++) {
+
+					int indx = static_cast<int> ((fiber.vertices[v].z - zMin) / (this->z_step_size)); //because of flyaways
+
+					Eigen::Matrix3f transf = F[indx];
+					Eigen::Vector3f t = T[indx];
+
+					Eigen::MatrixXf ref(3, 1);
+					ref << fiber.vertices[v].x, fiber.vertices[v].y, fiber.vertices[v].z; ////*** 4x
+					Eigen::MatrixXf def(3, 1);
+					def = transf*ref;// +t;
+					fiber.vertices[v].x = def(0, 0);
+					fiber.vertices[v].y = def(1, 0);
+					fiber.vertices[v].z = def(2, 0);
+
+					/****/
+					Eigen::Matrix2f transf2 = A[indx];
+					Eigen::MatrixXf ref2(2, 1);
+					ref2 << fiber.vertices[v].x, fiber.vertices[v].y;
+					Eigen::MatrixXf def2(2, 1);
+					def2 = transf2*ref2;
+					fiber.vertices[v].x = def2(0, 0);
+					fiber.vertices[v].y = def2(1, 0);
+					/****/
+
+					fiber.vertices[v].x = fiber.vertices[v].x + t(0);
+					fiber.vertices[v].y = fiber.vertices[v].y + t(1);
+					fiber.vertices[v].z = fiber.vertices[v].z + t(2);
+
+
+					def = transf*ref;// +t;
+				}
+			}
+		}
+		plotIntersections("../data/allCrossSection2D_compress.txt", 0.2);
+	} // compress_yarn
 
 	void Yarn::compress_yarn3D(const char* deformGrad) {
 		std::cout << "step7: compress yarn cross-sections ..." << std::endl;
@@ -1248,7 +1320,7 @@ namespace Fiber {
 					Eigen::MatrixXf ref(3, 1);
 					ref << fiber.vertices[v].x, fiber.vertices[v].y , fiber.vertices[v].z ; ////*** 4x
 					Eigen::MatrixXf def(3, 1);
-					def = transf*ref + t ;
+					def = transf*ref +t;
 
 					fiber.vertices[v].x = def(0, 0);
 					fiber.vertices[v].y = def(1, 0);

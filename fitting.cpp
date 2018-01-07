@@ -52,13 +52,18 @@ void decomposeS(const Matrix_S &mat_S, Ellipse &ellipse) {
 	ellipse.angle = ellipse.angle < 0 ? ellipse.angle + 2.f*pi : ellipse.angle;
 }
 
-void extractCompress_seg(const char* configfile, const char* yarnfile1, const char* yarnfile2, const char* compress_R, const char* compress_S,
+void extractCompress_seg(const char* configfile, const char* yarnfile1, const char* yarnfile2, const char* deformGrad, const char* compress_S,
 	const char* curveFile, const char* normFile, const int ply_num, const int vrtx_num)
 {
 	const int n = vrtx_num;
 	
+	//pipeline 1:
+	//std::vector<yarnIntersect2D> pnts_ref;
+	//CrossSection cs1(yarnfile1, configfile, pnts_ref);
+
+	//pipeline 2:
 	std::vector<yarnIntersect2D> pnts_ref;
-	CrossSection cs1(yarnfile1, configfile, pnts_ref);
+	CrossSection cs1(yarnfile1, deformGrad, configfile, pnts_ref);
 
 	//const char* normYarn1 = "norms.txt";
 	//const char* centerYarn1 = "centerYarn1.txt";
@@ -66,10 +71,16 @@ void extractCompress_seg(const char* configfile, const char* yarnfile1, const ch
 	//std::vector<yarnIntersect2D> pnts_ref;
 	//CrossSection cs1(yarnfile1, centerYarn1, normYarn1, ply_num, n, 100, pnts_ref, false);
 
+	// for pipeline 2: (Shuang train data)
+	//Fiber::Yarn yarn_tmp;
+	//yarn_tmp.yarnCenter(yarnfile1, curveFile);
+	//std::vector<yarnIntersect2D> pnts_ref;
+	//CrossSection cs(yarnfile1, curveFile, normFile, ply_num, n, 100, pnts_ref, false);
+
 	Fiber::Yarn yarn_tmp;
 	yarn_tmp.yarnCenter(yarnfile2, curveFile);
 	std::vector<yarnIntersect2D> pnts_trans;
-	CrossSection cs2(yarnfile2, curveFile, normFile, ply_num, n, 100, pnts_trans, false);
+	CrossSection cs2(yarnfile2, curveFile, normFile, ply_num, n, 100, pnts_trans, true);  //** changed this to true
 
 	//std::vector<Matrix_S> all_mat_S;
 	//std::vector<float> all_theta_R;

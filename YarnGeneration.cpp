@@ -30,7 +30,7 @@ int main(int argc, const char **argv) {
 	std::string dataset = "1231";
 	
 
-	int phase = 7;
+	int phase = 2;
 
 	switch (phase) {
 	case 1: {
@@ -41,10 +41,12 @@ int main(int argc, const char **argv) {
 
 			for (int y = 0; y < yarnNum; ++y) {
 
+				//std::string tmp0 = "data/" + dataset + "/simul_frame_" + std::to_string(f) + "_" + std::to_string(y) + "_DEF.txt";
+				//const char* yarnfile0 = tmp0.c_str();
 				std::string tmp1 = "data/" + dataset + "/simul_frame_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
 				const char* yarnfile2 = tmp1.c_str();
-				std::string tmp2 = "input/" + dataset + "/matrix_R_" + std::to_string(cnt) + ".txt";
-				const char* compress_R = tmp2.c_str();
+				std::string tmp2 = "input/" + dataset + "/deformGrad_" + std::to_string(cnt) + "_trans.txt";
+				const char* deformGrad = tmp2.c_str();
 				std::string tmp3 = "input/" + dataset + "/matrix_S_" + std::to_string(cnt) + ".txt";
 				const char* compress_S = tmp3.c_str();
 				std::string tmp4 = "input/" + dataset + "/centerYarn_" + std::to_string(cnt) + ".txt";
@@ -54,13 +56,15 @@ int main(int argc, const char **argv) {
 
 				std::ifstream fin1(yarnfile1);
 				std::ifstream fin2(yarnfile2);
+				std::ifstream fin3(deformGrad);
 
 				assert(fin1.is_open() && "reference-yarn file wasn't found!\n");
 				assert(fin2.is_open() && "compressed-yarn file wasn't found!\n");
+				assert(fin3.is_open() && "deformGrad file wasn't found!\n");
 
 				const int vrtx_num = yarn.getStepNum();
 
-				extractCompress_seg(configfile, yarnfile1, yarnfile2, compress_R, compress_S,
+				extractCompress_seg(configfile, yarnfile1, yarnfile2, deformGrad, compress_S,
 					curvefile, normfile, yarn.getPlyNum(), vrtx_num);
 
 				/*************************************************/
@@ -99,15 +103,15 @@ int main(int argc, const char **argv) {
 		for (int i = frame0; i < frame1; i++) {
 
 			int f = i * skipFactor;
-			//std::string tmp5 = "input/" + dataset + "/twist_" + std::to_string(f) + ".txt";
-			std::string tmp5 = "input/" + dataset + "/matrix_R_" + std::to_string(f) + ".txt";
-			const char* compress_R = tmp5.c_str();
+
 			std::string tmp6 = "input/" + dataset + "/NN/testY_NN_full_" + std::to_string(f) + ".txt";
 			const char* compress_S = tmp6.c_str();
 			std::string tmp7 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_ds.txt";
 			const char* curvefile = tmp7.c_str();
 			std::string tmp8 = "input/" + dataset + "/normYarn_" + std::to_string(f) + "_ds.txt";
 			const char* normfile = tmp8.c_str();
+			std::string tmp9 = "input/" + dataset + "/deformGrad_" + std::to_string(f) + "_trans.txt";
+			const char* deformGrad = tmp9.c_str();
 
 			std::ifstream fin2(compress_S);
 			assert(fin2.is_open() && "compress_S_NN file wasn't found!\n");
@@ -124,8 +128,7 @@ int main(int argc, const char **argv) {
 			const int K = yarn.getPlyNum();
 			yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
 			yarn.build("test_fly.txt", K);
-			yarn.compress_yarn_A(compress_S);
-			yarn.curve_yarn(curvefile, normfile);
+			yarn.compress_yarn3D(deformGrad, compress_S);
 			yarn.write_yarn(outfile);
 			std::cout << outfile << std::endl;
 		}
@@ -270,7 +273,7 @@ int main(int argc, const char **argv) {
 
 			std::string tmp7 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_ds.txt"; //don't use upsampled centerline
 			const char* curvefile = tmp7.c_str();
-			std::string tmp8 = "input/" + dataset + "/normYarn_" + std::to_string(f) + "_ds.txt";//don't use upsampled normals for now
+			std::string tmp8 = "input/" + dataset + "/normYarn_" + std::to_string(f) + "_ds.txt";//don't use upsampled normals
 			const char* normfile = tmp8.c_str();
 			std::string tmp9 = "input/" + dataset + "/physicalParam/physical_" + std::to_string(f) + "_world.txt";
 			const char* physical_world = tmp9.c_str();
@@ -366,10 +369,8 @@ int main(int argc, const char **argv) {
 				const char* curvefile = tmp1.c_str();
 				std::string tmp2 = "input/" + dataset + "/normYarn_" + std::to_string(cnt) + "_ds.txt";
 				const char* normfile = tmp2.c_str();
-				//std::string tmp3 = "input/" + dataset + "/physicalParam/physical_" + std::to_string(cnt) + "_world.txt";
-				//std::string tmp3 = "input/" + dataset + "/physical_" + std::to_string(cnt) + "_trans.txt";
-				//const char* physical_local = tmp3.c_str();
-				const char* physical_local = "D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/py/deforGrad/physical_150.txt";
+				std::string tmp3 = "input/" + dataset + "/physical_" + std::to_string(cnt) + "_trans.txt";
+				const char* physical_local = tmp3.c_str();
 
 				std::ifstream fin1(curvefile);
 				std::ifstream fin2(normfile);
