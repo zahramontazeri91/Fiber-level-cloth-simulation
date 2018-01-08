@@ -16,7 +16,7 @@ void HermiteCurve::init(const char* pntsFILE, const char* normsFILE, int subdiv)
 	assert(pts.size()>2);
 
     init(pts, subdiv);
-	printNormals(normsFILE, subdiv);
+	//printNormals(normsFILE, subdiv);
 }
 
 void HermiteCurve::printNormals(const char* normsFILE, const int subdiv) {

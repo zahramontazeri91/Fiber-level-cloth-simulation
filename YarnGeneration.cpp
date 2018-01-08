@@ -34,6 +34,82 @@ int main(int argc, const char **argv) {
 
 	switch (phase) {
 	case 1: {
+		std::cout << "*** Convert external force to local coordinate ***\n";
+
+		for (int i = frame0; i < frame1; i++) {
+
+			int f = i * skipFactor;
+
+			HermiteCurve curve;
+			int seg_subdiv = 100;
+
+			std::string tmp7 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_ds.txt"; //don't use upsampled centerline
+			const char* curvefile = tmp7.c_str();
+			std::string tmp8 = "input/" + dataset + "/normYarn_" + std::to_string(f) + "_ds.txt";//don't use upsampled normals
+			const char* normfile = tmp8.c_str();
+			std::string tmp9 = "input/" + dataset + "/physicalParam/physical_" + std::to_string(f) + "_world.txt";
+			const char* physical_world = tmp9.c_str();
+			std::string tmp10 = "input/" + dataset + "/physical_" + std::to_string(f) + ".txt";
+			const char* physical_local = tmp10.c_str();
+
+			std::ifstream fin3(curvefile);
+			assert(fin3.is_open() && "curvefile file wasn't found!\n");
+			std::ifstream fin4(physical_world);
+			assert(fin4.is_open() && "physical_world file wasn't found!\n");
+
+			curve.init(curvefile, normfile, seg_subdiv);
+
+
+			std::ifstream fin5(normfile);
+			assert(fin5.is_open() && "normfile file wasn't found!\n");
+
+			std::ifstream fin(physical_world);
+			std::ofstream fout(physical_local);
+
+			float S00, S01, S02, S10, S11, S12, S20, S21, S22;
+			float A0, A1, A2;
+			float B0, B1, B2;
+			const int vrtx_num = yarn.getStepNum();
+			for (int v = 0; v < vrtx_num; ++v) {
+				fin >> S00 >> S01 >> S02 >> S10 >> S11 >> S12 >> S20 >> S21 >> S22
+					>> A0 >> A1 >> A2
+					>> B0 >> B1 >> B2;
+
+				const double curveLength = curve.totalLength();
+				float len = curveLength * (static_cast<double>(v) / static_cast<double>(vrtx_num - 1));
+				const double t = curve.arcLengthInvApprox(len);
+
+				Eigen::Vector3d ex, ey, ez;
+				curve.getRotatedFrame(t, ex, ey, ez);
+
+				/** local to world **/
+				Eigen::Matrix3f local, world;
+				world << S00, S01, S02,
+					S10, S11, S12,
+					S20, S21, S22;
+
+				Eigen::Matrix3f M;
+				M << ex[0], ex[1], ex[2],
+					ey[0], ey[1], ey[2],
+					ez[0], ez[1], ez[2];
+				local = M*world*M.transpose();
+
+				//write converted parameters
+				fout << local(0, 0) << " " << local(0, 1) << " " << local(0, 2) << " " <<
+					local(1, 0) << " " << local(1, 1) << " " << local(1, 2) << " " <<
+					local(2, 0) << " " << local(2, 1) << " " << local(2, 2) << " ";
+
+				Eigen::Vector3f localA, localB, worldA, worldB;
+				worldA << A0, A1, A2;
+				worldB << B0, B1, B2;
+				localA = M*worldA;
+				localB = M*worldB;
+				fout << localA(0) << " " << localA(1) << " " << localA(2) << " " <<
+					localB(0) << " " << localB(1) << " " << localB(2) << std::endl;
+			}
+			fout.close();
+		}
+
 		std::cout << "*** Fitting phase ***\n";
 		int cnt = frame0 * skipFactor;
 		for (int i = frame0; i < frame1; i++) {

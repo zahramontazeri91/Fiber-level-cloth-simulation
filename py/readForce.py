@@ -89,15 +89,53 @@ def readCenterYarn(fname_read):
     print('read centerline done!')     
 # main
 # In[]: 
-NN = 'train'
-dataset = 'spacing0_dg'
-#path = 'D:/sandbox/fiberSimulation/dataSets/nn_train_pipeline1/'+ NN +'/' + dataset +'/yarn/'
-path = 'D:/sandbox/fiberSimulation/dataSets/training_data_pipeline2/spacing0/yarn/'
+def readOBJ(vrtNum, fiberNum, dataset, path, skipFactor, frameCnt ):
+    for i in range (0,frameCnt/skipFactor + 1):
+        f = i*skipFactor
+        if f < 10 :
+            frameNum = '0000'+ str(f) + '00'
+        elif f <100 :
+           frameNum = '000'+ str(f) + '00' 
+        else:
+           frameNum = '00'+ str(f) + '00' 
+    
+        fname_read = path + 'frame_' + frameNum + 'fiber_00.obj'
+        fname_write = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/data/'+dataset+'/simul_frame_' + str(f) + '_0.txt'
+        with open(fname_write, 'w') as fout:
+            with open(fname_read, 'r') as fin:
+                fout.writelines('%d\n' %fiberNum)
+                for f in range (0,fiberNum):
+                    fout.writelines('%d\n' %vrtNum) 
+                    for v in range (0,vrtNum):
+                        line = fin.readline().split()
+                        vx = float(line[1]) * 0.25 
+                        vy = float(line[2]) * 0.25 
+                        vz = float(line[3]) * 0.25 
+                        fout.writelines('%.6f %.6f %.6f\n' % (vx, vy, vz) )
+                        
+            fin.close()
+        fout.close()    
+    print(str(frameCnt) + 'simul files are written!')
+                
+#main   
+# In[]: read OBJ
 vrtNum = 300
-ds_vrtNum = vrtNum/3
+fiberNum = 160
+frameCnt = 165
+dataset = 'spacing0'
+commonPath = 'D:/sandbox/fiberSimulation/dataSets/nn_train_pipeline1/'
+path = commonPath + 'train/' + dataset +'/fiber/'
 skipFactor = 5 
+
+readOBJ(vrtNum, fiberNum, dataset, path, skipFactor, frameCnt )
+    
+# In[]: read yarn-level
+NN = 'train'
+path = commonPath + NN +'/' + dataset +'/yarn/'
+ds_vrtNum = vrtNum/3
+
 wrt_path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/' + dataset 
-for i in range (0,165/5 + 1):
+for i in range (0,frameCnt/skipFactor + 1):
     f = i * skipFactor
     if f < 10 :
         frameNum = '0000'+ str(f) + '00'
@@ -137,7 +175,9 @@ for i in range (0,165/5 + 1):
         fout.writelines('%d \n' % (ds_vrtNum) )
         for v in range (0,ds_vrtNum):
                 fout.writelines('%.8f %.8f %.8f \n' % (centerYarn[v,0], centerYarn[v,1], centerYarn[v,2]) )
-            
+     
+print(str(frameCnt) + 'yarn-level files are written!')
+    
 #    fn_write_twist = wrt_path + '/twist_' + str(f) + '.txt' 
 #    with open(fn_write_twist, 'w') as fout:
 #        r = 0.0
