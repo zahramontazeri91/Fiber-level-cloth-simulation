@@ -58,12 +58,12 @@ void extractCompress_seg(const char* configfile, const char* yarnfile1, const ch
 	const int n = vrtx_num;
 	
 	//pipeline 1:
-	//std::vector<yarnIntersect2D> pnts_ref;
-	//CrossSection cs1(yarnfile1, configfile, pnts_ref);
+	std::vector<yarnIntersect2D> pnts_ref;
+	CrossSection cs1(yarnfile1, configfile, pnts_ref);
 
 	//pipeline 2:
-	std::vector<yarnIntersect2D> pnts_ref;
-	CrossSection cs1(yarnfile1, deformGrad, configfile, pnts_ref);
+	//std::vector<yarnIntersect2D> pnts_ref;
+	//CrossSection cs1(yarnfile1, deformGrad, configfile, pnts_ref);
 
 	//const char* normYarn1 = "norms.txt";
 	//const char* centerYarn1 = "centerYarn1.txt";
@@ -77,14 +77,10 @@ void extractCompress_seg(const char* configfile, const char* yarnfile1, const ch
 	//std::vector<yarnIntersect2D> pnts_ref;
 	//CrossSection cs(yarnfile1, curveFile, normFile, ply_num, n, 100, pnts_ref, false);
 
-	Fiber::Yarn yarn_tmp;
-	yarn_tmp.yarnCenter(yarnfile2, curveFile);
+	//Fiber::Yarn yarn_tmp;
+	//yarn_tmp.yarnCenter(yarnfile2, curveFile);
 	std::vector<yarnIntersect2D> pnts_trans;
-	CrossSection cs2(yarnfile2, curveFile, normFile, ply_num, n, 100, pnts_trans, true);  //** changed this to true
-
-	//std::vector<Matrix_S> all_mat_S;
-	//std::vector<float> all_theta_R;
-	//cs2.yarnShapeMatches(pnts_trans, pnts_ref, all_mat_S, all_theta_R);
+	CrossSection cs2(yarnfile2, curveFile, normFile, ply_num, n, 100, pnts_trans, true);  //changed this to true 
 
 	std::vector<Eigen::Matrix2f> all_A;
 	cs2.yarnShapeMatches_A(pnts_trans, pnts_ref, all_A);
@@ -244,17 +240,16 @@ void extractCompress_seg(const char* configfile, const char* yarnfile1, const ch
 	std::cout << "Compression parameters are successfully written to the file!\n";
 
 	//for debug: visualization
-	//const char* L2File = "../data/L2.txt";
-	//const char* refFile = "../data/allCrossSection2D_ref.txt";
-	//const char* deformedRefFile = "../data/allCrossSection2D_deformedRef.txt";
-	//const char* deformedFile = "../data/allCrossSection2D_deformed.txt";
-	//const float trimPercent = 0.2;
-	//plotIntersections(pnts_ref, refFile, trimPercent);
-	//std::vector<yarnIntersect2D> ref_deformed;
-	////deformRef(pnts_ref, ref_deformed, new_ellipses, new_theta_R);
-	//deformRef(pnts_ref, ref_deformed, all_mat_S, all_theta_R);
-	//plotIntersections(ref_deformed, deformedRefFile, trimPercent);
-	//plotIntersections(pnts_trans, deformedFile, trimPercent);
+	const char* L2File = "../data/L2.txt";
+	const char* refFile = "../data/allCrossSection2D_ref.txt";
+	const char* deformedRefFile = "../data/allCrossSection2D_deformedRef.txt";
+	const char* deformedFile = "../data/allCrossSection2D_deformed.txt";
+	const float trimPercent = 0.2;
+	plotIntersections(pnts_ref, refFile, trimPercent);
+	std::vector<yarnIntersect2D> ref_deformed;
+	deformRef(pnts_ref, ref_deformed, all_A);
+	plotIntersections(ref_deformed, deformedRefFile, trimPercent);
+	plotIntersections(pnts_trans, deformedFile, trimPercent);
 
 	//std::vector<float> L2;
 	//L2norm(ref_deformed, pnts_trans, L2, L2File); //note that these have same size
@@ -340,6 +335,27 @@ void plotIntersections(const std::vector<yarnIntersect2D> &its, const char* file
 			fprintf_s(fout, "\n");
 		}
 		fclose(fout);
+	}
+}
+
+void deformRef(const std::vector<yarnIntersect2D> &its, std::vector<yarnIntersect2D> &its_deformed,
+	const std::vector<Eigen::Matrix2f> &all_A) {
+
+	its_deformed.resize(its.size());
+	Eigen::Matrix2f transf;
+	for (int i = 0; i < its_deformed.size(); ++i) { //number of planes
+		transf << all_A[i](0, 0), all_A[i](0, 1), all_A[i](1, 0), all_A[i](1, 1);
+
+		its_deformed[i].resize(its[i].size());
+		for (int p = 0; p < its[i].size(); ++p) { //number of plys
+			its_deformed[i][p].resize(its[i][p].size());
+			for (int j = 0; j < its[i][p].size(); ++j) { //number of intersections
+				Eigen::VectorXf ref(2, 1);
+				ref << its[i][p][j].x, its[i][p][j].y;
+				Eigen::VectorXf deformedRef = transf*ref;
+				its_deformed[i][p][j] = vec2f(deformedRef(0, 0), deformedRef(1, 0));
+			}
+		}
 	}
 }
 

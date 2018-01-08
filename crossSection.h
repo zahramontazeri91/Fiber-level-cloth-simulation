@@ -52,7 +52,7 @@ public:
 		m_yarn.parse(configfile);
 		m_yarn.build(yarnfile, m_yarn.getPlyNum());
 		m_yarn.compress_yarn3D(deformGrad);
-		m_yarn.write_yarn("test_dg.txt");
+		//m_yarn.write_yarn("test_dg.txt");
 		yarn2crossSections(allPlaneIntersect);
 	}
 

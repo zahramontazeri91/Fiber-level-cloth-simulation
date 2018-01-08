@@ -68,9 +68,9 @@ def readCenterYarn(fname_read):
         twist = np.zeros((ds_vrtNum))
         for v in range (0,ds_vrtNum):
             line = fin.readline().split()
-            cntr[v,0] = float(line[1]) * 0.25
-            cntr[v,1] = float(line[2]) * 0.25
-            cntr[v,2] = float(line[3]) * 0.25
+            cntr[v,0] = float(line[1]) *0.25
+            cntr[v,1] = float(line[2]) *0.25
+            cntr[v,2] = float(line[3]) *0.25
 #            twist[v] = float(line[4]) 
         
         # interpolate two values between each two
@@ -89,16 +89,15 @@ def readCenterYarn(fname_read):
     print('read centerline done!')     
 # main
 # In[]: 
-path = 'D:/sandbox/fiberSimulation/dataSets/teeth_spacing2_ready/'
-#path = 'D:/sandbox/fiberSimulation/dataSets/training_tmp/'
-#path = 'D:/sandbox/fiberSimulation/dataSets/train_teeth1231_ready/'
-#path = 'D:/sandbox/fiberSimulation/dataSets/train_stretch1233_ready/'
-dataset = '1231_2' #####CHANGE FILE FORMAT CENTERLINE FOR TEST DATA#####
+NN = 'train'
+dataset = 'spacing0_dg'
+#path = 'D:/sandbox/fiberSimulation/dataSets/nn_train_pipeline1/'+ NN +'/' + dataset +'/yarn/'
+path = 'D:/sandbox/fiberSimulation/dataSets/training_data_pipeline2/spacing0/yarn/'
 vrtNum = 300
 ds_vrtNum = vrtNum/3
 skipFactor = 5 
 wrt_path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/' + dataset 
-for i in range (0,180/5 + 1):
+for i in range (0,165/5 + 1):
     f = i * skipFactor
     if f < 10 :
         frameNum = '0000'+ str(f) + '00'
@@ -109,7 +108,7 @@ for i in range (0,180/5 + 1):
     fn_write_force = wrt_path + '/physicalParam/physical_' + str(f) + '_world.txt'
     fn_read_ext = path + 'frame_' + frameNum + 'fiber_00.fe'
     fn_read_int = path + 'frame_' + frameNum + 'fiber_00.sforce'
-    fn_read_center = path + 'frame_' + frameNum + 'fiber_00_RED.obj'
+    fn_read_center = path + 'frame_' + frameNum + 'fiber_00.obj'  
     
     ext_force = np.zeros((vrtNum)*9).reshape((vrtNum),9)
     ext_force =  readExternal(fn_read_ext) 

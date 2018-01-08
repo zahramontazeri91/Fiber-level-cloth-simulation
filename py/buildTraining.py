@@ -76,8 +76,8 @@ def appendAll(first_frame, last_frame, filename, test_out):
 
 # In[]:
 def appendDatasets():
-    path1 = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/1231/NN/'
-    path2 = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/1233/NN/'
+    path1 = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/spacing2/NN/'
+    path2 = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/spacing0/NN/'
     X_train_all_1 = np.loadtxt(path1 + "trainX_all.txt",delimiter=None)
     Y_train_all_1 = np.loadtxt(path1 + "trainY_all.txt",delimiter=None)
     X_train_all_2 = np.loadtxt(path2 + "trainX_all.txt",delimiter=None)
@@ -87,10 +87,10 @@ def appendDatasets():
     Y_train_all = np.concatenate((Y_train_all_1,Y_train_all_2), axis=0)
     
     w_path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'
-    np.savetxt(w_path+'trainX_all_1231_1233.txt', X_train_all, fmt='%.6f', delimiter=' ')
-    np.savetxt(w_path+'trainY_all_1231_1233.txt', Y_train_all, fmt='%.6f', delimiter=' ')
+    np.savetxt(w_path+'trainX_all.txt', X_train_all, fmt='%.6f', delimiter=' ')
+    np.savetxt(w_path+'trainY_all.txt', Y_train_all, fmt='%.6f', delimiter=' ')
 # In[]:
-dataset = '1231'
+dataset = 'spacing0_dg'
 path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/'
 vrtNum = 300
 skipFactor = 5
@@ -100,7 +100,7 @@ last_frame = 165/skipFactor
 test_frame = -1
 not_frame = -1
 test_out = 0 #binary flag  
-sigma = 4 #window_size = 2*sigma + 1
+sigma = 5 #window_size = 2*sigma + 1
 filename = 'NN/trainY_'
 buildTrainY(vrtNum, trimPercent, first_frame, last_frame, not_frame, filename)
 filename = 'NN/trainX_'
