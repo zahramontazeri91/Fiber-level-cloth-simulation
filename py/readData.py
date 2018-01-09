@@ -75,15 +75,15 @@ def readCenterYarn(fname_read):
         
         # interpolate two values between each two
         twist2 = np.zeros((vrtNum))
-        twist2[0] = twist[0]
-        i = 1
-        for v in range (0,len(twist)-1):
-            twist2[i] = twist[v]
-            twist2[i+1] = (twist[v+1] - twist[v])/3.0 + twist[v]
-            twist2[i+2] = 2.0*(twist[v+1] - twist[v])/3.0 + twist[v]
-            i = i+3
-        twist2[i] = twist[len(twist)-1]
-        twist2[i+1] = twist[len(twist)-1]
+#        twist2[0] = twist[0]
+#        i = 1
+#        for v in range (0,len(twist)-1):
+#            twist2[i] = twist[v]
+#            twist2[i+1] = (twist[v+1] - twist[v])/3.0 + twist[v]
+#            twist2[i+2] = 2.0*(twist[v+1] - twist[v])/3.0 + twist[v]
+#            i = i+3
+#        twist2[i] = twist[len(twist)-1]
+#        twist2[i+1] = twist[len(twist)-1]
 
         return cntr, twist2
     print('read centerline done!')     
@@ -115,14 +115,14 @@ def readOBJ(vrtNum, fiberNum, dataset, path, skipFactor, frameCnt ):
                         
             fin.close()
         fout.close()    
-    print(str(frameCnt) + 'simul files are written!')
+    print(str(frameCnt) + ' simul files are written!')
                 
 #main   
 # In[]: read OBJ
 vrtNum = 300
 fiberNum = 160
 frameCnt = 165
-dataset = 'spacing0'
+dataset = 'spacing2'
 commonPath = 'D:/sandbox/fiberSimulation/dataSets/nn_train_pipeline1/'
 path = commonPath + 'train/' + dataset +'/fiber/'
 skipFactor = 5 
@@ -176,7 +176,7 @@ for i in range (0,frameCnt/skipFactor + 1):
         for v in range (0,ds_vrtNum):
                 fout.writelines('%.8f %.8f %.8f \n' % (centerYarn[v,0], centerYarn[v,1], centerYarn[v,2]) )
      
-print(str(frameCnt) + 'yarn-level files are written!')
+print(str(frameCnt) + '  yarn-level files are written!')
     
 #    fn_write_twist = wrt_path + '/twist_' + str(f) + '.txt' 
 #    with open(fn_write_twist, 'w') as fout:

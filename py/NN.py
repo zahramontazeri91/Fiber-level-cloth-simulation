@@ -11,16 +11,16 @@ import math
 ## Load data
 # In[]
 vrtxNum = 300
-dataset = 'spacing0_dg'
+dataset = 'spacing0'
 path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
  
  
 def loadData():
     
-    X_train_all = np.loadtxt(path + "trainX_all.txt",delimiter=None)
-    Y_train_all = np.loadtxt(path + "trainY_all.txt",delimiter=None)
-#    X_train_all = np.loadtxt("../input/trainX_all.txt",delimiter=None)
-#    Y_train_all = np.loadtxt("../input/trainY_all.txt",delimiter=None)
+#    X_train_all = np.loadtxt(path + "trainX_all.txt",delimiter=None)
+#    Y_train_all = np.loadtxt(path + "trainY_all.txt",delimiter=None)
+    X_train_all = np.loadtxt("../input/all/NN/trainX_all.txt",delimiter=None)
+    Y_train_all = np.loadtxt("../input/all/NN/trainY_all.txt",delimiter=None)
 
     #duplicate data
 #    X_train_all = np.concatenate((X_train_all,X_train_all), axis=0)
@@ -79,10 +79,7 @@ def buildModel(input_dim, output_dim):
 
     # Simple fully-connected neural network with 2 hidden layers.
     # Including dropout layer helps avoid overfitting.
-    model = Sequential()
-    
-#    model.add(Dense(64, input_dim=input_dim))
-#    model.add(Activation('relu'))            
+    model = Sequential()      
     
     model.add(Dense(126, input_dim=input_dim))
     model.add(Activation('relu'))   

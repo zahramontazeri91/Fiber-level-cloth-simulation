@@ -24,10 +24,10 @@ int main(int argc, const char **argv) {
 	//return 0;
 
 	int skipFactor = 5;
-	int frame0 = 30;
-	int frame1 = 31;// 165 / skipFactor + 1;
+	int frame0 = 0;
+	int frame1 = 165 / skipFactor + 1;
 	int yarnNum = 1;
-	std::string dataset = "spacing0_dg";
+	std::string dataset = "spacing0_rotate";
 	
 
 	int phase = 2;
@@ -149,30 +149,30 @@ int main(int argc, const char **argv) {
 				extractCompress_seg(configfile, yarnfile1, yarnfile2, "noNeed.txt", compress_S,
 					curvefile, normfile, yarn.getPlyNum(), vrtx_num);
 				/*************************************************/
-				std::string tmp6 = "output/" + dataset + "/genYarn_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
-				const char* outfile = tmp6.c_str();
-				//// Procedural step
-				yarn.simulate_ply();
-				yarn.write_plys("test_ply.txt");
-				const int K = yarn.getPlyNum();
-				yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
-				yarn.build("test_fly.txt", K);
+				//std::string tmp6 = "output/" + dataset + "/genYarn_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+				//const char* outfile = tmp6.c_str();
+				////// Procedural step
+				//yarn.simulate_ply();
+				//yarn.write_plys("test_ply.txt");
+				//const int K = yarn.getPlyNum();
+				//yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
+				//yarn.build("test_fly.txt", K);
 
-				////pipeline 2:
-				////yarn.compress_yarn3D(deformGrad, compress_S);
-				
-				yarn.compress_yarn_A(compress_S);
-				yarn.curve_yarn(curvefile, normfile);
-				yarn.write_yarn(outfile);
-				///*************************************************/
-				std::string tmp7 = "output/" + dataset + "/genYarn_wo_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
-				const char* outfile_wo = tmp7.c_str();
-				yarn.simulate_ply();
-				yarn.write_plys("test_ply.txt");
-				yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
-				yarn.build("test_fly.txt", K);
-				yarn.curve_yarn(curvefile, normfile);
-				yarn.write_yarn(outfile_wo);
+				//////pipeline 2:
+				//////yarn.compress_yarn3D(deformGrad, compress_S);
+				//
+				//yarn.compress_yarn_A(compress_S);
+				//yarn.curve_yarn(curvefile, normfile);
+				//yarn.write_yarn(outfile);
+				/////*************************************************/
+				//std::string tmp7 = "output/" + dataset + "/genYarn_wo_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+				//const char* outfile_wo = tmp7.c_str();
+				//yarn.simulate_ply();
+				//yarn.write_plys("test_ply.txt");
+				//yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
+				//yarn.build("test_fly.txt", K);
+				//yarn.curve_yarn(curvefile, normfile);
+				//yarn.write_yarn(outfile_wo);
 
 				cnt += skipFactor;
 			}
