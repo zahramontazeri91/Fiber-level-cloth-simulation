@@ -1318,9 +1318,9 @@ namespace Fiber {
 					Eigen::Vector3f t = T[indx];
 
 					Eigen::MatrixXf ref(3, 1);
-					ref << fiber.vertices[v].x, fiber.vertices[v].y , fiber.vertices[v].z ; ////*** 4x
+					ref << fiber.vertices[v].x, fiber.vertices[v].y , fiber.vertices[v].z ;
 					Eigen::MatrixXf def(3, 1);
-					def = transf*ref +t;
+					def = transf*ref;// +t;
 
 					fiber.vertices[v].x = def(0, 0);
 					fiber.vertices[v].y = def(1, 0);

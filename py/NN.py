@@ -11,7 +11,8 @@ import math
 ## Load data
 # In[]
 vrtxNum = 300
-dataset = 'spacing0'
+dataset = 'spacing3.0x'
+#dataset = 'spacing3.0x_rotate_test'
 path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
  
  
@@ -156,7 +157,7 @@ model = trainModel(model, X_train, Y_train, X_valid, Y_valid)
 # In[]
 skipFactor = 5
 frame0 = 0
-frame1 = int(165/skipFactor + 1)
+frame1 = int(150/skipFactor + 1)
 for i in range (frame0, frame1):
     f = i*skipFactor
     X_test = np.loadtxt(path + "testX_" + str(f) + ".txt",delimiter=None)

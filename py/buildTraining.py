@@ -6,7 +6,7 @@ Take the middle part of the data and append them together
 """
 import numpy as np
 from shutil import copyfile
-
+from sklearn.preprocessing import MinMaxScaler
 
 # In[]:
 def buildTrainY(vrtNum, trimPercent, first_frame, last_frame, not_frame, filename):
@@ -28,7 +28,23 @@ def buildTrainY(vrtNum, trimPercent, first_frame, last_frame, not_frame, filenam
         print(str(c) + '-th TrainY added\n')
         c = c+1
 # In[]:
-
+def normalizeInternal(vrtNum, first_frame, last_frame):
+    c = first_frame
+    for i in range (first_frame,last_frame+1):
+        j = c*skipFactor
+        fname_read = path + 'physical_' + str(j) + '.txt'
+        data = np.loadtxt(fname_read)
+        internal = data[:,9:]
+        scaler = MinMaxScaler(feature_range=(0, 1))
+        scaler.fit(internal)
+        internal = scaler.transform(internal)
+        #append it back to external
+        data = np.concatenate((data[:,0:9],internal), axis=1)
+        fname_write = path + 'physical_' + str(j) + '_norm.txt'
+        np.savetxt(fname_write, data, fmt='%.8f' )
+            
+        c = c+1
+# In[]:
 def buildTrainX_conv(vrtNum, trimPercent, first_frame, last_frame, not_frame, sigma, filename):
     c = first_frame
     for i in range (first_frame,last_frame+1):
@@ -37,7 +53,7 @@ def buildTrainX_conv(vrtNum, trimPercent, first_frame, last_frame, not_frame, si
         j = c*skipFactor
         fname_write = path + filename + str(j - first_frame*skipFactor) + '.txt'
         with open(fname_write, 'w') as fout:
-            fname_read = path + 'physical_' + str(j) + '.txt'            
+            fname_read = path + 'physical_' + str(j) + '_norm.txt'            
             with open(fname_read, 'r') as fin:
                 line = fin.read().splitlines() #read the whole file as a list of string
                 if (len(line) != vrtNum) :
@@ -48,6 +64,7 @@ def buildTrainX_conv(vrtNum, trimPercent, first_frame, last_frame, not_frame, si
                     if (cs >= ignor and cs <= vrtNum - ignor):
                         total = ""
                         for w in range (sigma ,0, -1): 
+#                            TO TAKE ONLY PART OF THE PHYSICAL PARAMS
 #                            tmp = line[cs - w].split()
 #                            line[cs - w] = ' '.join(tmp[9:])
                             total += line[cs - w] + ' ' 
@@ -90,27 +107,33 @@ def appendDatasets(dataset1, dataset2):
     np.savetxt(w_path + 'all/NN/' + 'trainX_all.txt', X_train_all, fmt='%.6f', delimiter=' ')
     np.savetxt(w_path + 'all/NN/' + 'trainY_all.txt', Y_train_all, fmt='%.6f', delimiter=' ')
 # In[]:
-dataset = 'spacing2'
+dataset = 'spacing3.0x'
+#dataset = 'spacing3.0x_rotate_test'
+
 w_path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'
 path = w_path + dataset + '/'
 vrtNum = 300
 skipFactor = 5
-trimPercent = 0.2
+trimPercent = 0.15
 first_frame = 0
-last_frame = 165/skipFactor 
+last_frame = 150/skipFactor 
 test_frame = -1
 not_frame = -1
 test_out = 0 #binary flag  
 sigma = 5 #window_size = 2*sigma + 1
-filename = 'NN/trainY_'
-buildTrainY(vrtNum, trimPercent, first_frame, last_frame, not_frame, filename)
-filename = 'NN/trainX_'
-buildTrainX_conv(vrtNum, trimPercent, first_frame, last_frame, not_frame, sigma, filename)
-appendAll(first_frame, last_frame, 'NN/trainX_', test_out)
-appendAll(first_frame, last_frame, 'NN/trainY_', test_out)
 
-#appendDatasets('spacing1', 'spacing2')
+normalizeInternal(vrtNum, first_frame, last_frame)
 
+# In[]:
+#build train data:
+#filename = 'NN/trainY_'
+#buildTrainY(vrtNum, trimPercent, first_frame, last_frame, not_frame, filename)
+#filename = 'NN/trainX_'
+#buildTrainX_conv(vrtNum, trimPercent, first_frame, last_frame, not_frame, sigma, filename)
+#appendAll(first_frame, last_frame, 'NN/trainX_', test_out)
+#appendAll(first_frame, last_frame, 'NN/trainY_', test_out)
+#
+#appendDatasets('all', dataset)
 # In[]:
 #build test data:
 filename = 'NN/testX_'

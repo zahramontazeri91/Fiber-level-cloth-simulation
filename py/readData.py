@@ -122,12 +122,12 @@ def readOBJ(vrtNum, fiberNum, dataset, path, skipFactor, frameCnt ):
 vrtNum = 300
 fiberNum = 160
 frameCnt = 165
-dataset = 'spacing2'
+dataset = 'spacing0'
 commonPath = 'D:/sandbox/fiberSimulation/dataSets/nn_train_pipeline1/'
 path = commonPath + 'train/' + dataset +'/fiber/'
 skipFactor = 5 
 
-readOBJ(vrtNum, fiberNum, dataset, path, skipFactor, frameCnt )
+#readOBJ(vrtNum, fiberNum, dataset, path, skipFactor, frameCnt )
     
 # In[]: read yarn-level
 NN = 'train'
@@ -153,9 +153,9 @@ for i in range (0,frameCnt/skipFactor + 1):
     
     int_force = np.zeros((vrtNum)*6).reshape((vrtNum),6)
     int_force =  readInternal(fn_read_int)     
-    scaler = MinMaxScaler(feature_range=(0, 1))
-    scaler.fit(int_force)
-    int_force = scaler.transform(int_force)
+#    scaler = MinMaxScaler(feature_range=(0, 1))
+#    scaler.fit(int_force)
+#    int_force = scaler.transform(int_force)
     
     with open(fn_write_force, 'w') as fout:
             for v in range (0,vrtNum):
