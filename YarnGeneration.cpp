@@ -18,8 +18,8 @@ int main(int argc, const char **argv) {
 
 
 	int skipFactor = 5;
-	int frame0 = 30;
-	int frame1 = 31; // 150 / skipFactor + 1;
+	int frame0 = 150 / skipFactor + 1;
+	int frame1 = 240 / skipFactor + 1;
 	int yarnNum = 1;
 	std::string dataset = "spacing1.5x";
 	//std::string dataset = "spacing3.0x_rotate_test";
@@ -159,14 +159,14 @@ int main(int argc, const char **argv) {
 				yarn.curve_yarn(curvefile, normfile);
 				yarn.write_yarn(outfile);
 				/////*************************************************/
-				//std::string tmp7 = "output/" + dataset + "/genYarn_wo_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
-				//const char* outfile_wo = tmp7.c_str();
-				//yarn.simulate_ply();
-				//yarn.write_plys("test_ply.txt");
-				//yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
-				//yarn.build("test_fly.txt", K);
-				//yarn.curve_yarn(curvefile, normfile);
-				//yarn.write_yarn(outfile_wo);
+				std::string tmp7 = "output/" + dataset + "/genYarn_wo_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+				const char* outfile_wo = tmp7.c_str();
+				yarn.simulate_ply();
+				yarn.write_plys("test_ply.txt");
+				yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
+				yarn.build("test_fly.txt", K);
+				yarn.curve_yarn(curvefile, normfile);
+				yarn.write_yarn(outfile_wo);
 
 				cnt += skipFactor;
 			}

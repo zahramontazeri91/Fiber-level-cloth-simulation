@@ -18,15 +18,23 @@ batch_size = 128
 epochs = 10
 
 # input image dimensions
-img_c, img_r = 9, 30
-target_c, target_r = 2, 30
-nb_data = 10
-wnd_size = 3
+vrtNum = 211
+img_c, img_r = 9, vrtNum
+target_c, target_r = 1, vrtNum
+nb_data = int(150/5)
+wnd_size = 11
+skipFactor = 5
 
 # read data
 data = np.zeros(img_r*img_c).reshape(img_c, img_r)
 target = np.zeros(target_r*target_c)
-path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/NN/'
+
+dataset = 'spacing3.0x'
+#dataset = 'spacing3.0x_rotate_test'
+
+w_path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'
+path = w_path + dataset + '/NN/'
+
 nb_train = int(nb_data*0.7)
 nb_test = int(nb_data - nb_data*0.7 )
 x_train = np.zeros((nb_train, img_c, img_r ))
@@ -34,10 +42,11 @@ y_train = np.zeros((nb_train, target_c*target_r ))
 x_test = np.zeros((nb_test, img_c, img_r ))
 y_test = np.zeros((nb_test, target_c*target_r ))
 for i in range (0,nb_data):
-    fn = path + 'trainX_' + str(i) + '.txt'
+    f = i * skipFactor
+    fn = path + 'trainX_' + str(f) + '.txt'
     data = np.loadtxt(fn)
 
-    fn = path + 'trainY_' + str(i) + '.txt'
+    fn = path + 'trainY_' + str(f) + '.txt'
     tmp = np.loadtxt(fn)
     target = tmp[:, 0:target_c]
     target = target.reshape(target_r*target_c)

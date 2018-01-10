@@ -10,11 +10,6 @@ import math
 
 ## Load data
 # In[]
-vrtxNum = 300
-dataset = 'spacing3.0x'
-#dataset = 'spacing3.0x_rotate_test'
-path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
- 
  
 def loadData():
     
@@ -82,13 +77,17 @@ def buildModel(input_dim, output_dim):
     # Including dropout layer helps avoid overfitting.
     model = Sequential()      
     
-    model.add(Dense(126, input_dim=input_dim))
+    model.add(Dense(64, input_dim=input_dim))
     model.add(Activation('relu'))   
     model.add(BatchNormalization())
-    
-    model.add(Dense(126))
+
+    model.add(Dense(64))
     model.add(Activation('relu')) 
     model.add(BatchNormalization())
+    
+#    model.add(Dense(16))
+#    model.add(Activation('relu')) 
+#    model.add(BatchNormalization())
     
     model.add(Dense(output_dim))
     model.add(Activation('linear'))
@@ -103,7 +102,7 @@ def trainModel(model, X_train, Y_train, X_valid, Y_valid):
     
     # Weights are updated one mini-batch at a time. A running average of the training loss is computed in real time, which is useful for identifying problems (e.g. the loss might explode or get stuck right). The validation loss is evaluated at the end of each epoch (without dropout).
 
-    history = model.fit(X_train, Y_train, batch_size = 16, epochs = 80, verbose = 2,
+    history = model.fit(X_train, Y_train, batch_size = 16, epochs = 50, verbose = 2,
                         validation_data=(X_valid, Y_valid))
         
     # Plot loss trajectory throughout training.
@@ -125,16 +124,34 @@ def trainModel(model, X_train, Y_train, X_valid, Y_valid):
 
 ## extrapolate
 # In[]:
-def extrapolate(predicted, totalNum, filename, nb_outputs):
+def extrapolate(predicted, totalNum, filename, nb_outputs, stride):
     total = np.zeros(totalNum*nb_outputs).reshape(totalNum,nb_outputs)
     assert(predicted.shape[1] == total.shape[1])
-    r = math.floor (( totalNum - predicted.shape[0] )/2)
-    total[r:r+predicted.shape[0], :] = predicted
+    # extrapolate predicted by stride_num
+    vrtNum = predicted.shape[0] * stride
+    predictExtr = np.zeros(vrtNum*nb_outputs).reshape(vrtNum,nb_outputs)
+    fidx = np.linspace (1,vrtNum-stride-1, num=vrtNum/stride, dtype=int)
+
+    for i in range(0,vrtNum):
+        k = np.searchsorted(fidx,i)
+        if k==0:
+#            print(i)
+            predictExtr[i] = predicted[0]
+        elif k == int(vrtNum/stride):
+            predictExtr[i] = predicted[int(vrtNum/stride) - 1 ]
+#            print(i)
+        else: 
+            w = (fidx[k] - i)/(fidx[k] - fidx[k - 1])
+            predictExtr[i] = w*predicted[k - 1] + (1.0 - w)*predicted[k]
+#            print(i,k, w)
+    
+    r = math.floor (( totalNum - predictExtr.shape[0] )/2)
+    total[r:r+predictExtr.shape[0], :] = predictExtr
     np.savetxt(path + filename, total, fmt='%.6f', delimiter=' ')
     
 ## Prediction
 # In[]:
-def predict(model, X_test, scaler, nb_outputs, filename, vrtxNum):
+def predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride):
     
     predicted = model.predict(X_test, verbose=0)
 #    all_test = np.concatenate((X_test,predicted), axis=1)
@@ -142,7 +159,7 @@ def predict(model, X_test, scaler, nb_outputs, filename, vrtxNum):
 #    np.savetxt(path + 'testY_NN.txt', all_test[:, -3:], fmt='%.6f', delimiter=' ')
     np.savetxt(path + 'testY_NN.txt', predicted, fmt='%.6f', delimiter=' ')
     
-    extrapolate(predicted, vrtxNum, filename, nb_outputs)
+    extrapolate(predicted, vrtxNum, filename, nb_outputs, stride)
 ## Main
 # In[]
   
@@ -155,6 +172,11 @@ model = trainModel(model, X_train, Y_train, X_valid, Y_valid)
 
 ## Test all frames
 # In[]
+vrtxNum = 300
+dataset = 'spacing1.5x'
+#dataset = 'spacing3.0x_rotate_test'
+path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+stride = 2
 skipFactor = 5
 frame0 = 0
 frame1 = int(150/skipFactor + 1)
@@ -162,4 +184,4 @@ for i in range (frame0, frame1):
     f = i*skipFactor
     X_test = np.loadtxt(path + "testX_" + str(f) + ".txt",delimiter=None)
     filename = "testY_NN_full_" + str(f ) + ".txt"
-    predict(model, X_test, scaler, nb_outputs, filename, vrtxNum)
+    predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride)

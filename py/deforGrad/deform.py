@@ -122,8 +122,8 @@ def transform(vrtNum, cntr_0_obj, cntr_n_obj, cntr_n, dg_n, internal_n, physical
 #FiberBundle(path + "frame_0015000fiber_00.obj").output_mitsuba("test0.txt")
 
 # In[]:
-dataset = 'spacing3.0x_rotate_test'
-#dataset = 'spacing6.5x'
+#dataset = 'spacing3.0x_rotate_test'
+dataset = 'spacing1.5x'
 vrtNum = 100
 isTrain = 0
 if (isTrain):
@@ -132,7 +132,7 @@ else:
     path = "D:/sandbox/fiberSimulation/dataSets/spacing/test/"+dataset+"/yarn/"
 
 skipFactor = 5
-for i in range (0,150/skipFactor + 1):
+for i in range (0,240/skipFactor + 1):
     f = i * skipFactor
     if f < 10 :
         frameNum = '0000'+ str(f) + '00'
