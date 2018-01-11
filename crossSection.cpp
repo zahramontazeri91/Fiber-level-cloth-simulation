@@ -113,7 +113,11 @@ bool CrossSection::linePlaneIntersection(const vec3f &start, const vec3f &end, c
 		if (t >= 0.f && t <= t_end) {
 			its = start + dir*t;
 
-			assert(length(its - plane.point) > 1e-6 && "intersection exactly at the plane.point"); //TODO: handle this corner case later 
+			float dist = length(its - plane.point);
+			//if (dist > 1e-6)
+				//std::cout << "distance ints to plane-center: " << dist << std::endl;
+
+			//assert(length(its - plane.point) > 1e-6 && "intersection exactly at the plane.point"); //TODO: handle this corner case later 
 			assert(std::abs(dot(its - plane.point, plane.n)) < 1e-6);
 			return true;
 		}

@@ -52,6 +52,7 @@ void decomposeS(const Matrix_S &mat_S, Ellipse &ellipse) {
 	ellipse.angle = ellipse.angle < 0 ? ellipse.angle + 2.f*pi : ellipse.angle;
 }
 
+
 void extractCompress_seg(const char* configfile, const char* yarnfile1, const char* yarnfile2, const char* deformGrad, const char* compress_S,
 	const char* curveFile, const char* normFile, const int ply_num, const int vrtx_num)
 {
@@ -96,163 +97,23 @@ void extractCompress_seg(const char* configfile, const char* yarnfile1, const ch
 		fclose(foutS);
 	}
 
-#if 0
-	/****************/
-	Matrix_S mat_S, mat_S1;
-	float theta_R, theta_R1;
-	Eigen::MatrixXf T, T1;
-	cs2.plyShapeMatch(pnts_trans[100][0], pnts_ref[100][0], mat_S, theta_R, T);
-	cs2.plyShapeMatch(pnts_trans[100][1], pnts_ref[100][1], mat_S1, theta_R1, T1);
-
-	FILE *fout1;
-	if (fopen_s(&fout1, "../data/plyShapeMatch_simul.txt", "wt") == 0) {
-		fprintf_s(fout1, "%d \n", pnts_trans[100][0].size() * 2);
-		for (int i = 0; i < pnts_trans[100][0].size(); ++i) {
-			fprintf_s(fout1, "%.6f %.6f\n", pnts_trans[100][0][i].x, pnts_trans[100][0][i].y);
-		}
-		for (int i = 0; i < pnts_trans[100][1].size(); ++i) {
-			fprintf_s(fout1, "%.6f %.6f\n", pnts_trans[100][1][i].x, pnts_trans[100][1][i].y);
-		}
-		fclose(fout1);
-	}
-
-	FILE *fout2;
-	if (fopen_s(&fout2, "../data/plyShapeMatch_proc.txt", "wt") == 0) {
-		fprintf_s(fout2, "%d \n", pnts_ref[100][0].size() * 2);
-		float e = 0.f;
-
-		float S00 = mat_S.S00;
-		float S01 = mat_S.S01;
-		float S11 = mat_S.S11;
-		Eigen::Matrix2f S, R, transf;
-		S << S00, S01, S01, S11;
-		R << cos(theta_R), -sin(theta_R), sin(theta_R), cos(theta_R);
-		transf = R * S;
-
-		vec2f plyCenter(0.f);
-		for (int j = 0; j < pnts_ref[100][0].size(); ++j) { //number of intersections
-			plyCenter += pnts_ref[100][0][j];
-		}
-		plyCenter /= pnts_ref[100][0].size();
-
-		for (int i = 0; i < pnts_ref[100][0].size(); ++i) {
-			vec2f pnt = pnts_ref[100][0][i] - plyCenter;
-			Eigen::MatrixXf ref(2, 1);
-			ref << pnt.x, pnt.y;
-			ref = transf * ref + T;
-			fprintf_s(fout2, "%.6f %.6f \n", ref(0, 0), ref(1, 0));
-			vec2f its_deform(ref(0, 0), ref(1, 0));
-			e += square_norm(pnts_trans[100][0][i] - its_deform);
-
-		}
-
-		/***/
-		S00 = mat_S1.S00;
-		S01 = mat_S1.S01;
-		S11 = mat_S1.S11;
-		S << S00, S01, S01, S11;
-		R << cos(theta_R1), -sin(theta_R1), sin(theta_R1), cos(theta_R1);
-		transf = R * S;
-
-		for (int j = 0; j < pnts_ref[100][1].size(); ++j) { //number of intersections
-			plyCenter += pnts_ref[100][1][j];
-		}
-		plyCenter /= pnts_ref[100][1].size();
-
-		for (int i = 0; i < pnts_ref[100][1].size(); ++i) {
-			vec2f pnt = pnts_ref[100][1][i] - plyCenter;
-			Eigen::MatrixXf ref(2, 1);
-			ref << pnt.x, pnt.y;
-			ref = transf * ref + T1;
-			fprintf_s(fout2, "%.6f %.6f \n", ref(0, 0), ref(1, 0));
-			vec2f its_deform(ref(0, 0), ref(1, 0));
-			e += square_norm(pnts_trans[100][1][i] - its_deform);
-		}
-		std::cout << "L2 error: " << e << std::endl;
-		fclose(fout2);
-	}
-	return;
-	/****************/
-#endif
-
-	//FILE *foutR;
-	//if (fopen_s(&foutR, compress_R, "wt") == 0) {
-	//	fprintf_s(foutR, "%d \n", all_theta_R.size());
-	//	for (int i = 0; i < all_theta_R.size(); ++i) {
-	//		fprintf_s(foutR, "%.6f \n", all_theta_R[i]);
-	//	}
-	//	fclose(foutR);
-	//}
-
-	//FILE *foutS;
-	//// write S-matrix for each segment not vertex 
-	//if (fopen_s(&foutS, compress_S, "wt") == 0) {
-	//	//fprintf_s(foutS, "%d \n", all_mat_S.size());
-	//	for (int i = 0; i < all_mat_S.size() ; ++i) {
-	//		fprintf_s(foutS, "%.6f %.6f %.6f %.6f \n", all_mat_S[i].S00, all_mat_S[i].S11 , all_mat_S[i].S01, all_theta_R[i]) ;
-	//	}
-	//	fclose(foutS);
-	//}
-
-#if 0
-	/*use PCA */
-	//0. extract the ellipses 
-	//std::vector<float> all_theta_R (n, 0.f);
-	//std::vector<Ellipse> ellipses1(n);
-	//std::vector<bool> isValid(n, true);
-	//cs.fitEllipses(pnts_ref, ellipses1, isValid);
-	//std::vector<Ellipse> ellipses2(n);
-	//cs.fitEllipses(pnts_trans, ellipses2, isValid);
-	//std::vector<Ellipse> ellipses(n);
-	//for (int i = 0; i < n; ++i) {
-	//	Ellipse ell;
-	//	ell.longR = ellipses2[i].longR / ellipses1[i].longR;
-	//	ell.shortR = ellipses2[i].shortR / ellipses1[i].shortR;
-	//	ell.angle = ellipses2[i].angle;
-	//	ellipses[i] = ell;
-	//}
-
-	//decompose mat_S to ellipse
-	//std::vector<Ellipse> ellipses;
-	//for (int i = 0; i < n; ++i) {
-	//	Ellipse ellipse;
-	//	decomposeS(all_mat_S[i], ellipse);
-	//	ellipses.push_back(ellipse);
-	//}
-
-	//optimize the solution and regularizing
-	//cs.optimizeEllipses(ellipses, all_theta_R, new_ellipses, new_theta_R);
-	//new_ellipses = ellipses;
-	//new_theta_R = all_theta_R;
-
-	////non-periodic theta
-	//std::vector<float> theta;
-	//std::vector<float> theta_new;
-	//for (int i = 0; i < new_ellipses.size(); ++i)
-	//	theta.push_back(new_ellipses[i].angle);
-	//nonPeriodicTheta(theta, theta_new);
-	//nonPeriodicTheta(new_theta_R, new_theta_R);
-	//for (int i = 0; i < new_ellipses.size(); ++i)
-	//	new_ellipses[i].angle = theta_new[i];
-#endif 
-
 	//constant fitting
 	std::cout << "Compression parameters are successfully written to the file!\n";
 
 	//for debug: visualization
-	const char* L2File = "../data/L2.txt";
-	const char* refFile = "../data/allCrossSection2D_ref.txt";
-	const char* deformedRefFile = "../data/allCrossSection2D_deformedRef.txt";
-	const char* deformedFile = "../data/allCrossSection2D_deformed.txt";
-	const float trimPercent = 0.2;
-	plotIntersections(pnts_ref, refFile, trimPercent);
-	std::vector<yarnIntersect2D> ref_deformed;
-	deformRef(pnts_ref, ref_deformed, all_A);
-	plotIntersections(ref_deformed, deformedRefFile, trimPercent);
-	plotIntersections(pnts_trans, deformedFile, trimPercent);
+	//const char* L2File = "../data/L2.txt";
+	//const char* refFile = "../data/allCrossSection2D_ref.txt";
+	//const char* deformedRefFile = "../data/allCrossSection2D_deformedRef.txt";
+	//const char* deformedFile = "../data/allCrossSection2D_deformed.txt";
+	//const float trimPercent = 0.2;
+	//plotIntersections(pnts_ref, refFile, trimPercent);
+	//std::vector<yarnIntersect2D> ref_deformed;
+	//(pnts_ref, ref_deformed, all_A);
+	//plotIntersections(ref_deformed, deformedRefFile, trimPercent);
+	//plotIntersections(pnts_trans, deformedFile, trimPercent);
 
 	//std::vector<float> L2;
-	//L2norm(ref_deformed, pnts_trans, L2, L2File); //note that these have same size
+	//L2norm(ref_deformed, pnts_trans, L2, L2File, trimPercent); //note that these have same size
 }
 
 float nextTheta(float theta0, float theta1) {
@@ -283,17 +144,17 @@ void nonPeriodicTheta(const std::vector<float> &theta, std::vector<float> &theta
 	}
 }
 
-
-void L2norm(const std::vector<yarnIntersect2D> &its_deform, const std::vector<yarnIntersect2D> &its_trans, std::vector<float> &L2, const char* filename) {
+void L2norm(const std::vector<yarnIntersect2D> &its_deform, const std::vector<yarnIntersect2D> &its_trans, std::vector<float> &L2, const char* filename, const float trimPercent) {
 
 	if (its_deform.size() != its_trans.size())
 		std::cout << its_deform.size() << " " << its_trans.size() << std::endl;
 	assert(its_deform.size() == its_trans.size());
 	FILE *fout;
 
+	const int ignorPlanes = trimPercent * its_deform.size(); // crop the first and last 10% of the yarn
 	if (fopen_s(&fout, filename, "wt") == 0) {
 		fprintf_s(fout, "%d \n", its_deform.size());
-		for (int i = 0; i < its_deform.size(); ++i) { //number of planes
+		for (int i = ignorPlanes; i < its_deform.size() - ignorPlanes; ++i) { //number of planes
 			float e = 0.f;
 			for (int p = 0; p < its_deform[i].size(); ++p) { //number of plys
 				for (int j = 0; j < its_deform[i][p].size(); ++j) { //number of intersections

@@ -245,6 +245,8 @@ namespace Fiber {
 
 		void plotIntersections(const char* filename, const float trimPercent);
 
+		void L2norm_3D(const Yarn &yarn1, const Yarn &yarn2, const int trimPercent, float &L2);
+
 		/* Find the yarn-radius for each cross-section */
 		//void shapeCrossSection(yarnIntersect2D &its, float &rLong, float &rShort);
 	};

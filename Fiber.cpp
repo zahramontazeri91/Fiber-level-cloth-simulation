@@ -1581,6 +1581,28 @@ namespace Fiber {
 #endif
 	}
 
+	void Yarn:: L2norm_3D(const Yarn &yarn1, const Yarn &yarn2, const int trimPercent, float &L2) {
+		assert(yarn1.getPlyNum() == yarn2.getPlyNum());
+		assert(yarn1.getStepNum() == yarn2.getStepNum());
+		const int ply_num = yarn1.getPlyNum();
+
+		float e = 0.f;
+		for (int i = 0; i < ply_num; i++) {
+			const int fiber_num = yarn1.plys[i].fibers.size();
+			for (int f = 0; f < fiber_num; f++) {
+				const int vertices_num = yarn1.plys[i].fibers[f].vertices.size();
+				const int ignorPlanes = trimPercent * vertices_num;
+				for (int v = 0; v < vertices_num; v++) {
+					const vec3f v1 = yarn1.plys[i].fibers[f].vertices[v];
+					const vec3f v2 = yarn2.plys[i].fibers[f].vertices[v];
+					if ( v > ignorPlanes && v < vertices_num - ignorPlanes)
+						e += square_norm(v1 - v2);
+				}
+			}
+		}
+		L2 = e;
+	}
+
 
 #if 0	
 	void Yarn::shapeCrossSection(yarnIntersect2D &its, float &rLong, float &rShort) {

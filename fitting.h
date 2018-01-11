@@ -28,7 +28,6 @@ void deformRef(const std::vector<yarnIntersect2D> &its, std::vector<yarnIntersec
 void deformRef(const std::vector<yarnIntersect2D> &its, std::vector<yarnIntersect2D> &its_deformed,
 	const std::vector<Eigen::Matrix2f> &all_A);
 
-
-void L2norm(const std::vector<yarnIntersect2D> &its_deform, const std::vector<yarnIntersect2D> &its_trans, std::vector<float> &L2, const char* filename);
+void L2norm(const std::vector<yarnIntersect2D> &its_deform, const std::vector<yarnIntersect2D> &its_trans, std::vector<float> &L2, const char* filename, const float trimPercent);
 
 void nonPeriodicTheta(const std::vector<float> &theta, std::vector<float> &theta_new);
