@@ -18,13 +18,13 @@ int main(int argc, const char **argv) {
 
 
 	int skipFactor = 5;
-	int frame0 = 0;
-	int frame1 = 1;// 240 / skipFactor + 1;
+	int frame0 = 28;
+	int frame1 = 29;// 165 / skipFactor + 1;
 	int yarnNum = 1;
 	std::string dataset = "spacing0.5x";
 	//std::string dataset = "spacing3.0x_rotate_test";
 
-	int phase = 2;
+	int phase = 1;
 
 	switch (phase) {
 	case 1: {
@@ -158,15 +158,15 @@ int main(int argc, const char **argv) {
 				yarn.compress_yarn_A(compress_S);
 				yarn.curve_yarn(curvefile, normfile);
 				yarn.write_yarn(outfile);
-				/////*************************************************/
-				std::string tmp7 = "output/" + dataset + "/genYarn_wo_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
-				const char* outfile_wo = tmp7.c_str();
-				yarn.simulate_ply();
-				yarn.write_plys("test_ply.txt");
-				yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
-				yarn.build("test_fly.txt", K);
-				yarn.curve_yarn(curvefile, normfile);
-				yarn.write_yarn(outfile_wo);
+				///////*************************************************/
+				//std::string tmp7 = "output/" + dataset + "/genYarn_wo_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+				//const char* outfile_wo = tmp7.c_str();
+				//yarn.simulate_ply();
+				//yarn.write_plys("test_ply.txt");
+				//yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
+				//yarn.build("test_fly.txt", K);
+				//yarn.curve_yarn(curvefile, normfile);
+				//yarn.write_yarn(outfile_wo);
 
 				cnt += skipFactor;
 			}
@@ -223,17 +223,17 @@ int main(int argc, const char **argv) {
 				yarn_proc.parse(configfile);
 				yarn_proc.build(yarnfile_proc, yarn_proc.getPlyNum());
 
-				std::string tmp5 = "data/" + dataset + "/simul_frame_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
-				const char* yarnfile_simul = tmp5.c_str(); 
-				std::ifstream fin5(yarnfile_simul);
-				assert(fin5.is_open() && "yarn_simul file wasn't found!\n");
-				Fiber::Yarn yarn_simul;
-				yarn_simul.parse(configfile);
-				yarn_simul.build(yarnfile_simul, yarn_simul.getPlyNum());
+				//std::string tmp5 = "data/" + dataset + "/simul_frame_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+				//const char* yarnfile_simul = tmp5.c_str(); 
+				//std::ifstream fin5(yarnfile_simul);
+				//assert(fin5.is_open() && "yarn_simul file wasn't found!\n");
+				//Fiber::Yarn yarn_simul;
+				//yarn_simul.parse(configfile);
+				//yarn_simul.build(yarnfile_simul, yarn_simul.getPlyNum());
 
 				const int trimPercent = 0.15; // should match with building NN data
 				float L2;
-				yarn.L2norm_3D(yarn_simul, yarn_proc, trimPercent, L2);
+				yarn.L2norm_3D(yarn, yarn_proc, trimPercent, L2);
 				std::cout << "L2 is: " << L2 << std::endl;
 
 			}

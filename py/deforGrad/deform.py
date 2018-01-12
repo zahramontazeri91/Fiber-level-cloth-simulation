@@ -56,7 +56,7 @@ def transform(vrtNum, cntr_0_obj, cntr_n_obj, cntr_n, dg_n, internal_n, physical
             
     bundle = FiberBundle(src_obj)
     bundle.gen_central_line()
-    idx = np.array(bundle.downsample(3))
+    idx = np.array(bundle.downsample(downSample))
     n1 = len(stretch)
     n2 = len(bend)    
     
@@ -123,17 +123,20 @@ def transform(vrtNum, cntr_0_obj, cntr_n_obj, cntr_n, dg_n, internal_n, physical
 
 # In[]:
 #dataset = 'spacing3.0x_rotate_test'
-dataset = 'spacing1.5x'
-vrtNum = 100
-isTrain = 0
+dataset = 'spacing0.5x'
+vrtNum = 150
+downSample = 2
+isTrain = 1
 if (isTrain):
     path = "D:/sandbox/fiberSimulation/dataSets/spacing/train/"+dataset+"/yarn/"
 else:
     path = "D:/sandbox/fiberSimulation/dataSets/spacing/test/"+dataset+"/yarn/"
 
 skipFactor = 5
-for i in range (0,240/skipFactor + 1):
+#for i in range (0,150/skipFactor + 1):
+for i in range (1,2):  
     f = i * skipFactor
+    f = 140
     if f < 10 :
         frameNum = '0000'+ str(f) + '00'
     elif f <100 :

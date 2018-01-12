@@ -42,7 +42,7 @@ def loadData():
     
     nb_features = X_train_all.shape[1]
     nb_traindata = X_train_all.shape[0]
-    nb_halfdata = round(nb_traindata*0.95)
+    nb_halfdata = round(nb_traindata*0.99)
     nb_outputs = Y_train_all.shape[1]
     
     # using subset data as training and validation
@@ -77,17 +77,17 @@ def buildModel(input_dim, output_dim):
     # Including dropout layer helps avoid overfitting.
     model = Sequential()      
     
-    model.add(Dense(64, input_dim=input_dim))
+    model.add(Dense(126, input_dim=input_dim))
     model.add(Activation('relu'))   
     model.add(BatchNormalization())
 
-    model.add(Dense(64))
+    model.add(Dense(126))
     model.add(Activation('relu')) 
     model.add(BatchNormalization())
     
-#    model.add(Dense(16))
-#    model.add(Activation('relu')) 
-#    model.add(BatchNormalization())
+    model.add(Dense(126))
+    model.add(Activation('relu')) 
+    model.add(BatchNormalization())
     
     model.add(Dense(output_dim))
     model.add(Activation('linear'))
@@ -102,7 +102,7 @@ def trainModel(model, X_train, Y_train, X_valid, Y_valid):
     
     # Weights are updated one mini-batch at a time. A running average of the training loss is computed in real time, which is useful for identifying problems (e.g. the loss might explode or get stuck right). The validation loss is evaluated at the end of each epoch (without dropout).
 
-    history = model.fit(X_train, Y_train, batch_size = 16, epochs = 50, verbose = 2,
+    history = model.fit(X_train, Y_train, batch_size = 16, epochs = 80, verbose = 2,
                         validation_data=(X_valid, Y_valid))
         
     # Plot loss trajectory throughout training.

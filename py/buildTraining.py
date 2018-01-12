@@ -9,6 +9,42 @@ from shutil import copyfile
 from sklearn.preprocessing import MinMaxScaler
 
 # In[]:
+def descreteKernel(sigma, sparcity): #hard-coded for sparcity upto 5!
+    assert (sigma > 0)
+    halfWindow = sigma + sparcity
+    kernel = np.ones(halfWindow)
+    if (sigma==1):
+        kernel = np.zeros(halfWindow)
+        kernel[0] = 1
+    elif (sigma==2):
+        kernel = np.zeros(halfWindow)
+        kernel[0] = 1
+        kernel[-1] = 1
+    elif (sparcity==1):
+        kernel[-2] = 0
+    elif (sparcity==2):
+        kernel[-2] = 0
+        kernel[-3] = 0
+    elif (sparcity==3):
+        kernel[-2] = 0
+        kernel[-3] = 0
+        kernel[-5] = 0
+    elif (sparcity==4):
+        kernel[-2] = 0
+        kernel[-3] = 0
+        kernel[-5] = 0
+        kernel[-6] = 0
+    elif (sparcity==5):
+        kernel[-2] = 0
+        kernel[-3] = 0
+        kernel[-5] = 0
+        kernel[-6] = 0
+        kernel[-8] = 0
+    return kernel
+    
+        
+    
+# In[]:
 def buildTrainY(vrtNum, trimPercent, first_frame, last_frame, not_frame, stride, filename):
     c=first_frame
     for i in range (first_frame,last_frame+1):
@@ -66,16 +102,20 @@ def buildTrainX_conv(vrtNum, trimPercent, first_frame, last_frame, not_frame, si
                 while (cs<vrtNum):                    
                     if (cs >= ignor and cs <= vrtNum - ignor):
                         total = ""
-                        for w in range (sigma ,0, -1): 
+                        for w in range (halfWindow ,0, -1): 
 #                            TO TAKE ONLY PART OF THE PHYSICAL PARAMS
                             tmp = line[cs - w].split()
-                            line[cs - w] = ' '.join(tmp[0:12])
-                            total += line[cs - w] + ' ' 
-                        for w in range (0,sigma + 1 ):  
-                            tmp = line[cs + w].split()
-                            line[cs + w] = ' '.join(tmp[0:12])                             
-                            total += line[cs + w] + ' '
-                            
+                            line[cs - w] = ' '.join(tmp[0:1])
+                            if (kernel[halfWindow-w]==1):
+                                total += line[cs - w] + ' ' 
+                        tmp = line[cs].split()
+                        line[cs] = ' '.join(tmp[0:1])  
+                        total += line[cs] + ' '
+                        for w in range (0,halfWindow ):  
+                            tmp = line[cs + w + 1].split()
+                            line[cs + w + 1] = ' '.join(tmp[0:1])
+                            if (kernel[w]==1):
+                                total += line[cs + w + 1] + ' '
                         fout.writelines(total+'\n')
                     cs = cs + stride
         fout.close()                
@@ -111,7 +151,7 @@ def appendDatasets(dataset1, dataset2):
     np.savetxt(w_path + 'all/NN/' + 'trainX_all.txt', X_train_all, fmt='%.6f', delimiter=' ')
     np.savetxt(w_path + 'all/NN/' + 'trainY_all.txt', Y_train_all, fmt='%.6f', delimiter=' ')
 # In[]:
-dataset = 'spacing1.5x'
+dataset = 'spacing0.5x'
 #dataset = 'spacing3.0x_rotate_test'
 
 w_path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'
@@ -120,25 +160,30 @@ vrtNum = 300
 skipFactor = 5
 trimPercent = 0.15
 first_frame = 0
-last_frame = 240/skipFactor 
+last_frame = 150/skipFactor 
 test_frame = -1
 not_frame = -1
 test_out = 0 #binary flag  
-sigma = 5 #window_size = 2*sigma + 1
 stride = 1
-
+sigma = 2 #window_size = 2*sigma + 1
+sparcity = 2
+halfWindow = sigma + sparcity
+if (sigma==0):
+    halfWindow = 0
+else:
+    kernel = descreteKernel(sigma, sparcity)
 normalizeInternal(vrtNum, first_frame, last_frame)
 
 # In[]:
 #build train data:
 
-#filename = 'NN/trainY_'
-#buildTrainY(vrtNum, trimPercent, first_frame, last_frame, not_frame, stride, filename)
-#filename = 'NN/trainX_'
-#buildTrainX_conv(vrtNum, trimPercent, first_frame, last_frame, not_frame, sigma, stride, filename)
-#appendAll(first_frame, last_frame, 'NN/trainX_', test_out)
-#appendAll(first_frame, last_frame, 'NN/trainY_', test_out)
-#
+filename = 'NN/trainY_'
+buildTrainY(vrtNum, trimPercent, first_frame, last_frame, not_frame, stride, filename)
+filename = 'NN/trainX_'
+buildTrainX_conv(vrtNum, trimPercent, first_frame, last_frame, not_frame, sigma, stride, filename)
+appendAll(first_frame, last_frame, 'NN/trainX_', test_out)
+appendAll(first_frame, last_frame, 'NN/trainY_', test_out)
+
 #appendDatasets('all', dataset)
 # In[]:
 #build test data:
