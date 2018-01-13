@@ -42,7 +42,8 @@ def loadData():
     
     nb_features = X_train_all.shape[1]
     nb_traindata = X_train_all.shape[0]
-    nb_halfdata = round(nb_traindata*0.99)
+    split = 0.75
+    nb_halfdata = round(nb_traindata*split)
     nb_outputs = Y_train_all.shape[1]
     
     # using subset data as training and validation
@@ -71,23 +72,23 @@ def loadData():
 
 ## Build neural network model
 # In[]:
-def buildModel(input_dim, output_dim):
+def buildModel(input_dim, output_dim, neurons):
 
     # Simple fully-connected neural network with 2 hidden layers.
     # Including dropout layer helps avoid overfitting.
     model = Sequential()      
     
-    model.add(Dense(126, input_dim=input_dim))
+    model.add(Dense(neurons, input_dim=input_dim))
     model.add(Activation('relu'))   
     model.add(BatchNormalization())
 
-    model.add(Dense(126))
+    model.add(Dense(neurons))
     model.add(Activation('relu')) 
     model.add(BatchNormalization())
     
-    model.add(Dense(126))
-    model.add(Activation('relu')) 
-    model.add(BatchNormalization())
+#    model.add(Dense(126))
+#    model.add(Activation('relu')) 
+#    model.add(BatchNormalization())
     
     model.add(Dense(output_dim))
     model.add(Activation('linear'))
@@ -161,27 +162,75 @@ def predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride):
     
     extrapolate(predicted, vrtxNum, filename, nb_outputs, stride)
 ## Main
-# In[]
-  
-(X_train, Y_train, X_valid, Y_valid, nb_features, nb_outputs, scaler) = loadData()
+# In[]    
+def test(neurons): 
+    (X_train, Y_train, X_valid, Y_valid, nb_features, nb_outputs, scaler) = loadData()
+    model = buildModel(nb_features, nb_outputs, neurons)
+    model = trainModel(model, X_train, Y_train, X_valid, Y_valid)
+    return model, scaler, nb_outputs
+    
 
-model = buildModel(nb_features, nb_outputs)
-
-model = trainModel(model, X_train, Y_train, X_valid, Y_valid)
-
-
-## Test all frames
-# In[]
+stride = 1
+skipFactor = 5        
 vrtxNum = 300
-dataset = 'spacing1.5x'
-#dataset = 'spacing3.0x_rotate_test'
+model, scaler, nb_outputs = test(64)
+## Test all frames
+dataset = 'spacing0.5x_00011'
 path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
-stride = 2
-skipFactor = 5
-frame0 = 0
+frame0 = int(80/skipFactor)
+frame1 = int(160/skipFactor + 1)
+for i in range (frame0, frame1):
+    f = i*skipFactor
+    X_test = np.loadtxt(path + "testX_" + str(f-80) + ".txt",delimiter=None)
+    filename = "testY_NN_full_" + str(f) + "_.txt"
+    predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride)
+
+dataset = 'spacing0.5x_10100'
+path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+frame0 = int(80/skipFactor)
 frame1 = int(150/skipFactor + 1)
 for i in range (frame0, frame1):
     f = i*skipFactor
-    X_test = np.loadtxt(path + "testX_" + str(f) + ".txt",delimiter=None)
-    filename = "testY_NN_full_" + str(f ) + ".txt"
+    X_test = np.loadtxt(path + "testX_" + str(f-80) + ".txt",delimiter=None)
+    filename = "testY_NN_full_" + str(f) + "_.txt"
+    predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride)
+    
+dataset = 'spacing0.5x_11110'
+path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+frame0 = int(80/skipFactor)
+frame1 = int(155/skipFactor + 1)
+for i in range (frame0, frame1):
+    f = i*skipFactor
+    X_test = np.loadtxt(path + "testX_" + str(f-80) + ".txt",delimiter=None)
+    filename = "testY_NN_full_" + str(f) + "_.txt"
+    predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride)
+
+dataset = 'spacing1.0x_00011'
+path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+frame0 = int(80/skipFactor)
+frame1 = int(170/skipFactor + 1)
+for i in range (frame0, frame1):
+    f = i*skipFactor
+    X_test = np.loadtxt(path + "testX_" + str(f-80) + ".txt",delimiter=None)
+    filename = "testY_NN_full_" + str(f) + "_.txt"
+    predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride)
+
+dataset = 'spacing1.0x_10100'
+path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+frame0 = int(80/skipFactor)
+frame1 = int(155/skipFactor + 1)
+for i in range (frame0, frame1):
+    f = i*skipFactor
+    X_test = np.loadtxt(path + "testX_" + str(f-80) + ".txt",delimiter=None)
+    filename = "testY_NN_full_" + str(f) + "_.txt"
+    predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride)
+    
+dataset = 'spacing1.0x_11110'
+path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+frame0 = int(80/skipFactor)
+frame1 = int(160/skipFactor + 1)
+for i in range (frame0, frame1):
+    f = i*skipFactor
+    X_test = np.loadtxt(path + "testX_" + str(f-80) + ".txt",delimiter=None)
+    filename = "testY_NN_full_" + str(f) + "_.txt"
     predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride)

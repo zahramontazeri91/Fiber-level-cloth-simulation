@@ -45,7 +45,7 @@ def descreteKernel(sigma, sparcity): #hard-coded for sparcity upto 5!
         
     
 # In[]:
-def buildTrainY(vrtNum, trimPercent, first_frame, last_frame, not_frame, stride, filename):
+def buildTrainY(vrtNum, trimPercent, first_frame, last_frame, not_frame, stride, filename, path):
     c=first_frame
     for i in range (first_frame,last_frame+1):
         if i==not_frame:
@@ -66,7 +66,7 @@ def buildTrainY(vrtNum, trimPercent, first_frame, last_frame, not_frame, stride,
         c = c+1
     print( 'all TrainY added\n')
 # In[]:
-def normalizeInternal(vrtNum, first_frame, last_frame):
+def normalizeInternal(vrtNum, first_frame, last_frame, path):
     c = first_frame
     for i in range (first_frame,last_frame+1):
         j = c*skipFactor
@@ -83,7 +83,7 @@ def normalizeInternal(vrtNum, first_frame, last_frame):
             
         c = c+1
 # In[]:
-def buildTrainX_conv(vrtNum, trimPercent, first_frame, last_frame, not_frame, sigma, stride, filename):
+def buildTrainX_conv(vrtNum, trimPercent, first_frame, last_frame, not_frame, kernel, halfWindow, stride, filename, path):
     c = first_frame
     for i in range (first_frame,last_frame+1):
         if i==not_frame:
@@ -105,15 +105,15 @@ def buildTrainX_conv(vrtNum, trimPercent, first_frame, last_frame, not_frame, si
                         for w in range (halfWindow ,0, -1): 
 #                            TO TAKE ONLY PART OF THE PHYSICAL PARAMS
                             tmp = line[cs - w].split()
-                            line[cs - w] = ' '.join(tmp[0:1])
+                            line[cs - w] = ' '.join(tmp[0:9])
                             if (kernel[halfWindow-w]==1):
                                 total += line[cs - w] + ' ' 
                         tmp = line[cs].split()
-                        line[cs] = ' '.join(tmp[0:1])  
+                        line[cs] = ' '.join(tmp[0:9])  
                         total += line[cs] + ' '
                         for w in range (0,halfWindow ):  
                             tmp = line[cs + w + 1].split()
-                            line[cs + w + 1] = ' '.join(tmp[0:1])
+                            line[cs + w + 1] = ' '.join(tmp[0:9])
                             if (kernel[w]==1):
                                 total += line[cs + w + 1] + ' '
                         fout.writelines(total+'\n')
@@ -123,7 +123,7 @@ def buildTrainX_conv(vrtNum, trimPercent, first_frame, last_frame, not_frame, si
     print( 'all TrainX added\n')
     
 # In[]:
-def appendAll(first_frame, last_frame, filename, test_out):
+def appendAll(first_frame, last_frame, filename, test_out, path):
     fname_write = path + filename + 'all.txt'
     with open(fname_write, 'w') as fout:
         for i in range (first_frame,last_frame+1-test_out): #-1 because one frame is gone for testing
@@ -136,7 +136,7 @@ def appendAll(first_frame, last_frame, filename, test_out):
     print('all files appended!\n')
 
 # In[]:
-def appendDatasets(dataset1, dataset2):
+def appendDatasets(dataset1, dataset2, w_path, path):
     path1 = w_path + dataset1 + '/NN/'
     path2 = w_path + dataset2 + '/NN/'
     X_train_all_1 = np.loadtxt(path1 + "trainX_all.txt",delimiter=None)
@@ -148,46 +148,129 @@ def appendDatasets(dataset1, dataset2):
     Y_train_all = np.concatenate((Y_train_all_1,Y_train_all_2), axis=0)
     
     
-    np.savetxt(w_path + 'all/NN/' + 'trainX_all.txt', X_train_all, fmt='%.6f', delimiter=' ')
-    np.savetxt(w_path + 'all/NN/' + 'trainY_all.txt', Y_train_all, fmt='%.6f', delimiter=' ')
+    np.savetxt(w_path + 'all/NN/trainX_all.txt', X_train_all, fmt='%.6f', delimiter=' ')
+    np.savetxt(w_path + 'all/NN/trainY_all.txt', Y_train_all, fmt='%.6f', delimiter=' ')
 # In[]:
-dataset = 'spacing0.5x'
-#dataset = 'spacing3.0x_rotate_test'
+def main(dataset, first_frame, last_frame, sigma, sparcity, isFirst):
+    w_path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'
+    path = w_path + dataset + '/'
+    test_frame = -1
+    not_frame = -1
+    test_out = 0 #binary flag  
+    stride = 1
+    sigma = 3 #window_size = 2*sigma + 1
+    sparcity = 0
+    halfWindow = sigma + sparcity
+    if (sigma==0):
+        halfWindow = 0
+    else:
+        kernel = descreteKernel(sigma, sparcity)
+    normalizeInternal(vrtNum, first_frame, last_frame, path)
+    
+    # In[]:
+    #build train data:
+    
+    filename = 'NN/trainY_'
+    buildTrainY(vrtNum, trimPercent, first_frame, last_frame, not_frame, stride, filename, path)
+    filename = 'NN/trainX_'
+    buildTrainX_conv(vrtNum, trimPercent, first_frame, last_frame, not_frame,kernel, halfWindow, stride, filename, path)
+    appendAll(first_frame, last_frame, 'NN/trainX_', test_out, path)
+    appendAll(first_frame, last_frame, 'NN/trainY_', test_out, path)
+    
+    if isFirst:
+        p0x = w_path + 'spacing0.5x/NN/trainX_all.txt'
+        p0y = w_path + 'spacing0.5x/NN/trainY_all.txt'
+        copyfile (p0x, w_path + 'all/NN/trainX_all.txt')
+        copyfile (p0y, w_path + 'all/NN/trainY_all.txt')
+    else:
+        appendDatasets('all', dataset,w_path, path)
+    # In[]:
+    #build test data:
+    filename = 'NN/testX_'
+    buildTrainX_conv(vrtNum, trimPercent, first_frame, last_frame, not_frame,kernel, halfWindow, stride, filename, path)
+# In[]:
+def runAll(sigma, sparcity):
+    ######## paterns:
 
-w_path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'
-path = w_path + dataset + '/'
+    last_frame = int(160/skipFactor) 
+    dataset = 'spacing0.5x_00011'
+    isFirst = 0
+    main(dataset, first_frame, last_frame, sigma, sparcity, isFirst)
+    
+    last_frame = int(150/skipFactor) 
+    dataset = 'spacing0.5x_10100'
+    isFirst = 0
+    main(dataset, first_frame, last_frame, sigma, sparcity, isFirst)
+    
+    last_frame = int(155/skipFactor) 
+    dataset = 'spacing0.5x_11110'
+    isFirst = 0
+    main(dataset, first_frame, last_frame, sigma, sparcity, isFirst)
+    
+    last_frame = int(170/skipFactor) 
+    dataset = 'spacing1.0x_00011'
+    isFirst = 0
+    main(dataset, first_frame, last_frame, sigma, sparcity, isFirst)
+    
+    last_frame = int(155/skipFactor) 
+    dataset = 'spacing1.0x_10100'
+    isFirst = 0
+    main(dataset, first_frame, last_frame, sigma, sparcity, isFirst)
+    
+    last_frame = int(160/skipFactor) 
+    dataset = 'spacing1.0x_11110'
+    isFirst = 0
+    main(dataset, first_frame, last_frame, sigma, sparcity, isFirst)
+    
+    ###### spacings    
+    last_frame = int(140/skipFactor) 
+    dataset = 'spacing0.5x'
+    isFirst = 1
+    main(dataset, first_frame, last_frame, sigma, sparcity, isFirst)
+    
+    last_frame = int(140/skipFactor) 
+    dataset = 'spacing1.0x'
+    isFirst = 0
+    main(dataset, first_frame, last_frame, sigma, sparcity, isFirst)
+    
+#    last_frame = int(140/skipFactor)  
+#    dataset = 'spacing1.5x'
+#    isFirst = 0
+#    main(dataset, first_frame, last_frame, sigma, sparcity, isFirst)
+#    
+#    last_frame = int(140/skipFactor) 
+#    dataset = 'spacing2.0x'
+#    isFirst = 0
+#    main(dataset, first_frame, last_frame, sigma, sparcity, isFirst)
+#    
+#    last_frame = int(140/skipFactor)  
+#    dataset = 'spacing2.5x'
+#    isFirst = 0
+#    main(dataset, first_frame, last_frame, sigma, sparcity, isFirst)
+#    
+#    last_frame = int(140/skipFactor) 
+#    dataset = 'spacing3.0x'
+#    isFirst = 0
+#    main(dataset, first_frame, last_frame, sigma, sparcity, isFirst)
+#    
+#    last_frame = int(140/skipFactor)  
+#    dataset = 'spacing3.5x'
+#    isFirst = 0
+#    main(dataset, first_frame, last_frame, sigma, sparcity, isFirst)
+#    
+#    last_frame = int(140/skipFactor) 
+#    dataset = 'spacing4.0x'
+#    isFirst = 0
+#    main(dataset, first_frame, last_frame, sigma, sparcity, isFirst)
+    
+
+
+###################################################
 vrtNum = 300
 skipFactor = 5
-trimPercent = 0.15
-first_frame = 0
-last_frame = 150/skipFactor 
-test_frame = -1
-not_frame = -1
-test_out = 0 #binary flag  
+trimPercent = 0.15    
 stride = 1
-sigma = 2 #window_size = 2*sigma + 1
-sparcity = 2
-halfWindow = sigma + sparcity
-if (sigma==0):
-    halfWindow = 0
-else:
-    kernel = descreteKernel(sigma, sparcity)
-normalizeInternal(vrtNum, first_frame, last_frame)
-
-# In[]:
-#build train data:
-
-filename = 'NN/trainY_'
-buildTrainY(vrtNum, trimPercent, first_frame, last_frame, not_frame, stride, filename)
-filename = 'NN/trainX_'
-buildTrainX_conv(vrtNum, trimPercent, first_frame, last_frame, not_frame, sigma, stride, filename)
-appendAll(first_frame, last_frame, 'NN/trainX_', test_out)
-appendAll(first_frame, last_frame, 'NN/trainY_', test_out)
-
-#appendDatasets('all', dataset)
-# In[]:
-#build test data:
-filename = 'NN/testX_'
-buildTrainX_conv(vrtNum, trimPercent, first_frame, last_frame, not_frame, sigma, stride, filename)
-
-
+#sigma = 4 #window_size = 2*sigma + 2*sparcity + 1
+#sparcity = 3    
+first_frame = int(80/skipFactor)    
+runAll(3,1)

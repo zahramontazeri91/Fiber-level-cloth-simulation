@@ -1,0 +1,86 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Jan 12 23:11:06 2018
+
+@author: zahra
+"""
+
+from NN import test
+from buildTraining import runAll
+
+#runAll(0, 0)
+#test(0,8)
+runAll(1, 0)
+test(1,16)
+#################
+runAll(2, 0)
+test(20,32)
+runAll(2, 1)
+test(21,32)
+runAll(2, 2)
+test(22,32)
+runAll(2, 3)
+test(23,32)
+runAll(2, 4)
+test(24,32)
+#################
+runAll(3, 0)
+test(30,64)
+runAll(3, 1)
+test(31,64)
+runAll(3, 2)
+test(32,64)
+runAll(3, 3)
+test(33,64)
+runAll(3, 4)
+test(34,64)
+#################
+runAll(4, 0)
+test(40,64)
+#runAll(4, 1)
+#test(41)
+runAll(4, 2)
+test(42,64)
+#runAll(4, 3)
+#test(43)
+runAll(4, 4)
+test(44,64)
+runAll(4, 5)
+test(45,64)
+####################
+runAll(5, 0)
+test(50,64)
+runAll(5, 1)
+test(51,64)
+runAll(5, 2)
+test(52,64)
+runAll(5, 3)
+test(53,64)
+runAll(5, 4)
+test(54,64)
+######################
+runAll(6, 0)
+test(60,64)
+#runAll(4, 1)
+#test(41)
+runAll(6, 2)
+test(62,64)
+#runAll(4, 3)
+#test(43)
+runAll(6, 4)
+test(64,64)
+runAll(6, 5)
+test(65,64)
+###################
+runAll(7, 0)
+test(70,126)
+runAll(7, 1)
+test(71,126)
+runAll(7, 2)
+test(72,126)
+runAll(7, 3)
+test(73,126)
+runAll(7, 4)
+test(74,126)
+runAll(7, 5)
+test(75,126)

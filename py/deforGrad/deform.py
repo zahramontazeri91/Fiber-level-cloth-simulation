@@ -123,20 +123,20 @@ def transform(vrtNum, cntr_0_obj, cntr_n_obj, cntr_n, dg_n, internal_n, physical
 
 # In[]:
 #dataset = 'spacing3.0x_rotate_test'
-dataset = 'spacing0.5x'
+dataset = 'spacing1.0x_11110'
 vrtNum = 150
 downSample = 2
 isTrain = 1
 if (isTrain):
-    path = "D:/sandbox/fiberSimulation/dataSets/spacing/train/"+dataset+"/yarn/"
+#    path = "D:/sandbox/fiberSimulation/dataSets/spacing/train/"+dataset+"/yarn2/"
+    path = "D:/sandbox/fiberSimulation/dataSets/pattern/train/"+dataset+"/yarn/"
 else:
-    path = "D:/sandbox/fiberSimulation/dataSets/spacing/test/"+dataset+"/yarn/"
+#    path = "D:/sandbox/fiberSimulation/dataSets/spacing/test/"+dataset+"/yarn2/"
+    path = "D:/sandbox/fiberSimulation/dataSets/pattern/test/"+dataset+"/yarn/"
 
 skipFactor = 5
-#for i in range (0,150/skipFactor + 1):
-for i in range (1,2):  
+for i in range (0,170/skipFactor + 1):  
     f = i * skipFactor
-    f = 140
     if f < 10 :
         frameNum = '0000'+ str(f) + '00'
     elif f <100 :
