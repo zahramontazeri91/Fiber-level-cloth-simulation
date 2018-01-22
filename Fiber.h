@@ -239,6 +239,7 @@ namespace Fiber {
 
 		/* Write simulated data (single yarns) to disk */
 		void write_yarn(const char* filename);
+		void write_yarn_obj(const char* filename);
 
 		/* map the straight yarn on a curved spline */
 		void curve_yarn(const char* pntsFile, const char* normsFile = "", bool scaleXY = false);

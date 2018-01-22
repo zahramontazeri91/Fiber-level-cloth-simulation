@@ -1,11 +1,11 @@
 ply_num: 2
 fiber_num: 80
 
-aabb_min: [-0.0498028,-0.0498028,-10.86193]
-aabb_max: [0.0498028,0.0498028,10.86193]
+aabb_min: [-0.0498028,-0.0498028,-1.5]
+aabb_max: [0.0498028,0.0498028,1.5]
 
 z_step_size: 0.01
-z_step_num: 50
+z_step_num: 142
 fly_step_size: 0
 
 yarn_clock_wise: 0

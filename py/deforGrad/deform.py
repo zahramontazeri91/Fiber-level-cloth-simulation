@@ -4,7 +4,8 @@ from fiber_bundle import FiberBundle
 def rotationFromVectors(a, b):
     v = np.cross(a, b)
     s = np.linalg.norm(v)
-    assert s > 0
+    if (s==0): #if it's already aligned with x-axis
+        return np.identity(3)
     c = np.dot(a, b)
     V = np.array([[0.0, -v[2], v[1]], [v[2], 0.0, -v[0]], [-v[1], v[0], 0.0]])
     return np.identity(3) + V + np.dot(V, V)/(1.0 + c)
@@ -122,42 +123,66 @@ def transform(vrtNum, cntr_0_obj, cntr_n_obj, cntr_n, dg_n, internal_n, physical
 #FiberBundle(path + "frame_0015000fiber_00.obj").output_mitsuba("test0.txt")
 
 # In[]:
-#dataset = 'spacing3.0x_rotate_test'
-dataset = 'spacing1.0x_11110'
-vrtNum = 150
-downSample = 2
-isTrain = 1
-if (isTrain):
-#    path = "D:/sandbox/fiberSimulation/dataSets/spacing/train/"+dataset+"/yarn2/"
-    path = "D:/sandbox/fiberSimulation/dataSets/pattern/train/"+dataset+"/yarn/"
-else:
-#    path = "D:/sandbox/fiberSimulation/dataSets/spacing/test/"+dataset+"/yarn2/"
-    path = "D:/sandbox/fiberSimulation/dataSets/pattern/test/"+dataset+"/yarn/"
+def main (path, dataset, vrtNum, isTrain, totalFrame):
 
-skipFactor = 5
-for i in range (0,170/skipFactor + 1):  
-    f = i * skipFactor
-    if f < 10 :
-        frameNum = '0000'+ str(f) + '00'
-    elif f <100 :
-        frameNum = '000'+ str(f) + '00' 
-    else:
-       frameNum = '00'+ str(f) + '00' 
-    #input file: (Change for testData)
-    if (isTrain):
-        src_obj = path + '../fiber/frame_' + frameNum + 'fiber_00.obj'
-    else:
-        src_obj = path + '../fiber/frame_0000000fiber_00.obj'
-    cntr_0_obj = path + 'frame_0000000fiber_00.obj'
-    cntr_n_obj = path + 'frame_' + frameNum + 'fiber_00.obj'
-    cntr_n = path + 'frame_' + frameNum + 'fiber_00.obj'
-    dg_n = path + 'frame_' + frameNum + 'fiber_00.fe' 
-    internal_n = path + 'frame_' + frameNum + 'fiber_00.sforce' 
-    def_obj = "D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/data/" + dataset + '/simul_frame_' + str(f) + '_0.txt'
-    
-    #output file:
-    wrtPath = "D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/" + dataset
-    physicalParam_trans = wrtPath + "/physicalParam/physical_"+str(f)+"_world.txt"
-    cntr_n = wrtPath + '/centerYarn_' + str(f) + '_ds.txt'
-    
-    transform(vrtNum, cntr_0_obj, cntr_n_obj, cntr_n, dg_n, internal_n, physicalParam_trans, def_obj, src_obj)
+    skipFactor = 5
+    for i in range (0,totalFrame/skipFactor + 1):  
+        f = i * skipFactor
+        if f < 10 :
+            frameNum = 'frame_0000'+ str(f) + '00'
+        elif f <100 :
+            frameNum = 'frame_000'+ str(f) + '00' 
+        else:
+            frameNum = 'frame_00'+ str(f) + '00' 
+        for y in range(0,totalYarn):
+            if y < 10:
+                yarnNum = 'fiber_0' + str(y) 
+            elif y < 100:
+                yarnNum = 'fiber_' + str(y) 
+            #input file: (Change for testData)
+            if (isTrain):
+                src_obj = path + '../fiber/' + frameNum + yarnNum+'.obj'
+            else:
+                src_obj = path + '../fiber/frame_0000000' + yarnNum + '.obj'
+            cntr_0_obj = path + 'frame_0000000' + yarnNum + '.obj'
+            cntr_n_obj = path + frameNum + yarnNum + '.obj'
+            dg_n = path + frameNum + yarnNum + '.fe' 
+            internal_n = path + frameNum + yarnNum + '.sforce'
+            def_obj = "D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/data/" + dataset + '/simul_frame_' + str(f) + '_' + str(y) +'.txt'
+
+            #output file:
+            wrtPath = "D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/" + dataset
+            physicalParam_trans = wrtPath + "/physicalParam/physical_"+str(f) + '_' + str(y)+"_world.txt"
+            cntr_n = wrtPath + '/centerYarn_' + str(f) + '_' + str(y) + '_ds.txt'
+            
+            transform(vrtNum, cntr_0_obj, cntr_n_obj, cntr_n, dg_n, internal_n, physicalParam_trans, def_obj, src_obj)
+# In[]:
+downSample = 2
+
+#vrtNum = 71
+#totalYarn = 26
+#dataset = 'spacing1.0x_p1'
+#path = "D:/sandbox/fiberSimulation/dataSets/woven/test/"+dataset+"/yarn/"
+#totalFrame = 245
+#isTrain = 0
+#main (dataset, vrtNum, isTrain, totalFrame)
+
+vrtNum = 150
+totalYarn = 1
+dataset = 'spacing1.5x_00011'
+path = "D:/sandbox/fiberSimulation/dataSets/pattern/train/"+dataset+"/yarn/"
+totalFrame = 175
+isTrain = 1
+main (path, dataset, vrtNum, isTrain, totalFrame)
+
+dataset = 'spacing1.5x_10100'
+path = "D:/sandbox/fiberSimulation/dataSets/pattern/train/"+dataset+"/yarn/"
+totalFrame = 160
+isTrain = 1
+main (path, dataset, vrtNum, isTrain, totalFrame)
+
+dataset = 'spacing1.5x_11110'
+path = "D:/sandbox/fiberSimulation/dataSets/pattern/train/"+dataset+"/yarn/"
+totalFrame = 165
+isTrain = 1
+main (path, dataset, vrtNum, isTrain, totalFrame)

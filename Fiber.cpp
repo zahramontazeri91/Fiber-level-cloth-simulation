@@ -1461,6 +1461,41 @@ namespace Fiber {
 	} // curve_yarn
 
 
+	void Yarn::write_yarn_obj(const char* filename) {
+		std::cout << "\n\n";
+		printf("Writing vertices ...\n");
+		int total_fiber_num = 0, ply_num = this->plys.size();
+		for (int i = 0; i < ply_num; i++)
+			total_fiber_num += this->plys[i].fibers.size();
+		std::ofstream fout(filename);
+		//fout << total_fiber_num << std::endl; //TODO : generated yarn format should be same as simulated yarn 
+		for (int i = 0; i < ply_num; i++) {
+			int fiber_num = this->plys[i].fibers.size();
+			for (int f = 0; f < fiber_num; f++) {
+				//Fiber &fiber = this->plys[i].fibers[10]; //render one fiber
+				Fiber &fiber = this->plys[i].fibers[f];
+				int fiber_vertex_num = fiber.vertices.size();
+				//fout << fiber_vertex_num << std::endl;
+				for (int v = 0; v < fiber_vertex_num; v++) {
+					fout << "v " <<  fiber.vertices[v].x << " " << fiber.vertices[v].y << " " << fiber.vertices[v].z << std::endl;
+				}
+			}
+		}
+		for (int i = 0; i < ply_num; i++) {
+			int fiber_num = this->plys[i].fibers.size();
+			for (int f = 0; f < fiber_num; f++) {
+				Fiber &fiber = this->plys[i].fibers[f];
+				int fiber_vertex_num = fiber.vertices.size();
+				for (int v = 0; v < fiber_vertex_num-1 ; v++) {
+					const int indx = i*fiber_num*fiber_vertex_num + f*fiber_vertex_num;
+					fout << "l " << indx + v + 1 << " " << indx + v + 2 << std::endl;
+				}
+			}
+		}
+		fout.close();
+		printf("Writing vertices to OBJ file done!\n");
+	}
+
 	void Yarn::write_yarn(const char* filename) {
 		std::cout << "\n\n";
 		printf("Writing vertices ...\n");
