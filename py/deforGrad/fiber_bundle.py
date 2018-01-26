@@ -106,9 +106,9 @@ class FiberBundle:
         # make sure it hasn't been downsampled before
         assert self._fiberLen == self._cLine.shape[1]
 
+        N = self._cLine.shape[1]
         if S > 1:
             # ensure the cut from both sides is even
-            N = self._cLine.shape[1]
             xx = range(0, N, S)[-1]
             off = (N - 1 - xx)/2
             #print range(off, sline.shape[1], S)

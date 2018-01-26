@@ -10,9 +10,11 @@ from keras.layers import Convolution1D, Dense, MaxPooling1D, Flatten
 from keras.models import Sequential
 import math
 
-def buildModel(window_size, filter_length, nb_input_series=1, nb_outputs=1, nb_filter=4):
+def buildModel(window_size, filter_length, nb_features, nb_filter):
     model = Sequential()
-    model.add(Convolution1D(nb_filter=nb_filter, filter_length=filter_length, activation='relu', input_shape=(window_size, nb_input_series)))
+    model.add(Convolution1D(nb_filter=nb_filter, filter_length=filter_length, activation='relu', input_shape=(window_size, nb_features)))
+    model.add(MaxPooling1D()) #default pool_size is 2
+    model.add(Convolution1D(nb_filter=nb_filter, filter_length=filter_length, activation='relu'))
     model.add(MaxPooling1D())
     model.add(Convolution1D(nb_filter=nb_filter, filter_length=filter_length, activation='relu'))
     model.add(MaxPooling1D())
@@ -55,10 +57,10 @@ def loadData(fn_trainX, fn_trainY, nb_features, window_size):
     X_valid_ = X_valid.reshape(nb_instance-nb_halfdata, window_size, nb_features)
     Y_valid_ = Y_valid.reshape(nb_instance-nb_halfdata, 1, nb_output)
 
-    print("TrainingX shape: ", X_train_.shape)
-    print("TrainingY shape: ", Y_train_.shape)
-    print("TrainingX shape: ", X_valid_.shape)
-    print("TrainingY shape: ", Y_valid_.shape)
+    print("trainX shape: ", X_train_.shape)
+    print("trainY shape: ", Y_train_.shape)
+    print("validX shape: ", X_valid_.shape)
+    print("validY shape: ", Y_valid_.shape)
     
     return X_train_, Y_train_, X_valid_, Y_valid_, nb_instance, nb_output
 
@@ -95,16 +97,17 @@ def evaluate(nb_features, window_size):
     X_train, Y_train, X_valid, Y_valid, nb_instance, nb_output = loadData(fn_trainX, fn_trainY, nb_features, window_size)
     
     # train network
-    filter_length = 1
-    nb_filter = 1
-    model = buildModel(window_size=window_size, filter_length=filter_length, nb_input_series=nb_features, nb_outputs=nb_output, nb_filter=nb_filter)
+    filter_length = 1 #why should be 1?!
+    nb_filter = 64
+    model = buildModel(window_size, filter_length, nb_features, nb_filter)
     model.fit(X_train, Y_train, nb_epoch=25, batch_size=2, validation_data=(X_valid, Y_valid))
     
     return nb_output, model            
 
 nb_features = 9
-window_size = 7                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+window_size = 9                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
 nb_output, model = evaluate(nb_features, window_size)
+
 # predict test data
 yarnNum = 1
 skipFactor = 5        

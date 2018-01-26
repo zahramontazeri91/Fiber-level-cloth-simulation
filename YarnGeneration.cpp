@@ -223,7 +223,6 @@ void phase2(const char* yarnfile1, const char* configfile, Fiber::Yarn &yarn, in
 int main(int argc, const char **argv) {
 
 	const char* yarnfile1 = "genYarn_ref.txt";
-	//const char* configfile = "config_142.txt";
 	const char* configfile = "config_300.txt";
 	std::ifstream fin0(configfile);
 	assert(fin0.is_open() && "config file wasn't found!\n");
@@ -234,7 +233,7 @@ int main(int argc, const char **argv) {
 
 	int yarnNum = 1;
 	int skipFactor = 5;
-	int frame0 = 100 / skipFactor + 1;
+	int frame0 = 80 / skipFactor + 1;
 	int frame1 = 160 / skipFactor + 1;
 	std::string dataset = "spacing0.5x_00011";
 
@@ -253,13 +252,13 @@ int main(int argc, const char **argv) {
 
 			for (int y = 0; y < yarnNum; ++y) {
 
-				std::string tmp7 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_ds.txt"; //don't use upsampled centerline
+				std::string tmp7 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_ds.txt"; //don't use upsampled centerline
 				const char* curvefile = tmp7.c_str();
-				std::string tmp8 = "input/" + dataset + "/normYarn_" + std::to_string(f) + "_ds.txt";//don't use upsampled normals
+				std::string tmp8 = "input/" + dataset + "/normYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_ds.txt";//don't use upsampled normals
 				const char* normfile = tmp8.c_str();
-				std::string tmp9 = "input/" + dataset + "/physicalParam/physical_" + std::to_string(f) + "_world.txt";
+				std::string tmp9 = "input/" + dataset + "/physicalParam/physical_" + std::to_string(f) + "_" + std::to_string(y) + "_world.txt";
 				const char* physical_world = tmp9.c_str();
-				std::string tmp10 = "input/" + dataset + "/physical_" + std::to_string(f) + ".txt";
+				std::string tmp10 = "input/" + dataset + "/physical_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
 				const char* physical_local = tmp10.c_str();
 
 				std::ifstream fin3(curvefile);
@@ -354,7 +353,7 @@ int main(int argc, const char **argv) {
 
 				//pipeline 2:
 				//extractCompress_seg(configfile, yarnfile0, yarnfile0, deformGrad, compress_S,
-					//curvefile, normfile, yarn.getPlyNum(), vrtx_num);
+				//curvefile, normfile, yarn.getPlyNum(), vrtx_num);
 				extractCompress_seg(configfile, yarnfile1, yarnfile2, "noNeed.txt", compress_S,
 					curvefile, normfile, yarn.getPlyNum(), vrtx_num);
 				/*************************************************/
@@ -369,7 +368,7 @@ int main(int argc, const char **argv) {
 
 				////pipeline 2:
 				////yarn.compress_yarn3D(deformGrad, compress_S);
-				
+
 				yarn.compress_yarn_A(compress_S);
 				yarn.curve_yarn(curvefile, normfile);
 				yarn.write_yarn(outfile);
@@ -561,19 +560,21 @@ int main(int argc, const char **argv) {
 	}
 	case 4: {
 		std::cout << "***Mapping yarn to a curve *** \n";
-		dataset = "spacing1.0x_p1";
-		yarnNum = 26;
+		dataset = "spacing0.5x_00011";
+		std::string datatype = "fixed_teeth";
+		yarnNum = 1;
 
 		//Generate a yarn mapped to a given curve
-		const char* configFile = "config_142.txt";
+		const char* configFile = "config_300.txt";
 		std::ifstream fin1(configFile);
 		assert(fin1.is_open() && "config file wasn't found!\n");
 
 		Fiber::Yarn yarn0;
 		yarn0.parse(configFile);
+		yarn0.setStepNum(121);
 		
 		for (int y = 0; y < yarnNum; ++y) {
-			std::string tmp1 = "../../dataSets/woven/test/" + dataset + "/curves/curve_0_" + std::to_string(y) + ".txt";
+			std::string tmp1 = "../../dataSets/" + datatype + "/test/" + dataset + "/curves/curve_0_" + std::to_string(y) + ".txt";
 			const char* curvefile = tmp1.c_str();
 			//const char* normfile = "normYarn.txt";
 			std::ifstream fin2(curvefile);
@@ -585,7 +586,7 @@ int main(int argc, const char **argv) {
 				ind = "0" + std::to_string(y);
 			else 
 				ind = std::to_string(y);
-			std::string tmp2 = "../../dataSets/woven/test/" + dataset + "/fiber/frame_0000000fiber_" + ind + ".obj";
+			std::string tmp2 = "../../dataSets/" + datatype + "/test/" + dataset + "/fiber/frame_0000000fiber_" + ind + ".obj";
 			const char* simul_frame0 = tmp2.c_str();
 			yarn0.yarn_simulate();
 			yarn0.curve_yarn(curvefile);
@@ -767,7 +768,7 @@ int main(int argc, const char **argv) {
 		//frame1 = 30 / skipFactor + 1;
 		//phase2(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
 
-		frame0 = 90 / skipFactor + 1;
+		frame0 = 140 / skipFactor + 1;
 		dataset = "spacing0.5x_00011";
 		frame1 = 160 / skipFactor + 1;
 		phase2(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);

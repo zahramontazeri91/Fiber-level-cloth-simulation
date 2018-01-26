@@ -161,8 +161,6 @@ def main(dataset, first_frame, last_frame, vrtNum, yarnNum, sigma, sparcity, isF
     not_frame = -1
     test_out = 0 #binary flag  
     stride = 1
-    sigma = 3 #window_size = 2*sigma + 1
-    sparcity = 0
     halfWindow = sigma + sparcity
     if (sigma==0):
         halfWindow = 0
@@ -196,13 +194,14 @@ def main(dataset, first_frame, last_frame, vrtNum, yarnNum, sigma, sparcity, isF
         buildTrainX_conv(vrtNum, trimPercent, first_frame, last_frame, yarnNum, not_frame,kernel, halfWindow, stride, filename, path)
 # In[]:
 def runAll(sigma, sparcity):
-
-     ###################################### 2D grid    
-#    last_frame = int(30/skipFactor) 
-#    dataset = 'spacing1.0x_p1'
+    vrtNum = 300
+    yarnNum = 1
+    
+     ###################################### only stretch    
+#    last_frame = int(200/skipFactor) 
+#    dataset = 'spacing0.5x_00011_stretch'
 #    isFirst = 0
 #    isTrain = 0
-#    yarnNum = 26
 #    main(dataset, first_frame, last_frame, vrtNum, yarnNum, sigma, sparcity, isFirst, isTrain)
         
     ###################################### spacings    
@@ -246,57 +245,49 @@ def runAll(sigma, sparcity):
 #    isFirst = 0
 #    main(dataset, first_frame, last_frame, vrtNum, yarnNum, sigma, sparcity, isFirst, isTrain)
     ###################################### paterns:
-    vrtNum = 300
-    yarnNum = 1
     
-#    last_frame = int(200/skipFactor) 
-#    dataset = 'spacing1.0x_00001'
-#    isFirst = 0
-#    isTrain = 0
-#    main(dataset, first_frame, last_frame, vrtNum, yarnNum, sigma, sparcity, isFirst, isTrain)
-
-
-    last_frame = int(175/skipFactor) 
-    dataset = 'spacing1.5x_00011'
+    last_frame = int(160/skipFactor) 
+    dataset = 'spacing0.5x_00011'
     isFirst = 1
     isTrain = 1
     main(dataset, first_frame, last_frame, vrtNum, yarnNum, sigma, sparcity, isFirst, isTrain)
     
-    last_frame = int(160/skipFactor) 
-    dataset = 'spacing1.5x_10100'
+    last_frame = int(150/skipFactor) 
+    dataset = 'spacing0.5x_10100'
     isFirst = 0
     isTrain = 1
     main(dataset, first_frame, last_frame, vrtNum, yarnNum, sigma, sparcity, isFirst, isTrain)
     
-    last_frame = int(165/skipFactor) 
-    dataset = 'spacing1.5x_11110'
-    isFirst = 1
-    isTrain = 0
+    last_frame = int(150/skipFactor) 
+    dataset = 'spacing0.5x_11110'
+    isFirst = 0
+    isTrain = 1
     main(dataset, first_frame, last_frame, vrtNum, yarnNum, sigma, sparcity, isFirst, isTrain)
     
-#    last_frame = int(170/skipFactor) 
-#    dataset = 'spacing1.0x_00011'
-#    isFirst = 0
-#    main(dataset, first_frame, last_frame, vrtNum, yarnNum, sigma, sparcity, isFirst, isTrain)
-#    
-#    last_frame = int(155/skipFactor) 
-#    dataset = 'spacing1.0x_10100'
-#    isFirst = 0
-#    main(dataset, first_frame, last_frame, vrtNum, yarnNum, sigma, sparcity, isFirst, isTrain)
-#    
-#    last_frame = int(160/skipFactor) 
-#    dataset = 'spacing1.0x_11110'
-#    isFirst = 0
-#    main(dataset, first_frame, last_frame, vrtNum, yarnNum, sigma, sparcity, isFirst, isTrain)
-        
-
+    last_frame = int(170/skipFactor) 
+    dataset = 'spacing1.0x_00011'
+    isFirst = 0
+    isTrain = 1
+    main(dataset, first_frame, last_frame, vrtNum, yarnNum, sigma, sparcity, isFirst, isTrain)
+    
+    last_frame = int(155/skipFactor) 
+    dataset = 'spacing1.0x_10100'
+    isFirst = 0
+    isTrain = 1
+    main(dataset, first_frame, last_frame, vrtNum, yarnNum, sigma, sparcity, isFirst, isTrain)
+    
+    last_frame = int(160/skipFactor) 
+    dataset = 'spacing1.0x_11110'
+    isFirst = 0
+    isTrain = 1
+    main(dataset, first_frame, last_frame, vrtNum, yarnNum, sigma, sparcity, isFirst, isTrain)
 
 ###################################################
 
 skipFactor = 5
 trimPercent = 0.15    
 stride = 1
-sigma = 6 #window_size = 2*sigma + 2*sparcity + 1
-sparcity = 1    
-first_frame = int(80/skipFactor)    
+sigma = 4 #window_size = 2*sigma + 2*sparcity + 1
+sparcity = 0    
+first_frame = int(85/skipFactor)    
 runAll(sigma,sparcity)

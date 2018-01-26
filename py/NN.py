@@ -158,75 +158,18 @@ def test(neurons):
 model, scaler, nb_outputs = test(64)
     
 
-
-#
-#yarnNum = 1
-#stride = 1
-#skipFactor = 5        
-#vrtxNum = 300
-#firstFrame = 85
-#dataset = 'spacing0.5x_00011'
-#path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
-#frame0 = int(firstFrame/skipFactor)
-#frame1 = int(160/skipFactor + 1)
-#for i in range (frame0, frame1):
-#    f = i*skipFactor
-#    for y in range (0,yarnNum):
-#        X_test = np.loadtxt(path + "testX_" + str(f-firstFrame) + '_' + str(y) + ".txt",delimiter=None)
-#        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  "_.txt"
-#        predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride)
-
-#dataset = 'spacing0.5x_10100'
-#path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
-#frame0 = int(firstFrame/skipFactor)
-#frame1 = int(150/skipFactor + 1)
-#for i in range (frame0, frame1):
-#    f = i*skipFactor
-#    for y in range (0,yarnNum):
-#        X_test = np.loadtxt(path + "testX_" + str(f-firstFrame) + '_' + str(y) + ".txt",delimiter=None)
-#        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  "_.txt"
-#        predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride)
-#    
-#dataset = 'spacing0.5x_11110'
-#path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
-#frame0 = int(firstFrame/skipFactor)
-#frame1 = int(155/skipFactor + 1)
-#for i in range (frame0, frame1):
-#    f = i*skipFactor
-#    for y in range (0,yarnNum):
-#        X_test = np.loadtxt(path + "testX_" + str(f-firstFrame) + '_' + str(y) + ".txt",delimiter=None)
-#        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  "_.txt"
-#        predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride)
-#
-#dataset = 'spacing1.0x_00011'
-#path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
-#frame0 = int(firstFrame/skipFactor)
-#frame1 = int(170/skipFactor + 1)
-#for i in range (frame0, frame1):
-#    f = i*skipFactor
-#    for y in range (0,yarnNum):
-#        X_test = np.loadtxt(path + "testX_" + str(f-firstFrame) + '_' + str(y) + ".txt",delimiter=None)
-#        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  "_.txt"
-#        predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride)
-#
-#dataset = 'spacing1.0x_10100'
-#path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
-#frame0 = int(firstFrame/skipFactor)
-#frame1 = int(155/skipFactor + 1)
-#for i in range (frame0, frame1):
-#    f = i*skipFactor
-#    for y in range (0,yarnNum):
-#        X_test = np.loadtxt(path + "testX_" + str(f-firstFrame) + '_' + str(y) + ".txt",delimiter=None)
-#        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  "_.txt"
-#        predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride)
-#    
-#dataset = 'spacing1.0x_11110'
-#path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
-#frame0 = int(firstFrame/skipFactor)
-#frame1 = int(160/skipFactor + 1)
-#for i in range (frame0, frame1):
-#    f = i*skipFactor
-#    for y in range (0,yarnNum):
-#        X_test = np.loadtxt(path + "testX_" + str(f-firstFrame) + '_' + str(y) + ".txt",delimiter=None)
-#        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  "_.txt"
-#        predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride)
+yarnNum = 1
+stride = 1
+skipFactor = 5        
+vrtxNum = 300
+firstFrame = 85
+dataset = 'spacing0.5x_00011_stretch'
+path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+frame0 = int(firstFrame/skipFactor)
+frame1 = int(290/skipFactor + 1)
+for i in range (frame0, frame1):
+    f = i*skipFactor
+    for y in range (0,yarnNum):
+        X_test = np.loadtxt(path + "testX_" + str(f-firstFrame) + '_' + str(y) + ".txt",delimiter=None)
+        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
+        predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride)

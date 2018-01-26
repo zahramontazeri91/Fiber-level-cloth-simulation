@@ -61,6 +61,8 @@ def transform(vrtNum, cntr_0_obj, cntr_n_obj, cntr_n, dg_n, internal_n, physical
     n1 = len(stretch)
     n2 = len(bend)    
     
+    if (len(pts0) != n + 1 or len(idx) != n + 1):
+        print (len(idx), len(idx), n + 1 )
     assert n1==n2 and n1==n+1
     assert len(pts0) == n + 1 and len(idx) == n + 1
     
@@ -158,31 +160,15 @@ def main (path, dataset, vrtNum, isTrain, totalFrame):
             transform(vrtNum, cntr_0_obj, cntr_n_obj, cntr_n, dg_n, internal_n, physicalParam_trans, def_obj, src_obj)
 # In[]:
 downSample = 2
-
-#vrtNum = 71
-#totalYarn = 26
-#dataset = 'spacing1.0x_p1'
-#path = "D:/sandbox/fiberSimulation/dataSets/woven/test/"+dataset+"/yarn/"
-#totalFrame = 245
-#isTrain = 0
-#main (dataset, vrtNum, isTrain, totalFrame)
-
 vrtNum = 150
 totalYarn = 1
-dataset = 'spacing1.5x_00011'
-path = "D:/sandbox/fiberSimulation/dataSets/pattern/train/"+dataset+"/yarn/"
-totalFrame = 175
+datatype = 'pattern'
+dataset = 'spacing0.5x_00011'
 isTrain = 1
-main (path, dataset, vrtNum, isTrain, totalFrame)
-
-dataset = 'spacing1.5x_10100'
-path = "D:/sandbox/fiberSimulation/dataSets/pattern/train/"+dataset+"/yarn/"
+if isTrain==1:
+    ifTrain = 'train'
+else:
+    ifTrain = 'test'
+path = "D:/sandbox/fiberSimulation/dataSets/" + datatype + '/' + ifTrain +'/'+dataset+"/yarn/"
 totalFrame = 160
-isTrain = 1
-main (path, dataset, vrtNum, isTrain, totalFrame)
-
-dataset = 'spacing1.5x_11110'
-path = "D:/sandbox/fiberSimulation/dataSets/pattern/train/"+dataset+"/yarn/"
-totalFrame = 165
-isTrain = 1
 main (path, dataset, vrtNum, isTrain, totalFrame)

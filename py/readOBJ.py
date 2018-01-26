@@ -5,7 +5,7 @@ Read obj file and write in the data format of simulated data
 
 
 def readOBJ(vrtNum, fiberNum, totalYarn, lastFrame, dataset, path, skipFactor ):
-    for i in range (0,lastFrame/5 + 1):
+    for i in range (0,lastFrame/skipFactor + 1):
         f = i*skipFactor
         if f < 10 :
             frameNum = '0000'+ str(f) + '00'
@@ -18,8 +18,8 @@ def readOBJ(vrtNum, fiberNum, totalYarn, lastFrame, dataset, path, skipFactor ):
                 yarnNum = 'fiber_0' + str(y)
             else:
                 yarnNum = 'fiber_' + str(y)
-            fname_read = path + 'frame_' + frameNum + yarnNum + '.obj'
-            fname_write = 'D:/sandbox/fiberSimulation/dataSets/woven/test/'+dataset+'/curves/curve_' + str(f) + '_' + str(y) + '.txt'
+            fname_read = path + dataset+'/yarn/' + 'frame_' + frameNum + yarnNum + '.obj'
+            fname_write = path + dataset+'/curves/curve_' + str(f) + '_' + str(y) + '.txt'
             with open(fname_write, 'w') as fout:
                 with open(fname_read, 'r') as fin:
 #                    fout.writelines('%d\n' %fiberNum)
@@ -38,11 +38,11 @@ def readOBJ(vrtNum, fiberNum, totalYarn, lastFrame, dataset, path, skipFactor ):
                 
     
 # In[]:
-lastFrame = 1
-vrtNum = 71
+lastFrame = 980
+vrtNum = 121
 fiberNum = 1
-dataset = 'spacing1.0x_p1'
-path = 'D:/sandbox/fiberSimulation/dataSets/woven/test/'+dataset+'/yarn/'
+dataset = 'spacing0.5x_00011'
+path = 'D:/sandbox/fiberSimulation/dataSets/fixed_teeth/test/'
 skipFactor = 5 
-totalYarn = 26
+totalYarn = 1
 readOBJ(vrtNum, fiberNum, totalYarn, lastFrame, dataset, path, skipFactor )
