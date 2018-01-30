@@ -99,7 +99,7 @@ def evaluate(nb_features, window_size, nb_output):
     X_train, Y_train, X_valid, Y_valid, nb_instance = loadData(fn_trainX, fn_trainY, nb_features, nb_output, window_size)
 
     # train network
-    filter_length = 1 #why should be 1?!
+    filter_length = 3 #why should be 1?!
     nb_filter = 64
     model = buildModel(window_size, filter_length, nb_features, nb_output, nb_filter)
 
@@ -115,25 +115,25 @@ nb_output, model = evaluate(nb_features, window_size, nb_output)
 
     
 # predict test data
-#yarnNum = 1
-#skipFactor = 5        
-#firstFrame = 85
-#totalNum = 300
-#dataset = 'spacing0.5x_00011'
-#path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
-#frame0 = int(firstFrame/skipFactor)
-#frame1 = int(160/skipFactor + 1)
-#
-#    
-#for i in range (frame0, frame1):
-#    f = i*skipFactor
-#    for y in range (0,yarnNum):
-#        X_test = np.loadtxt(path + "testX_" + str(f-firstFrame) + '_' + str(y) + ".txt",delimiter=None)
-#        X_test_ = X_test.reshape(X_test.shape[0], window_size, nb_features)
-#        Y_test_NN = model.predict(X_test_) 
-#        
-##        Y_test_NN_ = Y_test_NN.reshape(Y_test_NN.shape[0], Y_test_NN.shape[1], Y_test_NN.shape[2])
-#        Y_test_NN_ = Y_test_NN.reshape(Y_test_NN.shape[0]*Y_test_NN.shape[1], Y_test_NN.shape[2])
-#        Y_test_NN_total = extrapolate(Y_test_NN_, totalNum, nb_output, 1)
-#        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
-#        np.savetxt(path + filename, Y_test_NN_total, fmt='%.6f', delimiter=' ')
+yarnNum = 1
+skipFactor = 5        
+firstFrame = 85
+totalNum = 300
+dataset = 'spacing0.5x_00011'
+path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+frame0 = int(firstFrame/skipFactor)
+frame1 = int(160/skipFactor + 1)
+
+    
+for i in range (frame0, frame1):
+    f = i*skipFactor
+    for y in range (0,yarnNum):
+        X_test = np.loadtxt(path + "testX_" + str(f-firstFrame) + '_' + str(y) + ".txt",delimiter=None)
+        X_test_ = X_test.reshape(X_test.shape[0], window_size, nb_features)
+        Y_test_NN = model.predict(X_test_) 
+        
+#        Y_test_NN_ = Y_test_NN.reshape(Y_test_NN.shape[0], Y_test_NN.shape[1], Y_test_NN.shape[2])
+        Y_test_NN_ = Y_test_NN.reshape(Y_test_NN.shape[0]*Y_test_NN.shape[1], Y_test_NN.shape[2])
+        Y_test_NN_total = extrapolate(Y_test_NN_[0:Y_test_NN.shape[1],:], totalNum, nb_output, 1)
+        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
+        np.savetxt(path + filename, Y_test_NN_total, fmt='%.6f', delimiter=' ')

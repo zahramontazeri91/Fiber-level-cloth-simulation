@@ -98,7 +98,6 @@ void phase1(const char* yarnfile1, const char* configfile, Fiber::Yarn &yarn, in
 			//std::string tmp2 = "input/" + dataset + "/deformGrad_" + std::to_string(cnt) + "_trans.txt";
 			//const char* deformGrad = tmp2.c_str();
 
-
 			std::string tmp1 = "data/" + dataset + "/simul_frame_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
 			const char* yarnfile2 = tmp1.c_str();
 			std::string tmp3 = "input/" + dataset + "/matrix_S_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
@@ -232,12 +231,12 @@ int main(int argc, const char **argv) {
 	yarn.write_yarn(yarnfile1);
 
 	int yarnNum = 1;
-	int skipFactor = 5;
-	int frame0 = 80 / skipFactor + 1;
-	int frame1 = 160 / skipFactor + 1;
-	std::string dataset = "spacing0.5x_00011";
+	int skipFactor = 500;
+	int frame0 = 8000 / skipFactor ;
+	int frame1 = 15000 / skipFactor + 1;
+	std::string dataset = "spacing1.0x_00011_straight";
 
-	int phase = 9;
+	int phase = 8;
 
 	switch (phase) {
 	case 1: {
@@ -738,24 +737,44 @@ int main(int argc, const char **argv) {
 	}
 	case 8: {
 		/**************** RUN ALL ****************/
-		frame0 = 0 / skipFactor + 1;
+		frame0 = 8000 / skipFactor ;
 		
-		//dataset = "spacing0.5x";
-		//frame1 = 140 / skipFactor + 1;
-		//phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-		//dataset = "spacing1.0x";
-		//frame1 = 145 / skipFactor + 1;
-		//phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		dataset = "spacing0.5x";
+		frame1 = 0 / skipFactor + 1;
+		phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		dataset = "spacing1.0x";
+		frame1 = 0 / skipFactor + 1;
+		phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		dataset = "spacing1.5x";
+		frame1 = 15000 / skipFactor + 1;
+		phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
 
-
+		dataset = "spacing0.5x_00011";
+		frame1 = 16000 / skipFactor + 1;
+		phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		dataset = "spacing0.5x_10100";
+		frame1 = 15000 / skipFactor + 1;
+		phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		dataset = "spacing0.5x_11110";
+		frame1 = 15000 / skipFactor + 1;
+		phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		dataset = "spacing1.0x_00011";
+		frame1 = 17000 / skipFactor + 1;
+		phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		dataset = "spacing1.0x_10100";
+		frame1 = 15500 / skipFactor + 1;
+		phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		dataset = "spacing1.0x_11110";
+		frame1 = 16000 / skipFactor + 1;
+		phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
 		dataset = "spacing1.5x_00011";
-		frame1 = 175 / skipFactor + 1;
+		frame1 = 17500 / skipFactor + 1;
 		phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
 		dataset = "spacing1.5x_10100";
-		frame1 = 160 / skipFactor + 1;
+		frame1 = 16000 / skipFactor + 1;
 		phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
 		dataset = "spacing1.5x_11110";
-		frame1 = 165 / skipFactor + 1;
+		frame1 = 16500 / skipFactor + 1;
 		phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
 
 		/********************************/

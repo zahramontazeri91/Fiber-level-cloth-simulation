@@ -127,20 +127,13 @@ def transform(vrtNum, cntr_0_obj, cntr_n_obj, cntr_n, dg_n, internal_n, physical
 # In[]:
 def main (path, dataset, vrtNum, isTrain, totalFrame):
 
-    skipFactor = 5
     for i in range (0,totalFrame/skipFactor + 1):  
         f = i * skipFactor
-        if f < 10 :
-            frameNum = 'frame_0000'+ str(f) + '00'
-        elif f <100 :
-            frameNum = 'frame_000'+ str(f) + '00' 
-        else:
-            frameNum = 'frame_00'+ str(f) + '00' 
+        frameNum = 'frame_'+str(f).zfill(7)
+
         for y in range(0,totalYarn):
-            if y < 10:
-                yarnNum = 'fiber_0' + str(y) 
-            elif y < 100:
-                yarnNum = 'fiber_' + str(y) 
+            yarnNum = 'fiber_' + str(y).zfill(2)
+
             #input file: (Change for testData)
             if (isTrain):
                 src_obj = path + '../fiber/' + frameNum + yarnNum+'.obj'
@@ -159,16 +152,24 @@ def main (path, dataset, vrtNum, isTrain, totalFrame):
             
             transform(vrtNum, cntr_0_obj, cntr_n_obj, cntr_n, dg_n, internal_n, physicalParam_trans, def_obj, src_obj)
 # In[]:
+skipFactor = 500
 downSample = 2
 vrtNum = 150
 totalYarn = 1
-datatype = 'pattern'
-dataset = 'spacing0.5x_00011'
 isTrain = 1
 if isTrain==1:
     ifTrain = 'train'
 else:
     ifTrain = 'test'
+datatype = 'pattern'
+
+
+dataset = 'spacing1.0x_10100'
 path = "D:/sandbox/fiberSimulation/dataSets/" + datatype + '/' + ifTrain +'/'+dataset+"/yarn/"
-totalFrame = 160
+totalFrame = 15500
+main (path, dataset, vrtNum, isTrain, totalFrame)
+
+dataset = 'spacing1.0x_11110'
+path = "D:/sandbox/fiberSimulation/dataSets/" + datatype + '/' + ifTrain +'/'+dataset+"/yarn/"
+totalFrame = 16000
 main (path, dataset, vrtNum, isTrain, totalFrame)

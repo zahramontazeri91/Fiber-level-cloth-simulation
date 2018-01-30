@@ -157,16 +157,16 @@ def test(neurons):
 
 model, scaler, nb_outputs = test(64)
     
-
+# In[] 
 yarnNum = 1
 stride = 1
-skipFactor = 5        
+skipFactor = 500        
 vrtxNum = 300
-firstFrame = 85
-dataset = 'spacing0.5x_00011_stretch'
+firstFrame = 0
+dataset = 'spacing1.0x_00011_straight'
 path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
 frame0 = int(firstFrame/skipFactor)
-frame1 = int(290/skipFactor + 1)
+frame1 = int(3000/skipFactor + 1)
 for i in range (frame0, frame1):
     f = i*skipFactor
     for y in range (0,yarnNum):

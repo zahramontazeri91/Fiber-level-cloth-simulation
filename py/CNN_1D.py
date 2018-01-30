@@ -12,15 +12,24 @@ import math
 
 def buildModel(window_size, filter_length, nb_features, nb_filter):
     model = Sequential()
-    model.add(Convolution1D(nb_filter=nb_filter, filter_length=filter_length, activation='relu', input_shape=(window_size, nb_features)))
-    model.add(MaxPooling1D()) #default pool_size is 2
-    model.add(Convolution1D(nb_filter=nb_filter, filter_length=filter_length, activation='relu'))
-    model.add(MaxPooling1D())
-    model.add(Convolution1D(nb_filter=nb_filter, filter_length=filter_length, activation='relu'))
-    model.add(MaxPooling1D())
-    Flatten()
-    model.add(Dense(4, activation='linear'))
 
+    
+    model.add(Convolution1D(nb_filter=nb_filter, filter_length=filter_length, activation='relu', input_shape=(window_size, nb_features)))
+    print('model output layer CNN1: ', model.output_shape)
+    model.add(MaxPooling1D()) #default pool_size is 2
+    print('model output layer MP1: ', model.output_shape)
+    model.add(Convolution1D(nb_filter=nb_filter, filter_length=filter_length, activation='relu'))
+    print('model output layer CNN2: ', model.output_shape)
+    model.add(MaxPooling1D())
+    print('model output layer MP2: ', model.output_shape)
+#    model.add(Convolution1D(nb_filter=nb_filter, filter_length=filter_length, activation='relu'))
+#    print('model output layer CNN3: ', model.output_shape)    
+#    model.add(MaxPooling1D())   
+#    print('model output layer MP3: ', model.output_shape)   
+    model.add(Flatten())
+    print('model output layer flatten: ', model.output_shape)
+    model.add(Dense(4, activation='linear'))
+    print('model output layer Dense: ', model.output_shape)
     
     model.compile(loss='mse', optimizer='adam', metrics=['mae'])
     # To perform (binary) classification instead:
@@ -41,7 +50,7 @@ def loadData(fn_trainX, fn_trainY, nb_features, window_size):
     nb_output = Y_train_all.shape[1]
     assert (X_train_all.shape[1] == window_size*nb_features)
     
-    split = 0.9
+    split = 0.8
     nb_halfdata = round(nb_instance*split)
     all_train = np.concatenate((X_train_all,Y_train_all), axis=1) 
     np.random.shuffle(all_train)
@@ -53,9 +62,9 @@ def loadData(fn_trainX, fn_trainY, nb_features, window_size):
     Y_valid = all_train[nb_halfdata:,-nb_output:] 
     
     X_train_ = X_train.reshape(nb_halfdata, window_size, nb_features)
-    Y_train_ = Y_train.reshape(nb_halfdata, 1, nb_output)
+    Y_train_ = Y_train.reshape(nb_halfdata, nb_output)
     X_valid_ = X_valid.reshape(nb_instance-nb_halfdata, window_size, nb_features)
-    Y_valid_ = Y_valid.reshape(nb_instance-nb_halfdata, 1, nb_output)
+    Y_valid_ = Y_valid.reshape(nb_instance-nb_halfdata, nb_output)
 
     print("trainX shape: ", X_train_.shape)
     print("trainY shape: ", Y_train_.shape)
@@ -97,26 +106,26 @@ def evaluate(nb_features, window_size):
     X_train, Y_train, X_valid, Y_valid, nb_instance, nb_output = loadData(fn_trainX, fn_trainY, nb_features, window_size)
     
     # train network
-    filter_length = 1 #why should be 1?!
-    nb_filter = 64
+    filter_length = 3
+    nb_filter = 8
     model = buildModel(window_size, filter_length, nb_features, nb_filter)
-    model.fit(X_train, Y_train, nb_epoch=25, batch_size=2, validation_data=(X_valid, Y_valid))
+    model.fit(X_train, Y_train, epochs=25, batch_size=2, validation_data=(X_valid, Y_valid))
     
     return nb_output, model            
 
 nb_features = 9
-window_size = 9                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+window_size = 21                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
 nb_output, model = evaluate(nb_features, window_size)
 
 # predict test data
 yarnNum = 1
-skipFactor = 5        
-firstFrame = 85
+skipFactor = 500        
+firstFrame = 8500
 totalNum = 300
 dataset = 'spacing0.5x_00011'
 path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
 frame0 = int(firstFrame/skipFactor)
-frame1 = int(160/skipFactor + 1)
+frame1 = int(16000/skipFactor + 1)
 for i in range (frame0, frame1):
     f = i*skipFactor
     for y in range (0,yarnNum):
