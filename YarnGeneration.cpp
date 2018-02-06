@@ -48,8 +48,9 @@ void phase1(const char* yarnfile1, const char* configfile, Fiber::Yarn &yarn, in
 			const int vrtx_num = yarn.getStepNum();
 			for (int v = 0; v < vrtx_num; ++v) {
 				fin >> S00 >> S01 >> S02 >> S10 >> S11 >> S12 >> S20 >> S21 >> S22
-					>> A0 >> A1 >> A2
-					>> B0 >> B1 >> B2;
+					//>> A0 >> A1 >> A2
+					//>> B0 >> B1 >> B2
+					;
 
 				const double curveLength = curve.totalLength();
 				float len = curveLength * (static_cast<double>(v) / static_cast<double>(vrtx_num - 1));
@@ -75,13 +76,16 @@ void phase1(const char* yarnfile1, const char* configfile, Fiber::Yarn &yarn, in
 					local(1, 0) << " " << local(1, 1) << " " << local(1, 2) << " " <<
 					local(2, 0) << " " << local(2, 1) << " " << local(2, 2) << " ";
 
-				Eigen::Vector3f localA, localB, worldA, worldB;
-				worldA << A0, A1, A2;
-				worldB << B0, B1, B2;
-				localA = M*worldA;
-				localB = M*worldB;
-				fout << localA(0) << " " << localA(1) << " " << localA(2) << " " <<
-					localB(0) << " " << localB(1) << " " << localB(2) << std::endl;
+				/// uncomment for when having the internal forces
+				//Eigen::Vector3f localA, localB, worldA, worldB;
+				//worldA << A0, A1, A2;
+				//worldB << B0, B1, B2;
+				//localA = M*worldA;
+				//localB = M*worldB;
+				//fout << localA(0) << " " << localA(1) << " " << localA(2) << " " <<
+				//localB(0) << " " << localB(1) << " " << localB(2) ;
+
+				fout << std::endl;
 			}
 			fout.close();
 		}
@@ -176,21 +180,30 @@ void phase2(const char* yarnfile1, const char* configfile, Fiber::Yarn &yarn, in
 			std::ifstream fin4(normfile);
 			assert(fin4.is_open() && "normfile file wasn't found!\n");
 
-			std::string tmp3 = "output/" + dataset + "/genYarn_NN_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
-			const char* outfile = tmp3.c_str();
+			//std::string tmp3 = "output/" + dataset + "/genYarn_NN_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+			//const char* outfile = tmp3.c_str();
+			//// Procedural step
+			//yarn.yarn_simulate();
+			////pipeline 2:
+			////yarn.compress_yarn3D(deformGrad, compress_S);
+			//yarn.compress_yarn_A(compress_S);
+			//yarn.curve_yarn(curvefile, normfile);
+			//yarn.write_yarn(outfile);
+			//std::cout << outfile << std::endl;
+
+			//*************** with fly-aways
+			std::string tmp4 = "output/" + dataset + "/genYarn_NN_flys_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+			const char* outfile_fly = tmp4.c_str();
 			// Procedural step
 			yarn.simulate_ply();
 			yarn.write_plys("test_ply.txt");
 			const int K = yarn.getPlyNum();
 			yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
 			yarn.build("test_fly.txt", K);
-			//pipeline 2:
-			//yarn.compress_yarn3D(deformGrad, compress_S);
-
 			yarn.compress_yarn_A(compress_S);
 			yarn.curve_yarn(curvefile, normfile);
-			yarn.write_yarn(outfile);
-			std::cout << outfile << std::endl;
+			yarn.write_yarn(outfile_fly);
+			std::cout << outfile_fly << std::endl;
 
 			/*******  Validate NN by L2-norm ******/
 			//std::string tmp4 = "output/" + dataset + "/genYarn_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
@@ -227,16 +240,19 @@ int main(int argc, const char **argv) {
 	assert(fin0.is_open() && "config file wasn't found!\n");
 	Fiber::Yarn yarn;
 	yarn.parse(configfile);
+
+	yarn.setStepNum(150);
+	
 	yarn.yarn_simulate();
 	yarn.write_yarn(yarnfile1);
 
 	int yarnNum = 1;
-	int skipFactor = 500;
-	int frame0 = 8000 / skipFactor ;
-	int frame1 = 15000 / skipFactor + 1;
-	std::string dataset = "spacing1.0x_00011_straight";
+	int skipFactor = 100;
+	int frame0 = 0 / skipFactor ;
+	int frame1 = 200 / skipFactor + 1;
+	std::string dataset = "spacing1.0x_00011_woven";
 
-	int phase = 8;
+	int phase = 5;
 
 	switch (phase) {
 	case 1: {
@@ -245,10 +261,8 @@ int main(int argc, const char **argv) {
 		for (int i = frame0; i < frame1; i++) {
 
 			int f = i * skipFactor;
-
 			HermiteCurve curve;
 			int seg_subdiv = 100;
-
 			for (int y = 0; y < yarnNum; ++y) {
 
 				std::string tmp7 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_ds.txt"; //don't use upsampled centerline
@@ -280,8 +294,9 @@ int main(int argc, const char **argv) {
 				const int vrtx_num = yarn.getStepNum();
 				for (int v = 0; v < vrtx_num; ++v) {
 					fin >> S00 >> S01 >> S02 >> S10 >> S11 >> S12 >> S20 >> S21 >> S22
-						>> A0 >> A1 >> A2
-						>> B0 >> B1 >> B2;
+						//>> A0 >> A1 >> A2
+						//>> B0 >> B1 >> B2
+						;
 
 					const double curveLength = curve.totalLength();
 					float len = curveLength * (static_cast<double>(v) / static_cast<double>(vrtx_num - 1));
@@ -307,13 +322,16 @@ int main(int argc, const char **argv) {
 						local(1, 0) << " " << local(1, 1) << " " << local(1, 2) << " " <<
 						local(2, 0) << " " << local(2, 1) << " " << local(2, 2) << " ";
 
-					Eigen::Vector3f localA, localB, worldA, worldB;
-					worldA << A0, A1, A2;
-					worldB << B0, B1, B2;
-					localA = M*worldA;
-					localB = M*worldB;
-					fout << localA(0) << " " << localA(1) << " " << localA(2) << " " <<
-						localB(0) << " " << localB(1) << " " << localB(2) << std::endl;
+					/// uncomment for when having the internal forces
+					//Eigen::Vector3f localA, localB, worldA, worldB;
+					//worldA << A0, A1, A2;
+					//worldB << B0, B1, B2;
+					//localA = M*worldA;
+					//localB = M*worldB;
+					//fout << localA(0) << " " << localA(1) << " " << localA(2) << " " <<
+					//localB(0) << " " << localB(1) << " " << localB(2) ;
+
+					fout << std::endl;
 				}
 				fout.close();
 			}
@@ -356,7 +374,7 @@ int main(int argc, const char **argv) {
 				extractCompress_seg(configfile, yarnfile1, yarnfile2, "noNeed.txt", compress_S,
 					curvefile, normfile, yarn.getPlyNum(), vrtx_num);
 				/*************************************************/
-				std::string tmp6 = "output/" + dataset + "/genYarn_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+				std::string tmp6 = "output/" + dataset + "/genYarn" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
 				const char* outfile = tmp6.c_str();
 				//// Procedural step
 				yarn.simulate_ply();
@@ -372,14 +390,14 @@ int main(int argc, const char **argv) {
 				yarn.curve_yarn(curvefile, normfile);
 				yarn.write_yarn(outfile);
 				///////*************************************************/
-				std::string tmp7 = "output/" + dataset + "/genYarn_wo_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
-				const char* outfile_wo = tmp7.c_str();
-				yarn.simulate_ply();
-				yarn.write_plys("test_ply.txt");
-				yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
-				yarn.build("test_fly.txt", K);
-				yarn.curve_yarn(curvefile, normfile);
-				yarn.write_yarn(outfile_wo);
+				//std::string tmp7 = "output/" + dataset + "/genYarn_wo_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+				//const char* outfile_wo = tmp7.c_str();
+				//yarn.simulate_ply();
+				//yarn.write_plys("test_ply.txt");
+				//yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
+				//yarn.build("test_fly.txt", K);
+				//yarn.curve_yarn(curvefile, normfile);
+				//yarn.write_yarn(outfile_wo);
 			}
 		}
 		break;
@@ -412,18 +430,27 @@ int main(int argc, const char **argv) {
 				std::string tmp3 = "output/" + dataset + "/genYarn_NN_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
 				const char* outfile = tmp3.c_str();
 				// Procedural step
-				yarn.simulate_ply();
-				yarn.write_plys("test_ply.txt");
-				const int K = yarn.getPlyNum();
-				yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
-				yarn.build("test_fly.txt", K);
+				yarn.yarn_simulate();
 				//pipeline 2:
 				//yarn.compress_yarn3D(deformGrad, compress_S);
-
 				yarn.compress_yarn_A(compress_S);
 				yarn.curve_yarn(curvefile, normfile);
 				yarn.write_yarn(outfile);
 				std::cout << outfile << std::endl;
+
+				//*************** with fly-aways
+				//std::string tmp4 = "output/" + dataset + "/genYarn_NN_flys_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+				//const char* outfile_fly = tmp4.c_str();
+				//// Procedural step
+				//yarn.simulate_ply();
+				//yarn.write_plys("test_ply.txt");
+				//const int K = yarn.getPlyNum();
+				//yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
+				//yarn.build("test_fly.txt", K);
+				//yarn.compress_yarn_A(compress_S);
+				//yarn.curve_yarn(curvefile, normfile);
+				//yarn.write_yarn(outfile_fly);
+				//std::cout << outfile_fly << std::endl;
 
 				///*******  Validate NN by L2-norm ******/
 				//std::string tmp4 = "output/" + dataset + "/genYarn_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
@@ -558,7 +585,7 @@ int main(int argc, const char **argv) {
 		break;
 	}
 	case 4: {
-		std::cout << "***Mapping yarn to a curve *** \n";
+		std::cout << "***Mapping yarn to a curve (generate fibers for frame0) *** \n";
 		dataset = "spacing0.5x_00011";
 		std::string datatype = "fixed_teeth";
 		yarnNum = 1;
@@ -594,7 +621,7 @@ int main(int argc, const char **argv) {
 		break;
 	}
 	case 5: {
-		std::cout << "*** Convert external force to local coordinate ***\n";
+		std::cout << "*** Convert external force to local coordinate (for test data) ***\n";
 		for (int i = frame0; i < frame1; i++) {
 			int f = i * skipFactor;
 			HermiteCurve curve;
@@ -615,7 +642,7 @@ int main(int argc, const char **argv) {
 				std::ifstream fin4(physical_world);
 				assert(fin4.is_open() && "physical_world file wasn't found!\n");
 
-				curve.init(curvefile, normfile, seg_subdiv);
+				curve.init_norm(curvefile, normfile, seg_subdiv);
 
 
 				std::ifstream fin5(normfile);
@@ -630,8 +657,9 @@ int main(int argc, const char **argv) {
 				const int vrtx_num = yarn.getStepNum();
 				for (int v = 0; v < vrtx_num; ++v) {
 					fin >> S00 >> S01 >> S02 >> S10 >> S11 >> S12 >> S20 >> S21 >> S22
-						>> A0 >> A1 >> A2
-						>> B0 >> B1 >> B2;
+						//>> A0 >> A1 >> A2
+						//>> B0 >> B1 >> B2
+						;
 
 					const double curveLength = curve.totalLength();
 					float len = curveLength * (static_cast<double>(v) / static_cast<double>(vrtx_num - 1));
@@ -657,13 +685,16 @@ int main(int argc, const char **argv) {
 						local(1, 0) << " " << local(1, 1) << " " << local(1, 2) << " " <<
 						local(2, 0) << " " << local(2, 1) << " " << local(2, 2) << " ";
 
-					Eigen::Vector3f localA, localB, worldA, worldB;
-					worldA << A0, A1, A2;
-					worldB << B0, B1, B2;
-					localA = M*worldA;
-					localB = M*worldB;
-					fout << localA(0) << " " << localA(1) << " " << localA(2) << " " <<
-						localB(0) << " " << localB(1) << " " << localB(2) << std::endl;
+					/// uncomment for when having the internal forces
+					//Eigen::Vector3f localA, localB, worldA, worldB;
+					//worldA << A0, A1, A2;
+					//worldB << B0, B1, B2;
+					//localA = M*worldA;
+					//localB = M*worldB;
+					//fout << localA(0) << " " << localA(1) << " " << localA(2) << " " <<
+						//localB(0) << " " << localB(1) << " " << localB(2) ;
+
+					fout << std::endl;
 				}
 				fout.close();
 			}
@@ -739,25 +770,25 @@ int main(int argc, const char **argv) {
 		/**************** RUN ALL ****************/
 		frame0 = 8000 / skipFactor ;
 		
-		dataset = "spacing0.5x";
-		frame1 = 0 / skipFactor + 1;
-		phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-		dataset = "spacing1.0x";
-		frame1 = 0 / skipFactor + 1;
-		phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-		dataset = "spacing1.5x";
-		frame1 = 15000 / skipFactor + 1;
-		phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		//dataset = "spacing0.5x";
+		//frame1 = 14000 / skipFactor + 1;
+		//phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		//dataset = "spacing1.0x";
+		//frame1 = 14500 / skipFactor + 1;
+		//phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		//dataset = "spacing1.5x";
+		//frame1 = 15000 / skipFactor + 1;
+		//phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
 
-		dataset = "spacing0.5x_00011";
-		frame1 = 16000 / skipFactor + 1;
-		phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-		dataset = "spacing0.5x_10100";
-		frame1 = 15000 / skipFactor + 1;
-		phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-		dataset = "spacing0.5x_11110";
-		frame1 = 15000 / skipFactor + 1;
-		phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		//dataset = "spacing0.5x_00011";
+		//frame1 = 16000 / skipFactor + 1;
+		//phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		//dataset = "spacing0.5x_10100";
+		//frame1 = 15000 / skipFactor + 1;
+		//phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		//dataset = "spacing0.5x_11110";
+		//frame1 = 15000 / skipFactor + 1;
+		//phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
 		dataset = "spacing1.0x_00011";
 		frame1 = 17000 / skipFactor + 1;
 		phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
@@ -767,45 +798,60 @@ int main(int argc, const char **argv) {
 		dataset = "spacing1.0x_11110";
 		frame1 = 16000 / skipFactor + 1;
 		phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-		dataset = "spacing1.5x_00011";
-		frame1 = 17500 / skipFactor + 1;
-		phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-		dataset = "spacing1.5x_10100";
-		frame1 = 16000 / skipFactor + 1;
-		phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-		dataset = "spacing1.5x_11110";
-		frame1 = 16500 / skipFactor + 1;
-		phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		//dataset = "spacing1.5x_00011";
+		//frame1 = 17500 / skipFactor + 1;
+		//phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		//dataset = "spacing1.5x_10100";
+		//frame1 = 16000 / skipFactor + 1;
+		//phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		//dataset = "spacing1.5x_11110";
+		//frame1 = 16500 / skipFactor + 1;
+		//phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
 
 		/********************************/
 		break;
 	}
 	case 9: {
 		/**************** RUN ALL ****************/
-		//frame0 = 5 / skipFactor + 1;
-		//dataset = "spacing1.0x_p1";
-		//frame1 = 30 / skipFactor + 1;
-		//phase2(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		frame0 = 8000 / skipFactor;
 
-		frame0 = 140 / skipFactor + 1;
-		dataset = "spacing0.5x_00011";
-		frame1 = 160 / skipFactor + 1;
+		dataset = "spacing0.5x";
+		frame1 = 14000 / skipFactor + 1;
+		//phase2(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		dataset = "spacing1.0x";
+		frame1 = 14500 / skipFactor + 1;
 		phase2(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-		//dataset = "spacing1.5x_10100";
-		//frame1 = 160 / skipFactor + 1;
-		//phase2(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-		//dataset = "spacing1.5x_11110";
-		//frame1 = 165 / skipFactor + 1;
-		//phase2(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-		//dataset = "spacing1.0x_00011";
-		//frame1 = 170 / skipFactor + 1;
-		//phase2(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-		//dataset = "spacing1.0x_10100";
-		//frame1 = 155 / skipFactor + 1;
-		//phase2(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-		//dataset = "spacing1.0x_11110";
-		//frame1 = 160 / skipFactor + 1;
-		//phase2(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		dataset = "spacing1.5x";
+		frame1 = 15000 / skipFactor + 1;
+		phase2(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+
+		dataset = "spacing0.5x_00011";
+		frame1 = 16000 / skipFactor + 1;
+		phase2(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		dataset = "spacing0.5x_10100";
+		frame1 = 15000 / skipFactor + 1;
+		phase2(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		dataset = "spacing0.5x_11110";
+		frame1 = 15000 / skipFactor + 1;
+		phase2(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		dataset = "spacing1.0x_00011";
+		frame1 = 17000 / skipFactor + 1;
+		phase2(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		dataset = "spacing1.0x_10100";
+		frame1 = 15500 / skipFactor + 1;
+		phase2(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		dataset = "spacing1.0x_11110";
+		frame1 = 16000 / skipFactor + 1;
+		phase2(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		dataset = "spacing1.5x_00011";
+		frame1 = 17500 / skipFactor + 1;
+		phase2(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		dataset = "spacing1.5x_10100";
+		frame1 = 16000 / skipFactor + 1;
+		phase2(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		dataset = "spacing1.5x_11110";
+		frame1 = 16500 / skipFactor + 1;
+		phase2(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
 		/********************************/
 		break;
 	}

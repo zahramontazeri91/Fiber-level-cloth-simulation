@@ -28,7 +28,7 @@ def loadData():
     
     nb_features = X_train_all.shape[1]
     nb_traindata = X_train_all.shape[0]
-    split = 0.75
+    split = 0.95
     nb_halfdata = round(nb_traindata*split)
     nb_outputs = Y_train_all.shape[1]
     
@@ -161,12 +161,13 @@ model, scaler, nb_outputs = test(64)
 yarnNum = 1
 stride = 1
 skipFactor = 500        
-vrtxNum = 300
-firstFrame = 0
-dataset = 'spacing1.0x_00011_straight'
+vrtxNum = 150
+dataset = 'spacing1.0x_00011'
+firstFrame = 8000
+lastFrame = 17000
 path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
 frame0 = int(firstFrame/skipFactor)
-frame1 = int(3000/skipFactor + 1)
+frame1 = int(lastFrame/skipFactor + 1)
 for i in range (frame0, frame1):
     f = i*skipFactor
     for y in range (0,yarnNum):

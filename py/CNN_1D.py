@@ -5,6 +5,7 @@ Created on Wed Jan 17 08:45:56 2018
 @author: zahra
 """
 
+import matplotlib.pyplot as plt
 import numpy as np
 from keras.layers import Convolution1D, Dense, MaxPooling1D, Flatten
 from keras.models import Sequential
@@ -31,7 +32,7 @@ def buildModel(window_size, filter_length, nb_features, nb_filter):
     model.add(Dense(4, activation='linear'))
     print('model output layer Dense: ', model.output_shape)
     
-    model.compile(loss='mse', optimizer='adam', metrics=['mae'])
+    model.compile(loss='mse', optimizer='adam', metrics=['mse'])
     # To perform (binary) classification instead:
     # model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['binary_accuracy'])
 
@@ -106,10 +107,21 @@ def evaluate(nb_features, window_size):
     X_train, Y_train, X_valid, Y_valid, nb_instance, nb_output = loadData(fn_trainX, fn_trainY, nb_features, window_size)
     
     # train network
-    filter_length = 3
+    filter_length = 5
     nb_filter = 8
+    epochs=40
     model = buildModel(window_size, filter_length, nb_features, nb_filter)
-    model.fit(X_train, Y_train, epochs=25, batch_size=2, validation_data=(X_valid, Y_valid))
+    history = model.fit(X_train, Y_train, epochs=epochs, batch_size=2, validation_data=(X_valid, Y_valid))
+    
+    # Plot loss trajectory throughout training.
+    plt.figure()
+    plt.subplot(1,2,1)
+    plt.plot(history.history['mean_squared_error'], label='train')
+    plt.plot(history.history['val_mean_squared_error'], label='valid')
+    plt.xlabel('Epoch')
+    plt.ylabel('mse')
+    plt.legend()
+    plt.show()
     
     return nb_output, model            
 
@@ -119,20 +131,193 @@ nb_output, model = evaluate(nb_features, window_size)
 
 # predict test data
 yarnNum = 1
-skipFactor = 500        
-firstFrame = 8500
+skipFactor = 10        
+firstFrame = 0
 totalNum = 300
-dataset = 'spacing0.5x_00011'
+dataset = 'spacing1.0x_00011_straight'
 path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
 frame0 = int(firstFrame/skipFactor)
-frame1 = int(16000/skipFactor + 1)
+frame1 = int(870/skipFactor + 1)
 for i in range (frame0, frame1):
     f = i*skipFactor
     for y in range (0,yarnNum):
         X_test = np.loadtxt(path + "testX_" + str(f-firstFrame) + '_' + str(y) + ".txt",delimiter=None)
         X_test_ = X_test.reshape(X_test.shape[0], window_size, nb_features)
         Y_test_NN = model.predict(X_test_) 
-        Y_test_NN_ = Y_test_NN.reshape(Y_test_NN.shape[0], Y_test_NN.shape[2])
-        Y_test_NN_total = extrapolate(Y_test_NN_, totalNum, nb_output, 1)
+        Y_test_NN_total = extrapolate(Y_test_NN, totalNum, nb_output, 1)
         filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
         np.savetxt(path + filename, Y_test_NN_total, fmt='%.6f', delimiter=' ')
+
+# In[]:
+#dataset = 'spacing0.5x_00011'
+#path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+#frame0 = int(firstFrame/skipFactor)
+#frame1 = int(16000/skipFactor + 1)
+#for i in range (frame0, frame1):
+#    f = i*skipFactor
+#    for y in range (0,yarnNum):
+#        X_test = np.loadtxt(path + "testX_" + str(f-firstFrame) + '_' + str(y) + ".txt",delimiter=None)
+#        X_test_ = X_test.reshape(X_test.shape[0], window_size, nb_features)
+#        Y_test_NN = model.predict(X_test_) 
+#        Y_test_NN_total = extrapolate(Y_test_NN, totalNum, nb_output, 1)
+#        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
+#        np.savetxt(path + filename, Y_test_NN_total, fmt='%.6f', delimiter=' ')
+#
+#dataset = 'spacing0.5x_10100'
+#path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+#frame0 = int(firstFrame/skipFactor)
+#frame1 = int(15000/skipFactor + 1)
+#for i in range (frame0, frame1):
+#    f = i*skipFactor
+#    for y in range (0,yarnNum):
+#        X_test = np.loadtxt(path + "testX_" + str(f-firstFrame) + '_' + str(y) + ".txt",delimiter=None)
+#        X_test_ = X_test.reshape(X_test.shape[0], window_size, nb_features)
+#        Y_test_NN = model.predict(X_test_) 
+#        Y_test_NN_total = extrapolate(Y_test_NN, totalNum, nb_output, 1)
+#        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
+#        np.savetxt(path + filename, Y_test_NN_total, fmt='%.6f', delimiter=' ')
+#
+#dataset = 'spacing0.5x_11110'
+#path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+#frame0 = int(firstFrame/skipFactor)
+#frame1 = int(15000/skipFactor + 1)
+#for i in range (frame0, frame1):
+#    f = i*skipFactor
+#    for y in range (0,yarnNum):
+#        X_test = np.loadtxt(path + "testX_" + str(f-firstFrame) + '_' + str(y) + ".txt",delimiter=None)
+#        X_test_ = X_test.reshape(X_test.shape[0], window_size, nb_features)
+#        Y_test_NN = model.predict(X_test_) 
+#        Y_test_NN_total = extrapolate(Y_test_NN, totalNum, nb_output, 1)
+#        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
+#        np.savetxt(path + filename, Y_test_NN_total, fmt='%.6f', delimiter=' ')
+#        
+#################
+#dataset = 'spacing1.0x_00011'
+#path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+#frame0 = int(firstFrame/skipFactor)
+#frame1 = int(17000/skipFactor + 1)
+#for i in range (frame0, frame1):
+#    f = i*skipFactor
+#    for y in range (0,yarnNum):
+#        X_test = np.loadtxt(path + "testX_" + str(f-firstFrame) + '_' + str(y) + ".txt",delimiter=None)
+#        X_test_ = X_test.reshape(X_test.shape[0], window_size, nb_features)
+#        Y_test_NN = model.predict(X_test_) 
+#        Y_test_NN_total = extrapolate(Y_test_NN, totalNum, nb_output, 1)
+#        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
+#        np.savetxt(path + filename, Y_test_NN_total, fmt='%.6f', delimiter=' ')
+#
+#
+#dataset = 'spacing1.0x_10100'
+#path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+#frame0 = int(firstFrame/skipFactor)
+#frame1 = int(15500/skipFactor + 1)
+#for i in range (frame0, frame1):
+#    f = i*skipFactor
+#    for y in range (0,yarnNum):
+#        X_test = np.loadtxt(path + "testX_" + str(f-firstFrame) + '_' + str(y) + ".txt",delimiter=None)
+#        X_test_ = X_test.reshape(X_test.shape[0], window_size, nb_features)
+#        Y_test_NN = model.predict(X_test_) 
+#        Y_test_NN_total = extrapolate(Y_test_NN, totalNum, nb_output, 1)
+#        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
+#        np.savetxt(path + filename, Y_test_NN_total, fmt='%.6f', delimiter=' ')
+#
+#dataset = 'spacing1.0x_11110'
+#path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+#frame0 = int(firstFrame/skipFactor)
+#frame1 = int(16000/skipFactor + 1)
+#for i in range (frame0, frame1):
+#    f = i*skipFactor
+#    for y in range (0,yarnNum):
+#        X_test = np.loadtxt(path + "testX_" + str(f-firstFrame) + '_' + str(y) + ".txt",delimiter=None)
+#        X_test_ = X_test.reshape(X_test.shape[0], window_size, nb_features)
+#        Y_test_NN = model.predict(X_test_) 
+#        Y_test_NN_total = extrapolate(Y_test_NN, totalNum, nb_output, 1)
+#        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
+#        np.savetxt(path + filename, Y_test_NN_total, fmt='%.6f', delimiter=' ')
+#
+##################
+#dataset = 'spacing1.5x_00011'
+#path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+#frame0 = int(firstFrame/skipFactor)
+#frame1 = int(17500/skipFactor + 1)
+#for i in range (frame0, frame1):
+#    f = i*skipFactor
+#    for y in range (0,yarnNum):
+#        X_test = np.loadtxt(path + "testX_" + str(f-firstFrame) + '_' + str(y) + ".txt",delimiter=None)
+#        X_test_ = X_test.reshape(X_test.shape[0], window_size, nb_features)
+#        Y_test_NN = model.predict(X_test_) 
+#        Y_test_NN_total = extrapolate(Y_test_NN, totalNum, nb_output, 1)
+#        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
+#        np.savetxt(path + filename, Y_test_NN_total, fmt='%.6f', delimiter=' ')
+#
+#
+#dataset = 'spacing1.5x_10100'
+#path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+#frame0 = int(firstFrame/skipFactor)
+#frame1 = int(16000/skipFactor + 1)
+#for i in range (frame0, frame1):
+#    f = i*skipFactor
+#    for y in range (0,yarnNum):
+#        X_test = np.loadtxt(path + "testX_" + str(f-firstFrame) + '_' + str(y) + ".txt",delimiter=None)
+#        X_test_ = X_test.reshape(X_test.shape[0], window_size, nb_features)
+#        Y_test_NN = model.predict(X_test_) 
+#        Y_test_NN_total = extrapolate(Y_test_NN, totalNum, nb_output, 1)
+#        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
+#        np.savetxt(path + filename, Y_test_NN_total, fmt='%.6f', delimiter=' ')
+#
+#dataset = 'spacing1.5x_11110'
+#path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+#frame0 = int(firstFrame/skipFactor)
+#frame1 = int(16500/skipFactor + 1)
+#for i in range (frame0, frame1):
+#    f = i*skipFactor
+#    for y in range (0,yarnNum):
+#        X_test = np.loadtxt(path + "testX_" + str(f-firstFrame) + '_' + str(y) + ".txt",delimiter=None)
+#        X_test_ = X_test.reshape(X_test.shape[0], window_size, nb_features)
+#        Y_test_NN = model.predict(X_test_) 
+#        Y_test_NN_total = extrapolate(Y_test_NN, totalNum, nb_output, 1)
+#        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
+#        np.savetxt(path + filename, Y_test_NN_total, fmt='%.6f', delimiter=' ')
+#######################
+#dataset = 'spacing0.5x'
+#path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+#frame0 = int(firstFrame/skipFactor)
+#frame1 = int(14000/skipFactor + 1)
+#for i in range (frame0, frame1):
+#    f = i*skipFactor
+#    for y in range (0,yarnNum):
+#        X_test = np.loadtxt(path + "testX_" + str(f-firstFrame) + '_' + str(y) + ".txt",delimiter=None)
+#        X_test_ = X_test.reshape(X_test.shape[0], window_size, nb_features)
+#        Y_test_NN = model.predict(X_test_) 
+#        Y_test_NN_total = extrapolate(Y_test_NN, totalNum, nb_output, 1)
+#        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
+#        np.savetxt(path + filename, Y_test_NN_total, fmt='%.6f', delimiter=' ')
+#
+#
+#dataset = 'spacing1.0x'
+#path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+#frame0 = int(firstFrame/skipFactor)
+#frame1 = int(14500/skipFactor + 1)
+#for i in range (frame0, frame1):
+#    f = i*skipFactor
+#    for y in range (0,yarnNum):
+#        X_test = np.loadtxt(path + "testX_" + str(f-firstFrame) + '_' + str(y) + ".txt",delimiter=None)
+#        X_test_ = X_test.reshape(X_test.shape[0], window_size, nb_features)
+#        Y_test_NN = model.predict(X_test_) 
+#        Y_test_NN_total = extrapolate(Y_test_NN, totalNum, nb_output, 1)
+#        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
+#        np.savetxt(path + filename, Y_test_NN_total, fmt='%.6f', delimiter=' ')
+#
+#dataset = 'spacing1.5x'
+#path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+#frame0 = int(firstFrame/skipFactor)
+#frame1 = int(15000/skipFactor + 1)
+#for i in range (frame0, frame1):
+#    f = i*skipFactor
+#    for y in range (0,yarnNum):
+#        X_test = np.loadtxt(path + "testX_" + str(f-firstFrame) + '_' + str(y) + ".txt",delimiter=None)
+#        X_test_ = X_test.reshape(X_test.shape[0], window_size, nb_features)
+#        Y_test_NN = model.predict(X_test_) 
+#        Y_test_NN_total = extrapolate(Y_test_NN, totalNum, nb_output, 1)
+#        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
+#        np.savetxt(path + filename, Y_test_NN_total, fmt='%.6f', delimiter=' ')
