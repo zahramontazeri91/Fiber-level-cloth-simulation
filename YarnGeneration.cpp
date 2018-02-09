@@ -33,7 +33,8 @@ void phase1(const char* yarnfile1, const char* configfile, Fiber::Yarn &yarn, in
 			std::ifstream fin4(physical_world);
 			assert(fin4.is_open() && "physical_world file wasn't found!\n");
 
-			curve.init(curvefile, normfile, seg_subdiv);
+			//curve.init(curvefile, normfile, seg_subdiv);
+			curve.init_principleNormal(curvefile, normfile, seg_subdiv);
 
 
 			std::ifstream fin5(normfile);
@@ -241,18 +242,18 @@ int main(int argc, const char **argv) {
 	Fiber::Yarn yarn;
 	yarn.parse(configfile);
 
-	yarn.setStepNum(150);
+	yarn.setStepNum(300);
 	
 	yarn.yarn_simulate();
 	yarn.write_yarn(yarnfile1);
 
 	int yarnNum = 1;
-	int skipFactor = 100;
-	int frame0 = 0 / skipFactor ;
-	int frame1 = 200 / skipFactor + 1;
-	std::string dataset = "spacing1.0x_00011_woven";
+	int skipFactor = 500;
+	int frame0 = 11000 / skipFactor ;
+	int frame1 = 17000 / skipFactor + 1 ;
+	std::string dataset = "spacing1.0x_00011" ;
 
-	int phase = 5;
+	int phase = 8;
 
 	switch (phase) {
 	case 1: {
@@ -279,7 +280,8 @@ int main(int argc, const char **argv) {
 				std::ifstream fin4(physical_world);
 				assert(fin4.is_open() && "physical_world file wasn't found!\n");
 
-				curve.init(curvefile, normfile, seg_subdiv);
+				//curve.init(curvefile, normfile, seg_subdiv);
+				curve.init_principleNormal(curvefile, normfile, seg_subdiv);
 
 
 				std::ifstream fin5(normfile);
@@ -374,7 +376,7 @@ int main(int argc, const char **argv) {
 				extractCompress_seg(configfile, yarnfile1, yarnfile2, "noNeed.txt", compress_S,
 					curvefile, normfile, yarn.getPlyNum(), vrtx_num);
 				/*************************************************/
-				std::string tmp6 = "output/" + dataset + "/genYarn" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+				std::string tmp6 = "output/" + dataset + "/genYarn_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
 				const char* outfile = tmp6.c_str();
 				//// Procedural step
 				yarn.simulate_ply();
@@ -642,8 +644,8 @@ int main(int argc, const char **argv) {
 				std::ifstream fin4(physical_world);
 				assert(fin4.is_open() && "physical_world file wasn't found!\n");
 
-				curve.init_norm(curvefile, normfile, seg_subdiv);
-
+				curve.init_principleNormal(curvefile, normfile, seg_subdiv);
+				//curve.init(curvefile, normfile, seg_subdiv);
 
 				std::ifstream fin5(normfile);
 				assert(fin5.is_open() && "normfile file wasn't found!\n");
@@ -767,37 +769,47 @@ int main(int argc, const char **argv) {
 		break;
 	}
 	case 8: {
-		/**************** RUN ALL ****************/
-		frame0 = 8000 / skipFactor ;
-		
-		//dataset = "spacing0.5x";
-		//frame1 = 14000 / skipFactor + 1;
-		//phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-		//dataset = "spacing1.0x";
-		//frame1 = 14500 / skipFactor + 1;
-		//phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-		//dataset = "spacing1.5x";
-		//frame1 = 15000 / skipFactor + 1;
-		//phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		skipFactor = 500;
 
-		//dataset = "spacing0.5x_00011";
-		//frame1 = 16000 / skipFactor + 1;
+		/**************** RUN ALL ****************/
+		frame0 = 11000 / skipFactor ;		
+
+		dataset = "spacing0.5x";
+		frame1 = 14000 / skipFactor + 1;
+		phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		std::cout << " ********************** \n *********************** \n" << dataset << std::endl;
+		dataset = "spacing1.0x";
+		frame1 = 14500 / skipFactor + 1;
+		phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		std::cout << " ********************** \n *********************** \n" << dataset << std::endl;
+		dataset = "spacing1.5x";
+		frame1 = 15000 / skipFactor + 1;
+		phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		std::cout << " ********************** \n *********************** \n" << dataset << std::endl;
+
+		dataset = "spacing0.5x_00011";
+		frame1 = 16000 / skipFactor + 1;
 		//phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-		//dataset = "spacing0.5x_10100";
-		//frame1 = 15000 / skipFactor + 1;
-		//phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		std::cout << " ********************** \n *********************** \n" << dataset << std::endl;
+		dataset = "spacing0.5x_10100";
+		frame1 = 15000 / skipFactor + 1;
+		phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		std::cout << " ********************** \n *********************** \n" << dataset << std::endl;
 		//dataset = "spacing0.5x_11110";
 		//frame1 = 15000 / skipFactor + 1;
-		//phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		//phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1,yarnNum, dataset);
+		std::cout << " ********************** \n *********************** \n" << dataset << std::endl;
+
 		dataset = "spacing1.0x_00011";
 		frame1 = 17000 / skipFactor + 1;
 		phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-		dataset = "spacing1.0x_10100";
-		frame1 = 15500 / skipFactor + 1;
-		phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-		dataset = "spacing1.0x_11110";
-		frame1 = 16000 / skipFactor + 1;
-		phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		//dataset = "spacing1.0x_10100";
+		//frame1 = 15500 / skipFactor + 1;
+		//phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+		//dataset = "spacing1.0x_11110";
+		//frame1 = 16000 / skipFactor + 1;
+		//phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+
 		//dataset = "spacing1.5x_00011";
 		//frame1 = 17500 / skipFactor + 1;
 		//phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);

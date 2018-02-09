@@ -71,7 +71,7 @@ void HermiteSpline::build(int _subdiv, Eigen::Vector3d _norm0, Eigen::Vector3d _
         norms[subdiv] = _norm1.normalized();
         for ( int i = 1; i < subdiv; ++i ) {
             double t = static_cast<double>(i)/subdiv;
-            norms[i] = ((1.0 - t)*_norm0 + t*_norm1).normalized();
+            norms[i] = ((1.0 - t)*_norm0 + t*_norm1).normalized(); //interpolate for specific segment
         }
     }
     else {
@@ -291,9 +291,11 @@ void HermiteSpline::output(int n, Eigen::Vector3d *bufferPosition, Eigen::Vector
 
 Eigen::Vector3d HermiteSpline::computeRotatedNormal(const Eigen::Vector3d &tang0, const Eigen::Vector3d &tang1, const Eigen::Vector3d norm0)
 {
+	//std::cout << std::abs(norm0.norm() - 1.0) << " ******** \n " << norm0 << std::endl;
+
     assert(std::abs(tang0.norm() - 1.0) < HERMITE_EPS);
     assert(std::abs(tang1.norm() - 1.0) < HERMITE_EPS);
-	assert(std::abs(norm0.norm() - 1.0) < HERMITE_EPS);
+	//assert(std::abs(norm0.norm() - 1.0) < HERMITE_EPS);
 
     double val = tang0.dot(tang1);
     if ( val > 1.0 - HERMITE_EPS )

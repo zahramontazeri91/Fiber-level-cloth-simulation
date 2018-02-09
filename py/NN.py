@@ -161,11 +161,11 @@ model, scaler, nb_outputs = test(64)
 yarnNum = 1
 stride = 1
 skipFactor = 500        
-vrtxNum = 150
+vrtxNum = 300
 dataset = 'spacing1.0x_00011'
-firstFrame = 8000
+firstFrame = 11000
 lastFrame = 17000
-path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/' 
 frame0 = int(firstFrame/skipFactor)
 frame1 = int(lastFrame/skipFactor + 1)
 for i in range (frame0, frame1):
