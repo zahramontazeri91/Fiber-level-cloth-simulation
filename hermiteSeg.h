@@ -86,22 +86,6 @@ public:
     /* get the principle normal at t */
     inline Eigen::Vector3d evalPrincipalNormal(double t, bool normalize = true) const
     {
-		//Eigen::Vector3d ret;
-		//Eigen::Vector3d q = u1*6.0*t + u2*2.0;
-		//Eigen::Vector3d v = (u1*3.0*t + u2*2.0)*t + m0;
-
-		////assing a perpendicular vector if q vanishes
-		//assert(q.norm() > HERMITE_EPS); //for now let's assume curves aren't never straight
-		//if (q.norm() <= HERMITE_EPS)
-		//	v.normalize();
-		//	return rotateTang(v);
-
-		//ret = v.cross(q).cross(v);
-		//if (normalize) {
-		//	assert(ret.norm() > HERMITE_EPS && "Either normal or tangent is zero!");
-		//	ret.normalize();
-		//}
-		//return ret;
 
 		Eigen::Vector3d ret;
         Eigen::Vector3d q = evalCurvature(t), v = evalTangent(t);

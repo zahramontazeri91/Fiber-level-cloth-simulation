@@ -26,6 +26,10 @@ public:
 	void init_principleNormal(const char* pntsFILE, const char* normsFILE, int subdiv);
 	void init_principleNormal(const std::vector<Eigen::Vector3d> &pts, int subdiv);
 
+	//init4: generate normals for a segment of the curve [a,b]
+	void init_window(const char* pntsFILE, const char* normsFILE, const int start, const int end, int subdiv);
+
+
 	Eigen::Vector3d eval(double t) const;
 	Eigen::Vector3d evalTangent(double t, bool normalize = true) const;
 	Eigen::Vector3d evalCurvature(double t) const;

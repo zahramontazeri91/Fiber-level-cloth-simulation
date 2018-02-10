@@ -78,6 +78,32 @@ void HermiteCurve::init_norm(const char* pntsFILE, const char* normsFILE, int su
 	init_norm(pts, norms, subdiv);
 }
 
+void HermiteCurve::init_window(const char* pntsFILE, const char* normsFILE, const int start, const int end, int subdiv) {
+
+	assert(pntsFILE);
+	std::ifstream fin(pntsFILE);
+	assert(!fin.fail());
+
+	int n;
+	fin >> n;
+	assert(start <= n && end <= n && start <= end);
+
+	const int window_size = end - start + 1;
+	std::vector<Eigen::Vector3d> allPts(n), pts(window_size);
+	int j = 0;
+	for (int i = 0; i < n; ++i) {
+		fin >> allPts[i][0] >> allPts[i][1] >> allPts[i][2];
+		if (i >= start && i <= end) {
+			pts[j] = allPts[i];
+			j++;
+		}
+	}
+	assert(pts.size()>2);
+
+	init(pts, subdiv);
+	printNormals(normsFILE, subdiv);
+}
+
 void HermiteCurve::init_principleNormal(const char* pntsFILE, const char* binormsFILE, int subdiv) {
 
 	assert(pntsFILE);
