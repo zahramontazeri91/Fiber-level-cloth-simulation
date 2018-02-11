@@ -134,18 +134,37 @@ def extrapolate(predicted, totalNum, filename, nb_outputs, stride):
     r = math.floor (( totalNum - predictExtr.shape[0] )/2)
     total[r:r+predictExtr.shape[0], :] = predictExtr
     np.savetxt(path + filename, total, fmt='%.6f', delimiter=' ')
-    
+
+## rotate the NN output back to RM frames
+# In[]:
+def rotate(predicted, angles):
+    predicted_rot = predicted
+    n = len(angles)
+    for i in range (0,n):
+        c, s = np.cos(-1*angles[i]), np.sin(-1*angles[i])
+        R = np.matrix('{} {}; {} {}'.format(c, -s, s, c))
+        S = predicted[i].reshape([2,2])
+        rot = R*S*R.transpose()
+        predicted_rot[i] = np.array([rot[0,0] , rot[0,1] , rot[1,0] , rot[1,1] ])
+    return predicted_rot
 ## Prediction
 # In[]:
-def predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride):
+def predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, anglesFile):
     
     predicted = model.predict(X_test, verbose=0)
 #    all_test = np.concatenate((X_test,predicted), axis=1)
     predicted = scaler.inverse_transform(predicted)
 #    np.savetxt(path + 'testY_NN.txt', all_test[:, -3:], fmt='%.6f', delimiter=' ')
-    np.savetxt(path + 'testY_NN.txt', predicted, fmt='%.6f', delimiter=' ')
     
-    extrapolate(predicted, vrtxNum, filename, nb_outputs, stride)
+    # rotate the shape-match back to original frame (window-Rotation-minimizing to yarn-rotation-minimizing)
+#    predicted = np.loadtxt(path + 'trainY_15000_0.txt')
+    angles = np.loadtxt(anglesFile, delimiter=None)
+    predicted_rot = rotate(predicted, angles)
+    
+#    np.savetxt(path + 'testY_NN.txt', predicted, fmt='%.6f', delimiter=' ')
+    np.savetxt(path + 'testY_NN.txt', predicted_rot, fmt='%.6f', delimiter=' ')
+    
+    extrapolate(predicted_rot, vrtxNum, filename, nb_outputs, stride)
 ## Main
 # In[]    
 def test(neurons): 
@@ -163,7 +182,7 @@ stride = 1
 skipFactor = 500        
 vrtxNum = 300
 dataset = 'spacing1.0x_00011'
-firstFrame = 11000
+firstFrame = 17000
 lastFrame = 17000
 path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/' 
 frame0 = int(firstFrame/skipFactor)
@@ -171,6 +190,7 @@ frame1 = int(lastFrame/skipFactor + 1)
 for i in range (frame0, frame1):
     f = i*skipFactor
     for y in range (0,yarnNum):
-        X_test = np.loadtxt(path + "testX_" + str(f-firstFrame) + '_' + str(y) + ".txt",delimiter=None)
+        X_test = np.loadtxt(path + "trainX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
         filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
-        predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride)
+        anglesFile = path + "angles_" + str(f) + '_' + str(y) + ".txt"
+        predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, anglesFile)
