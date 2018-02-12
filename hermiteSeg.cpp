@@ -66,26 +66,48 @@ void HermiteSpline::build(int _subdiv, Eigen::Vector3d _norm0, Eigen::Vector3d _
         lens[i] = lens[i - 1] + (positions[i - 1] - positions[i]).norm();
 
     norms.resize(subdiv + 1);
-    norms[0] = _norm0.norm() > HERMITE_EPS ? _norm0.normalized() : evalPrincipalNormal(0.0);
-    if ( _norm1.norm() > HERMITE_EPS ) {
+
+	//interpolate for specific segment for the case of excisting normals for both ends
+    if (_norm0.norm() >= HERMITE_EPS && _norm1.norm() >= HERMITE_EPS ) {
+		norms[0] = _norm0.normalized();
         norms[subdiv] = _norm1.normalized();
         for ( int i = 1; i < subdiv; ++i ) {
             double t = static_cast<double>(i)/subdiv;
-            norms[i] = ((1.0 - t)*_norm0 + t*_norm1).normalized(); //interpolate for specific segment
+            norms[i] = ((1.0 - t)*_norm0 + t*_norm1).normalized();
         }
     }
-    else {
-        for ( int i = 1; i <= subdiv; ++i )
-            norms[i] = computeRotatedNormal(tangents[i - 1], tangents[i], norms[i - 1]);
+	//use forward-RM if the first normal is given 
+    else if (_norm0.norm() > HERMITE_EPS && _norm1.norm() < HERMITE_EPS) {
+		norms[0] = _norm0.normalized();
+		for (int i = 1; i <= subdiv; ++i) {
+			norms[i] = computeRotatedNormal(tangents[i - 1], tangents[i], norms[i - 1]);
+		}
     }
+	//use backward-RM if the first normal is given 
+	else {
+		norms[subdiv] = _norm1.normalized();
+		for (int i = subdiv - 1; i <= 0; --i) {
+			norms[i] = computeRotatedNormal_backward(tangents[i], tangents[i + 1], norms[i + 1]);
+			assert(std::abs(norms[i].norm() - 1.0) < HERMITE_EPS);
+		}
+	}
+
+	for (int i = 0; i <= subdiv; ++i) {
+		norms[i].normalize();
+		//if (std::abs(norms[i].norm() - 1.0) > HERMITE_EPS)
+			//std::cout << "not-normalized norm: " << i << " " << norms[i].norm() << std::endl;
+		//assert(std::abs(norms[i].norm() - 1.0) < HERMITE_EPS);
+	}
 }
 
 
 Eigen::Vector3d HermiteSpline::evalNormal(double t) const
 {
+	
     if ( subdiv ) {
-        if ( t < HERMITE_EPS ) return norms[0];
-        if ( t > 1.0 - HERMITE_EPS ) return norms[subdiv];
+
+		if ( t < HERMITE_EPS ) return norms[0].normalized();
+        if ( t > 1.0 - HERMITE_EPS ) return norms[subdiv].normalized();
         int idx = static_cast<int>(std::floor(t*subdiv));
         Eigen::Vector3d tang0 = evalTangent(t);
         Eigen::Vector3d norm0 = computeRotatedNormal(tangents[idx], tang0, norms[idx]),
@@ -96,6 +118,7 @@ Eigen::Vector3d HermiteSpline::evalNormal(double t) const
         assert(ret.norm() > HERMITE_EPS);
         ret.normalize();
         assert(std::abs(ret.dot(tang0)) < HERMITE_EPS);
+		assert(std::abs(ret.norm() - 1.0) < HERMITE_EPS);
         return ret;
     }
     else {
@@ -295,7 +318,7 @@ Eigen::Vector3d HermiteSpline::computeRotatedNormal(const Eigen::Vector3d &tang0
 
     assert(std::abs(tang0.norm() - 1.0) < HERMITE_EPS);
     assert(std::abs(tang1.norm() - 1.0) < HERMITE_EPS);
-	//assert(std::abs(norm0.norm() - 1.0) < HERMITE_EPS);
+	assert(std::abs(norm0.norm() - 1.0) < HERMITE_EPS);
 
     double val = tang0.dot(tang1);
     if ( val > 1.0 - HERMITE_EPS )
@@ -307,5 +330,25 @@ Eigen::Vector3d HermiteSpline::computeRotatedNormal(const Eigen::Vector3d &tang0
 
     Eigen::Matrix3d m = Eigen::AngleAxisd(std::acos(val), tang0.cross(tang1).normalized()).toRotationMatrix();
     assert((m*tang0 - tang1).norm() < HERMITE_EPS);
-    return m*norm0;
+    return (m*norm0).normalized();
+}
+
+Eigen::Vector3d HermiteSpline::computeRotatedNormal_backward(const Eigen::Vector3d &tang0, const Eigen::Vector3d &tang1, const Eigen::Vector3d norm1)
+{
+	assert(std::abs(tang0.norm() - 1.0) < HERMITE_EPS);
+	assert(std::abs(tang1.norm() - 1.0) < HERMITE_EPS);
+	assert(std::abs(norm1.norm() - 1.0) < HERMITE_EPS);
+
+	double val = tang0.dot(tang1);
+	if (val > 1.0 - HERMITE_EPS)
+		return norm1;
+	else if (val < -1.0 + HERMITE_EPS) {
+		fprintf(stderr, "Warning: oppositely pointing tangents\n");
+		return -norm1;
+	}
+
+	Eigen::Matrix3d m = Eigen::AngleAxisd(std::acos(val), tang0.cross(tang1).normalized()).toRotationMatrix();
+	assert((m*tang0 - tang1).norm() < HERMITE_EPS);
+	assert(std::abs((m*norm1).norm() - 1.0) < HERMITE_EPS);
+	return (m*norm1).normalized();
 }

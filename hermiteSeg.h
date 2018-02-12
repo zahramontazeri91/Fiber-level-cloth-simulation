@@ -92,8 +92,8 @@ public:
 		
 		//assing a perpendicular vector if q vanishes
 		assert(q.norm() > HERMITE_EPS); //for now let's assume curves aren't never straight
-		if (q.norm() <= HERMITE_EPS) 
-			return rotateTang(v);
+		//if (q.norm() <= HERMITE_EPS) 
+			//return rotateTang(v);
 
 		//assert(q.norm() > HERMITE_EPS);
 		//assert(v.norm() > HERMITE_EPS);
@@ -148,8 +148,11 @@ public:
     double subdivideN(int n, HermiteSpline *splines, double *error = NULL) const;
     double subdivideA(double maxError, std::vector<HermiteSpline> &results) const;
 
+	// return the normal for the other end given tangents for both ends
     static Eigen::Vector3d computeRotatedNormal(const Eigen::Vector3d &tang0, const Eigen::Vector3d &tang1,
         const Eigen::Vector3d norm0);
+	static Eigen::Vector3d computeRotatedNormal_backward(const Eigen::Vector3d &tang0, const Eigen::Vector3d &tang1,
+		const Eigen::Vector3d norm1);
 
     void output(int n, Eigen::Vector3d *bufferPosition,
         Eigen::Vector3d *bufferTangent = NULL, Eigen::Vector3d *bufferNormal = NULL) const;

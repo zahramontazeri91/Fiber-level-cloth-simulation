@@ -291,6 +291,7 @@ void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char
 
 	const int ignorPlanes = trimPercent * vrtx_num; // crop the first and last #% of the yarn
 	for (int w = ignorPlanes; w < (vrtx_num - window_size + 1) - ignorPlanes; w++) {
+		//std::cout << "--------------------------- " << w << std::endl;
 		//define a curve segment 
 		const int start = w;
 		const int end = w + (window_size - 1);
@@ -373,11 +374,11 @@ int main(int argc, const char **argv) {
 
 	int yarnNum = 1;
 	int skipFactor = 500;
-	int frame0 = 16500 / skipFactor ;
-	int frame1 = 17000 / skipFactor + 1 ;
+	int frame0 = 8000 / skipFactor ;
+	int frame1 = 8000 / skipFactor + 1 ;
 	std::string dataset = "spacing1.0x_00011" ;
 
-	int phase = 2;
+	int phase = 1;
 
 	switch (phase) {
 		case 1: {

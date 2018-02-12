@@ -123,12 +123,32 @@ void HermiteCurve::init_principleNormal(const char* pntsFILE, const char* binorm
 
 void HermiteCurve::init(const std::vector<Eigen::Vector3d> &pts, int subdiv) //subdiv for each segment
 {
-    initPoints(pts);
-    m_splines[0].build(subdiv, m_splines[0].evalPrincipalNormal(0.0));
-	for (int i = 1; i < m_spline_seg; ++i) {
-		m_splines[i].build(subdiv, m_splines[i - 1].evalNormal(1.0));
+	initPoints(pts);
+
+	/* Find the first vertex that curvature doesn't vanish */
+	int firstIndx = 0;
+	for (int i = 0; i < m_spline_seg; ++i) {
+		Eigen::Vector3d q = m_splines[i].evalCurvature(0.0);
+		if (q.norm() > HERMITE_EPS) {
+			firstIndx = i;
+			break;
+		}
 	}
-	
+
+	//Eigen::Vector3d v = m_splines[0].evalTangent(0.0);
+	//std::cout << q.norm() << " " << v.norm() << " " << v.cross(q).cross(v) << " \n (init_principleNormal) \n";
+	//assert(q.norm() > HERMITE_EPS);
+	//assert(v.norm() > HERMITE_EPS);
+	//assert(v.cross(q).cross(v).norm() > HERMITE_EPS);
+	/***/
+
+    m_splines[firstIndx].build(subdiv, m_splines[firstIndx].evalPrincipalNormal(0.0));
+	for (int i = firstIndx+1; i < m_spline_seg; ++i) {
+		m_splines[i].build(subdiv, m_splines[i - 1].evalNormal(1.0), Eigen::Vector3d::Zero());
+	}
+	for (int i = firstIndx - 1; i >= 0; --i) {
+		m_splines[i].build(subdiv, Eigen::Vector3d::Zero(), m_splines[i + 1].evalNormal(0.0));
+	}
     m_lens.resize(m_spline_seg);
     for ( int i = 0; i < m_spline_seg; ++i ) {
         m_lens[i] = m_splines[i].totalLength();
@@ -233,7 +253,10 @@ Eigen::Vector3d HermiteCurve::evalNormal(double t) const
     assert(m_spline_seg > 0);
     if ( t < HERMITE_EPS ) return m_splines[0].evalNormal(0.0);
     if ( t > m_spline_seg - HERMITE_EPS ) return m_splines[m_spline_seg - 1].evalNormal(1.0);
-    return m_splines[static_cast<int>(t)].evalNormal(t - std::floor(t));
+	Eigen::Vector3d n = m_splines[static_cast<int>(t)].evalNormal(t - std::floor(t));
+
+	assert(std::abs(n.norm() - 1.0) < HERMITE_EPS);
+    return n;
 }
 
 
@@ -302,6 +325,8 @@ void HermiteCurve::getRotatedFrame(double t, Eigen::Vector3d &ex, Eigen::Vector3
 	//ex = B;
 	//ey = -1*N;
 
+	if (ex.norm() - 1.f > 1e-5 || ey.norm() - 1.f > 1e-5 || ez.norm() - 1.f > 1e-5)
+		std::cout << ex.norm() - 1.f << " " << ey.norm() - 1.f << " " << ez.norm() - 1.f << std::endl;
 	assert(ex.norm() - 1.f < 1e-5);
 	assert(ey.norm() - 1.f < 1e-5);
 	assert(ez.norm() - 1.f < 1e-5);
