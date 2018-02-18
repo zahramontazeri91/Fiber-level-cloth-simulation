@@ -176,8 +176,8 @@ w_path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/inpu
 #datasets.append('spacing0.5x_10100')
 #datasets.append('spacing0.5x_11110')
 datasets.append('spacing1.0x_00011')
-datasets.append('spacing1.0x_10100')
-datasets.append('spacing1.0x_11110')
+#datasets.append('spacing1.0x_10100')
+#datasets.append('spacing1.0x_11110')
 #datasets.append('spacing1.5x_00011')
 #datasets.append('spacing1.5x_10100')
 #datasets.append('spacing1.5x_11110')
@@ -192,9 +192,9 @@ nb_output, model, window_size = evaluate(nb_features, fn_trainX, fn_trainY)
 # predict test data
 yarnNum = 1
 skipFactor = 500        
-firstFrame = 17000
+firstFrame = 8000
 lastFrame = 17000
-totalNum = 300
+totalNum = 150
 dataset = 'spacing1.0x_00011'
 path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
 frame0 = int(firstFrame/skipFactor)

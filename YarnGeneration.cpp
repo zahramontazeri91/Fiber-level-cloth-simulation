@@ -294,7 +294,7 @@ void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char
 
 	const int ignorPlanes = trimPercent * vrtx_num; // crop the first and last #% of the yarn
 	for (int w = ignorPlanes; w < (vrtx_num - window_size + 1) - ignorPlanes; w++) {
-		//std::cout << "--------------------------- " << w << std::endl;
+
 		//define a curve segment 
 		const int start = w;
 		const int end = w + (window_size - 1);
@@ -303,10 +303,15 @@ void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char
 		const double curveLength = curve.totalLength();
 
 		for (int v = 0; v < window_size; ++v) {
-
 			const double curveLength = curve.totalLength();
 			float len = curveLength * (static_cast<double>(v) / static_cast<double>(window_size - 1));
 			const double t = curve.arcLengthInvApprox(len);
+
+
+			/* Debug: */
+			if (w == 51)
+				std::cout << "\n --------------------------- \n" << curve.eval(t) << std::endl;
+
 
 			Eigen::Vector3d ez = curve.evalTangent(t);
 			Eigen::Vector3d ex = curve.evalNormal(t);
@@ -329,15 +334,9 @@ void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char
 				local_dg(1, 0) << " " << local_dg(1, 1) << " " << local_dg(1, 2) << " " <<
 				local_dg(2, 0) << " " << local_dg(2, 1) << " " << local_dg(2, 2) << " ";
 
-			//////////////////////////////////////
-			//write converted parameters
-			fout_dg_test << local_dg(0, 0) << " " << local_dg(0, 1) << " " << local_dg(0, 2) << " " <<
-				local_dg(1, 0) << " " << local_dg(1, 1) << " " << local_dg(1, 2) << " " <<
-				local_dg(2, 0) << " " << local_dg(2, 1) << " " << local_dg(2, 2) << " ";
 		}
 		fout_dg << std::endl;
 		fout_trainX_all << std::endl;
-		fout_dg_test << std::endl;
 
 		const int v_full = ceil((start + end) / 2.0); //index for the full curve			
 		Eigen::Vector3d n_full = all_n[v_full];
@@ -360,7 +359,7 @@ void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char
 			//std::cout << S << std::endl << S_rot << std::endl << std::endl;
 			fout_trainY_all << S_rot(0, 0) << " " << S_rot(0, 1) << " " << S_rot(1, 0) << " " << S_rot(1, 1) << "\n";
 		}
-		fout_angle << angle << std::endl;
+		//fout_angle << angle << std::endl;
 
 		///****************************************************************/
 		///***** augment the training data by rotating normals by 180 *****/
@@ -370,9 +369,9 @@ void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char
 			float len = curveLength * (static_cast<double>(v) / static_cast<double>(window_size - 1));
 			const double t = curve.arcLengthInvApprox(len);
 
-		Eigen::Vector3d ez = curve.evalTangent(t);
-		Eigen::Vector3d ex = -1.0 * curve.evalNormal(t);
-		Eigen::Vector3d ey = ez.cross(ex);
+			Eigen::Vector3d ez = curve.evalTangent(t);
+			Eigen::Vector3d ex = -1.0 * curve.evalNormal(t);
+			Eigen::Vector3d ey = ez.cross(ex);
 
 			/** local to world **/
 			Eigen::Matrix3f local_dg, M;
@@ -404,7 +403,48 @@ void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char
 			fout_trainY_all << S_rot(0, 0) << " " << S_rot(0, 1) << " " << S_rot(1, 0) << " " << S_rot(1, 1) << "\n";
 		}
 		//fout_angle << angle + pi << std::endl;
+
 		///****************************************************************/
+		/*** write test data X ******/
+
+		for (int v = 0; v < window_size; ++v) {
+
+			const double curveLength = curve.totalLength();
+			float len = curveLength * (static_cast<double>(v) / static_cast<double>(window_size - 1));
+			const double t = curve.arcLengthInvApprox(len);
+
+			Eigen::Vector3d ez, ey, ex;
+
+			if (angle < pi / 2.0) {
+				ez = curve.evalTangent(t);
+				ex = curve.evalNormal(t);
+				ey = ez.cross(ex);
+			}
+			else {
+				ez = curve.evalTangent(t);
+				ex = -1.0 * curve.evalNormal(t);
+				ey = ez.cross(ex);
+			}
+
+			/** local to world **/
+			Eigen::Matrix3f local_dg, M;
+			M << ex[0], ex[1], ex[2],
+				ey[0], ey[1], ey[2],
+				ez[0], ez[1], ez[2];
+			const int indx = w + v;
+			local_dg = M*all_dg[indx] * M.transpose();
+
+			//////////////////////////////////////
+			//write converted parameters
+			fout_dg_test << local_dg(0, 0) << " " << local_dg(0, 1) << " " << local_dg(0, 2) << " " <<
+				local_dg(1, 0) << " " << local_dg(1, 1) << " " << local_dg(1, 2) << " " <<
+				local_dg(2, 0) << " " << local_dg(2, 1) << " " << local_dg(2, 2) << " ";
+		}
+		float tmp = angle < pi/2.0 ? angle : angle + pi;
+		fout_angle << tmp << std::endl;
+
+		fout_dg_test << std::endl;
+
 
 	}
 	
@@ -466,16 +506,16 @@ int main(int argc, const char **argv) {
 	Fiber::Yarn yarn;
 	yarn.parse(configfile);
 
-	yarn.setStepNum(300);
+	yarn.setStepNum(150);
 	
 	yarn.yarn_simulate();
 	yarn.write_yarn(yarnfile1);
 
 	int yarnNum = 1;
-	int skipFactor = 100;
-	int frame0 = 0 / skipFactor ;
-	int frame1 = 200 / skipFactor + 1 ;
-	std::string dataset = "spacing1.0x_00011_woven" ;
+	int skipFactor = 500;
+	int frame0 = 15000 / skipFactor ;
+	int frame1 = 17000 / skipFactor + 1 ;
+	std::string dataset = "spacing1.0x_00011" ;
 
 	int phase = 12;
 
@@ -1282,22 +1322,22 @@ int main(int argc, const char **argv) {
 
 			int yarnNum = 1;
 			int skipFactor = 100;
-			int window_size = 50;
+			int frame0 = 200 / skipFactor;
+			float trimPercent = 0;
+			int window_size = 3;
+			int isTrain = 0;
 
-			int frame0 = 0 / skipFactor;
 			int frame1 = 200 / skipFactor + 1;
-			const float trimPercent = 0;
 			std::string dataset = "spacing1.0x_00011_woven";
-			const int isTrain = 0;
-			buildTraning_all(yarn, skipFactor, frame0, frame1, yarnNum, dataset, window_size, trimPercent, isTrain);
+			//buildTraning_all(yarn, skipFactor, frame0, frame1, yarnNum, dataset, window_size, trimPercent, isTrain);
 
 			///////////////////////
-			//const int isTrain = 1;
-			//const float trimPercent = 0.1;
-			//int yarnNum = 1;
-			//int skipFactor = 500;
-			//int frame0 = 8000 / skipFactor;
-			//int window_size = 50;
+			trimPercent = 0;
+			yarnNum = 1;
+			skipFactor = 500;
+			frame0 = 17000 / skipFactor;
+			window_size = 3;
+			isTrain = 1;
 
 			//int frame1 = 16000 / skipFactor + 1;
 			//std::string dataset = "spacing0.5x_00011";
@@ -1311,9 +1351,9 @@ int main(int argc, const char **argv) {
 			//dataset = "spacing0.5x_11110";
 			//buildTraning_all(yarn, skipFactor, frame0, frame1, yarnNum, dataset, window_size, trimPercent, isTrain);
 
-			//frame1 = 17000 / skipFactor + 1;
-			//dataset = "spacing1.0x_00011";
-			//buildTraning_all(yarn, skipFactor, frame0, frame1, yarnNum, dataset, window_size, trimPercent, isTrain);
+			frame1 = 17000 / skipFactor + 1;
+			dataset = "spacing1.0x_00011";
+			buildTraning_all(yarn, skipFactor, frame0, frame1, yarnNum, dataset, window_size, trimPercent, isTrain);
 
 			//frame1 = 15500 / skipFactor + 1;
 			//dataset = "spacing1.0x_10100";

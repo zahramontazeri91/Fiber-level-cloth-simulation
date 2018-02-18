@@ -166,21 +166,21 @@ def main (path, dataset, vrtNum, isTrain, restFrame, firstFrame, lastFrame):
             
             transform(vrtNum, cntr_0_obj, cntr_n_obj, cntr_n, dg_n, internal_n, physicalParam_trans, def_obj, src_obj, isTrain)
 # In[]:
-skipFactor = 100
-downSample = 2
+skipFactor = 500
+downSample = 1
 vrtNum = 150
 totalYarn = 1
-isTrain = 0
+isTrain = 1
 if isTrain==1:
     ifTrain = 'train'
 else:
     ifTrain = 'test' 
-datatype = 'woven'
-dataset = 'spacing1.0x_00011_woven'
+datatype = 'pattern'
+dataset = 'spacing1.0x_00011'
 path = "D:/sandbox/fiberSimulation/dataSets/" + datatype + '/' + ifTrain +'/'+dataset+"/yarn/"
 restFrame = 0
-firstFrame = 0
-lastFrame = 200
+firstFrame = 8000
+lastFrame = 17000
 main (path, dataset, vrtNum, isTrain, restFrame, firstFrame, lastFrame)
 ############################
 #skipFactor = 500
