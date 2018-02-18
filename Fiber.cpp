@@ -939,7 +939,7 @@ namespace Fiber {
 				}
 			}
 		}
-		plotIntersections("../data/allCrossSection2D_simulate.txt",0.2);
+		//plotIntersections("../data/allCrossSection2D_simulate.txt",0.2);
 	} // yarn_simulate
 
 
@@ -1098,7 +1098,7 @@ namespace Fiber {
 				}
 			}
 		}
-		plotIntersections("../data/allCrossSection2D_compress.txt", 0.2);
+		//plotIntersections("../data/allCrossSection2D_compress.txt", 0.2);
 	} // compress_yarn
 
 
@@ -1188,7 +1188,7 @@ namespace Fiber {
 				}
 			}
 		}
-		plotIntersections("../data/allCrossSection2D_compress.txt", 0.2);
+		//plotIntersections("../data/allCrossSection2D_compress.txt", 0.2);
 	} // compress_yarn
 
 	void readDeformGradFile(const char* deformGrad, std::vector<Eigen::Matrix3f> &F, std::vector<Eigen::Vector3f> &T) {
@@ -1280,7 +1280,7 @@ namespace Fiber {
 				}
 			}
 		}
-		plotIntersections("../data/allCrossSection2D_compress.txt", 0.2);
+		//plotIntersections("../data/allCrossSection2D_compress.txt", 0.2);
 	} // compress_yarn
 
 	void Yarn::compress_yarn3D(const char* deformGrad) {
@@ -1329,7 +1329,7 @@ namespace Fiber {
 				}
 			}
 		}
-		plotIntersections("../data/allCrossSection2D_compress.txt", 0.2);
+		//plotIntersections("../data/allCrossSection2D_compress.txt", 0.2);
 	} // compress_yarn
 
 

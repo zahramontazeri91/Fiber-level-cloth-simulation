@@ -127,13 +127,18 @@ void HermiteCurve::init(const std::vector<Eigen::Vector3d> &pts, int subdiv) //s
 
 	/* Find the first vertex that curvature doesn't vanish */
 	int firstIndx = 0;
+	bool isFound = false;
 	for (int i = 0; i < m_spline_seg; ++i) {
 		Eigen::Vector3d q = m_splines[i].evalCurvature(0.0);
 		if (q.norm() > HERMITE_EPS) {
 			firstIndx = i;
+			isFound = true;
 			break;
 		}
 	}
+	assert(isFound && "Assuming there exist one point in the curve that its curvature doesn't vanish");
+	if (firstIndx>0)
+		std::cout << firstIndx << "-th vertex has non-vanishing curvature. \n";
 
 	//Eigen::Vector3d v = m_splines[0].evalTangent(0.0);
 	//std::cout << q.norm() << " " << v.norm() << " " << v.cross(q).cross(v) << " \n (init_principleNormal) \n";
@@ -255,7 +260,7 @@ Eigen::Vector3d HermiteCurve::evalNormal(double t) const
     if ( t > m_spline_seg - HERMITE_EPS ) return m_splines[m_spline_seg - 1].evalNormal(1.0);
 	Eigen::Vector3d n = m_splines[static_cast<int>(t)].evalNormal(t - std::floor(t));
 
-	assert(std::abs(n.norm() - 1.0) < HERMITE_EPS);
+	//assert(std::abs(n.norm() - 1.0) < HERMITE_EPS);
     return n;
 }
 

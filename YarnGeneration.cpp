@@ -128,7 +128,7 @@ void phase1(const char* yarnfile1, const char* configfile, Fiber::Yarn &yarn, in
 			extractCompress_seg(configfile, yarnfile1, yarnfile2, "noNeed.txt", compress_S,
 				curvefile, normfile, yarn.getPlyNum(), vrtx_num);
 			/*************************************************/
-			std::string tmp6 = "output/" + dataset + "/genYarn_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+			std::string tmp6 = "output/" + dataset + "/genYarn_fly_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
 			const char* outfile = tmp6.c_str();
 			//// Procedural step
 			yarn.simulate_ply();
@@ -136,22 +136,20 @@ void phase1(const char* yarnfile1, const char* configfile, Fiber::Yarn &yarn, in
 			const int K = yarn.getPlyNum();
 			yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
 			yarn.build("test_fly.txt", K);
-
-			////pipeline 2:
-			////yarn.compress_yarn3D(deformGrad, compress_S);
-
 			yarn.compress_yarn_A(compress_S);
 			yarn.curve_yarn(curvefile, normfile);
 			yarn.write_yarn(outfile);
-			///////*************************************************/
-			std::string tmp7 = "output/" + dataset + "/genYarn_wo_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
-			const char* outfile_wo = tmp7.c_str();
-			yarn.simulate_ply();
-			yarn.write_plys("test_ply.txt");
-			yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
-			yarn.build("test_fly.txt", K);
-			yarn.curve_yarn(curvefile, normfile);
-			yarn.write_yarn(outfile_wo);
+			/////////*************************************************/
+			//std::string tmp7 = "output/" + dataset + "/genYarn_wo_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+			//const char* outfile_wo = tmp7.c_str();
+			//yarn.simulate_ply();
+			//yarn.write_plys("test_ply.txt");
+			//yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
+			//yarn.build("test_fly.txt", K);
+			//yarn.curve_yarn(curvefile, normfile);
+			//yarn.write_yarn(outfile_wo);
+
+
 		}
 	}
 }
@@ -233,13 +231,15 @@ void phase2(const char* yarnfile1, const char* configfile, Fiber::Yarn &yarn, in
 
 }
 void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char* physical_world, const char* compress_S, Fiber::Yarn &yarn, const float trimPercent,
-	const int window_size, const char* curvefile, const char* angles, const char* physical_local_window, const char* compress_S_window, std::ofstream &fout_trainX_all, std::ofstream &fout_trainY_all) {
+	const int window_size, const char* curvefile, const char* angles, const char* physical_local_window, const char* physical_local_window_test, const char* compress_S_window,
+	std::ofstream &fout_trainX_all, std::ofstream &fout_trainY_all, int isTrain ) {
+
 	std::ifstream fin1(curvefile_ds);
 	assert(fin1.is_open() && "curvefile_ds file wasn't found!\n");
 	std::ifstream fin3(physical_world);
 	assert(fin3.is_open() && "physical_world file wasn't found!\n");
 	std::ifstream fin4(compress_S);
-	assert(fin4.is_open() && "compress_S file wasn't found!\n");
+	if (isTrain) assert(fin4.is_open() && "compress_S file wasn't found!\n");
 
 	std::ifstream fin_dg(physical_world);
 	std::ifstream fin_S(compress_S);
@@ -247,6 +247,8 @@ void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char
 	std::ofstream fout_S(compress_S_window);
 	std::ofstream fout_cntr(curvefile);
 	std::ofstream fout_angle(angles);
+
+	std::ofstream fout_dg_test(physical_local_window_test);
 
 	int seg_subdiv = 100;
 	HermiteCurve fullCurve;
@@ -279,13 +281,14 @@ void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char
 			dg20, dg21, dg22;
 		all_dg.push_back(world_dg);
 
-		//store S-matrix for all points
-		float S00, S01, S10, S11;
-		fin_S >> S00 >> S01 >> S10 >> S11;
-		Eigen::Matrix2f S;
-		S << S00, S01, S10, S11;
-		all_S.push_back(S);
-
+		if (isTrain) {
+			//store S-matrix for all points
+			float S00, S01, S10, S11;
+			fin_S >> S00 >> S01 >> S10 >> S11;
+			Eigen::Matrix2f S;
+			S << S00, S01, S10, S11;
+			all_S.push_back(S);
+		}
 	}
 	fout_cntr.close();
 
@@ -305,8 +308,71 @@ void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char
 			float len = curveLength * (static_cast<double>(v) / static_cast<double>(window_size - 1));
 			const double t = curve.arcLengthInvApprox(len);
 
-			Eigen::Vector3d ex, ey, ez;
-			curve.getRotatedFrame(t, ex, ey, ez);
+			Eigen::Vector3d ez = curve.evalTangent(t);
+			Eigen::Vector3d ex = curve.evalNormal(t);
+			Eigen::Vector3d ey = ez.cross(ex);
+
+			/** local to world **/
+			Eigen::Matrix3f local_dg, M;
+			M << ex[0], ex[1], ex[2],
+				ey[0], ey[1], ey[2],
+				ez[0], ez[1], ez[2];
+			const int indx = w + v;
+			local_dg = M*all_dg[indx] * M.transpose();
+
+			//write converted parameters
+			fout_dg << local_dg(0, 0) << " " << local_dg(0, 1) << " " << local_dg(0, 2) << " " <<
+				local_dg(1, 0) << " " << local_dg(1, 1) << " " << local_dg(1, 2) << " " <<
+				local_dg(2, 0) << " " << local_dg(2, 1) << " " << local_dg(2, 2) << " ";
+			//write converted parameters and accmulate for all frames 
+			fout_trainX_all << local_dg(0, 0) << " " << local_dg(0, 1) << " " << local_dg(0, 2) << " " <<
+				local_dg(1, 0) << " " << local_dg(1, 1) << " " << local_dg(1, 2) << " " <<
+				local_dg(2, 0) << " " << local_dg(2, 1) << " " << local_dg(2, 2) << " ";
+
+			//////////////////////////////////////
+			//write converted parameters
+			fout_dg_test << local_dg(0, 0) << " " << local_dg(0, 1) << " " << local_dg(0, 2) << " " <<
+				local_dg(1, 0) << " " << local_dg(1, 1) << " " << local_dg(1, 2) << " " <<
+				local_dg(2, 0) << " " << local_dg(2, 1) << " " << local_dg(2, 2) << " ";
+		}
+		fout_dg << std::endl;
+		fout_trainX_all << std::endl;
+		fout_dg_test << std::endl;
+
+		const int v_full = ceil((start + end) / 2.0); //index for the full curve			
+		Eigen::Vector3d n_full = all_n[v_full];
+
+		const int v = ceil((end - start) / 2.0);
+		float len = curveLength * (static_cast<double>(v) / static_cast<double>(window_size - 1));
+		const double t = curve.arcLengthInvApprox(len);
+		Eigen::Vector3d n = curve.evalNormal(t);
+		assert(v_full == v + start && "index for full yarn must be equal to index segment added with starting vertex");
+
+		// rotate the shape-matching matrix to align the new normal
+		const float angle = acos(n_full.dot(n));
+		//std::cout << " dot product " << n_full.dot(n) << " angle " << angle << std::endl;
+		if (isTrain) {
+			Eigen::Matrix2f R, S, S_rot;
+			R << cos(angle), -sin(angle),
+				sin(angle), cos(angle);
+			S_rot = R*all_S[v_full] * R.transpose();
+			fout_S << S_rot(0, 0) << " " << S_rot(0, 1) << " " << S_rot(1, 0) << " " << S_rot(1, 1) << "\n";
+			//std::cout << S << std::endl << S_rot << std::endl << std::endl;
+			fout_trainY_all << S_rot(0, 0) << " " << S_rot(0, 1) << " " << S_rot(1, 0) << " " << S_rot(1, 1) << "\n";
+		}
+		fout_angle << angle << std::endl;
+
+		///****************************************************************/
+		///***** augment the training data by rotating normals by 180 *****/
+		for (int v = 0; v < window_size; ++v) {
+
+			const double curveLength = curve.totalLength();
+			float len = curveLength * (static_cast<double>(v) / static_cast<double>(window_size - 1));
+			const double t = curve.arcLengthInvApprox(len);
+
+		Eigen::Vector3d ez = curve.evalTangent(t);
+		Eigen::Vector3d ex = -1.0 * curve.evalNormal(t);
+		Eigen::Vector3d ey = ez.cross(ex);
 
 			/** local to world **/
 			Eigen::Matrix3f local_dg, M;
@@ -328,34 +394,67 @@ void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char
 		fout_dg << std::endl;
 		fout_trainX_all << std::endl;
 
-		const int v_full = ceil((start + end) / 2.0); //index for the full curve			
-		Eigen::Vector3d n_full = all_n[v_full];
+		if (isTrain) {
+			Eigen::Matrix2f R, S, S_rot;
+			R << cos(angle + pi), -sin(angle + pi),
+				sin(angle + pi), cos(angle + pi);
+			S_rot = R*all_S[v_full] * R.transpose();
+			fout_S << S_rot(0, 0) << " " << S_rot(0, 1) << " " << S_rot(1, 0) << " " << S_rot(1, 1) << "\n";
+			//std::cout << S << std::endl << S_rot << std::endl << std::endl;
+			fout_trainY_all << S_rot(0, 0) << " " << S_rot(0, 1) << " " << S_rot(1, 0) << " " << S_rot(1, 1) << "\n";
+		}
+		//fout_angle << angle + pi << std::endl;
+		///****************************************************************/
 
-		const int v = ceil((end - start) / 2.0);
-		float len = curveLength * (static_cast<double>(v) / static_cast<double>(window_size - 1));
-		const double t = curve.arcLengthInvApprox(len);
-		Eigen::Vector3d n = curve.evalNormal(t);
-
-		//std::cout << " v: " << v_full << " " << v + start << std::endl;
-		assert(v_full == v + start && "index for full yarn must be equal to index segment added with starting vertex");
-
-		// rotate the shape-matching matrix to align the new normal
-		const float angle = acos(n_full.dot(n));
-		//std::cout << " dot product " << n_full.dot(n) << " angle " << angle << std::endl;
-		Eigen::Matrix2f R, S, S_rot;
-		R << cos(angle), -sin(angle),
-			sin(angle), cos(angle);
-
-		S_rot = R*all_S[v_full] * R.transpose();
-		fout_S << S_rot(0, 0) << " " << S_rot(0, 1) << " " << S_rot(1, 0) << " " << S_rot(1, 1) << "\n";
-		//std::cout << S << std::endl << S_rot << std::endl << std::endl;
-		fout_trainY_all << S_rot(0, 0) << " " << S_rot(0, 1) << " " << S_rot(1, 0) << " " << S_rot(1, 1) << "\n";
-		fout_angle << angle << std::endl;
 	}
-
+	
 	fout_dg.close();
 	fout_S.close();
 	fout_angle.close();
+
+	fout_dg_test.close();
+}
+void buildTraning_all(Fiber::Yarn &yarn, int skipFactor, int frame0, int frame1, int yarnNum, std::string &dataset, const int window_size, const float trimPercent, const int isTrain ) {
+
+	std::string tmp7 = "input/" + dataset + "/NN/trainX_all.txt";
+	const char* all_trainX = tmp7.c_str();
+	std::string tmp8 = "input/" + dataset + "/NN/trainY_all.txt";
+	const char* all_trainY = tmp8.c_str();
+	std::ofstream fout_trainX_all(all_trainX);
+	std::ofstream fout_trainY_all(all_trainY);
+
+	for (int i = frame0; i < frame1; i++) {
+
+		int f = i * skipFactor;
+		for (int y = 0; y < yarnNum; ++y) {
+
+			std::string tmp0 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_ds.txt";
+			const char* curvefile_ds = tmp0.c_str();
+			std::string tmp1 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_us.txt";
+			const char* curvefile = tmp1.c_str();
+			std::string tmp2 = "input/" + dataset + "/normYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_ds.txt";
+			const char* normfile_ds = tmp2.c_str();
+			std::string tmp3 = "input/" + dataset + "/physicalParam/physical_" + std::to_string(f) + "_" + std::to_string(y) + "_world.txt";
+			const char* physical_world = tmp3.c_str();
+			std::string tmp4 = "input/" + dataset + "/NN/trainX_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+			const char* physical_local_window = tmp4.c_str();
+			std::string tmp5 = "input/" + dataset + "/matrix_S_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+			const char* compress_S = tmp5.c_str();
+			std::string tmp6 = "input/" + dataset + "/NN/trainY_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+			const char* compress_S_window = tmp6.c_str();
+			std::string tmp7 = "input/" + dataset + "/NN/angles_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+			const char* angles = tmp7.c_str();
+
+			std::string tmp8 = "input/" + dataset + "/NN/testX_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+			const char* physical_local_window_test = tmp8.c_str();
+
+			buildTraining(curvefile_ds, normfile_ds, physical_world, compress_S, yarn, trimPercent, window_size, curvefile, angles,
+				physical_local_window, physical_local_window_test, compress_S_window, fout_trainX_all, fout_trainY_all, isTrain);
+		}
+	}
+
+	fout_trainX_all.close();
+	fout_trainY_all.close();
 }
 
 int main(int argc, const char **argv) {
@@ -373,12 +472,12 @@ int main(int argc, const char **argv) {
 	yarn.write_yarn(yarnfile1);
 
 	int yarnNum = 1;
-	int skipFactor = 500;
-	int frame0 = 8000 / skipFactor ;
-	int frame1 = 8000 / skipFactor + 1 ;
-	std::string dataset = "spacing1.0x_00011" ;
+	int skipFactor = 100;
+	int frame0 = 0 / skipFactor ;
+	int frame1 = 200 / skipFactor + 1 ;
+	std::string dataset = "spacing1.0x_00011_woven" ;
 
-	int phase = 1;
+	int phase = 12;
 
 	switch (phase) {
 		case 1: {
@@ -533,7 +632,6 @@ int main(int argc, const char **argv) {
 			std::cout << "*** Training phase ***\n";
 
 			for (int i = frame0; i < frame1; i++) {
-
 				int f = i * skipFactor;
 				for (int y = 0; y < yarnNum; ++y) {
 
@@ -554,6 +652,7 @@ int main(int argc, const char **argv) {
 					std::ifstream fin4(normfile);
 					assert(fin4.is_open() && "normfile file wasn't found!\n");
 
+					///*******  write the yarn ******/
 					std::string tmp3 = "output/" + dataset + "/genYarn_NN_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
 					const char* outfile = tmp3.c_str();
 					// Procedural step
@@ -579,7 +678,7 @@ int main(int argc, const char **argv) {
 					//yarn.write_yarn(outfile_fly);
 					//std::cout << outfile_fly << std::endl;
 
-					///*******  Validate NN by L2-norm ******/
+					/////*******  Validate NN by L2-norm ******/
 					//std::string tmp4 = "output/" + dataset + "/genYarn_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
 					//const char* yarnfile_proc = tmp4.c_str(); //proc yarn
 					//std::ifstream fin6(yarnfile_proc);
@@ -897,16 +996,14 @@ int main(int argc, const char **argv) {
 			skipFactor = 500;
 
 			/**************** RUN ALL ****************/
-			frame0 = 11000 / skipFactor ;		
+			frame0 = 13000 / skipFactor ;		
 
 			dataset = "spacing0.5x";
 			frame1 = 14000 / skipFactor + 1;
 			phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-			std::cout << " ********************** \n *********************** \n" << dataset << std::endl;
 			dataset = "spacing1.0x";
 			frame1 = 14500 / skipFactor + 1;
 			phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-			std::cout << " ********************** \n *********************** \n" << dataset << std::endl;
 			dataset = "spacing1.5x";
 			frame1 = 15000 / skipFactor + 1;
 			phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
@@ -914,36 +1011,36 @@ int main(int argc, const char **argv) {
 
 			dataset = "spacing0.5x_00011";
 			frame1 = 16000 / skipFactor + 1;
-			//phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-			std::cout << " ********************** \n *********************** \n" << dataset << std::endl;
+			phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
 			dataset = "spacing0.5x_10100";
 			frame1 = 15000 / skipFactor + 1;
 			phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-			std::cout << " ********************** \n *********************** \n" << dataset << std::endl;
-			//dataset = "spacing0.5x_11110";
-			//frame1 = 15000 / skipFactor + 1;
-			//phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1,yarnNum, dataset);
+			dataset = "spacing0.5x_11110";
+			frame1 = 15000 / skipFactor + 1;
+			phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1,yarnNum, dataset);
 			std::cout << " ********************** \n *********************** \n" << dataset << std::endl;
 
 			dataset = "spacing1.0x_00011";
 			frame1 = 17000 / skipFactor + 1;
 			phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-			//dataset = "spacing1.0x_10100";
-			//frame1 = 15500 / skipFactor + 1;
-			//phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-			//dataset = "spacing1.0x_11110";
-			//frame1 = 16000 / skipFactor + 1;
-			//phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+			dataset = "spacing1.0x_10100";
+			frame1 = 15500 / skipFactor + 1;
+			phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+			dataset = "spacing1.0x_11110";
+			frame1 = 16000 / skipFactor + 1;
+			phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+			std::cout << " ********************** \n *********************** \n" << dataset << std::endl;
 
-			//dataset = "spacing1.5x_00011";
-			//frame1 = 17500 / skipFactor + 1;
-			//phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-			//dataset = "spacing1.5x_10100";
-			//frame1 = 16000 / skipFactor + 1;
-			//phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-			//dataset = "spacing1.5x_11110";
-			//frame1 = 16500 / skipFactor + 1;
-			//phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+			dataset = "spacing1.5x_00011";
+			frame1 = 17500 / skipFactor + 1;
+			phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+			dataset = "spacing1.5x_10100";
+			frame1 = 16000 / skipFactor + 1;
+			phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+			dataset = "spacing1.5x_11110";
+			frame1 = 16500 / skipFactor + 1;
+			phase1(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+			std::cout << " ********************** \n *********************** \n" << dataset << std::endl;
 
 			/********************************/
 			break;
@@ -1137,7 +1234,8 @@ int main(int argc, const char **argv) {
 		case 11: {
 			std::cout << "*** build training data for all frames ***\n";
 			const float trimPercent = 0.15;
-			const int window_size = 9;
+			const int window_size = 40;
+
 			std::string tmp7 = "input/" + dataset + "/NN/trainX_all.txt";
 			const char* all_trainX = tmp7.c_str();
 			std::string tmp8 = "input/" + dataset + "/NN/trainY_all.txt";
@@ -1167,14 +1265,75 @@ int main(int argc, const char **argv) {
 					std::string tmp7 = "input/" + dataset + "/NN/angles_" + std::to_string(f) + "_" + std::to_string(0) + ".txt";
 					const char* angles = tmp7.c_str();
 
+					std::string tmp8 = "input/" + dataset + "/NN/testX_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+					const char* physical_local_window_test = tmp8.c_str();
 
 					buildTraining(curvefile_ds, normfile_ds, physical_world, compress_S, yarn, trimPercent, window_size, curvefile, angles, 
-						physical_local_window, compress_S_window, fout_trainX_all, fout_trainY_all);
+						physical_local_window, compress_S_window, physical_local_window_test, fout_trainX_all, fout_trainY_all, 1);
 				}
 			}
 
 			fout_trainX_all.close();
 			fout_trainY_all.close();
+
+			break;
+		}
+		case 12: {
+
+			int yarnNum = 1;
+			int skipFactor = 100;
+			int window_size = 50;
+
+			int frame0 = 0 / skipFactor;
+			int frame1 = 200 / skipFactor + 1;
+			const float trimPercent = 0;
+			std::string dataset = "spacing1.0x_00011_woven";
+			const int isTrain = 0;
+			buildTraning_all(yarn, skipFactor, frame0, frame1, yarnNum, dataset, window_size, trimPercent, isTrain);
+
+			///////////////////////
+			//const int isTrain = 1;
+			//const float trimPercent = 0.1;
+			//int yarnNum = 1;
+			//int skipFactor = 500;
+			//int frame0 = 8000 / skipFactor;
+			//int window_size = 50;
+
+			//int frame1 = 16000 / skipFactor + 1;
+			//std::string dataset = "spacing0.5x_00011";
+			//buildTraning_all(yarn, skipFactor, frame0, frame1, yarnNum, dataset, window_size, trimPercent, isTrain);
+
+			//frame1 = 15000 / skipFactor + 1;
+			//dataset = "spacing0.5x_10100";
+			//buildTraning_all(yarn, skipFactor, frame0, frame1, yarnNum, dataset, window_size, trimPercent, isTrain);
+
+			//frame1 = 15000 / skipFactor + 1;
+			//dataset = "spacing0.5x_11110";
+			//buildTraning_all(yarn, skipFactor, frame0, frame1, yarnNum, dataset, window_size, trimPercent, isTrain);
+
+			//frame1 = 17000 / skipFactor + 1;
+			//dataset = "spacing1.0x_00011";
+			//buildTraning_all(yarn, skipFactor, frame0, frame1, yarnNum, dataset, window_size, trimPercent, isTrain);
+
+			//frame1 = 15500 / skipFactor + 1;
+			//dataset = "spacing1.0x_10100";
+			//buildTraning_all(yarn, skipFactor, frame0, frame1, yarnNum, dataset, window_size, trimPercent, isTrain);
+
+			//frame1 = 16000 / skipFactor + 1;
+			//dataset = "spacing1.0x_11110";
+			//buildTraning_all(yarn, skipFactor, frame0, frame1, yarnNum, dataset, window_size, trimPercent, isTrain);
+
+		    //frame1 = 17500 / skipFactor + 1;
+			//dataset = "spacing1.5x_00011";
+			//buildTraning_all(yarn, skipFactor, frame0, frame1, yarnNum, dataset, window_size, trimPercent, isTrain);
+
+			//frame1 = 16000 / skipFactor + 1;
+			//dataset = "spacing1.5x_10100";
+			//buildTraning_all(yarn, skipFactor, frame0, frame1, yarnNum, dataset, window_size, trimPercent, isTrain);
+
+			//frame1 = 16500 / skipFactor + 1;
+			//dataset = "spacing1.5x_11110";
+			//buildTraning_all(yarn, skipFactor, frame0, frame1, yarnNum, dataset, window_size, trimPercent, isTrain);
 
 			break;
 		}

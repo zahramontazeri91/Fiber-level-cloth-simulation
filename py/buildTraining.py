@@ -283,7 +283,7 @@ def runAll(sigma, sparcity):
 #    main(dataset, first_frame, last_frame, vrtNum, yarnNum, sigma, sparcity, isFirst, isTrain)
     
 ###############
-    first_frame = int(11000/skipFactor) 
+    first_frame = int(8000/skipFactor) 
     
     last_frame = int(17000/skipFactor) 
     dataset = 'spacing1.0x_00011'
@@ -335,6 +335,6 @@ yarnNum = 1
 skipFactor = 500
 trimPercent = 0.15    
 stride = 1
-sigma = 4 #window_size = 2*sigma + 2*sparcity + 1
+sigma = 20 #window_size = 2*sigma + 2*sparcity + 1
 sparcity = 0       
 runAll(sigma,sparcity)

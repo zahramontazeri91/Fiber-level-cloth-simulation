@@ -91,9 +91,9 @@ public:
         Eigen::Vector3d q = evalCurvature(t), v = evalTangent(t);
 		
 		//assing a perpendicular vector if q vanishes
-		assert(q.norm() > HERMITE_EPS); //for now let's assume curves aren't never straight
-		//if (q.norm() <= HERMITE_EPS) 
-			//return rotateTang(v);
+		//assert(q.norm() > HERMITE_EPS); //for now let's assume curves aren't never straight
+		if (q.norm() <= HERMITE_EPS) 
+			return rotateTang(v);
 
 		//assert(q.norm() > HERMITE_EPS);
 		//assert(v.norm() > HERMITE_EPS);

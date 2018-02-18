@@ -7,16 +7,17 @@ from keras.layers import Dense, Activation, Dropout
 from sklearn.preprocessing import MinMaxScaler
 from keras.layers.normalization import BatchNormalization
 import math
+from shutil import copyfile
 
 ## Load data
 # In[]
  
-def loadData():
+def loadData(fn_trainX, fn_trainY):
     
 #    X_train_all = np.loadtxt(path + "trainX_all.txt",delimiter=None)
 #    Y_train_all = np.loadtxt(path + "trainY_all.txt",delimiter=None)
-    X_train_all = np.loadtxt("../input/all/NN/trainX_all.txt",delimiter=None)
-    Y_train_all = np.loadtxt("../input/all/NN/trainY_all.txt",delimiter=None)
+    X_train_all = np.loadtxt(fn_trainX,delimiter=None)
+    Y_train_all = np.loadtxt(fn_trainY,delimiter=None)
 
     print("Original training data shape (X): ", X_train_all.shape)
     print("Original training data shape (Y): ", Y_train_all.shape)
@@ -28,7 +29,7 @@ def loadData():
     
     nb_features = X_train_all.shape[1]
     nb_traindata = X_train_all.shape[0]
-    split = 0.95
+    split = 0.8
     nb_halfdata = round(nb_traindata*split)
     nb_outputs = Y_train_all.shape[1]
     
@@ -72,7 +73,11 @@ def buildModel(input_dim, output_dim, neurons):
     model.add(Activation('relu')) 
     model.add(BatchNormalization())
     
-#    model.add(Dense(126))
+    model.add(Dense(neurons))
+    model.add(Activation('relu')) 
+    model.add(BatchNormalization())
+    
+#    model.add(Dense(neurons))
 #    model.add(Activation('relu')) 
 #    model.add(BatchNormalization())
     
@@ -149,7 +154,7 @@ def rotate(predicted, angles):
     return predicted_rot
 ## Prediction
 # In[]:
-def predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, anglesFile):
+def predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, anglesFile, isRot):
     
     predicted = model.predict(X_test, verbose=0)
 #    all_test = np.concatenate((X_test,predicted), axis=1)
@@ -158,23 +163,65 @@ def predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, angles
     
     # rotate the shape-match back to original frame (window-Rotation-minimizing to yarn-rotation-minimizing)
 #    predicted = np.loadtxt(path + 'trainY_15000_0.txt')
-    angles = np.loadtxt(anglesFile, delimiter=None)
-    predicted_rot = rotate(predicted, angles)
+    if isRot:
+        angles = np.loadtxt(anglesFile, delimiter=None)
+        predicted = rotate(predicted, angles)
     
-#    np.savetxt(path + 'testY_NN.txt', predicted, fmt='%.6f', delimiter=' ')
-    np.savetxt(path + 'testY_NN.txt', predicted_rot, fmt='%.6f', delimiter=' ')
+    np.savetxt(path + 'testY_NN.txt', predicted, fmt='%.6f', delimiter=' ')
     
-    extrapolate(predicted_rot, vrtxNum, filename, nb_outputs, stride)
+    extrapolate(predicted, vrtxNum, filename, nb_outputs, stride)
 ## Main
 # In[]    
-def test(neurons): 
-    (X_train, Y_train, X_valid, Y_valid, nb_features, nb_outputs, scaler) = loadData()
+def test(neurons,fn_trainX, fn_trainY): 
+    (X_train, Y_train, X_valid, Y_valid, nb_features, nb_outputs, scaler) = loadData(fn_trainX, fn_trainY)
     model = buildModel(nb_features, nb_outputs, neurons)
     model = trainModel(model, X_train, Y_train, X_valid, Y_valid)
     return model, scaler, nb_outputs
-    
 
-model, scaler, nb_outputs = test(64)
+# In[]:
+def append2sets(dataset1, dataset2, w_path):
+    path1 = w_path + dataset1 + '/NN/'
+    path2 = w_path + dataset2 + '/NN/'
+    X_train_all_1 = np.loadtxt(path1 + "trainX_all.txt",delimiter=None)
+    Y_train_all_1 = np.loadtxt(path1 + "trainY_all.txt",delimiter=None)
+    X_train_all_2 = np.loadtxt(path2 + "trainX_all.txt",delimiter=None)
+    Y_train_all_2 = np.loadtxt(path2 + "trainY_all.txt",delimiter=None)
+    
+    X_train_all = np.concatenate((X_train_all_1,X_train_all_2), axis=0)
+    Y_train_all = np.concatenate((Y_train_all_1,Y_train_all_2), axis=0)
+    
+    np.savetxt(w_path + 'all/NN/trainX_all.txt', X_train_all, fmt='%.6f', delimiter=' ')
+    np.savetxt(w_path + 'all/NN/trainY_all.txt', Y_train_all, fmt='%.6f', delimiter=' ')
+    
+## append training data from different datasets
+# In[] 
+def appendTrainingData(datasets, w_path, fn_trainX, fn_trainY):
+    for i in range (0, len(datasets)):
+        if (i==0):
+            p0x = w_path + datasets[i] + '/NN/trainX_all.txt'
+            p0y = w_path + datasets[i] + '/NN/trainY_all.txt'
+            copyfile (p0x, fn_trainX)
+            copyfile (p0y, fn_trainY)
+        else:
+            append2sets('all', datasets[i],w_path)
+        
+# In[] 
+datasets = []
+w_path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'
+#datasets.append('spacing0.5x_00011')
+#datasets.append('spacing0.5x_10100')
+#datasets.append('spacing0.5x_11110')
+datasets.append('spacing1.0x_00011')
+datasets.append('spacing1.0x_10100')
+datasets.append('spacing1.0x_11110')
+#datasets.append('spacing1.5x_00011')
+#datasets.append('spacing1.5x_10100')
+#datasets.append('spacing1.5x_11110')
+fn_trainX = w_path + "all/NN/trainX_all.txt"
+fn_trainY = w_path + "all/NN/trainY_all.txt"
+appendTrainingData(datasets, w_path, fn_trainX, fn_trainY)
+
+model, scaler, nb_outputs = test(256, fn_trainX, fn_trainY)
     
 # In[] 
 yarnNum = 1
@@ -184,13 +231,13 @@ vrtxNum = 300
 dataset = 'spacing1.0x_00011'
 firstFrame = 17000
 lastFrame = 17000
-path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/' 
+path = w_path + dataset + '/NN/' 
 frame0 = int(firstFrame/skipFactor)
 frame1 = int(lastFrame/skipFactor + 1)
 for i in range (frame0, frame1):
     f = i*skipFactor
     for y in range (0,yarnNum):
-        X_test = np.loadtxt(path + "trainX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
+        X_test = np.loadtxt(path + "testX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
         filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
         anglesFile = path + "angles_" + str(f) + '_' + str(y) + ".txt"
-        predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, anglesFile)
+        predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, anglesFile, 1)

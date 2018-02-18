@@ -10,6 +10,7 @@ import numpy as np
 from keras.layers import Convolution1D, Dense, MaxPooling1D, Flatten
 from keras.models import Sequential
 import math
+from shutil import copyfile
 
 def buildModel(window_size, filter_length, nb_features, nb_filter):
     model = Sequential()
@@ -23,10 +24,12 @@ def buildModel(window_size, filter_length, nb_features, nb_filter):
     print('model output layer CNN2: ', model.output_shape)
     model.add(MaxPooling1D())
     print('model output layer MP2: ', model.output_shape)
-#    model.add(Convolution1D(nb_filter=nb_filter, filter_length=filter_length, activation='relu'))
-#    print('model output layer CNN3: ', model.output_shape)    
-#    model.add(MaxPooling1D())   
-#    print('model output layer MP3: ', model.output_shape)   
+    model.add(Convolution1D(nb_filter=nb_filter, filter_length=filter_length, activation='relu'))
+    print('model output layer CNN3: ', model.output_shape)    
+    model.add(MaxPooling1D())   
+    print('model output layer MP3: ', model.output_shape)  
+    
+    
     model.add(Flatten())
     print('model output layer flatten: ', model.output_shape)
     model.add(Dense(4, activation='linear'))
@@ -38,7 +41,7 @@ def buildModel(window_size, filter_length, nb_features, nb_filter):
 
     return model
 
-def loadData(fn_trainX, fn_trainY, nb_features, window_size):
+def loadData(fn_trainX, fn_trainY, nb_features):
     
     X_train_all = np.loadtxt(fn_trainX, delimiter=None)
     Y_train_all = np.loadtxt(fn_trainY, delimiter=None)
@@ -49,7 +52,10 @@ def loadData(fn_trainX, fn_trainY, nb_features, window_size):
     assert (X_train_all.shape[0] == Y_train_all.shape[0] )
     nb_instance = Y_train_all.shape[0]
     nb_output = Y_train_all.shape[1]
-    assert (X_train_all.shape[1] == window_size*nb_features)
+    window_size = int(X_train_all.shape[1] / nb_features )
+#    if (X_train_all.shape[1] != window_size*nb_features):
+#        print (X_train_all.shape[1], window_size*nb_features)
+#    assert (X_train_all.shape[1] == window_size*nb_features)
     
     split = 0.8
     nb_halfdata = round(nb_instance*split)
@@ -72,7 +78,7 @@ def loadData(fn_trainX, fn_trainY, nb_features, window_size):
     print("validX shape: ", X_valid_.shape)
     print("validY shape: ", Y_valid_.shape)
     
-    return X_train_, Y_train_, X_valid_, Y_valid_, nb_instance, nb_output
+    return X_train_, Y_train_, X_valid_, Y_valid_, nb_instance, nb_output, window_size
 
 def extrapolate(predicted, totalNum, nb_output, stride):
     total = np.zeros(totalNum*nb_output).reshape(totalNum,nb_output)
@@ -99,17 +105,15 @@ def extrapolate(predicted, totalNum, nb_output, stride):
     total[r:r+predictExtr.shape[0], :] = predictExtr
     return total
     
-def evaluate(nb_features, window_size):
+def evaluate(nb_features, fn_trainX, fn_trainY):
     
     # load data
-    fn_trainX = "D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/all/NN/trainX_all.txt"
-    fn_trainY = "D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/all/NN/trainY_all.txt"
-    X_train, Y_train, X_valid, Y_valid, nb_instance, nb_output = loadData(fn_trainX, fn_trainY, nb_features, window_size)
+    X_train, Y_train, X_valid, Y_valid, nb_instance, nb_output, window_size = loadData(fn_trainX, fn_trainY, nb_features)
     
     # train network
-    filter_length = 5
-    nb_filter = 8
-    epochs=40
+    filter_length = 3
+    nb_filter = 256
+    epochs=50
     model = buildModel(window_size, filter_length, nb_features, nb_filter)
     history = model.fit(X_train, Y_train, epochs=epochs, batch_size=2, validation_data=(X_valid, Y_valid))
     
@@ -123,28 +127,88 @@ def evaluate(nb_features, window_size):
     plt.legend()
     plt.show()
     
-    return nb_output, model            
+    return nb_output, model, window_size            
 
-nb_features = 9
-window_size = 21                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
-nb_output, model = evaluate(nb_features, window_size)
+## rotate the NN output back to RM frames
+# In[]:
+def rotate(predicted, angles):
+    predicted_rot = predicted
+    n = len(angles)
+    for i in range (0,n):
+        c, s = np.cos(-1*angles[i]), np.sin(-1*angles[i])
+        R = np.matrix('{} {}; {} {}'.format(c, -s, s, c))
+        S = predicted[i].reshape([2,2])
+        rot = R*S*R.transpose()
+        predicted_rot[i] = np.array([rot[0,0] , rot[0,1] , rot[1,0] , rot[1,1] ])
+    return predicted_rot
+
+# In[]:
+def append2sets(dataset1, dataset2, w_path):
+    path1 = w_path + dataset1 + '/NN/'
+    path2 = w_path + dataset2 + '/NN/'
+    X_train_all_1 = np.loadtxt(path1 + "trainX_all.txt",delimiter=None)
+    Y_train_all_1 = np.loadtxt(path1 + "trainY_all.txt",delimiter=None)
+    X_train_all_2 = np.loadtxt(path2 + "trainX_all.txt",delimiter=None)
+    Y_train_all_2 = np.loadtxt(path2 + "trainY_all.txt",delimiter=None)
+    
+    X_train_all = np.concatenate((X_train_all_1,X_train_all_2), axis=0)
+    Y_train_all = np.concatenate((Y_train_all_1,Y_train_all_2), axis=0)
+    
+    np.savetxt(w_path + 'all/NN/trainX_all.txt', X_train_all, fmt='%.6f', delimiter=' ')
+    np.savetxt(w_path + 'all/NN/trainY_all.txt', Y_train_all, fmt='%.6f', delimiter=' ')
+    
+## append training data from different datasets
+# In[] 
+def appendTrainingData(datasets, w_path, fn_trainX, fn_trainY):
+    for i in range (0, len(datasets)):
+        if (i==0):
+            p0x = w_path + datasets[i] + '/NN/trainX_all.txt'
+            p0y = w_path + datasets[i] + '/NN/trainY_all.txt'
+            copyfile (p0x, fn_trainX)
+            copyfile (p0y, fn_trainY)
+        else:
+            append2sets('all', datasets[i],w_path)
+        
+# In[] 
+datasets = []
+w_path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'
+#datasets.append('spacing0.5x_00011')
+#datasets.append('spacing0.5x_10100')
+#datasets.append('spacing0.5x_11110')
+datasets.append('spacing1.0x_00011')
+datasets.append('spacing1.0x_10100')
+datasets.append('spacing1.0x_11110')
+#datasets.append('spacing1.5x_00011')
+#datasets.append('spacing1.5x_10100')
+#datasets.append('spacing1.5x_11110')
+
+fn_trainX = w_path + "all/NN/trainX_all.txt"
+fn_trainY = w_path + "all/NN/trainY_all.txt"
+appendTrainingData(datasets, w_path, fn_trainX, fn_trainY)
+
+nb_features = 9                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+nb_output, model, window_size = evaluate(nb_features, fn_trainX, fn_trainY)
 
 # predict test data
 yarnNum = 1
-skipFactor = 10        
-firstFrame = 0
+skipFactor = 500        
+firstFrame = 17000
+lastFrame = 17000
 totalNum = 300
-dataset = 'spacing1.0x_00011_straight'
+dataset = 'spacing1.0x_00011'
 path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
 frame0 = int(firstFrame/skipFactor)
-frame1 = int(870/skipFactor + 1)
+frame1 = int(lastFrame/skipFactor + 1)
 for i in range (frame0, frame1):
     f = i*skipFactor
     for y in range (0,yarnNum):
-        X_test = np.loadtxt(path + "testX_" + str(f-firstFrame) + '_' + str(y) + ".txt",delimiter=None)
+        X_test = np.loadtxt(path + "testX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
         X_test_ = X_test.reshape(X_test.shape[0], window_size, nb_features)
         Y_test_NN = model.predict(X_test_) 
-        Y_test_NN_total = extrapolate(Y_test_NN, totalNum, nb_output, 1)
+        anglesFile = path + "angles_" + str(f) + '_' + str(y) + ".txt"
+        angles = np.loadtxt(anglesFile, delimiter=None)
+        Y_test_NN_rot = rotate(Y_test_NN, angles)
+        Y_test_NN_total = extrapolate(Y_test_NN_rot, totalNum, nb_output, 1)
         filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
         np.savetxt(path + filename, Y_test_NN_total, fmt='%.6f', delimiter=' ')
 

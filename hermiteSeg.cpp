@@ -47,7 +47,41 @@ struct polySolver<1>
     }
 };
 
+#if 0
+void HermiteSpline::build(int _subdiv, Eigen::Vector3d _norm0, Eigen::Vector3d _norm1)
+{
+	subdiv = _subdiv;
 
+	std::vector<Eigen::Vector3d> positions(subdiv + 1);
+	tangents.resize(subdiv + 1);
+	for (int i = 0; i <= subdiv; ++i) {
+		double t = static_cast<double>(i) / subdiv;
+		positions[i] = eval(t);
+		tangents[i] = evalTangent(t);
+	}
+
+	lens.resize(subdiv + 1);
+	lens[0] = 0.0;
+	for (int i = 1; i <= subdiv; ++i)
+		lens[i] = lens[i - 1] + (positions[i - 1] - positions[i]).norm();
+
+	norms.resize(subdiv + 1);
+	norms[0] = _norm0.norm() > HERMITE_EPS ? _norm0.normalized() : evalPrincipalNormal(0.0);
+	if (_norm1.norm() > HERMITE_EPS) {
+		norms[subdiv] = _norm1.normalized();
+		for (int i = 1; i < subdiv; ++i) {
+			double t = static_cast<double>(i) / subdiv;
+			norms[i] = ((1.0 - t)*_norm0 + t*_norm1).normalized();
+		}
+	}
+	else {
+		for (int i = 1; i <= subdiv; ++i)
+			norms[i] = computeRotatedNormal(tangents[i - 1], tangents[i], norms[i - 1]);
+	}
+}
+#endif
+
+#if 1
 void HermiteSpline::build(int _subdiv, Eigen::Vector3d _norm0, Eigen::Vector3d _norm1)
 {
     subdiv = _subdiv;
@@ -99,7 +133,7 @@ void HermiteSpline::build(int _subdiv, Eigen::Vector3d _norm0, Eigen::Vector3d _
 		//assert(std::abs(norms[i].norm() - 1.0) < HERMITE_EPS);
 	}
 }
-
+#endif
 
 Eigen::Vector3d HermiteSpline::evalNormal(double t) const
 {
