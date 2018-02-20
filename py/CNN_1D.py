@@ -57,7 +57,7 @@ def loadData(fn_trainX, fn_trainY, nb_features):
 #        print (X_train_all.shape[1], window_size*nb_features)
 #    assert (X_train_all.shape[1] == window_size*nb_features)
     
-    split = 0.8
+    split = 0.99
     nb_halfdata = round(nb_instance*split)
     all_train = np.concatenate((X_train_all,Y_train_all), axis=1) 
     np.random.shuffle(all_train)
@@ -135,10 +135,12 @@ def rotate(predicted, angles):
     predicted_rot = predicted
     n = len(angles)
     for i in range (0,n):
-        c, s = np.cos(-1*angles[i]), np.sin(-1*angles[i])
+#        c, s = np.cos(-1*angles[i]), np.sin(-1*angles[i])
+        c, s = np.cos(angles[i]), np.sin(angles[i])
         R = np.matrix('{} {}; {} {}'.format(c, -s, s, c))
         S = predicted[i].reshape([2,2])
-        rot = R*S*R.transpose()
+#        rot = R*S*R.transpose()
+        rot = R.transpose()*S*R
         predicted_rot[i] = np.array([rot[0,0] , rot[0,1] , rot[1,0] , rot[1,1] ])
     return predicted_rot
 
@@ -194,7 +196,7 @@ yarnNum = 1
 skipFactor = 500        
 firstFrame = 8000
 lastFrame = 17000
-totalNum = 150
+totalNum = 150 ################# NOTE: downsampled
 dataset = 'spacing1.0x_00011'
 path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
 frame0 = int(firstFrame/skipFactor)
@@ -207,11 +209,36 @@ for i in range (frame0, frame1):
         Y_test_NN = model.predict(X_test_) 
         anglesFile = path + "angles_" + str(f) + '_' + str(y) + ".txt"
         angles = np.loadtxt(anglesFile, delimiter=None)
-        Y_test_NN_rot = rotate(Y_test_NN, angles)
+#        Y_test_NN_rot = rotate(Y_test_NN, angles)
+        Y_test_NN_rot = Y_test_NN
         Y_test_NN_total = extrapolate(Y_test_NN_rot, totalNum, nb_output, 1)
         filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
         np.savetxt(path + filename, Y_test_NN_total, fmt='%.6f', delimiter=' ')
 
+# predict test data
+yarnNum = 1
+skipFactor = 100        
+firstFrame = 0
+lastFrame = 200
+totalNum = 150 ################# NOTE: downsampled
+dataset = 'spacing1.0x_00011_woven'
+path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+frame0 = int(firstFrame/skipFactor)
+frame1 = int(lastFrame/skipFactor + 1)
+for i in range (frame0, frame1):
+    f = i*skipFactor
+    for y in range (0,yarnNum):
+        X_test = np.loadtxt(path + "testX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
+        X_test_ = X_test.reshape(X_test.shape[0], window_size, nb_features)
+        Y_test_NN = model.predict(X_test_) 
+        anglesFile = path + "angles_" + str(f) + '_' + str(y) + ".txt"
+        angles = np.loadtxt(anglesFile, delimiter=None)
+#        Y_test_NN_rot = rotate(Y_test_NN, angles)
+        Y_test_NN_rot = Y_test_NN
+        Y_test_NN_total = extrapolate(Y_test_NN_rot, totalNum, nb_output, 1)
+        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
+        np.savetxt(path + filename, Y_test_NN_total, fmt='%.6f', delimiter=' ')
+        
 # In[]:
 #dataset = 'spacing0.5x_00011'
 #path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'

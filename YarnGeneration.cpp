@@ -249,6 +249,7 @@ void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char
 	std::ofstream fout_angle(angles);
 
 	std::ofstream fout_dg_test(physical_local_window_test);
+	std::ofstream fout_S_test("input/spacing1.0x_00011/NN/testY_17000_0.txt");
 
 	int seg_subdiv = 100;
 	HermiteCurve fullCurve;
@@ -267,12 +268,12 @@ void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char
 		Eigen::Vector3d pnt = fullCurve.eval(t_fll);
 		fout_cntr << pnt[0] << " " << pnt[1] << " " << pnt[2] << "\n";
 
-		//store normals for all points
+		//****store normals for all points
 		Eigen::Vector3d n = fullCurve.evalNormal(t_fll);
 		all_n.push_back(n);
 		/* Note that normals don't exactly match with up-sampled curve because adding new vertices to curve changes its curvature a bit */
 
-		//store dg for all points
+		//*****store dg for all points
 		float dg00, dg01, dg02, dg10, dg11, dg12, dg20, dg21, dg22;
 		fin_dg >> dg00 >> dg01 >> dg02 >> dg10 >> dg11 >> dg12 >> dg20 >> dg21 >> dg22;
 		Eigen::Matrix3f world_dg;
@@ -281,6 +282,7 @@ void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char
 			dg20, dg21, dg22;
 		all_dg.push_back(world_dg);
 
+		//*******store shape-matching matrix
 		if (isTrain) {
 			//store S-matrix for all points
 			float S00, S01, S10, S11;
@@ -299,18 +301,13 @@ void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char
 		const int start = w;
 		const int end = w + (window_size - 1);
 		HermiteCurve curve;
-		curve.init_window(curvefile, start, end, seg_subdiv);
+		curve.init_window(curvefile, start, end, seg_subdiv);  ///NOTE HERE ###########
 		const double curveLength = curve.totalLength();
 
 		for (int v = 0; v < window_size; ++v) {
 			const double curveLength = curve.totalLength();
 			float len = curveLength * (static_cast<double>(v) / static_cast<double>(window_size - 1));
 			const double t = curve.arcLengthInvApprox(len);
-
-
-			/* Debug: */
-			if (w == 51)
-				std::cout << "\n --------------------------- \n" << curve.eval(t) << std::endl;
 
 
 			Eigen::Vector3d ez = curve.evalTangent(t);
@@ -324,6 +321,16 @@ void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char
 				ez[0], ez[1], ez[2];
 			const int indx = w + v;
 			local_dg = M*all_dg[indx] * M.transpose();
+
+			/* Debug: */
+			if (w == 1)
+				std::cout << "\n --------------------------- \n" << curve.eval(t) << std::endl;
+			if (w == 51)
+				std::cout << "\n +++++++++++++++++++++++++++ \n" << curve.eval(t) << std::endl;
+			//if (w == 1)
+			//	fout_dg << " \n --------------------------- \n ";
+			//if (w == 51)
+			//	fout_dg << " \n +++++++++++++++++++++++++++ \n ";
 
 			//write converted parameters
 			fout_dg << local_dg(0, 0) << " " << local_dg(0, 1) << " " << local_dg(0, 2) << " " <<
@@ -350,11 +357,13 @@ void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char
 		// rotate the shape-matching matrix to align the new normal
 		const float angle = acos(n_full.dot(n));
 		//std::cout << " dot product " << n_full.dot(n) << " angle " << angle << std::endl;
+		Eigen::Matrix2f S_rot;
 		if (isTrain) {
-			Eigen::Matrix2f R, S, S_rot;
+			Eigen::Matrix2f R, S;
 			R << cos(angle), -sin(angle),
 				sin(angle), cos(angle);
 			S_rot = R*all_S[v_full] * R.transpose();
+			//S_rot = R*all_S[v_full];
 			fout_S << S_rot(0, 0) << " " << S_rot(0, 1) << " " << S_rot(1, 0) << " " << S_rot(1, 1) << "\n";
 			//std::cout << S << std::endl << S_rot << std::endl << std::endl;
 			fout_trainY_all << S_rot(0, 0) << " " << S_rot(0, 1) << " " << S_rot(1, 0) << " " << S_rot(1, 1) << "\n";
@@ -393,14 +402,16 @@ void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char
 		fout_dg << std::endl;
 		fout_trainX_all << std::endl;
 
+		Eigen::Matrix2f S_rot_pi;
 		if (isTrain) {
-			Eigen::Matrix2f R, S, S_rot;
+			Eigen::Matrix2f R, S;
 			R << cos(angle + pi), -sin(angle + pi),
 				sin(angle + pi), cos(angle + pi);
-			S_rot = R*all_S[v_full] * R.transpose();
-			fout_S << S_rot(0, 0) << " " << S_rot(0, 1) << " " << S_rot(1, 0) << " " << S_rot(1, 1) << "\n";
+			S_rot_pi = R*all_S[v_full] * R.transpose();
+			//S_rot_pi = R*all_S[v_full];
+			fout_S << S_rot_pi(0, 0) << " " << S_rot_pi(0, 1) << " " << S_rot_pi(1, 0) << " " << S_rot_pi(1, 1) << "\n";
 			//std::cout << S << std::endl << S_rot << std::endl << std::endl;
-			fout_trainY_all << S_rot(0, 0) << " " << S_rot(0, 1) << " " << S_rot(1, 0) << " " << S_rot(1, 1) << "\n";
+			fout_trainY_all << S_rot_pi(0, 0) << " " << S_rot_pi(0, 1) << " " << S_rot_pi(1, 0) << " " << S_rot_pi(1, 1) << "\n";
 		}
 		//fout_angle << angle + pi << std::endl;
 
@@ -435,12 +446,21 @@ void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char
 			local_dg = M*all_dg[indx] * M.transpose();
 
 			//////////////////////////////////////
+			//if (w == 1)
+			//	fout_dg_test << " \n --------------------------- \n ";
+			//if (w == 51)
+			//	fout_dg_test << " \n +++++++++++++++++++++++++++ \n ";
 			//write converted parameters
 			fout_dg_test << local_dg(0, 0) << " " << local_dg(0, 1) << " " << local_dg(0, 2) << " " <<
 				local_dg(1, 0) << " " << local_dg(1, 1) << " " << local_dg(1, 2) << " " <<
 				local_dg(2, 0) << " " << local_dg(2, 1) << " " << local_dg(2, 2) << " ";
 		}
+		//write testY
+		Eigen::Matrix2f tmp_S = angle < pi / 2.0 ? S_rot : S_rot_pi;
+		fout_S_test << tmp_S(0, 0) << " " << tmp_S(0, 1) << " " << tmp_S(1, 0) << " " << tmp_S(1, 1) << "\n";
 		float tmp = angle < pi/2.0 ? angle : angle + pi;
+		if (tmp != tmp) //dot product (must be 1) but might be larger than 1 and so acos return nan 
+			tmp = n_full.dot(n) > 0 ? 0.0 : pi;
 		fout_angle << tmp << std::endl;
 
 		fout_dg_test << std::endl;
@@ -451,7 +471,7 @@ void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char
 	fout_dg.close();
 	fout_S.close();
 	fout_angle.close();
-
+	fout_S_test.close();
 	fout_dg_test.close();
 }
 void buildTraning_all(Fiber::Yarn &yarn, int skipFactor, int frame0, int frame1, int yarnNum, std::string &dataset, const int window_size, const float trimPercent, const int isTrain ) {
@@ -506,16 +526,16 @@ int main(int argc, const char **argv) {
 	Fiber::Yarn yarn;
 	yarn.parse(configfile);
 
-	yarn.setStepNum(150);
+	yarn.setStepNum(300);
 	
 	yarn.yarn_simulate();
 	yarn.write_yarn(yarnfile1);
 
 	int yarnNum = 1;
-	int skipFactor = 500;
-	int frame0 = 15000 / skipFactor ;
-	int frame1 = 17000 / skipFactor + 1 ;
-	std::string dataset = "spacing1.0x_00011" ;
+	int skipFactor = 100;
+	int frame0 = 0 / skipFactor ;
+	int frame1 = 200 / skipFactor + 1 ;
+	std::string dataset = "spacing1.0x_00011_woven" ;
 
 	int phase = 12;
 
@@ -1329,7 +1349,7 @@ int main(int argc, const char **argv) {
 
 			int frame1 = 200 / skipFactor + 1;
 			std::string dataset = "spacing1.0x_00011_woven";
-			//buildTraning_all(yarn, skipFactor, frame0, frame1, yarnNum, dataset, window_size, trimPercent, isTrain);
+			buildTraning_all(yarn, skipFactor, frame0, frame1, yarnNum, dataset, window_size, trimPercent, isTrain);
 
 			///////////////////////
 			trimPercent = 0;
