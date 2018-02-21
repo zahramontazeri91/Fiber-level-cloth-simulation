@@ -136,6 +136,7 @@ def rotate(predicted, angles):
     n = len(angles)
     for i in range (0,n):
 #        c, s = np.cos(-1*angles[i]), np.sin(-1*angles[i])
+        # should be angle not -angle because R_T * S * R 
         c, s = np.cos(angles[i]), np.sin(angles[i])
         R = np.matrix('{} {}; {} {}'.format(c, -s, s, c))
         S = predicted[i].reshape([2,2])
@@ -194,9 +195,9 @@ nb_output, model, window_size = evaluate(nb_features, fn_trainX, fn_trainY)
 # predict test data
 yarnNum = 1
 skipFactor = 500        
-firstFrame = 8000
+firstFrame = 17000
 lastFrame = 17000
-totalNum = 150 ################# NOTE: downsampled
+totalNum = 300 ################# NOTE: downsampled
 dataset = 'spacing1.0x_00011'
 path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
 frame0 = int(firstFrame/skipFactor)
@@ -206,21 +207,22 @@ for i in range (frame0, frame1):
     for y in range (0,yarnNum):
         X_test = np.loadtxt(path + "testX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
         X_test_ = X_test.reshape(X_test.shape[0], window_size, nb_features)
-        Y_test_NN = model.predict(X_test_) 
+#        Y_test_NN = model.predict(X_test_) 
+        Y_test_NN = np.loadtxt(path + "testY_" + str(f) + '_' + str(y) + ".txt", delimiter=None)
         anglesFile = path + "angles_" + str(f) + '_' + str(y) + ".txt"
         angles = np.loadtxt(anglesFile, delimiter=None)
-#        Y_test_NN_rot = rotate(Y_test_NN, angles)
-        Y_test_NN_rot = Y_test_NN
+        Y_test_NN_rot = rotate(Y_test_NN, angles)
+#        Y_test_NN_rot = Y_test_NN
         Y_test_NN_total = extrapolate(Y_test_NN_rot, totalNum, nb_output, 1)
         filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
         np.savetxt(path + filename, Y_test_NN_total, fmt='%.6f', delimiter=' ')
 
-# predict test data
+## predict test data
 yarnNum = 1
 skipFactor = 100        
-firstFrame = 0
+firstFrame = 200
 lastFrame = 200
-totalNum = 150 ################# NOTE: downsampled
+totalNum = 300 ################# NOTE: downsampled
 dataset = 'spacing1.0x_00011_woven'
 path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
 frame0 = int(firstFrame/skipFactor)
@@ -230,11 +232,12 @@ for i in range (frame0, frame1):
     for y in range (0,yarnNum):
         X_test = np.loadtxt(path + "testX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
         X_test_ = X_test.reshape(X_test.shape[0], window_size, nb_features)
-        Y_test_NN = model.predict(X_test_) 
+#        Y_test_NN = model.predict(X_test_) 
+        Y_test_NN = np.loadtxt(path + "testY_" + str(f) + '_' + str(y) + ".txt", delimiter=None)
         anglesFile = path + "angles_" + str(f) + '_' + str(y) + ".txt"
         angles = np.loadtxt(anglesFile, delimiter=None)
-#        Y_test_NN_rot = rotate(Y_test_NN, angles)
-        Y_test_NN_rot = Y_test_NN
+        Y_test_NN_rot = rotate(Y_test_NN, angles)
+#        Y_test_NN_rot = Y_test_NN
         Y_test_NN_total = extrapolate(Y_test_NN_rot, totalNum, nb_output, 1)
         filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
         np.savetxt(path + filename, Y_test_NN_total, fmt='%.6f', delimiter=' ')

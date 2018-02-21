@@ -220,6 +220,30 @@ void CrossSection::shapeMatch_A(const Eigen::MatrixXf &pnt_trans, const Eigen::M
 
 	A = Apq*Aqq;
 
+	/* NEW */
+	assert(Aqq_1.determinant() != 0);
+	Aqq = Aqq_1.inverse();
+
+	//SVD decomposition
+	Eigen::JacobiSVD<Eigen::MatrixXf> svd(Apq*Aqq, Eigen::ComputeThinU | Eigen::ComputeThinV);
+	Eigen::Matrix2f U = svd.matrixU();
+	Eigen::Matrix2f sigma = svd.singularValues().asDiagonal();
+	Eigen::Matrix2f V = svd.matrixV();
+
+	//RS decompose
+	//Eigen::Matrix2f S = V*sigma*V.transpose();
+	//Eigen::Matrix2f R = U*V.transpose();
+
+	//SR decompose
+	Eigen::Matrix2f S = U*sigma*U.transpose();
+	Eigen::Matrix2f R = U*V.transpose();
+	theta_R = atan2(R(1, 0), R(0, 0));
+	theta_R = theta_R < 0 ? theta_R + 2.f*pi : theta_R;
+	//std::cout << atan2(R(1, 0), R(0, 0)) << std::endl;
+
+	//Now let's assume we've subtracted R-R0 (when R0 is the average)
+	A = S;
+
 }
 
 void CrossSection::shapeMatch(const Eigen::MatrixXf &pnt_trans, const Eigen::MatrixXf &pnt_ref, Matrix_S &mat_S, float &theta_R) {
