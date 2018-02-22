@@ -262,8 +262,9 @@ void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char
 	const double fullCurveLength = fullCurve_ds.totalLength();
 	std::vector<Eigen::Matrix3f> all_dg;
 	std::vector<Eigen::Matrix2f> all_S;
+	std::vector<Eigen::Matrix3f> all_S3;
 	std::vector<Eigen::Vector3d> all_pnt;
-	std::vector<Eigen::Vector3d> all_n;
+	std::vector<Eigen::Vector3d> all_n, all_t;
 	fout_cntr << vrtx_num << "\n";
 
 	//generate the up-sampled yarn
@@ -281,12 +282,12 @@ void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char
 	for (int v = 0; v < vrtx_num; ++v) {
 		float fullLen = fullCurveLength * (static_cast<double>(v) / static_cast<double>(vrtx_num - 1));
 		const double t_fll = fullCurve_us.arcLengthInvApprox(fullLen);
-		//Eigen::Vector3d pnt = fullCurve.eval(t_fll);
-		//fout_cntr << pnt[0] << " " << pnt[1] << " " << pnt[2] << "\n";
 
 		//****store normals for all points
 		Eigen::Vector3d n = fullCurve_us.evalNormal(t_fll);
 		all_n.push_back(n);
+		Eigen::Vector3d tg = fullCurve_us.evalTangent(t_fll);
+		all_t.push_back(tg);
 		/* Note that normals don't exactly match with up-sampled curve because adding new vertices to curve changes its curvature a bit */
 
 		//*****store dg for all points
@@ -306,9 +307,12 @@ void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char
 			Eigen::Matrix2f S;
 			S << S00, S01, S10, S11;
 			all_S.push_back(S);
+
+			Eigen::Matrix3f S3;
+			S3 << S00, S01, 0, S10, S11, 0, 0, 0, 0;
+			all_S3.push_back(S3);
 		}
 	}
-	//fout_cntr.close();
 
 	//windows go with stride 1 if the down-sample is 2
 	const int ignorPlanes = trimPercent * vrtx_num; // crop the first and last #% of the yarn
@@ -373,7 +377,14 @@ void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char
 		assert(v_full == v + start && "index for full yarn must be equal to index segment added with starting vertex");
 
 		// rotate the shape-matching matrix to align the new normal
-		const float angle = acos(n.dot(n_full));
+		float angle = acos(n.dot(n_full));
+
+#if 1
+		Eigen::Vector3d cross = (n.cross(n_full)).normalized();
+		angle = signbit(cross[2]) == signbit(curve.evalTangent(t)[2]) ? angle : -1.0*angle; //cross should be in same direction with tangent. If not, negate the angle
+		//std::cout << signbit(cross[0]) << " " << cross[0] << std::endl << signbit(curve.evalTangent(t)[0]) << std::endl << curve.evalTangent(t)[0] << std::endl << std::endl;
+#endif
+
 		//std::cout << " dot product " << n_full.dot(n) << " angle " << angle << std::endl;
 		Eigen::Matrix2f S_rot;
 		if (isTrain) {
@@ -387,6 +398,46 @@ void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char
 			fout_trainY_all << S_rot(0, 0) << " " << S_rot(0, 1) << " " << S_rot(1, 0) << " " << S_rot(1, 1) << "\n";
 		}
 		//fout_angle << angle << std::endl;
+
+# if 0
+		/********@@@@ Transfer S to window-RM @@@@*******/
+		if (isTrain) {
+			// get window-RM frames
+			const double curveLength = curve.totalLength();
+			const int v = ceil((end - start) / 2.0); //index for middle cross-section
+			float len = curveLength * (static_cast<double>(v) / static_cast<double>(window_size - 1));
+			const double t = curve.arcLengthInvApprox(len);
+			Eigen::Vector3d ez_w = curve.evalTangent(t);
+			Eigen::Vector3d ex_w = curve.evalNormal(t);
+			Eigen::Vector3d ey_w = ez_w.cross(ex_w);
+			Eigen::Matrix3f M_w_w2l, M_w_l2w; //window-RM for world to local and vice-versa
+			M_w_w2l << ex_w[0], ex_w[1], ex_w[2],
+				ey_w[0], ey_w[1], ey_w[2],
+				ez_w[0], ez_w[1], ez_w[2];
+			//M_w_l2w = M_w_w2l.transpose();
+			/** get yarn-RM frames **/
+			const int v_full = ceil((start + end) / 2.0); //index for the full curve
+			Eigen::Vector3d ez_y = all_t[v_full];
+			Eigen::Vector3d ex_y = all_n[v_full];
+			Eigen::Vector3d ey_y = ez_y.cross(ex_y);
+			Eigen::Matrix3f M_y_w2l, M_y_l2w;
+			M_y_w2l << ex_y[0], ex_y[1], ex_y[2],
+				ey_y[0], ey_y[1], ey_y[2],
+				ez_y[0], ez_y[1], ez_y[2];
+			M_y_l2w = M_y_w2l.transpose();
+
+			/** change of basis from yarn-rm to window-rm **/
+			Eigen::Matrix3f M_y2w = M_w_w2l * M_y_l2w; //first window-RM to world then world to yarn-RM
+			Eigen::Matrix3f S_rot3 = M_y2w * all_S3[v_full] * M_y2w.transpose();
+
+			//const vec3f a(ex_y[0], ex_y[1], ex_y[2]);
+			//const vec3f b(ex_w[0], ex_w[1], ex_w[2]);
+			//vec4f c = rotvec(b,a);
+			//std::cout << c.w << " " << angle << std::endl;
+			//std::cout<< S_rot3 << std::endl << std::endl;
+		}
+		/*********@@@@@@@@@@@@@@@@@@@@@@@@***********/
+# endif
 
 		///****************************************************************/
 		///***** augment the training data by rotating normals by 180 *****/
@@ -553,7 +604,7 @@ int main(int argc, const char **argv) {
 	Fiber::Yarn yarn;
 	yarn.parse(configfile);
 
-	yarn.setStepNum(300);
+	yarn.setStepNum(150);
 	
 	yarn.yarn_simulate();
 	yarn.write_yarn(yarnfile1);

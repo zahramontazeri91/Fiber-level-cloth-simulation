@@ -190,7 +190,7 @@ fn_trainY = w_path + "all/NN/trainY_all.txt"
 appendTrainingData(datasets, w_path, fn_trainX, fn_trainY)
 
 nb_features = 9                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
-nb_output, model, window_size = evaluate(nb_features, fn_trainX, fn_trainY)
+#nb_output, model, window_size = evaluate(nb_features, fn_trainX, fn_trainY)
 
 # predict test data
 yarnNum = 1
