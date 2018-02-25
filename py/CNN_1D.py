@@ -190,7 +190,7 @@ fn_trainY = w_path + "all/NN/trainY_all.txt"
 appendTrainingData(datasets, w_path, fn_trainX, fn_trainY)
 
 nb_features = 9                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
-#nb_output, model, window_size = evaluate(nb_features, fn_trainX, fn_trainY)
+nb_output, model, window_size = evaluate(nb_features, fn_trainX, fn_trainY)
 
 # predict test data
 yarnNum = 1
@@ -222,7 +222,7 @@ yarnNum = 1
 skipFactor = 100        
 firstFrame = 200
 lastFrame = 200
-totalNum = 300 ################# NOTE: downsampled
+totalNum = 150 ################# NOTE: downsampled
 dataset = 'spacing1.0x_00011_woven'
 path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
 frame0 = int(firstFrame/skipFactor)

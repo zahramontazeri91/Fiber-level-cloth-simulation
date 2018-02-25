@@ -1422,19 +1422,19 @@ int main(int argc, const char **argv) {
 			int skipFactor = 100;
 			int frame0 = 200 / skipFactor;
 			float trimPercent = 0;
-			int window_size = 3;
+			int window_size = 50;
 			int isTrain = 0;
 
 			int frame1 = 200 / skipFactor + 1;
 			std::string dataset = "spacing1.0x_00011_woven";
-			buildTraning_all(yarn, skipFactor, frame0, frame1, yarnNum, dataset, window_size, trimPercent, isTrain);
+			//buildTraning_all(yarn, skipFactor, frame0, frame1, yarnNum, dataset, window_size, trimPercent, isTrain);
 
 			///////////////////////
 			trimPercent = 0;
 			yarnNum = 1;
 			skipFactor = 500;
 			frame0 = 17000 / skipFactor;
-			window_size = 3;
+			window_size = 50;
 			isTrain = 1;
 
 			//int frame1 = 16000 / skipFactor + 1;
