@@ -1477,22 +1477,22 @@ int main(int argc, const char **argv) {
 			curve.assign(all_pts, all_tg, all_norm);
 			//std::cout << "full ********** \n " << all_norm[1] << std::endl << all_norm[2] << std::endl << all_norm[3] << std::endl;
 
-			//std::ofstream fout_TNB("../data/TNB.txt");
-			//for (int i = 50; i < 100; i++) {
-			//	fout_TNB << all_pts[i][0] << " " << all_pts[i][1] << " " << all_pts[i][2] << " " <<
-			//		all_tg[i][0] << " " << all_tg[i][1] << " " << all_tg[i][2] << " " <<
-			//		all_norm[i][0] << " " << all_norm[i][1] << " " << all_norm[i][2] << "\n";
+			std::ofstream fout_TNB("../data/TNB.txt");
+			for (int i = 50; i < 100; i++) {
+				fout_TNB << all_pts[i][0] << " " << all_pts[i][1] << " " << all_pts[i][2] << " " <<
+					all_tg[i][0] << " " << all_tg[i][1] << " " << all_tg[i][2] << " " <<
+					all_norm[i][0] << " " << all_norm[i][1] << " " << all_norm[i][2] << "\n";
 
-			//}
+			}
 
 			HermiteCurve segment;
-			segment.init_seg(curvefile_ds, 1, 4, seg_subdiv);
+			segment.init_seg(curvefile_ds, 50, 54, seg_subdiv);
 			std::vector<Eigen::Vector3d> all_pts_seg, all_tg_seg, all_norm_seg;
 			segment.assign(all_pts_seg, all_tg_seg, all_norm_seg);
 			
-			Eigen::Vector3d cross = all_norm_seg[1].cross(all_norm[2]);
-			std::cout << "seg --- \n " << all_norm_seg[1].dot(all_tg_seg[1]) << std::endl << all_norm[2].dot(all_tg[2]) << std::endl <<  std::endl;
-			//std::cout << "seg --- \n " << cross  << std::endl << all_tg_seg[1] << std::endl;
+			Eigen::Vector3d cross = all_norm[51].cross(all_norm_seg[1]);
+			//std::cout << "seg --- \n " << all_norm_seg[2].dot(all_tg_seg[2]) << std::endl << all_norm[53].dot(all_tg[53]) << std::endl <<  std::endl;
+			std::cout << "seg --- \n " << cross  << std::endl << all_tg_seg[1] << std::endl << all_tg[51] << std::endl;
 			//std::cout << "full ********** \n " << all_tg_seg[1] << std::endl << all_norm[2] << std::endl << all_tg[2] << std::endl;
 
 			break;

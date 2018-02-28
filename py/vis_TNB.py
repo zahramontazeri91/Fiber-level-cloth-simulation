@@ -22,8 +22,9 @@ for i in range(0, n):
     tang /= np.linalg.norm(tang)
     norm = data[i, 6 : 9]
     norm /= np.linalg.norm(norm)
-    binorm = np.cross(norm, tang)
+    binorm = np.cross(tang, norm)
     binorm /= np.linalg.norm(binorm)
+    print(np.dot(binorm, norm), np.dot(binorm, tang), np.dot(tang, norm))
 
     ax.plot([data[i, 0], data[i, 0] + L*tang[0]], \
             [data[i, 1], data[i, 1] + L*tang[1]], \
