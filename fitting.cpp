@@ -272,6 +272,91 @@ void deformRef(const std::vector<yarnIntersect2D> &its, std::vector<yarnIntersec
 	}
 }
 
+void assign_dg(const char* physical_world, std::vector<Eigen::Matrix3f> &all_world_dg) {
+	std::ifstream fin(physical_world);
+	assert(fin.is_open() && "physical_world file wasn't found!\n");
+
+	//store dg for all points
+	while (1) {
+		float dg00, dg01, dg02, dg10, dg11, dg12, dg20, dg21, dg22;
+		fin >> dg00 >> dg01 >> dg02 >> dg10 >> dg11 >> dg12 >> dg20 >> dg21 >> dg22;
+		if (fin.eof()) break;
+		Eigen::Matrix3f world_dg;
+		world_dg << dg00, dg01, dg02,
+			dg10, dg11, dg12,
+			dg20, dg21, dg22;
+		all_world_dg.push_back(world_dg);
+	}
+
+	fin.close();
+}
+
+void assign_S(const char* compress_S, std::vector<Eigen::Matrix2f> &all_S) {
+	std::ifstream fin(compress_S);
+	assert(fin.is_open() && "compress_S file wasn't found!\n");
+
+	//store dg for all points
+	while (1) {
+		//store S-matrix for all points
+		float S00, S01, S10, S11;
+		fin >> S00 >> S01 >> S10 >> S11;
+		if (fin.eof()) break;
+		Eigen::Matrix2f S;
+		S << S00, S01, S10, S11;
+		all_S.push_back(S);
+	}
+
+	fin.close();
+}
+
+void transfer_dg_2local(std::vector<Eigen::Vector3d> &all_tang, std::vector<Eigen::Vector3d> &all_norm, 
+	std::vector<Eigen::Matrix3f> &all_world_dg, std::vector<Eigen::Matrix3f> &all_local_dg) {
+
+	assert(all_tang.size() == all_world_dg.size() && all_norm.size() == all_world_dg.size());
+	const int n = all_world_dg.size();
+
+	for (int i = 0; i < n; i++) {
+		Eigen::Vector3d ez = all_tang[i];
+		Eigen::Vector3d ey = all_norm[i];
+		Eigen::Vector3d ex = ez.cross(ey);			
+
+		/** world to local **/
+		Eigen::Matrix3f local_dg, M;
+		M << ex[0], ex[1], ex[2],
+			ey[0], ey[1], ey[2],
+			ez[0], ez[1], ez[2];
+
+		local_dg = M*all_world_dg[i] * M.transpose();
+		all_local_dg.push_back(local_dg);
+
+	}
+}
+
+void rotate_S_2local(Eigen::Matrix2f &S, Eigen::Matrix2f &S_local, float &angle) {
+
+	Eigen::Matrix2f R;
+	R << cos(angle), -sin(angle),
+		sin(angle), cos(angle);
+	S_local = R*S* R.transpose();
+}
+
+float get_angle(Eigen::Vector3d &norm1, Eigen::Vector3d &norm2, Eigen::Vector3d &tang) {
+
+	// rotate the shape-matching matrix to align the new normal
+	float angle = acos(norm1.dot(norm2));
+	if (angle != angle) //dot product (must be 1) but might be larger than 1 and so acos return nan 
+		angle = norm1.dot(norm2) > 0 ? 0.0 : pi;
+
+	Eigen::Vector3d cross = (norm1.cross(norm2)).normalized();
+	if (cross.norm() < eps) return 0.0;
+
+	float dist = (cross - tang).norm();
+	float dist_ = (cross - (-1.0*tang) ).norm();
+	angle = dist < dist_ ? angle : -1.0*angle;
+
+	return angle;
+}
+
 
 #if 0
 void constFitting_compParam(const std::vector<Ellipse> &ellipses, const std::vector<float> &theta_R,

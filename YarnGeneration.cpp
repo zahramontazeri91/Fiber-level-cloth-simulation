@@ -570,12 +570,12 @@ int main(int argc, const char **argv) {
 	yarn.write_yarn(yarnfile1);
 
 	int yarnNum = 1;
-	int skipFactor = 500;
-	int frame0 = 17000 / skipFactor;
-	int frame1 = 17000 / skipFactor + 1;
-	std::string dataset = "spacing1.0x_00011";
+	int skipFactor = 100;
+	int frame0 = 200 / skipFactor;
+	int frame1 = 200 / skipFactor + 1;
+	std::string dataset = "spacing1.0x_00011_woven";
 
-	int phase = 13;
+	int phase = 2;
 
 	switch (phase) {
 		case 1: {
@@ -1438,7 +1438,7 @@ int main(int argc, const char **argv) {
 		case 13: {
 			std::cout << "*** Build training data - new *** \n";
 
-			int f = 17000;
+			int f = 200;
 
 			std::string tmp0 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_" + std::to_string(0) + "_ds.txt";
 			const char* curvefile_ds = tmp0.c_str();
@@ -1459,42 +1459,95 @@ int main(int argc, const char **argv) {
 			assert(fin1.is_open() && "curvefile_ds file wasn't found!\n");
 			std::ifstream fin3(physical_world);
 			assert(fin3.is_open() && "physical_world file wasn't found!\n");
-			std::ifstream fin4(compress_S);
-			assert(fin4.is_open() && "compress_S file wasn't found!\n");
 
-			std::ifstream fin_dg(physical_world);
-			std::ifstream fin_S(compress_S);
-			std::ofstream fout_dg(physical_local_seg);
-			std::ofstream fout_S(compress_S_seg);
+			const int seg_subdiv = 5;
+			const int window_size = 3;
+			const int isTrain = 0;
+			const float trimPercent = 0.0;
+			const int vrtx_num = 150;
+
+			std::ofstream fout_trainX(physical_local_seg);
+			std::ofstream fout_trainY(compress_S_seg);
 			std::ofstream fout_angle(angles);
 
-			int seg_subdiv = 5;
-
+			/* yarn-level */
+			std::vector<Eigen::Matrix3f> all_dg;
+			assign_dg(physical_world, all_dg);
+			std::vector<Eigen::Matrix2f> all_S;
+			if (isTrain) {
+				assign_S(compress_S, all_S);
+			}
 
 			HermiteCurve curve;
 			curve.init(curvefile_ds, normfile_ds, seg_subdiv);
-			std::vector<Eigen::Vector3d> all_pts, all_tg, all_norm;
-			curve.assign(all_pts, all_tg, all_norm);
-			//std::cout << "full ********** \n " << all_norm[1] << std::endl << all_norm[2] << std::endl << all_norm[3] << std::endl;
+			std::vector<Eigen::Vector3d> all_pts, all_tang, all_norm;
+			curve.assign(all_pts, all_tang, all_norm);
 
-			std::ofstream fout_TNB("../data/TNB.txt");
-			for (int i = 50; i < 100; i++) {
-				fout_TNB << all_pts[i][0] << " " << all_pts[i][1] << " " << all_pts[i][2] << " " <<
-					all_tg[i][0] << " " << all_tg[i][1] << " " << all_tg[i][2] << " " <<
-					all_norm[i][0] << " " << all_norm[i][1] << " " << all_norm[i][2] << "\n";
+			/* window-level */
+			const int ignorPlanes = trimPercent * vrtx_num; // crop the first and last #% of the yarn
+			for (int w = ignorPlanes; w < (vrtx_num - window_size + 1) - ignorPlanes; w++) {
+				//std::cout << w << std::endl;
 
+				//define a curve segment 
+				const int start = w;
+				const int end = w + (window_size - 1);
+
+				HermiteCurve segment;
+				segment.init_seg(curvefile_ds, start, end, seg_subdiv);
+				std::vector<Eigen::Vector3d> all_pts_seg, all_tang_seg, all_norm_seg;
+				segment.assign(all_pts_seg, all_tang_seg, all_norm_seg);
+
+				std::vector<Eigen::Matrix3f> all_dg_seg, all_local_dg_seg;
+				for (int d = start; d <= end; d++) all_dg_seg.push_back(all_dg[d]);
+				transfer_dg_2local(all_tang_seg, all_norm_seg, all_dg_seg, all_local_dg_seg); //later add augmentation
+
+
+
+				for (int d = 0; d < window_size; d++) {
+					Eigen::Matrix3f local_dg = all_local_dg_seg[d];
+					//std::cout << all_local_dg[d] << std::endl << std::endl;
+					fout_trainX << local_dg(0, 0) << " " << local_dg(0, 1) << " " << local_dg(0, 2) << " " <<
+						local_dg(1, 0) << " " << local_dg(1, 1) << " " << local_dg(1, 2) << " " <<
+						local_dg(2, 0) << " " << local_dg(2, 1) << " " << local_dg(2, 2) << " ";
+				}
+				fout_trainX << "\n";
+
+				const int v_yarn = ceil((start + end) / 2.0);
+				const int v_seg = ceil((end - start) / 2.0);
+				assert(v_yarn == v_seg + start && "index for full yarn must be equal to index segment added with starting vertex");
+
+				Eigen::Vector3d norm1 = all_norm[v_yarn];
+				Eigen::Vector3d norm2 = all_norm_seg[v_seg];
+				Eigen::Vector3d tang = all_tang[v_yarn];
+				assert((all_tang[v_yarn] - all_tang_seg[v_seg]).norm() < eps && "tangents for both frames must be similar!\n");
+				float angle = get_angle(norm1, norm2, tang);
+				fout_angle << angle << "\n";
+
+				if (isTrain) {
+					Eigen::Matrix2f S_local;
+					rotate_S_2local(all_S[v_yarn], S_local, angle);
+					fout_trainY << S_local(0, 0) << " " << S_local(0, 1) << " " << S_local(1, 0) << " " << S_local(1, 1) << "\n";
+				}
 			}
 
-			HermiteCurve segment;
-			segment.init_seg(curvefile_ds, 50, 54, seg_subdiv);
-			std::vector<Eigen::Vector3d> all_pts_seg, all_tg_seg, all_norm_seg;
-			segment.assign(all_pts_seg, all_tg_seg, all_norm_seg);
-			
-			Eigen::Vector3d cross = all_norm[51].cross(all_norm_seg[1]);
-			//std::cout << "seg --- \n " << all_norm_seg[2].dot(all_tg_seg[2]) << std::endl << all_norm[53].dot(all_tg[53]) << std::endl <<  std::endl;
-			std::cout << "seg --- \n " << cross  << std::endl << all_tg_seg[1] << std::endl << all_tg[51] << std::endl;
-			//std::cout << "full ********** \n " << all_tg_seg[1] << std::endl << all_norm[2] << std::endl << all_tg[2] << std::endl;
+			fout_trainX.close();
+			fout_trainY.close();
+			fout_angle.close();
 
+
+			//Eigen::Vector3d cross = all_norm[61].cross(all_norm_seg[1]);
+			//std::cout << "seg --- \n " << all_norm_seg[2].dot(all_tg_seg[2]) << std::endl << all_norm[53].dot(all_tg[53]) << std::endl <<  std::endl;
+			//std::cout << "seg --- \n " << cross  << std::endl << all_tg_seg[1] << std::endl << all_tg[61] << std::endl;
+			//std::cout << "full ********** \n " << all_tang_seg[v_seg] << std::endl << all_norm[2] << std::endl << all_tang[v_yarn] << std::endl;
+
+
+			//std::ofstream fout_TNB("../data/TNB.txt");
+			//for (int i = 50; i < 100; i++) {
+			//	fout_TNB << all_pts[i][0] << " " << all_pts[i][1] << " " << all_pts[i][2] << " " <<
+			//		all_tg[i][0] << " " << all_tg[i][1] << " " << all_tg[i][2] << " " <<
+			//		all_norm[i][0] << " " << all_norm[i][1] << " " << all_norm[i][2] << "\n";
+
+			//}
 			break;
 		}
 		case 0: {

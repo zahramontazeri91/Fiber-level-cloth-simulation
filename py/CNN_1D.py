@@ -197,7 +197,7 @@ yarnNum = 1
 skipFactor = 500        
 firstFrame = 17000
 lastFrame = 17000
-totalNum = 300 ################# NOTE: downsampled
+totalNum = 150 ################# NOTE: downsampled
 dataset = 'spacing1.0x_00011'
 path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
 frame0 = int(firstFrame/skipFactor)
@@ -205,10 +205,10 @@ frame1 = int(lastFrame/skipFactor + 1)
 for i in range (frame0, frame1):
     f = i*skipFactor
     for y in range (0,yarnNum):
-        X_test = np.loadtxt(path + "testX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
+        X_test = np.loadtxt(path + "trainX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
         X_test_ = X_test.reshape(X_test.shape[0], window_size, nb_features)
 #        Y_test_NN = model.predict(X_test_) 
-        Y_test_NN = np.loadtxt(path + "testY_" + str(f) + '_' + str(y) + ".txt", delimiter=None)
+        Y_test_NN = np.loadtxt(path + "trainY_" + str(f) + '_' + str(y) + ".txt", delimiter=None)
         anglesFile = path + "angles_" + str(f) + '_' + str(y) + ".txt"
         angles = np.loadtxt(anglesFile, delimiter=None)
         Y_test_NN_rot = rotate(Y_test_NN, angles)
@@ -230,10 +230,10 @@ frame1 = int(lastFrame/skipFactor + 1)
 for i in range (frame0, frame1):
     f = i*skipFactor
     for y in range (0,yarnNum):
-        X_test = np.loadtxt(path + "testX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
+        X_test = np.loadtxt(path + "trainX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
         X_test_ = X_test.reshape(X_test.shape[0], window_size, nb_features)
 #        Y_test_NN = model.predict(X_test_) 
-        Y_test_NN = np.loadtxt(path + "testY_" + str(f) + '_' + str(y) + ".txt", delimiter=None)
+        Y_test_NN = np.loadtxt(path + "trainY_" + str(f) + '_' + str(y) + ".txt", delimiter=None)
         anglesFile = path + "angles_" + str(f) + '_' + str(y) + ".txt"
         angles = np.loadtxt(anglesFile, delimiter=None)
         Y_test_NN_rot = rotate(Y_test_NN, angles)

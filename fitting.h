@@ -31,3 +31,12 @@ void deformRef(const std::vector<yarnIntersect2D> &its, std::vector<yarnIntersec
 void L2norm(const std::vector<yarnIntersect2D> &its_deform, const std::vector<yarnIntersect2D> &its_trans, std::vector<float> &L2, const char* filename, const float trimPercent);
 
 void nonPeriodicTheta(const std::vector<float> &theta, std::vector<float> &theta_new);
+
+
+/****** Preparing data for training *****/
+void assign_dg(const char* physical_world, std::vector<Eigen::Matrix3f> &all_world_dg);
+void assign_S(const char* compress_S, std::vector<Eigen::Matrix2f> &all_S);
+void transfer_dg_2local(std::vector<Eigen::Vector3d> &all_tang, std::vector<Eigen::Vector3d> &all_norm,
+	std::vector<Eigen::Matrix3f> &all_world_dg, std::vector<Eigen::Matrix3f> &all_local_dg);
+void rotate_S_2local (Eigen::Matrix2f &S, Eigen::Matrix2f &S_local, float &angle);
+float get_angle(Eigen::Vector3d &norm1, Eigen::Vector3d &norm2, Eigen::Vector3d &tang);

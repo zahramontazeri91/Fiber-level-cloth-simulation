@@ -380,10 +380,10 @@ void HermiteCurve::getRotatedFrame(double t, Eigen::Vector3d &ex, Eigen::Vector3
 	Eigen::Vector3d B = T.cross(N);
 
 	ez = T;
-	ex = N;
-	ey = B;
-	//ex = B;
-	//ey = -1*N;
+	//ex = N;
+	//ey = B;
+	ex = B;
+	ey = N;
 
 	if (ex.norm() - 1.f > 1e-5 || ey.norm() - 1.f > 1e-5 || ez.norm() - 1.f > 1e-5)
 		std::cout << ex.norm() - 1.f << " " << ey.norm() - 1.f << " " << ez.norm() - 1.f << std::endl;
