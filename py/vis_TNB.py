@@ -10,7 +10,7 @@ ax = fig.gca(projection='3d')
 #ax.set_aspect('equal')
 
 # data = np.loadtxt('../junk_single.txt')
-data = np.loadtxt('../../data/test_planeCoord.txt')
+data = np.loadtxt('../../data/TNB.txt')
 #cntr.x cntr.y cntr.z tg.x tg.y tg.z norm.x norm.y norm.z
 
 n = data.shape[0]
@@ -53,8 +53,8 @@ for xb, yb, zb in zip(Xb, Yb, Zb):
 
 #plt.tight_layout()
 red = mpatches.Patch(color='red', label='tangents')
-blue = mpatches.Patch(color='blue', label='normals')
-green = mpatches.Patch(color='green', label='binormals')
+blue = mpatches.Patch(color='blue', label='binormals')
+green = mpatches.Patch(color='green', label='normals')
 
 plt.legend(handles=[red, green, blue],prop={'size': 15}) 
 ax.view_init(azim=0., elev=0)

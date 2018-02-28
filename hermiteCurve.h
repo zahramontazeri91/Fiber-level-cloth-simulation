@@ -27,7 +27,7 @@ public:
 	void init_principleNormal(const std::vector<Eigen::Vector3d> &pts, int subdiv);
 
 	//init4: generate normals for a segment of the curve [a,b]
-	void init_window(const char* pntsFILE, const int start, const int end, int subdiv);
+	void init_seg(const char* pntsFILE, const int start, const int end, int subdiv);
 
 
 	Eigen::Vector3d eval(double t) const;
@@ -70,6 +70,9 @@ public:
 	/* print normals to a file */
 	void HermiteCurve::printNormals(const char* normsFILE, const int subdiv = 10);
 	void HermiteCurve::printBiNormals(const char* binormsFILE, const int subdiv = 10);
+
+	/* assing points, tangents and normals for specific number of points on the curve */
+	void assign(std::vector<Eigen::Vector3d> &all_pts, std::vector<Eigen::Vector3d> &all_tg, std::vector<Eigen::Vector3d> &all_norm);
 protected:
     void initPoints(const std::vector<Eigen::Vector3d> &pts);
 

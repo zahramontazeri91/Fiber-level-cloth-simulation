@@ -15,7 +15,7 @@ void phase1(const char* yarnfile1, const char* configfile, Fiber::Yarn &yarn, in
 		int f = i * skipFactor;
 
 		HermiteCurve curve;
-		int seg_subdiv = 100;
+		int seg_subdiv = 10;
 
 		for (int y = 0; y < yarnNum; ++y) {
 
@@ -252,9 +252,9 @@ void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char
 	//debug: 
 	std::ofstream fout_S_test("input/spacing1.0x_00011/NN/testY_17000_0.txt");
 	const char* normfile_us = "input/spacing1.0x_00011/normYarn_17000_0_us.txt";
+	std::ofstream fout_TNB_yarn("../data/TNB_yarn.txt");
 
-	const float downsample = 2.0;
-	int seg_subdiv = 100;
+	int seg_subdiv = 10;
 	HermiteCurve fullCurve_ds;
 	fullCurve_ds.init(curvefile_ds, normfile_ds, seg_subdiv);
 	const int vrtx_num = yarn.getStepNum();
@@ -262,11 +262,11 @@ void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char
 	const double fullCurveLength = fullCurve_ds.totalLength();
 	std::vector<Eigen::Matrix3f> all_dg;
 	std::vector<Eigen::Matrix2f> all_S;
-	std::vector<Eigen::Matrix3f> all_S3;
 	std::vector<Eigen::Vector3d> all_pnt;
 	std::vector<Eigen::Vector3d> all_n, all_t;
 	fout_cntr << vrtx_num << "\n";
 
+#if 0
 	//generate the up-sampled yarn
 	for (int v = 0; v < vrtx_num; ++v) {
 		float fullLen = fullCurveLength * (static_cast<double>(v) / static_cast<double>(vrtx_num - 1));
@@ -277,16 +277,18 @@ void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char
 	fout_cntr.close();
 	HermiteCurve fullCurve_us;
 	fullCurve_us.init(curvefile_us, normfile_us, seg_subdiv);
-
+#endif 
 
 	for (int v = 0; v < vrtx_num; ++v) {
 		float fullLen = fullCurveLength * (static_cast<double>(v) / static_cast<double>(vrtx_num - 1));
-		const double t_fll = fullCurve_us.arcLengthInvApprox(fullLen);
+		const double t_fll = fullCurve_ds.arcLengthInvApprox(fullLen);
 
 		//****store normals for all points
-		Eigen::Vector3d n = fullCurve_us.evalNormal(t_fll);
+		Eigen::Vector3d p = fullCurve_ds.eval(t_fll);
+		all_pnt.push_back(p);
+		Eigen::Vector3d n = fullCurve_ds.evalNormal(t_fll);
 		all_n.push_back(n);
-		Eigen::Vector3d tg = fullCurve_us.evalTangent(t_fll);
+		Eigen::Vector3d tg = fullCurve_ds.evalTangent(t_fll);
 		all_t.push_back(tg);
 		/* Note that normals don't exactly match with up-sampled curve because adding new vertices to curve changes its curvature a bit */
 
@@ -307,14 +309,9 @@ void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char
 			Eigen::Matrix2f S;
 			S << S00, S01, S10, S11;
 			all_S.push_back(S);
-
-			Eigen::Matrix3f S3;
-			S3 << S00, S01, 0, S10, S11, 0, 0, 0, 0;
-			all_S3.push_back(S3);
 		}
 	}
 
-	//windows go with stride 1 if the down-sample is 2
 	const int ignorPlanes = trimPercent * vrtx_num; // crop the first and last #% of the yarn
 	for (int w = ignorPlanes; w < (vrtx_num - window_size + 1) - ignorPlanes; w++) {
 		//std::cout << w << std::endl;
@@ -323,7 +320,7 @@ void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char
 		const int start = w;
 		const int end = w + (window_size - 1);
 		HermiteCurve curve;
-		curve.init_window(curvefile_us, start, end, seg_subdiv);  ///NOTE HERE ###########
+		curve.init_seg(curvefile_ds, start, end, seg_subdiv);  ///NOTE HERE ###########
 		const double curveLength = curve.totalLength();
 
 		for (int v = 0; v < window_size; ++v) {
@@ -385,7 +382,8 @@ void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char
 		//std::cout << signbit(cross[0]) << " " << cross[0] << std::endl << signbit(curve.evalTangent(t)[0]) << std::endl << curve.evalTangent(t)[0] << std::endl << std::endl;
 #endif
 
-		//std::cout << " dot product " << n_full.dot(n) << " angle " << angle << std::endl;
+		std::cout << cross << " \n " << curve.evalTangent(t) << std::endl << std::endl;
+
 		Eigen::Matrix2f S_rot;
 		if (isTrain) {
 			Eigen::Matrix2f R, S;
@@ -400,45 +398,6 @@ void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char
 		//fout_angle << angle << std::endl;
 
 # if 0
-		/********@@@@ Transfer S to window-RM @@@@*******/
-		if (isTrain) {
-			// get window-RM frames
-			const double curveLength = curve.totalLength();
-			const int v = ceil((end - start) / 2.0); //index for middle cross-section
-			float len = curveLength * (static_cast<double>(v) / static_cast<double>(window_size - 1));
-			const double t = curve.arcLengthInvApprox(len);
-			Eigen::Vector3d ez_w = curve.evalTangent(t);
-			Eigen::Vector3d ex_w = curve.evalNormal(t);
-			Eigen::Vector3d ey_w = ez_w.cross(ex_w);
-			Eigen::Matrix3f M_w_w2l, M_w_l2w; //window-RM for world to local and vice-versa
-			M_w_w2l << ex_w[0], ex_w[1], ex_w[2],
-				ey_w[0], ey_w[1], ey_w[2],
-				ez_w[0], ez_w[1], ez_w[2];
-			//M_w_l2w = M_w_w2l.transpose();
-			/** get yarn-RM frames **/
-			const int v_full = ceil((start + end) / 2.0); //index for the full curve
-			Eigen::Vector3d ez_y = all_t[v_full];
-			Eigen::Vector3d ex_y = all_n[v_full];
-			Eigen::Vector3d ey_y = ez_y.cross(ex_y);
-			Eigen::Matrix3f M_y_w2l, M_y_l2w;
-			M_y_w2l << ex_y[0], ex_y[1], ex_y[2],
-				ey_y[0], ey_y[1], ey_y[2],
-				ez_y[0], ez_y[1], ez_y[2];
-			M_y_l2w = M_y_w2l.transpose();
-
-			/** change of basis from yarn-rm to window-rm **/
-			Eigen::Matrix3f M_y2w = M_w_w2l * M_y_l2w; //first window-RM to world then world to yarn-RM
-			Eigen::Matrix3f S_rot3 = M_y2w * all_S3[v_full] * M_y2w.transpose();
-
-			//const vec3f a(ex_y[0], ex_y[1], ex_y[2]);
-			//const vec3f b(ex_w[0], ex_w[1], ex_w[2]);
-			//vec4f c = rotvec(b,a);
-			//std::cout << c.w << " " << angle << std::endl;
-			//std::cout<< S_rot3 << std::endl << std::endl;
-		}
-		/*********@@@@@@@@@@@@@@@@@@@@@@@@***********/
-# endif
-
 		///****************************************************************/
 		///***** augment the training data by rotating normals by 180 *****/
 		for (int v = 0; v < window_size; ++v) {
@@ -483,6 +442,7 @@ void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char
 
 		}
 		//fout_angle << angle + pi << std::endl;
+#endif
 
 		///****************************************************************/
 		/*** write test data X ******/
@@ -610,12 +570,12 @@ int main(int argc, const char **argv) {
 	yarn.write_yarn(yarnfile1);
 
 	int yarnNum = 1;
-	int skipFactor = 100;
-	int frame0 = 200 / skipFactor ;
-	int frame1 = 200 / skipFactor + 1 ;
-	std::string dataset = "spacing1.0x_00011_woven" ;
+	int skipFactor = 500;
+	int frame0 = 17000 / skipFactor;
+	int frame1 = 17000 / skipFactor + 1;
+	std::string dataset = "spacing1.0x_00011";
 
-	int phase = 2;
+	int phase = 13;
 
 	switch (phase) {
 		case 1: {
@@ -625,7 +585,7 @@ int main(int argc, const char **argv) {
 
 				int f = i * skipFactor;
 				HermiteCurve curve;
-				int seg_subdiv = 100;
+				int seg_subdiv = 10;
 				for (int y = 0; y < yarnNum; ++y) {
 
 					std::string tmp7 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_ds.txt"; //don't use upsampled centerline
@@ -989,7 +949,7 @@ int main(int argc, const char **argv) {
 			for (int i = frame0; i < frame1; i++) {
 				int f = i * skipFactor;
 				HermiteCurve curve;
-				int seg_subdiv = 100;
+				int seg_subdiv = 10;
 				for (int y = 0; y < yarnNum; ++y) {
 
 					std::string tmp7 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_ds.txt"; //don't use upsampled centerline
@@ -1264,7 +1224,7 @@ int main(int argc, const char **argv) {
 			std::ofstream fout_angle(angles);
 
 			const int window_size = 9;
-			int seg_subdiv = 100;
+			int seg_subdiv = 10;
 			HermiteCurve fullCurve;
 			fullCurve.init(curvefile_ds, normfile_ds, seg_subdiv);
 			const int vrtx_num = yarn.getStepNum();
@@ -1276,7 +1236,7 @@ int main(int argc, const char **argv) {
 			std::vector<Eigen::Vector3d> all_n;
 			fout_cntr << vrtx_num << "\n";
 			for (int v = 0; v < vrtx_num; ++v) {
-				float fullLen = fullCurveLength * (static_cast<double>(v) / static_cast<double>(vrtx_num - 1));
+				float fullLen = fullCurveLength * ( static_cast<double>(v) / static_cast<double>(vrtx_num - 1) );
 				const double t_fll = fullCurve.arcLengthInvApprox(fullLen);
 				Eigen::Vector3d pnt = fullCurve.eval(t_fll);
 				fout_cntr << pnt[0] << " " << pnt[1] << " " << pnt[2] << "\n";
@@ -1312,7 +1272,7 @@ int main(int argc, const char **argv) {
 				const int start = w;
 				const int end = w + (window_size - 1);
 				HermiteCurve curve;
-				curve.init_window(curvefile, start, end, seg_subdiv);				
+				curve.init_seg(curvefile, start, end, seg_subdiv);				
 				const double curveLength = curve.totalLength();
 
 				for (int v = 0; v < window_size; ++v) {
@@ -1472,6 +1432,68 @@ int main(int argc, const char **argv) {
 			//frame1 = 16500 / skipFactor + 1;
 			//dataset = "spacing1.5x_11110";
 			//buildTraning_all(yarn, skipFactor, frame0, frame1, yarnNum, dataset, window_size, trimPercent, isTrain);
+
+			break;
+		}
+		case 13: {
+			std::cout << "*** Build training data - new *** \n";
+
+			int f = 17000;
+
+			std::string tmp0 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_" + std::to_string(0) + "_ds.txt";
+			const char* curvefile_ds = tmp0.c_str();
+			std::string tmp2 = "input/" + dataset + "/normYarn_" + std::to_string(f) + "_" + std::to_string(0) + "_ds.txt";
+			const char* normfile_ds = tmp2.c_str();
+			std::string tmp3 = "input/" + dataset + "/physicalParam/physical_" + std::to_string(f) + "_" + std::to_string(0) + "_world.txt";
+			const char* physical_world = tmp3.c_str();
+			std::string tmp4 = "input/" + dataset + "/NN/trainX_" + std::to_string(f) + "_" + std::to_string(0) + ".txt";
+			const char* physical_local_seg = tmp4.c_str();
+			std::string tmp5 = "input/" + dataset + "/matrix_S_" + std::to_string(f) + "_" + std::to_string(0) + ".txt";
+			const char* compress_S = tmp5.c_str();
+			std::string tmp6 = "input/" + dataset + "/NN/trainY_" + std::to_string(f) + "_" + std::to_string(0) + ".txt";
+			const char* compress_S_seg = tmp6.c_str();
+			std::string tmp7 = "input/" + dataset + "/NN/angles_" + std::to_string(f) + "_" + std::to_string(0) + ".txt";
+			const char* angles = tmp7.c_str();
+
+			std::ifstream fin1(curvefile_ds);
+			assert(fin1.is_open() && "curvefile_ds file wasn't found!\n");
+			std::ifstream fin3(physical_world);
+			assert(fin3.is_open() && "physical_world file wasn't found!\n");
+			std::ifstream fin4(compress_S);
+			assert(fin4.is_open() && "compress_S file wasn't found!\n");
+
+			std::ifstream fin_dg(physical_world);
+			std::ifstream fin_S(compress_S);
+			std::ofstream fout_dg(physical_local_seg);
+			std::ofstream fout_S(compress_S_seg);
+			std::ofstream fout_angle(angles);
+
+			int seg_subdiv = 5;
+
+
+			HermiteCurve curve;
+			curve.init(curvefile_ds, normfile_ds, seg_subdiv);
+			std::vector<Eigen::Vector3d> all_pts, all_tg, all_norm;
+			curve.assign(all_pts, all_tg, all_norm);
+			//std::cout << "full ********** \n " << all_norm[1] << std::endl << all_norm[2] << std::endl << all_norm[3] << std::endl;
+
+			//std::ofstream fout_TNB("../data/TNB.txt");
+			//for (int i = 50; i < 100; i++) {
+			//	fout_TNB << all_pts[i][0] << " " << all_pts[i][1] << " " << all_pts[i][2] << " " <<
+			//		all_tg[i][0] << " " << all_tg[i][1] << " " << all_tg[i][2] << " " <<
+			//		all_norm[i][0] << " " << all_norm[i][1] << " " << all_norm[i][2] << "\n";
+
+			//}
+
+			HermiteCurve segment;
+			segment.init_seg(curvefile_ds, 1, 4, seg_subdiv);
+			std::vector<Eigen::Vector3d> all_pts_seg, all_tg_seg, all_norm_seg;
+			segment.assign(all_pts_seg, all_tg_seg, all_norm_seg);
+			
+			Eigen::Vector3d cross = all_norm_seg[1].cross(all_norm[2]);
+			std::cout << "seg --- \n " << all_norm_seg[1].dot(all_tg_seg[1]) << std::endl << all_norm[2].dot(all_tg[2]) << std::endl <<  std::endl;
+			//std::cout << "seg --- \n " << cross  << std::endl << all_tg_seg[1] << std::endl;
+			//std::cout << "full ********** \n " << all_tg_seg[1] << std::endl << all_norm[2] << std::endl << all_tg[2] << std::endl;
 
 			break;
 		}

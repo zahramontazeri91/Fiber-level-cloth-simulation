@@ -102,10 +102,10 @@ public:
 
         ret = v.cross(q).cross(v);
         if ( normalize ) {
-			//assert(ret.norm() > HERMITE_EPS && "Either normal or tangent is zero!");
-			ret.normalize();
-            
+			assert(ret.norm() > HERMITE_EPS && "Either normal or tangent is zero!");
+			ret.normalize();            
         }
+		assert(std::abs(ret.dot(v)) < HERMITE_EPS && "normal and tangent are not perpendicular!");
         return ret;
     }
 

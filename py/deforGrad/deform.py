@@ -165,33 +165,33 @@ def main (path, dataset, vrtNum, isTrain, restFrame, firstFrame, lastFrame):
             cntr_n = wrtPath + '/centerYarn_' + str(f) + '_' + str(y) + '_ds.txt'
             
             transform(vrtNum, cntr_0_obj, cntr_n_obj, cntr_n, dg_n, internal_n, physicalParam_trans, def_obj, src_obj, isTrain)
-# In[]:
-skipFactor = 100
-downSample = 1 ###############
-vrtNum = 150
-totalYarn = 1
-isTrain = 0
-if isTrain==1:
-    ifTrain = 'train'
-else:
-    ifTrain = 'test' 
-datatype = 'woven'
-dataset = 'spacing1.0x_00011_woven'
-path = "D:/sandbox/fiberSimulation/dataSets/" + datatype + '/' + ifTrain +'/'+dataset+"/yarn/"
-restFrame = 0
-firstFrame = 0
-lastFrame = 200
-main (path, dataset, vrtNum, isTrain, restFrame, firstFrame, lastFrame)
-############################
-#skipFactor = 500
-#downSample = 2
+## In[]:
+#skipFactor = 100
+#downSample = 1 ###############
 #vrtNum = 150
 #totalYarn = 1
-#isTrain = 1
+#isTrain = 0
 #if isTrain==1:
 #    ifTrain = 'train'
 #else:
-#    ifTrain = 'test'
+#    ifTrain = 'test' 
+#datatype = 'woven'
+#dataset = 'spacing1.0x_00011_woven'
+#path = "D:/sandbox/fiberSimulation/dataSets/" + datatype + '/' + ifTrain +'/'+dataset+"/yarn/"
+#restFrame = 0
+#firstFrame = 0
+#lastFrame = 200
+#main (path, dataset, vrtNum, isTrain, restFrame, firstFrame, lastFrame)
+############################
+skipFactor = 500
+downSample = 1
+vrtNum = 150
+totalYarn = 1
+isTrain = 1
+if isTrain==1:
+    ifTrain = 'train'
+else:
+    ifTrain = 'test'
     
     
 #datatype = 'spacing'
@@ -240,15 +240,15 @@ main (path, dataset, vrtNum, isTrain, restFrame, firstFrame, lastFrame)
 #main (path, dataset, vrtNum, isTrain, restFrame, firstFrame, lastFrame)
 #
 ##########
-#
-#datatype = 'pattern'
-#dataset = 'spacing1.0x_00011'
-#path = "D:/sandbox/fiberSimulation/dataSets/" + datatype + '/' + ifTrain +'/'+dataset+"/yarn/"
-#firstFrame = 8000
-#lastFrame = 17000
-#restFrame = 0
-#main (path, dataset, vrtNum, isTrain,restFrame, firstFrame, lastFrame)
-#
+
+datatype = 'pattern'
+dataset = 'spacing1.0x_00011'
+path = "D:/sandbox/fiberSimulation/dataSets/" + datatype + '/' + ifTrain +'/'+dataset+"/yarn/"
+firstFrame = 17000
+lastFrame = 17000
+restFrame = 0
+main (path, dataset, vrtNum, isTrain,restFrame, firstFrame, lastFrame)
+
 #dataset = 'spacing1.0x_10100'
 #path = "D:/sandbox/fiberSimulation/dataSets/" + datatype + '/' + ifTrain +'/'+dataset+"/yarn/"
 #firstFrame = 8000

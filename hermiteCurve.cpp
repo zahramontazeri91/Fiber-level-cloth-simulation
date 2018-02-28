@@ -13,6 +13,7 @@ void HermiteCurve::init(const char* pntsFILE, const char* normsFILE, int subdiv)
 
     std::vector<Eigen::Vector3d> pts(n), norms(n);
     for ( int i = 0; i < n; ++i ) fin >> pts[i][0] >> pts[i][1] >> pts[i][2];
+
 	assert(pts.size()>2);
 
     init(pts, subdiv);
@@ -78,7 +79,7 @@ void HermiteCurve::init_norm(const char* pntsFILE, const char* normsFILE, int su
 	init_norm(pts, norms, subdiv);
 }
 
-void HermiteCurve::init_window(const char* pntsFILE, const int start, const int end, int subdiv) {
+void HermiteCurve::init_seg(const char* pntsFILE, const int start, const int end, int subdiv) {
 
 	assert(pntsFILE);
 	std::ifstream fin(pntsFILE);
@@ -88,8 +89,8 @@ void HermiteCurve::init_window(const char* pntsFILE, const int start, const int 
 	fin >> n;
 	assert(start <= end);
 
-	const int window_size = end - start + 1;
-	std::vector<Eigen::Vector3d> allPts(n), pts(window_size);
+	const int seg_size = end - start + 1;
+	std::vector<Eigen::Vector3d> allPts(n), pts(seg_size);
 	int j = 0;
 	for (int i = 0; i < n; ++i) {
 		fin >> allPts[i][0] >> allPts[i][1] >> allPts[i][2];
@@ -121,6 +122,25 @@ void HermiteCurve::init_principleNormal(const char* pntsFILE, const char* binorm
 	printBiNormals(binormsFILE, subdiv);
 }
 
+#if 0
+void HermiteCurve::init(const std::vector<Eigen::Vector3d> &pts, int subdiv) //subdiv for each segment
+{
+	initPoints(pts);
+	m_splines[0].build(subdiv, m_splines[0].evalPrincipalNormal(0.0));
+	for (int i = 1; i < m_spline_seg; ++i)
+		m_splines[i].build(subdiv, m_splines[i - 1].evalNormal(1.0));
+
+	m_lens.resize(m_spline_seg);
+	for (int i = 0; i < m_spline_seg; ++i) {
+		m_lens[i] = m_splines[i].totalLength();
+		if (i) m_lens[i] += m_lens[i - 1];
+	}
+
+
+}
+#endif 
+
+#if 1
 void HermiteCurve::init(const std::vector<Eigen::Vector3d> &pts, int subdiv) //subdiv for each segment
 {
 	initPoints(pts);
@@ -159,8 +179,18 @@ void HermiteCurve::init(const std::vector<Eigen::Vector3d> &pts, int subdiv) //s
         m_lens[i] = m_splines[i].totalLength();
         if ( i ) m_lens[i] += m_lens[i - 1];
     }
-}
 
+	//DEBUG:
+	/*NOTE that tg is not perpendicular to norm for t=0 or t=1 exactly. */
+	//Eigen::Vector3d n = m_splines[10].evalNormal(1.0);
+	//Eigen::Vector3d t = m_splines[10].evalTangent(1.0);
+	//std::cout << "hermitecurve build " << n.dot(t) << std::endl;
+
+	//Eigen::Vector3d t0 = m_splines[10].evalTangent(1.0);
+	//Eigen::Vector3d t1 = m_splines[11].evalTangent(0.0);
+	//std::cout << "hermitecurve build \n " << t0 << std::endl << t1 << std::endl;
+}
+#endif
 
 void HermiteCurve::init_norm(const std::vector<Eigen::Vector3d> &pts, const std::vector<Eigen::Vector3d> &norms, int subdiv)
 {
@@ -225,6 +255,31 @@ void HermiteCurve::initPoints(const std::vector<Eigen::Vector3d> &pts)
     }
 }
 
+void HermiteCurve::assign(std::vector<Eigen::Vector3d> &all_pts, std::vector<Eigen::Vector3d> &all_tg, std::vector<Eigen::Vector3d> &all_norm) {
+	all_pts.clear();
+	all_tg.clear();
+	all_norm.clear();
+
+	float t = 0.0;
+
+	for (int i = 0; i < m_splines.size(); ++i) {
+		Eigen::Vector3d pnt = m_splines[i].eval(t);
+		Eigen::Vector3d tg = m_splines[i].evalTangent(t);
+		Eigen::Vector3d norm = m_splines[i].evalNormal(t);
+		//std::cout << norm.dot(tg) << std::endl;
+		///assert(std::abs(norm.dot(tg)) < eps); ## TODO
+		all_pts.push_back(pnt);
+		all_tg.push_back(tg);
+		all_norm.push_back(norm);
+	}
+	int i = m_splines.size() - 1;
+	Eigen::Vector3d pnt = m_splines[i].eval(1);
+	Eigen::Vector3d tg = m_splines[i].evalTangent(1);
+	Eigen::Vector3d norm = m_splines[i].evalNormal(1);
+	all_pts.push_back(pnt);
+	all_tg.push_back(tg);
+	all_norm.push_back(norm);
+}
 
 Eigen::Vector3d HermiteCurve::eval(double t) const
 {

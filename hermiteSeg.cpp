@@ -116,6 +116,7 @@ void HermiteSpline::build(int _subdiv, Eigen::Vector3d _norm0, Eigen::Vector3d _
 		for (int i = 1; i <= subdiv; ++i) {
 			norms[i] = computeRotatedNormal(tangents[i - 1], tangents[i], norms[i - 1]);
 		}
+		//std::cout << "hermiteseg build \n" << norms[0].dot(tangents[0]) << std::endl << norms[10].dot(tangents[10]) << std::endl << std::endl;
     }
 	//use backward-RM if the first normal is given 
 	else {
@@ -355,9 +356,12 @@ Eigen::Vector3d HermiteSpline::computeRotatedNormal(const Eigen::Vector3d &tang0
 	assert(std::abs(norm0.norm() - 1.0) < HERMITE_EPS);
 
     double val = tang0.dot(tang1);
-    if ( val > 1.0 - HERMITE_EPS )
-        return norm0;
-    else if ( val < -1.0 + HERMITE_EPS ) {
+
+	//make sure it doesn't always return without rotating the normal
+	if (val > 1.0 - 1e-7)
+		return norm0;
+
+    else if ( val < -1.0 + 1e-7) {
         fprintf(stderr, "Warning: oppositely pointing tangents\n");
         return -norm0;
     }
