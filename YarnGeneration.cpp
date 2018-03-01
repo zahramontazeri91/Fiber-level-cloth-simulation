@@ -34,6 +34,9 @@ void phase1(const char* yarnfile1, const char* configfile, Fiber::Yarn &yarn, in
 			assert(fin4.is_open() && "physical_world file wasn't found!\n");
 
 			curve.init(curvefile, normfile, seg_subdiv);
+			std::vector<Eigen::Vector3d> all_pts, all_tang, all_norm;
+			curve.assign(all_pts, all_tang, all_norm);
+			assert(all_pts.size() == yarn.getStepNum());
 			//curve.init_principleNormal(curvefile, normfile, seg_subdiv);
 
 
@@ -47,18 +50,24 @@ void phase1(const char* yarnfile1, const char* configfile, Fiber::Yarn &yarn, in
 			float A0, A1, A2;
 			float B0, B1, B2;
 			const int vrtx_num = yarn.getStepNum();
+
 			for (int v = 0; v < vrtx_num; ++v) {
 				fin >> S00 >> S01 >> S02 >> S10 >> S11 >> S12 >> S20 >> S21 >> S22
 					//>> A0 >> A1 >> A2
 					//>> B0 >> B1 >> B2
 					;
 
+				/*
 				const double curveLength = curve.totalLength();
 				float len = curveLength * (static_cast<double>(v) / static_cast<double>(vrtx_num - 1));
 				const double t = curve.arcLengthInvApprox(len);
-
 				Eigen::Vector3d ex, ey, ez;
 				curve.getRotatedFrame(t, ex, ey, ez);
+				*/
+
+				Eigen::Vector3d ez = all_tang[v];
+				Eigen::Vector3d ey = all_norm[v];
+				Eigen::Vector3d ex = ez.cross(ey);
 
 				/** local to world **/
 				Eigen::Matrix3f local, world;
@@ -570,12 +579,12 @@ int main(int argc, const char **argv) {
 	yarn.write_yarn(yarnfile1);
 
 	int yarnNum = 1;
-	int skipFactor = 100;
-	int frame0 = 200 / skipFactor;
-	int frame1 = 200 / skipFactor + 1;
-	std::string dataset = "spacing1.0x_00011_woven";
+	int skipFactor = 500;
+	int frame0 = 17000 / skipFactor;
+	int frame1 = 17000 / skipFactor + 1;
+	std::string dataset = "spacing1.0x_00011";
 
-	int phase = 2;
+	int phase = 1;
 
 	switch (phase) {
 		case 1: {
@@ -603,6 +612,9 @@ int main(int argc, const char **argv) {
 					assert(fin4.is_open() && "physical_world file wasn't found!\n");
 
 					curve.init(curvefile, normfile, seg_subdiv);
+					std::vector<Eigen::Vector3d> all_pts, all_tang, all_norm;
+					curve.assign(all_pts, all_tang, all_norm);
+					assert(all_pts.size() == yarn.getStepNum());
 					//curve.init_principleNormal(curvefile, normfile, seg_subdiv);
 
 
@@ -616,18 +628,24 @@ int main(int argc, const char **argv) {
 					float A0, A1, A2;
 					float B0, B1, B2;
 					const int vrtx_num = yarn.getStepNum();
+					
 					for (int v = 0; v < vrtx_num; ++v) {
 						fin >> S00 >> S01 >> S02 >> S10 >> S11 >> S12 >> S20 >> S21 >> S22
 							//>> A0 >> A1 >> A2
 							//>> B0 >> B1 >> B2
 							;
 
+						/*
 						const double curveLength = curve.totalLength();
 						float len = curveLength * (static_cast<double>(v) / static_cast<double>(vrtx_num - 1));
 						const double t = curve.arcLengthInvApprox(len);
-
 						Eigen::Vector3d ex, ey, ez;
 						curve.getRotatedFrame(t, ex, ey, ez);
+						*/
+
+						Eigen::Vector3d ez = all_tang[v];
+						Eigen::Vector3d ey = all_norm[v];
+						Eigen::Vector3d ex = ez.cross(ey);
 
 						/** local to world **/
 						Eigen::Matrix3f local, world;
@@ -966,8 +984,12 @@ int main(int argc, const char **argv) {
 					std::ifstream fin4(physical_world);
 					assert(fin4.is_open() && "physical_world file wasn't found!\n");
 
-					//curve.init_principleNormal(curvefile, normfile, seg_subdiv);
 					curve.init(curvefile, normfile, seg_subdiv);
+					std::vector<Eigen::Vector3d> all_pts, all_tang, all_norm;
+					curve.assign(all_pts, all_tang, all_norm);
+					assert(all_pts.size() == yarn.getStepNum());
+					//curve.init_principleNormal(curvefile, normfile, seg_subdiv);
+
 
 					std::ifstream fin5(normfile);
 					assert(fin5.is_open() && "normfile file wasn't found!\n");
@@ -979,18 +1001,24 @@ int main(int argc, const char **argv) {
 					float A0, A1, A2;
 					float B0, B1, B2;
 					const int vrtx_num = yarn.getStepNum();
+
 					for (int v = 0; v < vrtx_num; ++v) {
 						fin >> S00 >> S01 >> S02 >> S10 >> S11 >> S12 >> S20 >> S21 >> S22
 							//>> A0 >> A1 >> A2
 							//>> B0 >> B1 >> B2
 							;
 
+						/*
 						const double curveLength = curve.totalLength();
 						float len = curveLength * (static_cast<double>(v) / static_cast<double>(vrtx_num - 1));
 						const double t = curve.arcLengthInvApprox(len);
-
 						Eigen::Vector3d ex, ey, ez;
 						curve.getRotatedFrame(t, ex, ey, ez);
+						*/
+
+						Eigen::Vector3d ez = all_tang[v];
+						Eigen::Vector3d ey = all_norm[v];
+						Eigen::Vector3d ex = ez.cross(ey);
 
 						/** local to world **/
 						Eigen::Matrix3f local, world;
@@ -1460,8 +1488,8 @@ int main(int argc, const char **argv) {
 			std::ifstream fin3(physical_world);
 			assert(fin3.is_open() && "physical_world file wasn't found!\n");
 
-			const int seg_subdiv = 5;
-			const int window_size = 3;
+			const int seg_subdiv = 10;
+			const int window_size = 50;
 			const int isTrain = 0;
 			const float trimPercent = 0.0;
 			const int vrtx_num = 150;
