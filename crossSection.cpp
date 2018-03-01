@@ -45,9 +45,9 @@ void CrossSection::buildPlanes(const int num_planes, std::vector<yarnIntersect> 
 	//const double crossSection_t = m_curve.arcLengthInvApprox(crossSectionLen);
 	m_planesList.resize(num_planes);
 
-	std::vector<Eigen::Vector3d> all_pts, all_tang, all_norm;
-	m_curve.assign(all_pts, all_tang, all_norm);
-	assert(all_pts.size() == num_planes);
+	//std::vector<Eigen::Vector3d> all_pts, all_tang, all_norm;
+	//m_curve.assign(all_pts, all_tang, all_norm);
+	//assert(all_pts.size() == num_planes);
 
 	for (int i = 0; i < num_planes; ++i) {
 		//float current_t = i * crossSection_t;//place plane at the very ends as well
@@ -68,12 +68,12 @@ void CrossSection::buildPlanes(const int num_planes, std::vector<yarnIntersect> 
 		//assert(dot(m_planesList[i].n, m_planesList[i].e1) < EPS  && "n and e1 are not perpendicular\n");
 
 		// use rotated Frenet frame 
-		/*Eigen::Vector3d ex, ey, ez;
-		m_curve.getRotatedFrame(current_t, ex, ey, ez);*/
+		Eigen::Vector3d ex, ey, ez;
+		m_curve.getRotatedFrame(current_t, ex, ey, ez);
 
-		Eigen::Vector3d ez = all_tang[i];
-		Eigen::Vector3d ey = all_norm[i];
-		Eigen::Vector3d ex = ez.cross(ey);
+		//Eigen::Vector3d ez = all_tang[i];
+		//Eigen::Vector3d ey = all_norm[i];
+		//Eigen::Vector3d ex = ez.cross(ey);
 
 		m_planesList[i].point = vec3f(curve_p[0], curve_p[1], curve_p[2]);
 		m_planesList[i].n = vec3f(ez[0], ez[1], ez[2]);
