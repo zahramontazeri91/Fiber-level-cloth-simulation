@@ -184,7 +184,7 @@ def main (path, dataset, vrtNum, isTrain, restFrame, firstFrame, lastFrame):
 #main (path, dataset, vrtNum, isTrain, restFrame, firstFrame, lastFrame)
 ############################
 skipFactor = 500
-downSample = 1
+downSample = 2 ############
 vrtNum = 150
 totalYarn = 1
 isTrain = 1
@@ -244,7 +244,7 @@ else:
 datatype = 'pattern'
 dataset = 'spacing1.0x_00011'
 path = "D:/sandbox/fiberSimulation/dataSets/" + datatype + '/' + ifTrain +'/'+dataset+"/yarn/"
-firstFrame = 8000
+firstFrame = 17000
 lastFrame = 17000
 restFrame = 0
 main (path, dataset, vrtNum, isTrain,restFrame, firstFrame, lastFrame)

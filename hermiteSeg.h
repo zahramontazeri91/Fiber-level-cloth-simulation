@@ -89,7 +89,8 @@ public:
 
 		Eigen::Vector3d ret;
         Eigen::Vector3d q = evalCurvature(t), v = evalTangent(t);
-		
+		q.normalize(); //normalize the curvature before VxQxV 
+
 		//assing a perpendicular vector if q vanishes
 		//assert(q.norm() > HERMITE_EPS); //for now let's assume curves aren't never straight
 		if (q.norm() <= HERMITE_EPS) 

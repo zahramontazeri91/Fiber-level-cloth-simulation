@@ -45,17 +45,22 @@ void CrossSection::buildPlanes(const int num_planes, std::vector<yarnIntersect> 
 	//const double crossSection_t = m_curve.arcLengthInvApprox(crossSectionLen);
 	m_planesList.resize(num_planes);
 
-	//std::vector<Eigen::Vector3d> all_pts, all_tang, all_norm;
-	//m_curve.assign(all_pts, all_tang, all_norm);
-	//assert(all_pts.size() == num_planes);
+	std::vector<Eigen::Vector3d> all_pts, all_tang, all_norm;
+	m_curve.assign(all_pts, all_tang, all_norm);
+	assert(all_pts.size() == num_planes);
 
 	for (int i = 0; i < num_planes; ++i) {
 		//float current_t = i * crossSection_t;//place plane at the very ends as well
 		//float current_t = (i + 1) * crossSection_t;
 
+		/*
 		float len = curveLength * (static_cast<double>(i) / static_cast<double>(num_planes - 1));
 		const double current_t = m_curve.arcLengthInvApprox(len);
 		Eigen::Vector3d curve_p = m_curve.eval(current_t);
+		// use rotated Frenet frame 
+		Eigen::Vector3d ex, ey, ez;
+		m_curve.getRotatedFrame(current_t, ex, ey, ez);
+		m_planesList[i].point = vec3f(curve_p[0], curve_p[1], curve_p[2]);*/
 
 		//Eigen::Vector3d curve_t = m_curve.evalTangent(current_t);
 		//Eigen::Vector3d curve_n = m_curve.evalNormal(current_t);
@@ -67,15 +72,14 @@ void CrossSection::buildPlanes(const int num_planes, std::vector<yarnIntersect> 
 		//m_planesList[i].e2 = vec3f(curve_b[0], curve_b[1], curve_b[2]);
 		//assert(dot(m_planesList[i].n, m_planesList[i].e1) < EPS  && "n and e1 are not perpendicular\n");
 
-		// use rotated Frenet frame 
-		Eigen::Vector3d ex, ey, ez;
-		m_curve.getRotatedFrame(current_t, ex, ey, ez);
 
-		//Eigen::Vector3d ez = all_tang[i];
-		//Eigen::Vector3d ey = all_norm[i];
-		//Eigen::Vector3d ex = ez.cross(ey);
 
-		m_planesList[i].point = vec3f(curve_p[0], curve_p[1], curve_p[2]);
+		Eigen::Vector3d ez = all_tang[i];
+		Eigen::Vector3d ey = all_norm[i];
+		Eigen::Vector3d ex = ez.cross(ey);
+		m_planesList[i].point = vec3f(all_pts[i][0], all_pts[i][1], all_pts[i][2]);
+
+		
 		m_planesList[i].n = vec3f(ez[0], ez[1], ez[2]);
 		m_planesList[i].e1 = vec3f(ex[0], ex[1], ex[2]);
 		m_planesList[i].e2 = vec3f(ey[0], ey[1], ey[2]);
@@ -400,7 +404,7 @@ void CrossSection::yarnShapeMatches_A(const std::vector<yarnIntersect2D> &pnts_t
 		}
 		yarnShapeMatch_A(pnts_trans[i], pnts_ref[i], A);
 		all_A[i] = A;
-
+		//std::cout << "shape-matching for plane " << i << "-th is done!\n";
 	}
 }
 

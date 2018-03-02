@@ -1405,8 +1405,8 @@ namespace Fiber {
 		else
 			//given normals:
 			centerCurve.init_norm(pntsFile, normsFile);
-		//std::vector<Eigen::Vector3d> all_pts, all_tang, all_norm;
-		//centerCurve.assign(all_pts, all_tang, all_norm);
+		std::vector<Eigen::Vector3d> all_pts, all_tang, all_norm;
+		centerCurve.assign(all_pts, all_tang, all_norm);
 
 		double zMin = std::numeric_limits<double>::max(), zMax = std::numeric_limits<double>::lowest();
 		for (const auto &ply : plys)
@@ -1429,18 +1429,20 @@ namespace Fiber {
 			for (auto &fiber : ply.fibers) {
 				int i = 0;
 				for (auto &vertex : fiber.vertices) {
-					double len = curveLength*(vertex.z - zMin) / zSpan;
+					
+					/*double len = curveLength*(vertex.z - zMin) / zSpan;
 					double t = centerCurve.arcLengthInvApprox(len);
-
 					// use rotated Frenet frame 
 					Eigen::Vector3d ex, ey, ez;
 					centerCurve.getRotatedFrame(t, ex, ey, ez);
+					Eigen::Vector3d pos = centerCurve.eval(t);*/
 
-					//Eigen::Vector3d ez = all_tang[i];
-					//Eigen::Vector3d ey = all_norm[i];
-					//Eigen::Vector3d ex = ez.cross(ey);
 
-					Eigen::Vector3d pos = centerCurve.eval(t);
+					Eigen::Vector3d ez = all_tang[i];
+					Eigen::Vector3d ey = all_norm[i];
+					Eigen::Vector3d ex = ez.cross(ey);
+
+					Eigen::Vector3d pos = all_pts[i];
 					Eigen::Vector3d pos1;
 
 

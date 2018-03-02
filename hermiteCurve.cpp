@@ -160,8 +160,11 @@ void HermiteCurve::init(const std::vector<Eigen::Vector3d> &pts, int subdiv) //s
 	if (firstIndx>0)
 		std::cout << firstIndx << "-th vertex has non-vanishing curvature. \n";
 
+	//DEBUG:
 	//Eigen::Vector3d v = m_splines[0].evalTangent(0.0);
-	//std::cout << q.norm() << " " << v.norm() << " " << v.cross(q).cross(v) << " \n (init_principleNormal) \n";
+	//Eigen::Vector3d q = m_splines[0].evalCurvature(0.0);
+	//q.normalize();
+	//std::cout << q.norm() << " \n" << v.norm() << " \n" << v.cross(q).cross(v) << " \n (init_principleNormal) \n";
 	//assert(q.norm() > HERMITE_EPS);
 	//assert(v.norm() > HERMITE_EPS);
 	//assert(v.cross(q).cross(v).norm() > HERMITE_EPS);
@@ -253,6 +256,68 @@ void HermiteCurve::initPoints(const std::vector<Eigen::Vector3d> &pts)
 
         m_splines[i].init(pts[i], pts[i + 1], m0, m1);
     }
+}
+
+void HermiteCurve::assign_upsample(std::vector<Eigen::Vector3d> &all_pts, std::vector<Eigen::Vector3d> &all_tg, std::vector<Eigen::Vector3d> &all_norm) {
+	all_pts.clear();
+	all_tg.clear();
+	all_norm.clear();
+
+	/* upsample a curve by 2 */
+	float t0 = 0.0;
+	float t1 = 0.5;
+
+	//duplicate the last point 
+	int i = 0;
+	Eigen::Vector3d pnt = m_splines[i].eval(0.0);
+	Eigen::Vector3d tg = m_splines[i].evalTangent(0.0);
+	Eigen::Vector3d norm = m_splines[i].evalNormal(0.0);
+	all_pts.push_back(pnt);
+	all_tg.push_back(tg);
+	all_norm.push_back(norm);
+
+	pnt = m_splines[i].eval(0.3);
+	tg = m_splines[i].evalTangent(0.3);
+	norm = m_splines[i].evalNormal(0.3);
+	///assert(std::abs(norm.dot(tg)) < eps); ## TODO
+	all_pts.push_back(pnt);
+	all_tg.push_back(tg);
+	all_norm.push_back(norm);
+
+	pnt = m_splines[i].eval(0.6);
+	tg = m_splines[i].evalTangent(0.6);
+	norm = m_splines[i].evalNormal(0.6);
+	///assert(std::abs(norm.dot(tg)) < eps); ## TODO
+	all_pts.push_back(pnt);
+	all_tg.push_back(tg);
+	all_norm.push_back(norm);
+
+	for (int i = 1; i < m_splines.size(); ++i) {
+		pnt = m_splines[i].eval(t0);
+		tg = m_splines[i].evalTangent(t0);
+		norm = m_splines[i].evalNormal(t0);
+		///assert(std::abs(norm.dot(tg)) < eps); ## TODO
+		all_pts.push_back(pnt);
+		all_tg.push_back(tg);
+		all_norm.push_back(norm);
+
+		pnt = m_splines[i].eval(t1);
+		tg = m_splines[i].evalTangent(t1);
+		norm = m_splines[i].evalNormal(t1);
+		///assert(std::abs(norm.dot(tg)) < eps); ## TODO
+		all_pts.push_back(pnt);
+		all_tg.push_back(tg);
+		all_norm.push_back(norm);
+
+	}
+	i = m_splines.size() - 1;
+	pnt = m_splines[i].eval(1);
+	tg = m_splines[i].evalTangent(1);
+	norm = m_splines[i].evalNormal(1);
+	all_pts.push_back(pnt);
+	all_tg.push_back(tg);
+	all_norm.push_back(norm);
+
 }
 
 void HermiteCurve::assign(std::vector<Eigen::Vector3d> &all_pts, std::vector<Eigen::Vector3d> &all_tg, std::vector<Eigen::Vector3d> &all_norm) {

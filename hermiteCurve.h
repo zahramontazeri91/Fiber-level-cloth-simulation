@@ -73,6 +73,7 @@ public:
 
 	/* assing points, tangents and normals for specific number of points on the curve */
 	void assign(std::vector<Eigen::Vector3d> &all_pts, std::vector<Eigen::Vector3d> &all_tg, std::vector<Eigen::Vector3d> &all_norm);
+	void assign_upsample(std::vector<Eigen::Vector3d> &all_pts, std::vector<Eigen::Vector3d> &all_tg, std::vector<Eigen::Vector3d> &all_norm);
 protected:
     void initPoints(const std::vector<Eigen::Vector3d> &pts);
 
