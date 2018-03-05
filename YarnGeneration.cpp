@@ -9,39 +9,47 @@
 
 void phase1(const char* yarnfile1, const char* configfile, Fiber::Yarn &yarn, int skipFactor, int frame0, int frame1, int yarnNum, std::string &dataset) {
 	std::cout << "*** Convert external force to local coordinate ***\n";
-
 	for (int i = frame0; i < frame1; i++) {
 
 		int f = i * skipFactor;
-
 		HermiteCurve curve;
 		int seg_subdiv = 10;
-
 		for (int y = 0; y < yarnNum; ++y) {
 
-			std::string tmp7 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_ds.txt"; //don't use upsampled centerline
-			const char* curvefile = tmp7.c_str();
-			std::string tmp8 = "input/" + dataset + "/normYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_ds.txt";//don't use upsampled normals
-			const char* normfile = tmp8.c_str();
+			//std::string tmp7 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_ds.txt"; //don't use upsampled centerline
+			//const char* curvefile = tmp7.c_str();
+			//std::string tmp8 = "input/" + dataset + "/normYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_ds.txt";//don't use upsampled normals
+			//const char* normfile = tmp8.c_str();
 			std::string tmp9 = "input/" + dataset + "/physicalParam/physical_" + std::to_string(f) + "_" + std::to_string(y) + "_world.txt";
 			const char* physical_world = tmp9.c_str();
 			std::string tmp10 = "input/" + dataset + "/physical_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
 			const char* physical_local = tmp10.c_str();
 
-			std::ifstream fin3(curvefile);
-			assert(fin3.is_open() && "curvefile file wasn't found!\n");
+			std::string tmp1 = "input/" + dataset + "/normYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_us.txt";
+			const char* normfile_us = tmp1.c_str();
+			std::string tmp2 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_us.txt";
+			const char* curvefile_us = tmp2.c_str();
+
+			std::string tmp5 = "input/" + dataset + "/twist_" + std::to_string(f) + "_" + std::to_string(y) + "_us.txt";
+			const char* twistfile = tmp5.c_str();
+
+			std::ifstream fin2(curvefile_us);
+			assert(fin2.is_open() && "curvefile_us file wasn't found!\n");
+			//std::ifstream fin3(curvefile);
+			//assert(fin3.is_open() && "curvefile file wasn't found!\n");
 			std::ifstream fin4(physical_world);
 			assert(fin4.is_open() && "physical_world file wasn't found!\n");
 
-			curve.init(curvefile, normfile, seg_subdiv);
+			curve.init_norm(curvefile_us, normfile_us, seg_subdiv); /******* Change upsample to downsample *******/
 			std::vector<Eigen::Vector3d> all_pts, all_tang, all_norm;
 			curve.assign(all_pts, all_tang, all_norm);
+			//curve.assign_twist(twistfile, all_pts, all_tang, all_norm, 2);
 			assert(all_pts.size() == yarn.getStepNum());
 			//curve.init_principleNormal(curvefile, normfile, seg_subdiv);
 
 
-			std::ifstream fin5(normfile);
-			assert(fin5.is_open() && "normfile file wasn't found!\n");
+			//std::ifstream fin5(normfile);
+			//assert(fin5.is_open() && "normfile file wasn't found!\n");  
 
 			std::ifstream fin(physical_world);
 			std::ofstream fout(physical_local);
@@ -62,8 +70,8 @@ void phase1(const char* yarnfile1, const char* configfile, Fiber::Yarn &yarn, in
 				float len = curveLength * (static_cast<double>(v) / static_cast<double>(vrtx_num - 1));
 				const double t = curve.arcLengthInvApprox(len);
 				Eigen::Vector3d ex, ey, ez;
-				curve.getRotatedFrame(t, ex, ey, ez);
-				*/
+				curve.getRotatedFrame(t, ex, ey, ez); */
+
 
 				Eigen::Vector3d ez = all_tang[v];
 				Eigen::Vector3d ey = all_norm[v];
@@ -116,10 +124,18 @@ void phase1(const char* yarnfile1, const char* configfile, Fiber::Yarn &yarn, in
 			const char* yarnfile2 = tmp1.c_str();
 			std::string tmp3 = "input/" + dataset + "/matrix_S_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
 			const char* compress_S = tmp3.c_str();
-			std::string tmp4 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_ds.txt";
-			const char* curvefile = tmp4.c_str();
-			std::string tmp5 = "input/" + dataset + "/normYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_ds.txt";
-			const char* normfile = tmp5.c_str();
+			//std::string tmp4 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_ds.txt";
+			//const char* curvefile = tmp4.c_str();
+			//std::string tmp5 = "input/" + dataset + "/normYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_ds.txt";
+			//const char* normfile = tmp5.c_str();
+
+			std::string tmp6 = "input/" + dataset + "/normYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_us.txt";
+			const char* normfile_us = tmp6.c_str();
+			std::string tmp7 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_us.txt";
+			const char* curvefile_us = tmp7.c_str();
+
+			std::string tmp5 = "input/" + dataset + "/twist_" + std::to_string(f) + "_" + std::to_string(y) + "_us.txt";
+			const char* twistfile = tmp5.c_str();
 
 			std::ifstream fin1(yarnfile1);
 			std::ifstream fin2(yarnfile2);
@@ -134,21 +150,27 @@ void phase1(const char* yarnfile1, const char* configfile, Fiber::Yarn &yarn, in
 			//pipeline 2:
 			//extractCompress_seg(configfile, yarnfile0, yarnfile0, deformGrad, compress_S,
 			//curvefile, normfile, yarn.getPlyNum(), vrtx_num);
+			const int upsample = 2;
 			extractCompress_seg(configfile, yarnfile1, yarnfile2, "noNeed.txt", compress_S,
-				curvefile, normfile, yarn.getPlyNum(), vrtx_num);
+				curvefile_us, normfile_us, twistfile, 2, yarn.getPlyNum(), vrtx_num);
 			/*************************************************/
-			std::string tmp6 = "output/" + dataset + "/genYarn_fly_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
-			const char* outfile = tmp6.c_str();
+			std::string tmp8 = "output/" + dataset + "/genYarn_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+			const char* outfile = tmp8.c_str();
 			//// Procedural step
 			yarn.simulate_ply();
 			yarn.write_plys("test_ply.txt");
 			const int K = yarn.getPlyNum();
 			yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
 			yarn.build("test_fly.txt", K);
+
+			////pipeline 2:
+			////yarn.compress_yarn3D(deformGrad, compress_S);
+
 			yarn.compress_yarn_A(compress_S);
-			yarn.curve_yarn(curvefile, normfile);
+			yarn.curve_yarn(curvefile_us, normfile_us);
 			yarn.write_yarn(outfile);
-			/////////*************************************************/
+
+			///////*************************************************/
 			//std::string tmp7 = "output/" + dataset + "/genYarn_wo_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
 			//const char* outfile_wo = tmp7.c_str();
 			//yarn.simulate_ply();
@@ -157,8 +179,6 @@ void phase1(const char* yarnfile1, const char* configfile, Fiber::Yarn &yarn, in
 			//yarn.build("test_fly.txt", K);
 			//yarn.curve_yarn(curvefile, normfile);
 			//yarn.write_yarn(outfile_wo);
-
-
 		}
 	}
 }
@@ -170,48 +190,39 @@ void phase2(const char* yarnfile1, const char* configfile, Fiber::Yarn &yarn, in
 		int f = i * skipFactor;
 		for (int y = 0; y < yarnNum; ++y) {
 
+			std::string tmp1 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_us.txt";
+			const char* curvefile_us = tmp1.c_str();
+			std::string tmp2 = "input/" + dataset + "/normYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_us.txt";
+			const char* normfile_us = tmp2.c_str();
+
 			std::string tmp6 = "input/" + dataset + "/NN/testY_NN_full_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
 			const char* compress_S = tmp6.c_str();
-			std::string tmp7 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_ds.txt";
-			const char* curvefile = tmp7.c_str();
-			std::string tmp8 = "input/" + dataset + "/normYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_ds.txt";
-			const char* normfile = tmp8.c_str();
+			//std::string tmp7 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_ds.txt";
+			//const char* curvefile = tmp7.c_str();
+			//std::string tmp8 = "input/" + dataset + "/normYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_ds.txt";
+			//const char* normfile = tmp8.c_str();
 
 			//std::string tmp9 = "input/" + dataset + "/deformGrad_" + std::to_string(f) + "_trans.txt";
 			//const char* deformGrad = tmp9.c_str();
-
 			std::cout << compress_S << std::endl;
 			std::ifstream fin2(compress_S);
 			assert(fin2.is_open() && "compress_S_NN file wasn't found!\n");
-			std::ifstream fin3(curvefile);
+			std::ifstream fin3(curvefile_us);
 			assert(fin3.is_open() && "curvefile file wasn't found!\n");
-			std::ifstream fin4(normfile);
+			std::ifstream fin4(normfile_us);
 			assert(fin4.is_open() && "normfile file wasn't found!\n");
 
-			//std::string tmp3 = "output/" + dataset + "/genYarn_NN_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
-			//const char* outfile = tmp3.c_str();
-			//// Procedural step
-			//yarn.yarn_simulate();
-			////pipeline 2:
-			////yarn.compress_yarn3D(deformGrad, compress_S);
-			//yarn.compress_yarn_A(compress_S);
-			//yarn.curve_yarn(curvefile, normfile);
-			//yarn.write_yarn(outfile);
-			//std::cout << outfile << std::endl;
-
-			//*************** with fly-aways
-			std::string tmp4 = "output/" + dataset + "/genYarn_NN_flys_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
-			const char* outfile_fly = tmp4.c_str();
+			///*******  write the yarn ******/
+			std::string tmp3 = "output/" + dataset + "/genYarn_NN_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+			const char* outfile = tmp3.c_str();
 			// Procedural step
-			yarn.simulate_ply();
-			yarn.write_plys("test_ply.txt");
-			const int K = yarn.getPlyNum();
-			yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
-			yarn.build("test_fly.txt", K);
+			yarn.yarn_simulate();
+			//pipeline 2:
+			//yarn.compress_yarn3D(deformGrad, compress_S);
 			yarn.compress_yarn_A(compress_S);
-			yarn.curve_yarn(curvefile, normfile);
-			yarn.write_yarn(outfile_fly);
-			std::cout << outfile_fly << std::endl;
+			yarn.curve_yarn(curvefile_us, normfile_us);
+			yarn.write_yarn(outfile);
+			//std::cout << outfile << std::endl;
 
 			/*******  Validate NN by L2-norm ******/
 			//std::string tmp4 = "output/" + dataset + "/genYarn_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
@@ -579,12 +590,13 @@ int main(int argc, const char **argv) {
 	yarn.write_yarn(yarnfile1);
 
 	int yarnNum = 1;
-	int skipFactor = 500;
-	int frame0 = 17000 / skipFactor;
-	int frame1 = 17000 / skipFactor + 1;
-	std::string dataset = "spacing1.0x_00011";
+	int skipFactor = 1;
+	int frame0 = 200 / skipFactor;
+	int frame1 = 200 / skipFactor + 1;
+	std::string dataset = "twist_only";
+	//std::string dataset = "spacing1.0x_00011";
 
-	int phase = 1;
+	int phase = 2;
 
 	switch (phase) {
 		case 0: {
@@ -603,6 +615,8 @@ int main(int argc, const char **argv) {
 					const char* normfile_ds = tmp3.c_str();
 					std::string tmp4 = "input/" + dataset + "/normYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_us.txt";
 					const char* normfile_us = tmp4.c_str();
+					std::string tmp5 = "input/" + dataset + "/twist_" + std::to_string(f) + "_" + std::to_string(y) + "_us.txt";
+					const char* twistfile = tmp5.c_str();
 
 					std::ofstream fout_cntr(curvefile_us);
 					std::ofstream fout_norm(normfile_us);
@@ -612,19 +626,29 @@ int main(int argc, const char **argv) {
 					HermiteCurve curve_ds;
 					curve_ds.init(curvefile_ds, normfile_ds, seg_subdiv);
 					std::vector<Eigen::Vector3d> all_pts, all_tang, all_norm;
-					
+
 					//curve_ds.assign(all_pts, all_tang, all_norm);
-					curve_ds.assign_upsample(all_pts, all_tang, all_norm); //upsample by 2					
+					curve_ds.assign_twist(twistfile, all_pts, all_tang, all_norm, 2);
+					//curve_ds.assign_upsample(all_pts, all_tang, all_norm); //upsample by 2					
+					//curve_ds.twistNormals(twistfile, all_tang, all_norm, all_norm_rot);
 
 					// write up-sampled centerline so later we can crop a segment out of it
 					fout_cntr << vrtx_num << std::endl;
 					fout_norm << vrtx_num << std::endl;
 					for (int v = 0; v < vrtx_num; ++v) {
+
 						fout_cntr << all_pts[v][0] << " " << all_pts[v][1] << " " << all_pts[v][2] << "\n";
 						fout_norm << all_norm[v][0] << " " << all_norm[v][1] << " " << all_norm[v][2] << "\n";
 					}
 					fout_cntr.close();
 					fout_norm.close();
+
+					std::ofstream fout_TNB("../data/TNB.txt");
+					for (int i = 0; i < vrtx_num; i++) {
+						fout_TNB << all_pts[i][0] << " " << all_pts[i][1] << " " << all_pts[i][2] << " " <<
+							all_tang[i][0] << " " << all_tang[i][1] << " " << all_tang[i][2] << " " <<
+							all_norm[i][0] << " " << all_norm[i][1] << " " << all_norm[i][2] << "\n";
+					}
 				}
 
 			}
@@ -632,7 +656,6 @@ int main(int argc, const char **argv) {
 		}
 		case 1: {
 			std::cout << "*** Convert external force to local coordinate ***\n";
-
 			for (int i = frame0; i < frame1; i++) {
 
 				int f = i * skipFactor;
@@ -654,6 +677,9 @@ int main(int argc, const char **argv) {
 					std::string tmp2 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_us.txt";
 					const char* curvefile_us = tmp2.c_str();
 
+					std::string tmp5 = "input/" + dataset + "/twist_" + std::to_string(f) + "_" + std::to_string(y) + "_us.txt";
+					const char* twistfile = tmp5.c_str();
+
 					std::ifstream fin2(curvefile_us);
 					assert(fin2.is_open() && "curvefile_us file wasn't found!\n");
 					//std::ifstream fin3(curvefile);
@@ -661,12 +687,11 @@ int main(int argc, const char **argv) {
 					std::ifstream fin4(physical_world);
 					assert(fin4.is_open() && "physical_world file wasn't found!\n");
 
-					curve.init(curvefile_us, normfile_us, seg_subdiv); /******* Change upsample to downsample *******/
+					curve.init_norm(curvefile_us, normfile_us, seg_subdiv); /******* normals are already twisted *******/
 					std::vector<Eigen::Vector3d> all_pts, all_tang, all_norm;
 					curve.assign(all_pts, all_tang, all_norm);
-					assert(all_pts.size() == yarn.getStepNum());
-					
-					
+					//curve.assign_twist(twistfile, all_pts, all_tang, all_norm, 1);
+					assert(all_pts.size() == yarn.getStepNum());			
 					//curve.init_principleNormal(curvefile, normfile, seg_subdiv);
 
 
@@ -755,6 +780,9 @@ int main(int argc, const char **argv) {
 					const char* normfile_us = tmp6.c_str();
 					std::string tmp7 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_us.txt";
 					const char* curvefile_us = tmp7.c_str();
+					
+					std::string tmp5 = "input/" + dataset + "/twist_" + std::to_string(f) + "_" + std::to_string(y) + "_us.txt";
+					const char* twistfile = tmp5.c_str();
 
 					std::ifstream fin1(yarnfile1);
 					std::ifstream fin2(yarnfile2);
@@ -769,8 +797,9 @@ int main(int argc, const char **argv) {
 					//pipeline 2:
 					//extractCompress_seg(configfile, yarnfile0, yarnfile0, deformGrad, compress_S,
 					//curvefile, normfile, yarn.getPlyNum(), vrtx_num);
+					//const int upsample = 2;
 					extractCompress_seg(configfile, yarnfile1, yarnfile2, "noNeed.txt", compress_S,
-						curvefile_us, normfile_us, yarn.getPlyNum(), vrtx_num);
+						curvefile_us, normfile_us, twistfile, 2, yarn.getPlyNum(), vrtx_num);
 					/*************************************************/
 					std::string tmp8 = "output/" + dataset + "/genYarn_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
 					const char* outfile = tmp8.c_str();
@@ -808,21 +837,26 @@ int main(int argc, const char **argv) {
 				int f = i * skipFactor;
 				for (int y = 0; y < yarnNum; ++y) {
 
+					std::string tmp1 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_us.txt";
+					const char* curvefile_us = tmp1.c_str();
+					std::string tmp2 = "input/" + dataset + "/normYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_us.txt";
+					const char* normfile_us = tmp2.c_str();
+
 					std::string tmp6 = "input/" + dataset + "/NN/testY_NN_full_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
 					const char* compress_S = tmp6.c_str();
-					std::string tmp7 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_ds.txt";
-					const char* curvefile = tmp7.c_str();
-					std::string tmp8 = "input/" + dataset + "/normYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_ds.txt";
-					const char* normfile = tmp8.c_str();
+					//std::string tmp7 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_ds.txt";
+					//const char* curvefile = tmp7.c_str();
+					//std::string tmp8 = "input/" + dataset + "/normYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_ds.txt";
+					//const char* normfile = tmp8.c_str();
 
 					//std::string tmp9 = "input/" + dataset + "/deformGrad_" + std::to_string(f) + "_trans.txt";
 					//const char* deformGrad = tmp9.c_str();
 					std::cout << compress_S << std::endl;
 					std::ifstream fin2(compress_S);
 					assert(fin2.is_open() && "compress_S_NN file wasn't found!\n");
-					std::ifstream fin3(curvefile);
+					std::ifstream fin3(curvefile_us);
 					assert(fin3.is_open() && "curvefile file wasn't found!\n");
-					std::ifstream fin4(normfile);
+					std::ifstream fin4(normfile_us);
 					assert(fin4.is_open() && "normfile file wasn't found!\n");
 
 					///*******  write the yarn ******/
@@ -833,9 +867,9 @@ int main(int argc, const char **argv) {
 					//pipeline 2:
 					//yarn.compress_yarn3D(deformGrad, compress_S);
 					yarn.compress_yarn_A(compress_S);
-					yarn.curve_yarn(curvefile, normfile);
+					yarn.curve_yarn(curvefile_us, normfile_us);
 					yarn.write_yarn(outfile);
-					std::cout << outfile << std::endl;
+					//std::cout << outfile << std::endl;
 
 					//*************** with fly-aways
 					//std::string tmp4 = "output/" + dataset + "/genYarn_NN_flys_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
@@ -1020,36 +1054,48 @@ int main(int argc, const char **argv) {
 			break;
 		}
 		case 5: {
-			std::cout << "*** Convert external force to local coordinate (for test data) ***\n";
+			std::cout << "*** Convert external force to local coordinate ***\n";
 			for (int i = frame0; i < frame1; i++) {
+
 				int f = i * skipFactor;
 				HermiteCurve curve;
 				int seg_subdiv = 10;
 				for (int y = 0; y < yarnNum; ++y) {
 
-					std::string tmp7 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_ds.txt"; //don't use upsampled centerline
-					const char* curvefile = tmp7.c_str();
-					std::string tmp8 = "input/" + dataset + "/normYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_ds.txt";//don't use upsampled normals
-					const char* normfile = tmp8.c_str();
+					//std::string tmp7 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_ds.txt"; //don't use upsampled centerline
+					//const char* curvefile = tmp7.c_str();
+					//std::string tmp8 = "input/" + dataset + "/normYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_ds.txt";//don't use upsampled normals
+					//const char* normfile = tmp8.c_str();
 					std::string tmp9 = "input/" + dataset + "/physicalParam/physical_" + std::to_string(f) + "_" + std::to_string(y) + "_world.txt";
 					const char* physical_world = tmp9.c_str();
 					std::string tmp10 = "input/" + dataset + "/physical_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
 					const char* physical_local = tmp10.c_str();
 
-					std::ifstream fin3(curvefile);
-					assert(fin3.is_open() && "curvefile file wasn't found!\n");
+					std::string tmp1 = "input/" + dataset + "/normYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_us.txt";
+					const char* normfile_us = tmp1.c_str();
+					std::string tmp2 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_us.txt";
+					const char* curvefile_us = tmp2.c_str();
+
+					std::string tmp5 = "input/" + dataset + "/twist_" + std::to_string(f) + "_" + std::to_string(y) + "_us.txt";
+					const char* twistfile = tmp5.c_str();
+
+					std::ifstream fin2(curvefile_us);
+					assert(fin2.is_open() && "curvefile_us file wasn't found!\n");
+					//std::ifstream fin3(curvefile);
+					//assert(fin3.is_open() && "curvefile file wasn't found!\n");
 					std::ifstream fin4(physical_world);
 					assert(fin4.is_open() && "physical_world file wasn't found!\n");
 
-					curve.init(curvefile, normfile, seg_subdiv);
+					curve.init_norm(curvefile_us, normfile_us, seg_subdiv); /******* normals are already twisted *******/
 					std::vector<Eigen::Vector3d> all_pts, all_tang, all_norm;
 					curve.assign(all_pts, all_tang, all_norm);
+					//curve.assign_twist(twistfile, all_pts, all_tang, all_norm, 1);
 					assert(all_pts.size() == yarn.getStepNum());
 					//curve.init_principleNormal(curvefile, normfile, seg_subdiv);
 
 
-					std::ifstream fin5(normfile);
-					assert(fin5.is_open() && "normfile file wasn't found!\n");
+					//std::ifstream fin5(normfile);
+					//assert(fin5.is_open() && "normfile file wasn't found!\n");  
 
 					std::ifstream fin(physical_world);
 					std::ofstream fout(physical_local);
@@ -1070,8 +1116,8 @@ int main(int argc, const char **argv) {
 						float len = curveLength * (static_cast<double>(v) / static_cast<double>(vrtx_num - 1));
 						const double t = curve.arcLengthInvApprox(len);
 						Eigen::Vector3d ex, ey, ez;
-						curve.getRotatedFrame(t, ex, ey, ez);
-						*/
+						curve.getRotatedFrame(t, ex, ey, ez); */
+
 
 						Eigen::Vector3d ez = all_tang[v];
 						Eigen::Vector3d ey = all_norm[v];
@@ -1101,13 +1147,14 @@ int main(int argc, const char **argv) {
 						//localA = M*worldA;
 						//localB = M*worldB;
 						//fout << localA(0) << " " << localA(1) << " " << localA(2) << " " <<
-							//localB(0) << " " << localB(1) << " " << localB(2) ;
+						//localB(0) << " " << localB(1) << " " << localB(2) ;
 
 						fout << std::endl;
 					}
 					fout.close();
 				}
 			}
+
 			break;
 		}
 		case 6: {
@@ -1523,10 +1570,17 @@ int main(int argc, const char **argv) {
 		case 13: {
 			std::cout << "*** Build training data - new *** \n";
 
+			std::string tmp0 = "input/" + dataset + "/NN/trainX_all.txt";
+			const char* all_trainX = tmp0.c_str();
+			std::string tmp1 = "input/" + dataset + "/NN/trainY_all.txt";
+			const char* all_trainY = tmp1.c_str();
+			std::ofstream fout_trainX_all(all_trainX);
+			std::ofstream fout_trainY_all(all_trainY);
+
 			int f = 200;
 
-			std::string tmp0 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_" + std::to_string(0) + "_ds.txt";
-			const char* curvefile_ds = tmp0.c_str();
+			//std::string tmp0 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_" + std::to_string(0) + "_ds.txt";
+			//const char* curvefile_ds = tmp0.c_str();
 			std::string tmp2 = "input/" + dataset + "/normYarn_" + std::to_string(f) + "_" + std::to_string(0) + "_ds.txt";
 			const char* normfile_ds = tmp2.c_str();
 			std::string tmp3 = "input/" + dataset + "/physicalParam/physical_" + std::to_string(f) + "_" + std::to_string(0) + "_world.txt";
@@ -1540,8 +1594,16 @@ int main(int argc, const char **argv) {
 			std::string tmp7 = "input/" + dataset + "/NN/angles_" + std::to_string(f) + "_" + std::to_string(0) + ".txt";
 			const char* angles = tmp7.c_str();
 
-			std::ifstream fin1(curvefile_ds);
-			assert(fin1.is_open() && "curvefile_ds file wasn't found!\n");
+			std::string tmp8 = "input/" + dataset + "/twist_" + std::to_string(f) + "_" + std::to_string(0) + "_us.txt";
+			const char* twistfile = tmp8.c_str();
+			std::string tmp9 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_" + std::to_string(0) + "_us.txt";
+			const char* curvefile_us = tmp9.c_str();
+			std::string tmp10 = "input/" + dataset + "/normYarn_" + std::to_string(f) + "_" + std::to_string(0) + "_us.txt";
+			const char* normfile_us = tmp10.c_str();
+
+
+			//std::ifstream fin1(curvefile_ds);
+			//assert(fin1.is_open() && "curvefile_ds file wasn't found!\n");
 			std::ifstream fin3(physical_world);
 			assert(fin3.is_open() && "physical_world file wasn't found!\n");
 
@@ -1549,7 +1611,7 @@ int main(int argc, const char **argv) {
 			const int window_size = 50;
 			const int isTrain = 0;
 			const float trimPercent = 0.0;
-			const int vrtx_num = 150;
+			const int vrtx_num = yarn.getStepNum();
 
 			std::ofstream fout_trainX(physical_local_seg);
 			std::ofstream fout_trainY(compress_S_seg);
@@ -1562,11 +1624,14 @@ int main(int argc, const char **argv) {
 			if (isTrain) {
 				assign_S(compress_S, all_S);
 			}
+			std::vector<float> twists;
+			assign_twist(twistfile, twists);
 
 			HermiteCurve curve;
-			curve.init(curvefile_ds, normfile_ds, seg_subdiv);
+			curve.init_norm(curvefile_us, normfile_us, seg_subdiv);
 			std::vector<Eigen::Vector3d> all_pts, all_tang, all_norm;
 			curve.assign(all_pts, all_tang, all_norm);
+			//curve.assign_twist(twists, all_pts, all_tang, all_norm, 2);
 
 			/* window-level */
 			const int ignorPlanes = trimPercent * vrtx_num; // crop the first and last #% of the yarn
@@ -1578,9 +1643,13 @@ int main(int argc, const char **argv) {
 				const int end = w + (window_size - 1);
 
 				HermiteCurve segment;
-				segment.init_seg(curvefile_ds, start, end, seg_subdiv);
+				segment.init_seg(curvefile_us, start, end, seg_subdiv);
 				std::vector<Eigen::Vector3d> all_pts_seg, all_tang_seg, all_norm_seg;
-				segment.assign(all_pts_seg, all_tang_seg, all_norm_seg);
+				//segment.assign(all_pts_seg, all_tang_seg, all_norm_seg);
+				std::vector<float>::const_iterator first = twists.begin() + start;
+				std::vector<float>::const_iterator last = twists.begin() + end + 1;
+				std::vector<float> twists_seg(first, last);
+				segment.assign_twist(twists_seg, all_pts_seg, all_tang_seg, all_norm_seg, 1);
 
 				std::vector<Eigen::Matrix3f> all_dg_seg, all_local_dg_seg;
 				for (int d = start; d <= end; d++) all_dg_seg.push_back(all_dg[d]);
@@ -1594,8 +1663,12 @@ int main(int argc, const char **argv) {
 					fout_trainX << local_dg(0, 0) << " " << local_dg(0, 1) << " " << local_dg(0, 2) << " " <<
 						local_dg(1, 0) << " " << local_dg(1, 1) << " " << local_dg(1, 2) << " " <<
 						local_dg(2, 0) << " " << local_dg(2, 1) << " " << local_dg(2, 2) << " ";
+					fout_trainX_all << local_dg(0, 0) << " " << local_dg(0, 1) << " " << local_dg(0, 2) << " " <<
+						local_dg(1, 0) << " " << local_dg(1, 1) << " " << local_dg(1, 2) << " " <<
+						local_dg(2, 0) << " " << local_dg(2, 1) << " " << local_dg(2, 2) << " ";
 				}
 				fout_trainX << "\n";
+				fout_trainX_all << "\n";
 
 				const int v_yarn = ceil((start + end) / 2.0);
 				const int v_seg = ceil((end - start) / 2.0);
@@ -1612,9 +1685,11 @@ int main(int argc, const char **argv) {
 					Eigen::Matrix2f S_local;
 					rotate_S_2local(all_S[v_yarn], S_local, angle);
 					fout_trainY << S_local(0, 0) << " " << S_local(0, 1) << " " << S_local(1, 0) << " " << S_local(1, 1) << "\n";
+					fout_trainY_all << S_local(0, 0) << " " << S_local(0, 1) << " " << S_local(1, 0) << " " << S_local(1, 1) << "\n";
 				}
 			}
-
+			fout_trainX_all.close();
+			fout_trainY_all.close();
 			fout_trainX.close();
 			fout_trainY.close();
 			fout_angle.close();
@@ -1631,7 +1706,6 @@ int main(int argc, const char **argv) {
 			//	fout_TNB << all_pts[i][0] << " " << all_pts[i][1] << " " << all_pts[i][2] << " " <<
 			//		all_tg[i][0] << " " << all_tg[i][1] << " " << all_tg[i][2] << " " <<
 			//		all_norm[i][0] << " " << all_norm[i][1] << " " << all_norm[i][2] << "\n";
-
 			//}
 			break;
 		}

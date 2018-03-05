@@ -122,6 +122,7 @@ void HermiteCurve::init_principleNormal(const char* pntsFILE, const char* binorm
 	printBiNormals(binormsFILE, subdiv);
 }
 
+
 #if 0
 void HermiteCurve::init(const std::vector<Eigen::Vector3d> &pts, int subdiv) //subdiv for each segment
 {
@@ -346,6 +347,104 @@ void HermiteCurve::assign(std::vector<Eigen::Vector3d> &all_pts, std::vector<Eig
 	all_norm.push_back(norm);
 }
 
+void HermiteCurve::assign_twist(const char* twistFile, std::vector<Eigen::Vector3d> &all_pts, std::vector<Eigen::Vector3d> &all_tg, 
+	std::vector<Eigen::Vector3d> &all_norm_rot, const int upsample) {
+	all_pts.clear();
+	all_tg.clear();
+	all_norm_rot.clear();
+	std::vector<Eigen::Vector3d> all_norm;
+
+	float t0 = 0.0;
+	for (int i = 0; i < m_splines.size(); ++i) {
+		Eigen::Vector3d pnt = m_splines[i].eval(t0);
+		Eigen::Vector3d tg = m_splines[i].evalTangent(t0);
+		Eigen::Vector3d norm = m_splines[i].evalNormal(t0);
+		all_pts.push_back(pnt);
+		all_tg.push_back(tg);
+		all_norm.push_back(norm);
+		if (i == 0) {
+			for (int d = 1; d < 2* upsample - 1; d++) { // for upsampling, one sample will already counted for t=0
+				float t = float(d) * (1.0 / (2.0*upsample - 1) );
+				pnt = m_splines[i].eval(t);
+				tg = m_splines[i].evalTangent(t);
+				norm = m_splines[i].evalNormal(t);
+				all_pts.push_back(pnt);
+				all_tg.push_back(tg);
+				all_norm.push_back(norm);
+			}
+			continue;
+		}
+		for (int d = 1; d < upsample; d++) {
+			float t = float(d) * ( 1.0 / upsample);
+			pnt = m_splines[i].eval(t);
+			tg = m_splines[i].evalTangent(t);
+			norm = m_splines[i].evalNormal(t);
+			all_pts.push_back(pnt);
+			all_tg.push_back(tg);
+			all_norm.push_back(norm);
+		}
+	}
+	int i = m_splines.size() - 1 ; //last segment
+	Eigen::Vector3d pnt = m_splines[i].eval(1);
+	Eigen::Vector3d tg = m_splines[i].evalTangent(1);
+	Eigen::Vector3d norm = m_splines[i].evalNormal(1);
+	all_pts.push_back(pnt);
+	all_tg.push_back(tg);
+	all_norm.push_back(norm);
+
+	/* twist the normals by the angles */
+	//all_norm_rot = all_norm;
+	twistNormals(twistFile, all_tg, all_norm, all_norm_rot);
+}
+void HermiteCurve::assign_twist(const std::vector<float> &twists, std::vector<Eigen::Vector3d> &all_pts, std::vector<Eigen::Vector3d> &all_tg,
+	std::vector<Eigen::Vector3d> &all_norm_rot, const int upsample) {
+	all_pts.clear();
+	all_tg.clear();
+	all_norm_rot.clear();
+	std::vector<Eigen::Vector3d> all_norm;
+
+	float t0 = 0.0;
+	for (int i = 0; i < m_splines.size(); ++i) {
+		Eigen::Vector3d pnt = m_splines[i].eval(t0);
+		Eigen::Vector3d tg = m_splines[i].evalTangent(t0);
+		Eigen::Vector3d norm = m_splines[i].evalNormal(t0);
+		all_pts.push_back(pnt);
+		all_tg.push_back(tg);
+		all_norm.push_back(norm);
+		if (i == 0) {
+			for (int d = 1; d < 2 * upsample - 1; d++) { // for upsampling, one sample will already counted for t=0
+				float t = float(d) * (1.0 / (2.0*upsample - 1));
+				pnt = m_splines[i].eval(t);
+				tg = m_splines[i].evalTangent(t);
+				norm = m_splines[i].evalNormal(t);
+				all_pts.push_back(pnt);
+				all_tg.push_back(tg);
+				all_norm.push_back(norm);
+			}
+			continue;
+		}
+		for (int d = 1; d < upsample; d++) {
+			float t = float(d) * (1.0 / upsample);
+			pnt = m_splines[i].eval(t);
+			tg = m_splines[i].evalTangent(t);
+			norm = m_splines[i].evalNormal(t);
+			all_pts.push_back(pnt);
+			all_tg.push_back(tg);
+			all_norm.push_back(norm);
+		}
+	}
+	int i = m_splines.size() - 1; //last segment
+	Eigen::Vector3d pnt = m_splines[i].eval(1);
+	Eigen::Vector3d tg = m_splines[i].evalTangent(1);
+	Eigen::Vector3d norm = m_splines[i].evalNormal(1);
+	all_pts.push_back(pnt);
+	all_tg.push_back(tg);
+	all_norm.push_back(norm);
+
+	/* twist the normals by the angles */
+	twistNormals(twists, all_tg, all_norm, all_norm_rot);
+}
+
 Eigen::Vector3d HermiteCurve::eval(double t) const
 {
     assert(m_spline_seg > 0);
@@ -455,4 +554,59 @@ void HermiteCurve::getRotatedFrame(double t, Eigen::Vector3d &ex, Eigen::Vector3
 	assert(ex.norm() - 1.f < 1e-5);
 	assert(ey.norm() - 1.f < 1e-5);
 	assert(ez.norm() - 1.f < 1e-5);
+}
+
+Eigen::Vector3d HermiteCurve::rotVec3(const float angle, const Eigen::Vector3d &axis, const Eigen::Vector3d &vec) {
+	//using "rotation about an arbitrary axis"
+	const float C = cos(angle);
+	const float S = sin(angle);
+	const float t = 1.0 - cos(angle);
+	const float ux = axis[0];
+	const float uy = axis[1];
+	const float uz = axis[2];
+
+	Eigen::Matrix3d M;
+	M << t*ux*ux + C, t*ux*uy - S*uz, t*ux*uz + S*uy,
+		t*ux*uy + S*uz, t*uy*uy + C, t*uy*uz - S*ux,
+		t*ux*uz - S*uy, t*uy*uz + S*ux, t*uz*uz + C;
+
+	return  M*vec;
+}
+
+void HermiteCurve::twistNormals(const char* twistFile, const std::vector<Eigen::Vector3d> &all_tg, const std::vector<Eigen::Vector3d> &all_norm, std::vector<Eigen::Vector3d> &all_norm_rot) {
+
+	std::ifstream fin(twistFile);
+	assert(fin.is_open() && "twist-file is not found!\n");
+	int n=0;
+	fin >> n;
+
+	std::cout << "twistNormals " << all_tg.size() << " " << all_norm.size() << std::endl;
+	assert(n == all_tg.size() && n == all_norm.size());
+	for (int i = 0; i < n; i++) {
+
+		float twist;
+		fin >> twist;
+
+		const Eigen::Vector3d  norm_rot = rotVec3(twist, all_tg[i], all_norm[i]);
+		all_norm_rot.push_back(norm_rot);
+
+	}
+}
+
+void HermiteCurve::twistNormals(const std::vector<float> &twists, const std::vector<Eigen::Vector3d> &all_tg,
+	const std::vector<Eigen::Vector3d> &all_norm, std::vector<Eigen::Vector3d> &all_norm_rot) {
+
+	int n = twists.size();
+	if (n != all_tg.size() || n != all_norm.size())
+		std::cout << "n: " << n << " all_tg: " << all_tg.size() << " all_norm: " << all_norm.size();
+	assert(n == all_tg.size() && n == all_norm.size());
+
+	for (int i = 0; i < n; i++) {
+
+		float twist;
+		twist = twists[i];
+
+		const Eigen::Vector3d  norm_rot = rotVec3(twist, all_tg[i], all_norm[i]);
+		all_norm_rot.push_back(norm_rot);
+	}
 }

@@ -11,7 +11,7 @@ void decomposeS(const Matrix_S &mat_S, Ellipse &ellipse);
 void writeParameters(std::vector<Matrix_S> &all_mat_S, std::vector<float> &all_theta_R, const char* compress_R, const char* compress_S);
 
 void extractCompress_seg(const char* configfile, const char* yarnfile1, const char* yarnfile2, const char* deformGrad, const char* compress_S,
-	const char* curveFile, const char* normFile, const int ply_num, const int vrtx_num );
+	const char* curveFile, const char* normFile, const char* twistFile, const int upsample, const int ply_num, const int vrtx_num );
 
 //void constFitting_compParam(const std::vector<Ellipse> &ellipses, const std::vector<float> &theta_R,
 	//const float trimPercent, Fiber::Yarn::Compress &compress);
@@ -36,6 +36,7 @@ void nonPeriodicTheta(const std::vector<float> &theta, std::vector<float> &theta
 /****** Preparing data for training *****/
 void assign_dg(const char* physical_world, std::vector<Eigen::Matrix3f> &all_world_dg);
 void assign_S(const char* compress_S, std::vector<Eigen::Matrix2f> &all_S);
+void assign_twist(const char* twistFile, std::vector<float> &twists);
 void transfer_dg_2local(std::vector<Eigen::Vector3d> &all_tang, std::vector<Eigen::Vector3d> &all_norm,
 	std::vector<Eigen::Matrix3f> &all_world_dg, std::vector<Eigen::Matrix3f> &all_local_dg);
 void rotate_S_2local (Eigen::Matrix2f &S, Eigen::Matrix2f &S_local, float &angle);

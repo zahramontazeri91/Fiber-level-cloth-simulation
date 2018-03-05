@@ -18,6 +18,17 @@ CrossSection::CrossSection(const Fiber::Yarn &yarn) {
 }
 #endif
 
+void CrossSection::init(const int upsample, const char* yarnfile, const int ply_num, const char* curvefile, const char* normfile, const char* twistfile,
+	const int seg_subdiv, const int num_planes, std::vector<yarnIntersect2D> &allPlaneIntersect) {
+	m_yarn.build(yarnfile, ply_num);
+	//TODO: pass this to the func
+	m_curve.init(curvefile, normfile, seg_subdiv);
+	std::vector<yarnIntersect> itsLists;
+	buildPlanes(num_planes, itsLists, twistfile, upsample);
+	std::cout << "Finding the intersections with the cross-sectional plane... \n";
+	PlanesIntersections2D(itsLists, allPlaneIntersect);
+}
+
 void CrossSection::init(const char* yarnfile, const int ply_num, const char* curvefile, const char* normfile,
 	const int seg_subdiv, const int num_planes, std::vector<yarnIntersect2D> &allPlaneIntersect) {
 	m_yarn.build(yarnfile, ply_num);
@@ -36,6 +47,42 @@ void CrossSection::init_norm(const char* yarnfile, const int ply_num, const char
 	buildPlanes(num_planes, itsLists);
 	std::cout << "Finding the intersections with the cross-sectional plane... \n";
 	PlanesIntersections2D(itsLists, allPlaneIntersect);
+}
+
+void CrossSection::buildPlanes(const int num_planes, std::vector<yarnIntersect> &itsLists, const char* twistFile, const int upsample) { //TODO: merge it with next func
+	
+	m_planesList.resize(num_planes);
+	std::vector<Eigen::Vector3d> all_pts, all_tang, all_norm;
+	//m_curve.assign(all_pts, all_tang, all_norm);
+	m_curve.assign_twist(twistFile, all_pts, all_tang, all_norm, upsample);
+	assert(all_pts.size() == num_planes);
+
+	for (int i = 0; i < num_planes; ++i) {
+
+		Eigen::Vector3d ez = all_tang[i];
+		Eigen::Vector3d ey = all_norm[i];
+		Eigen::Vector3d ex = ez.cross(ey);
+		m_planesList[i].point = vec3f(all_pts[i][0], all_pts[i][1], all_pts[i][2]);
+
+
+		m_planesList[i].n = vec3f(ez[0], ez[1], ez[2]);
+		m_planesList[i].e1 = vec3f(ex[0], ex[1], ex[2]);
+		m_planesList[i].e2 = vec3f(ey[0], ey[1], ey[2]);
+
+		//std::cout << ez[0] << "  " << ez[1] << "  " << ez[2] << std::endl;
+		//std::cout << ex[0] << "  " << ex[1] << "  " << ex[2] << std::endl;
+		//std::cout << ey[0] << "  " << ey[1] << "  " << ey[2] << std::endl;
+		//std::cout << std::endl;
+
+	}
+	std::vector<std::vector<vec3f>> plyCenters;
+	allPlyCenters(plyCenters, itsLists);
+	// Define inplane 2D coord using the direction from yarn-center to intersection of first ply-center 
+	for (int i = 0; i < num_planes; ++i) {
+		// plyCenters[i][0] - m_planesList[i].point is too small so its dot product with n doesn't show they are perpendicular (e1.n !=0 )
+		//m_planesList[i].e1 = nv::normalize(plyCenters[i][0] - m_planesList[i].point);
+		//m_planesList[i].e2 = cross(m_planesList[i].n, m_planesList[i].e1);
+	}
 }
 
 void CrossSection::buildPlanes(const int num_planes, std::vector<yarnIntersect> &itsLists) {

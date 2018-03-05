@@ -11,7 +11,7 @@ def rotationFromVectors(a, b):
     V = np.array([[0.0, -v[2], v[1]], [v[2], 0.0, -v[0]], [-v[1], v[0], 0.0]])
     return np.identity(3) + V + np.dot(V, V)/(1.0 + c)
 
-def transform(vrtNum, cntr_0_obj, cntr_n_obj, cntr_n, dg_n, internal_n, physicalParam_trans, def_obj, src_obj, isTrain):
+def transform(vrtNum, cntr_0_obj, cntr_n_obj, cntr_n, twist_n, dg_n, internal_n, physicalParam_trans, def_obj, src_obj, isTrain):
     pts0 = []
     with open(cntr_0_obj, "r") as fin:
         while True:
@@ -24,8 +24,10 @@ def transform(vrtNum, cntr_0_obj, cntr_n_obj, cntr_n, dg_n, internal_n, physical
                 break               
                 
     pts1 = []
+    twist = []
     with open(cntr_n_obj, "r") as fin:
         with open(cntr_n, "w") as fout:
+            pre = 0
             fout.writelines('%d \n' % (vrtNum) )
             while True:
                 line = fin.readline()
@@ -33,6 +35,8 @@ def transform(vrtNum, cntr_0_obj, cntr_n_obj, cntr_n, dg_n, internal_n, physical
                     break
                 val = np.array([float(x) for x in line[1:].strip().split()])
                 pts1.append(val[0 : 3])
+                pre = pre + val[3]
+                twist.append(pre)
                 fout.writelines('%.8f %.8f %.8f \n' % (val[0]*0.25, val[1]*0.25, val[2]*0.25) )
                 if len(pts1) == vrtNum:
                     break 
@@ -96,15 +100,19 @@ def transform(vrtNum, cntr_0_obj, cntr_n_obj, cntr_n, dg_n, internal_n, physical
 
     fiber_length = vrtNum *downSample                
     with open(physicalParam_trans, "w") as fout1:
+        with open(twist_n, "w") as fout_twist:
+            fout_twist.writelines('%d \n' %fiber_length)
             for j in range(0, fiber_length):
                 k = np.searchsorted(fidx, j)
                 if k == 0:
+                    theta = twist[0]
                     R0 = R[0]
                     t0 = t[0]
                     if hasInternal==1:
                         S0 = stretch[0]
                         B0 = bend[0] 
                 elif k >= n:
+                    theta = twist[n-1]
                     R0 = R[n - 1]
                     t0 = t[n - 1]
                     if hasInternal==1:
@@ -112,6 +120,7 @@ def transform(vrtNum, cntr_0_obj, cntr_n_obj, cntr_n, dg_n, internal_n, physical
                         B0 = bend[n - 1]                        
                 else:
                     w = (fidx[k] - j)/(fidx[k] - fidx[k - 1])
+                    theta = w*twist[k - 1] + (1.0 - w)*twist[k]
                     R0 = w*R[k - 1] + (1.0 - w)*R[k]
                     t0 = w*t[k - 1] + (1.0 - w)*t[k]       
                     if hasInternal==1:
@@ -124,6 +133,10 @@ def transform(vrtNum, cntr_0_obj, cntr_n_obj, cntr_n, dg_n, internal_n, physical
                     fout1.writelines('%.8f %.8f %.8f ' % (S0[0], S0[1], S0[2] ) )
                     fout1.writelines('%.8f %.8f %.8f' % (B0[0], B0[1], B0[2] ) )
                 fout1.writelines('\n')
+                
+                fout_twist.writelines('%.8f \n' %theta)
+                
+                
     
     if (isTrain==1):    
         with open(def_obj, "w") as fout:
@@ -163,11 +176,28 @@ def main (path, dataset, vrtNum, isTrain, restFrame, firstFrame, lastFrame):
             wrtPath = "D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/" + dataset
             physicalParam_trans = wrtPath + "/physicalParam/physical_"+str(f) + '_' + str(y)+"_world.txt"
             cntr_n = wrtPath + '/centerYarn_' + str(f) + '_' + str(y) + '_ds.txt'
-            
-            transform(vrtNum, cntr_0_obj, cntr_n_obj, cntr_n, dg_n, internal_n, physicalParam_trans, def_obj, src_obj, isTrain)
-## In[]:
+            twist_n = wrtPath + '/twist_' + str(f) + '_' + str(y) + '_us.txt'
+            transform(vrtNum, cntr_0_obj, cntr_n_obj, cntr_n, twist_n, dg_n, internal_n, physicalParam_trans, def_obj, src_obj, isTrain)
+# In[]:
+skipFactor = 1
+downSample = 2 ###############
+vrtNum = 150
+totalYarn = 1
+isTrain = 0
+if isTrain==1:
+    ifTrain = 'train'
+else:
+    ifTrain = 'test' 
+datatype = 'twist'
+dataset = 'twist_only'
+path = "D:/sandbox/fiberSimulation/dataSets/" + datatype + '/' + ifTrain +'/'+dataset+"/yarn/"
+restFrame = 0
+firstFrame = 0
+lastFrame = 249
+main (path, dataset, vrtNum, isTrain, restFrame, firstFrame, lastFrame)
+############################       
 #skipFactor = 100
-#downSample = 1 ###############
+#downSample = 2 ###############
 #vrtNum = 150
 #totalYarn = 1
 #isTrain = 0
@@ -241,13 +271,13 @@ else:
 #
 ##########
 
-datatype = 'pattern'
-dataset = 'spacing1.0x_00011'
-path = "D:/sandbox/fiberSimulation/dataSets/" + datatype + '/' + ifTrain +'/'+dataset+"/yarn/"
-firstFrame = 17000
-lastFrame = 17000
-restFrame = 0
-main (path, dataset, vrtNum, isTrain,restFrame, firstFrame, lastFrame)
+#datatype = 'pattern'
+#dataset = 'spacing1.0x_00011'
+#path = "D:/sandbox/fiberSimulation/dataSets/" + datatype + '/' + ifTrain +'/'+dataset+"/yarn/"
+#firstFrame = 0
+#lastFrame = 0
+#restFrame = 0
+#main (path, dataset, vrtNum, isTrain,restFrame, firstFrame, lastFrame)
 
 #dataset = 'spacing1.0x_10100'
 #path = "D:/sandbox/fiberSimulation/dataSets/" + datatype + '/' + ifTrain +'/'+dataset+"/yarn/"

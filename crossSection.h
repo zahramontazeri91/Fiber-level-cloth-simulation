@@ -36,6 +36,13 @@ class CrossSection {
 public:
 
 	/* constructor for simulated yarn */
+	CrossSection(const int upsample, const char* yarnfile, const char* curvefile, const char* normfile, const char* twistfile, int ply_num, int plane_num,
+		int subdiv_curve, std::vector<yarnIntersect2D> &allPlaneIntersect, const bool hasNorm = false) {
+		if (hasNorm) //constructor if having normfile as input
+			init_norm(yarnfile, ply_num, curvefile, normfile, subdiv_curve, plane_num, allPlaneIntersect);
+		else
+			init(upsample, yarnfile, ply_num, curvefile, normfile, twistfile, subdiv_curve, plane_num, allPlaneIntersect);
+	}
 	CrossSection(const char* yarnfile, const char* curvefile, const char* normfile, int ply_num, int plane_num, 
 		int subdiv_curve, std::vector<yarnIntersect2D> &allPlaneIntersect, const bool hasNorm = false) {
 		if (hasNorm) //constructor if having normfile as input
@@ -56,9 +63,14 @@ public:
 		yarn2crossSections(allPlaneIntersect);
 	}
 
-	void init (const char* yarnfile, const int ply_num, const char* curvefile, const char* normfile, const int subdiv, const int num_planes, std::vector<yarnIntersect2D> &allPlaneIntersect);
-	void init_norm(const char* yarnfile, const int ply_num, const char* curvefile, const char* normfile, const int subdiv, const int num_planes, std::vector<yarnIntersect2D> &allPlaneIntersect);
+	void init(const int upsample, const char* yarnfile, const int ply_num, const char* curvefile, const char* normfile, 
+		const char* twistfile, const int subdiv, const int num_planes, std::vector<yarnIntersect2D> &allPlaneIntersect);
+	void init (const char* yarnfile, const int ply_num, const char* curvefile, const char* normfile, const int subdiv, 
+		const int num_planes, std::vector<yarnIntersect2D> &allPlaneIntersect);
+	void init_norm(const char* yarnfile, const int ply_num, const char* curvefile, const char* normfile, const int subdiv,
+		const int num_planes, std::vector<yarnIntersect2D> &allPlaneIntersect);
 	void buildPlanes (const int num_planes, std::vector<yarnIntersect> &itsLists);
+	void buildPlanes(const int num_planes, std::vector<yarnIntersect> &itsLists, const char* twistFile, const int downsample);
 	/* Intersection between a segment, defined between start to end, with a plane */
 	bool linePlaneIntersection (const vec3f &start, const vec3f &end, const Plane &plane, vec3f &its);
 	/* Intersection between the yarn (multiple plys) and a plane, Results will be stored in a vector< vector<vec3f> >  */

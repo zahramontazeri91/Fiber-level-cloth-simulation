@@ -54,7 +54,7 @@ void decomposeS(const Matrix_S &mat_S, Ellipse &ellipse) {
 
 
 void extractCompress_seg(const char* configfile, const char* yarnfile1, const char* yarnfile2, const char* deformGrad, const char* compress_S,
-	const char* curveFile, const char* normFile, const int ply_num, const int vrtx_num)
+	const char* curveFile, const char* normFile, const char* twistFile, const int upsample, const int ply_num, const int vrtx_num)
 {
 	const int n = vrtx_num;
 	
@@ -81,7 +81,8 @@ void extractCompress_seg(const char* configfile, const char* yarnfile1, const ch
 	//Fiber::Yarn yarn_tmp;
 	//yarn_tmp.yarnCenter(yarnfile2, curveFile);
 	std::vector<yarnIntersect2D> pnts_trans;
-	CrossSection cs2(yarnfile2, curveFile, normFile, ply_num, n, 100, pnts_trans, true);  //changed this to true 
+	CrossSection cs2(yarnfile2, curveFile, normFile, ply_num, n, 100, pnts_trans, true);
+	//CrossSection cs2(upsample, yarnfile2, curveFile, normFile, twistFile, ply_num, n, 100, pnts_trans, true);  //changed this to true 
 
 	std::vector<Eigen::Matrix2f> all_A;
 	cs2.yarnShapeMatches_A(pnts_trans, pnts_ref, all_A);
@@ -307,6 +308,19 @@ void assign_S(const char* compress_S, std::vector<Eigen::Matrix2f> &all_S) {
 	}
 
 	fin.close();
+}
+
+void assign_twist(const char* twistFile, std::vector<float> &twists) {
+	std::ifstream fin(twistFile);
+	assert(fin.is_open() && "twist-file is not found!\n");
+
+	int n = 0;
+	fin >> n;
+	for (int i = 0; i < n; i++) {
+		float twist;
+		fin >> twist;
+		twists.push_back(twist);
+	}
 }
 
 void transfer_dg_2local(std::vector<Eigen::Vector3d> &all_tang, std::vector<Eigen::Vector3d> &all_norm, 

@@ -29,7 +29,6 @@ public:
 	//init4: generate normals for a segment of the curve [a,b]
 	void init_seg(const char* pntsFILE, const int start, const int end, int subdiv);
 
-
 	Eigen::Vector3d eval(double t) const;
 	Eigen::Vector3d evalTangent(double t, bool normalize = true) const;
 	Eigen::Vector3d evalCurvature(double t) const;
@@ -74,6 +73,18 @@ public:
 	/* assing points, tangents and normals for specific number of points on the curve */
 	void assign(std::vector<Eigen::Vector3d> &all_pts, std::vector<Eigen::Vector3d> &all_tg, std::vector<Eigen::Vector3d> &all_norm);
 	void assign_upsample(std::vector<Eigen::Vector3d> &all_pts, std::vector<Eigen::Vector3d> &all_tg, std::vector<Eigen::Vector3d> &all_norm);
+	void assign_twist(const char* twistFile, std::vector<Eigen::Vector3d> &all_pts, std::vector<Eigen::Vector3d> &all_tg, 
+		std::vector<Eigen::Vector3d> &all_norm_twist, const int downsample);
+	void assign_twist(const std::vector<float> &twists, std::vector<Eigen::Vector3d> &all_pts, std::vector<Eigen::Vector3d> &all_tg,
+		std::vector<Eigen::Vector3d> &all_norm_rot, const int downsample);
+
+	/* rotate normals along tangent by the twisting angle */
+	Eigen::Vector3d rotVec3(const float angle, const Eigen::Vector3d &axis, const Eigen::Vector3d &vec);
+	void twistNormals(const char* twistFile, const std::vector<Eigen::Vector3d> &all_tg, const std::vector<Eigen::Vector3d> &all_norm, 
+		std::vector<Eigen::Vector3d> &all_norm_rot);
+	void twistNormals(const std::vector<float> &twists, const std::vector<Eigen::Vector3d> &all_tg,
+		const std::vector<Eigen::Vector3d> &all_norm, std::vector<Eigen::Vector3d> &all_norm_rot);
+
 protected:
     void initPoints(const std::vector<Eigen::Vector3d> &pts);
 
