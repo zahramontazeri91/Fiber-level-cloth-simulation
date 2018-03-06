@@ -196,20 +196,18 @@ nb_output, model, window_size = evaluate(nb_features, fn_trainX, fn_trainY)
 # predict test data
 yarnNum = 1
 skipFactor = 500        
-firstFrame = 0
-lastFrame = 0
+firstFrame = 17000
+lastFrame = 17000
 totalNum = 300 ################# NOTE: downsampled
-dataset = 'spacing1.0x_00011'
+dataset = 'yarn4/spacing1.0x/00011'
 path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
 frame0 = int(firstFrame/skipFactor)
 frame1 = int(lastFrame/skipFactor + 1)
 for i in range (frame0, frame1):
     f = i*skipFactor
     for y in range (0,yarnNum):
-        print('***********')
         X_test = np.loadtxt(path + "trainX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
         X_test_ = X_test.reshape(X_test.shape[0], window_size, nb_features)
-        print(path + "trainX_" + str(f) + '_' + str(y) + ".txt")
         Y_test_NN = model.predict(X_test_) 
 #        Y_test_NN = np.loadtxt(path + "trainY_" + str(f) + '_' + str(y) + ".txt", delimiter=None)
         anglesFile = path + "angles_" + str(f) + '_' + str(y) + ".txt"
@@ -219,7 +217,35 @@ for i in range (frame0, frame1):
         Y_test_NN_total = extrapolate(Y_test_NN_rot, totalNum, nb_output, 1)
         filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
         np.savetxt(path + filename, Y_test_NN_total, fmt='%.6f', delimiter=' ')
-#
+#####################################
+        
+# In[]:
+# predict test data
+#yarnNum = 1
+#skipFactor = 1        
+#firstFrame = 240
+#lastFrame = 240
+#totalNum = 300 ################# NOTE: downsampled
+#dataset = 'twist_only'
+#path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+#frame0 = int(firstFrame/skipFactor)
+#frame1 = int(lastFrame/skipFactor + 1)
+#for i in range (frame0, frame1):
+#    f = i*skipFactor
+#    for y in range (0,yarnNum):
+#        X_test = np.loadtxt(path + "trainX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
+#        X_test_ = X_test.reshape(X_test.shape[0], window_size, nb_features)
+#        Y_test_NN = model.predict(X_test_) 
+##        Y_test_NN = np.loadtxt(path + "trainY_" + str(f) + '_' + str(y) + ".txt", delimiter=None)
+#        anglesFile = path + "angles_" + str(f) + '_' + str(y) + ".txt"
+#        angles = np.loadtxt(anglesFile, delimiter=None)
+#        Y_test_NN_rot = rotate(Y_test_NN, angles)
+##        Y_test_NN_rot = Y_test_NN
+#        Y_test_NN_total = extrapolate(Y_test_NN_rot, totalNum, nb_output, 1)
+#        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
+#        np.savetxt(path + filename, Y_test_NN_total, fmt='%.6f', delimiter=' ')
+#################################
+        
 ### predict test data
 #yarnNum = 1
 #skipFactor = 100        

@@ -580,7 +580,7 @@ void HermiteCurve::twistNormals(const char* twistFile, const std::vector<Eigen::
 	int n=0;
 	fin >> n;
 
-	std::cout << "twistNormals " << all_tg.size() << " " << all_norm.size() << std::endl;
+	//std::cout << "twistNormals " << all_tg.size() << " " << all_norm.size() << std::endl;
 	assert(n == all_tg.size() && n == all_norm.size());
 	for (int i = 0; i < n; i++) {
 
