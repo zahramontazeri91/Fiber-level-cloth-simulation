@@ -22,110 +22,127 @@ int main(int argc, const char **argv) {
 	yarn.yarn_simulate();
 	yarn.write_yarn(yarnfile1);
 
-	int phase = 1;
+	int phase = 2;
 
 	switch (phase) {
 		case 1: {
 			const int yarnNum = 1;
-			const int skipFactor = 500;
+			int skipFactor = 500;
 
 			/**************** RUN ALL ****************/
-			const int frame0 = 17000 / skipFactor ;
-			const int isTrain = 1;
+			int frame0 = 0 / skipFactor ;
+			int isTrain = 1;
 			const int window_size = 50;
-			const float trimPercent = 0.1;
+			float trimPercent = 0.1;
 
 			std::cout << " ********************** spacing0.5x *********************** \n" << std::endl;
-			std::string dataset = "yarn4/spacing0.5x/10";
+			std::string dataset = "pattern/yarn4/spacing0.5x/10";
 			int frame1 = 14000 / skipFactor + 1;
 			//full_pipeline(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset, isTrain, window_size, trimPercent);
-			dataset = "yarn4/spacing0.5x/00011";
+			dataset = "pattern/yarn4/spacing0.5x/00011";
 			frame1 = 16000 / skipFactor + 1;
 			//full_pipeline(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset, isTrain, window_size, trimPercent);
-			dataset = "yarn4/spacing0.5x/10100";
+			dataset = "pattern/yarn4/spacing0.5x/10100";
 			frame1 = 15000 / skipFactor + 1;
 			//full_pipeline(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset, isTrain, window_size, trimPercent);
-			dataset = "yarn4/spacing0.5x/11110";
+			dataset = "pattern/yarn4/spacing0.5x/11110";
 			frame1 = 15000 / skipFactor + 1;
 			//full_pipeline(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset, isTrain, window_size, trimPercent);
 			
 			std::cout << " ********************** spacing1.0x *********************** \n" << std::endl;
-			dataset = "yarn4/spacing1.0x/10";
+			dataset = "pattern/yarn4/spacing1.0x/10";
 			frame1 = 14500 / skipFactor + 1;
 			//full_pipeline(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset, isTrain, window_size, trimPercent);
-			dataset = "yarn4/spacing1.0x/00011";
+			dataset = "pattern/yarn4/spacing1.0x/00011";
 			frame1 = 17000 / skipFactor + 1;
-			full_pipeline(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset, isTrain, window_size, trimPercent);
-			dataset = "yarn4/spacing1.0x/10100";
+			//full_pipeline(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset, isTrain, window_size, trimPercent);
+			dataset = "pattern/yarn4/spacing1.0x/10100";
 			frame1 = 15500 / skipFactor + 1;
 			//full_pipeline(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset, isTrain, window_size, trimPercent);
-			dataset = "yarn4/spacing1.0x/11110";
+			dataset = "pattern/yarn4/spacing1.0x/11110";
 			frame1 = 16000 / skipFactor + 1;
 			//full_pipeline(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset, isTrain, window_size, trimPercent);
 			
 			std::cout << " ********************** spacing1.5x *********************** \n" << std::endl;
-			dataset = "yarn4/spacing1.5x/10";
+			dataset = "pattern/yarn4/spacing1.5x/10";
 			frame1 = 15000 / skipFactor + 1;
 			//full_pipeline(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset, isTrain, window_size, trimPercent);
-			dataset = "yarn4/spacing1.5x/00011";
+			dataset = "pattern/yarn4/spacing1.5x/00011";
 			frame1 = 17500 / skipFactor + 1;
 			//full_pipeline(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset, isTrain, window_size, trimPercent);
-			dataset = "yarn4/spacing1.5x/10100";
+			dataset = "pattern/yarn4/spacing1.5x/10100";
 			frame1 = 16000 / skipFactor + 1;
 			//full_pipeline(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset, isTrain, window_size, trimPercent);
-			dataset = "yarn4/spacing1.5x/11110";
+			dataset = "pattern/yarn4/spacing1.5x/11110";
 			frame1 = 16500 / skipFactor + 1;
 			//full_pipeline(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset, isTrain, window_size, trimPercent);
+
+
+			std::cout << " ********************** woven *********************** \n" << std::endl;
+			skipFactor = 100;
+			isTrain = 0;
+			dataset = "woven/yarn4/spacing1.0x/00011";
+			frame0 = 0 / skipFactor;
+			frame1 = 0 / skipFactor + 1;
+			trimPercent = 0.0;
+			full_pipeline(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset, isTrain, window_size, trimPercent);
 
 			break;
 		}
 		case 2: {
 			const int yarnNum = 1;
-			const int skipFactor = 500;
+			int skipFactor = 500;
 			/**************** RUN ALL ****************/
-			const int frame0 = 17000 / skipFactor;		
+			int frame0 = 17000 / skipFactor;		
 
 			std::cout << " ********************** spacing0.5x *********************** \n" << std::endl;
-			std::string dataset = "yarn4/spacing0.5x/10";
+			std::string dataset = "pattern/yarn4/spacing0.5x/10";
 			int frame1 = 14000 / skipFactor + 1;
 			//step3_NN_output(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-			dataset = "yarn4/spacing0.5x/00011";
+			dataset = "pattern/yarn4/spacing0.5x/00011";
 			frame1 = 16000 / skipFactor + 1;
 			//step3_NN_output(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-			dataset = "yarn4/spacing0.5x/10100";
+			dataset = "pattern/yarn4/spacing0.5x/10100";
 			frame1 = 15000 / skipFactor + 1;
 			//step3_NN_output(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-			dataset = "yarn4/spacing0.5x/11110";
+			dataset = "pattern/yarn4/spacing0.5x/11110";
 			frame1 = 15000 / skipFactor + 1;
 			//step3_NN_output(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
 			
 			std::cout << " ********************** spacing1.0x *********************** \n" << std::endl;
-			dataset = "yarn4/spacing1.0x/10";
+			dataset = "pattern/yarn4/spacing1.0x/10";
 			frame1 = 14500 / skipFactor + 1;
 			//step3_NN_output(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-			dataset = "yarn4/spacing1.0x/00011";
+			dataset = "pattern/yarn4/spacing1.0x/00011";
 			frame1 = 17000 / skipFactor + 1;
-			step3_NN_output(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-			dataset = "yarn4/spacing1.0x/10100";
+			//step3_NN_output(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+			dataset = "pattern/yarn4/spacing1.0x/10100";
 			frame1 = 15500 / skipFactor + 1;
 			//step3_NN_output(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-			dataset = "yarn4/spacing1.0x/11110";
+			dataset = "pattern/yarn4/spacing1.0x/11110";
 			frame1 = 16000 / skipFactor + 1;
 			//step3_NN_output(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
 
 			std::cout << " ********************** spacing1.5x *********************** \n"<< std::endl;
-			dataset = "yarn4/spacing1.5x/10";
+			dataset = "pattern/yarn4/spacing1.5x/10";
 			frame1 = 15000 / skipFactor + 1;
 			//step3_NN_output(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-			dataset = "yarn4/spacing1.5x/00011";
+			dataset = "pattern/yarn4/spacing1.5x/00011";
 			frame1 = 17500 / skipFactor + 1;
 			//step3_NN_output(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-			dataset = "yarn4/spacing1.5x/10100";
+			dataset = "pattern/yarn4/spacing1.5x/10100";
 			frame1 = 16000 / skipFactor + 1;
 			//step3_NN_output(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-			dataset = "yarn4/spacing1.5x/11110";
+			dataset = "pattern/yarn4/spacing1.5x/11110";
 			frame1 = 16500 / skipFactor + 1;
 			//step3_NN_output(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+
+			std::cout << " ********************** woven *********************** \n" << std::endl;
+			skipFactor = 100;
+			dataset = "woven/yarn4/spacing1.0x/00011";
+			frame0 = 0 / skipFactor;
+			frame1 = 0 / skipFactor + 1;
+			step3_NN_output(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
 
 			break;
 		}

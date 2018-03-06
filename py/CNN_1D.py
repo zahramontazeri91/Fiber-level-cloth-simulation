@@ -174,19 +174,20 @@ def appendTrainingData(datasets, w_path, fn_trainX, fn_trainY):
         
 # In[] 
 datasets = []
-w_path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'
-#datasets.append('spacing0.5x_00011')
-#datasets.append('spacing0.5x_10100')
-#datasets.append('spacing0.5x_11110')
-datasets.append('spacing1.0x_00011')
-#datasets.append('spacing1.0x_10100')
-#datasets.append('spacing1.0x_11110')
-#datasets.append('spacing1.5x_00011')
-#datasets.append('spacing1.5x_10100')
-#datasets.append('spacing1.5x_11110')
+config = 'pattern/yarn4/'
+w_path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/' + config
+#datasets.append('spacing0.5x/00011')
+#datasets.append('spacing0.5x/10100')
+#datasets.append('spacing0.5x/11110')
+datasets.append('spacing1.0x/00011')
+#datasets.append('spacing1.0x/10100')
+#datasets.append('spacing1.0x/11110')
+#datasets.append('spacing1.5x/00011')
+#datasets.append('spacing1.5x/10100')
+#datasets.append('spacing1.5x/11110')
 
-fn_trainX = w_path + "all/NN/trainX_all.txt"
-fn_trainY = w_path + "all/NN/trainY_all.txt"
+fn_trainX = w_path + "train_all/trainX_all.txt"
+fn_trainY = w_path + "train_all/trainY_all.txt"
 appendTrainingData(datasets, w_path, fn_trainX, fn_trainY)
 
 nb_features = 9                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
@@ -199,14 +200,14 @@ skipFactor = 500
 firstFrame = 17000
 lastFrame = 17000
 totalNum = 300 ################# NOTE: downsampled
-dataset = 'yarn4/spacing1.0x/00011'
+dataset = 'pattern/yarn4/spacing1.0x/00011'
 path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
 frame0 = int(firstFrame/skipFactor)
 frame1 = int(lastFrame/skipFactor + 1)
 for i in range (frame0, frame1):
     f = i*skipFactor
     for y in range (0,yarnNum):
-        X_test = np.loadtxt(path + "trainX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
+        X_test = np.loadtxt(path + "testX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
         X_test_ = X_test.reshape(X_test.shape[0], window_size, nb_features)
         Y_test_NN = model.predict(X_test_) 
 #        Y_test_NN = np.loadtxt(path + "trainY_" + str(f) + '_' + str(y) + ".txt", delimiter=None)
@@ -233,7 +234,7 @@ for i in range (frame0, frame1):
 #for i in range (frame0, frame1):
 #    f = i*skipFactor
 #    for y in range (0,yarnNum):
-#        X_test = np.loadtxt(path + "trainX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
+#        X_test = np.loadtxt(path + "testX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
 #        X_test_ = X_test.reshape(X_test.shape[0], window_size, nb_features)
 #        Y_test_NN = model.predict(X_test_) 
 ##        Y_test_NN = np.loadtxt(path + "trainY_" + str(f) + '_' + str(y) + ".txt", delimiter=None)

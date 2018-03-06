@@ -647,6 +647,8 @@ void step2_buildTrainData(Fiber::Yarn &yarn, int skipFactor, int frame0, int fra
 			std::string tmp10 = "input/" + dataset + "/normYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_us.txt";
 			const char* normfile_us = tmp10.c_str();
 
+			std::string tmp11 = "input/" + dataset + "/NN/testX_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+			const char* physical_local_seg_test = tmp11.c_str();
 
 			//std::ifstream fin1(curvefile_ds);
 			//assert(fin1.is_open() && "curvefile_ds file wasn't found!\n");
@@ -655,6 +657,7 @@ void step2_buildTrainData(Fiber::Yarn &yarn, int skipFactor, int frame0, int fra
 
 			const int vrtx_num = yarn.getStepNum();
 
+			std::ofstream fout_testX(physical_local_seg_test);
 			std::ofstream fout_trainX(physical_local_seg);
 			std::ofstream fout_trainY(compress_S_seg);
 			std::ofstream fout_angle(angles);
@@ -730,6 +733,17 @@ void step2_buildTrainData(Fiber::Yarn &yarn, int skipFactor, int frame0, int fra
 					fout_trainY << S_local(0, 0) << " " << S_local(0, 1) << " " << S_local(1, 0) << " " << S_local(1, 1) << "\n";
 					fout_trainY_all << S_local(0, 0) << " " << S_local(0, 1) << " " << S_local(1, 0) << " " << S_local(1, 1) << "\n";
 				}
+
+				/******** write test data *******/
+				for (int d = 0; d < window_size; d++) {
+					Eigen::Matrix3f local_dg = all_local_dg_seg[d];
+					fout_testX << local_dg(0, 0) << " " << local_dg(0, 1) << " " << local_dg(0, 2) << " " <<
+						local_dg(1, 0) << " " << local_dg(1, 1) << " " << local_dg(1, 2) << " " <<
+						local_dg(2, 0) << " " << local_dg(2, 1) << " " << local_dg(2, 2) << " ";
+				}
+				fout_testX << "\n";
+
+
 #if 1 /* augment the training */
 				for (int d = 0; d < window_size; d++) {
 					Eigen::Matrix3f local_dg = all_local_dg_seg_flip[d];
@@ -752,8 +766,10 @@ void step2_buildTrainData(Fiber::Yarn &yarn, int skipFactor, int frame0, int fra
 #endif
 
 			}
+
 			fout_trainX_all.close();
 			fout_trainY_all.close();
+			fout_testX.close();
 			fout_trainX.close();
 			fout_trainY.close();
 			fout_angle.close();
