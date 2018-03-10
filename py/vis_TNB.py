@@ -24,7 +24,7 @@ for i in range(0, n):
     norm /= np.linalg.norm(norm)
     binorm = np.cross(tang, norm)
     binorm /= np.linalg.norm(binorm)
-#    assert (np.dot(binorm, norm) < 0.00001 and np.dot(binorm, tang) < 0.00001 and np.dot(tang, norm)<0.0001)
+    assert (np.dot(binorm, norm) < 0.0001 and np.dot(binorm, tang) < 0.0001 and np.dot(tang, norm)<0.001)
 #    print(np.dot(binorm, norm), np.dot(binorm, tang), np.dot(tang, norm))
 
     ax.plot([data[i, 0], data[i, 0] + L*tang[0]], \

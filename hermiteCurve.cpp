@@ -20,6 +20,7 @@ void HermiteCurve::init(const char* pntsFILE, const char* normsFILE, int subdiv)
 	printNormals(normsFILE, subdiv);
 }
 
+// not using this anymore
 void HermiteCurve::printBiNormals(const char* binormsFILE, const int subdiv) {
 	assert(binormsFILE);
 	std::ofstream fout(binormsFILE);
@@ -392,7 +393,7 @@ void HermiteCurve::assign_twist(const char* twistFile, std::vector<Eigen::Vector
 	all_tg.push_back(tg);
 	all_norm.push_back(norm);
 
-	/* twist the normals by the angles */
+	/* twist the normals by the twisting angles */
 	//all_norm_rot = all_norm;
 	twistNormals(twistFile, all_tg, all_norm, all_norm_rot);
 }

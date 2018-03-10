@@ -331,11 +331,23 @@ void transfer_dg_2local(const std::vector<Eigen::Vector3d> &all_tang, const std:
 	Eigen::Vector3d ex, ey, ez;
 	for (int i = 0; i < n; i++) {
 
-		ez = all_tang[i];
-		if (flip)
+		
+		if (flip == 1) { //flip normal
+			ez = all_tang[i];
 			ey = -1.0*all_norm[i];
-		else
+		}
+		else if (flip == 2) { //flip tangent
+			ez = -1.0*all_tang[i];
 			ey = all_norm[i];
+		}
+		else if (flip == 3) { //flip tangent
+			ez = -1.0*all_tang[i];
+			ey = -1.0*all_norm[i];
+		}
+		else {
+			ez = all_tang[i];
+			ey = all_norm[i];
+		}
 		ex = ez.cross(ey);			
 
 		/** world to local **/
@@ -351,15 +363,23 @@ void transfer_dg_2local(const std::vector<Eigen::Vector3d> &all_tang, const std:
 
 void rotate_S_2local(const Eigen::Matrix2f &S, Eigen::Matrix2f &S_local, const float &angle, const int flip) {
 
-	Eigen::Matrix2f R;
+	Eigen::Matrix2f R, A;
+
 	R << cos(angle), -sin(angle),
 		sin(angle), cos(angle);
 	S_local = R*S* R.transpose();
 
-	// if normal is flipped, then S needs to be rotated around center by 180deg R=[-1, 0; 0, -1]
-	if (flip) {
-		S_local = -1.0 * S_local;
-	}
+	if (flip == 1) //flip normal
+		A << -1, 0, 0, -1;
+	else if (flip == 2)  //flip tangent
+		A << 1, 0, 0, -1;
+	else if (flip == 3)  //flip tangent and normal
+		A << -1, 0, 0, -1;
+	else 
+		A << 1, 0, 0, 1;
+
+	S_local = A*S_local*A.transpose();
+
 }
 
 float get_angle(Eigen::Vector3d &norm1, Eigen::Vector3d &norm2, Eigen::Vector3d &tang) {
@@ -611,19 +631,12 @@ void step1_shapematching(const char* yarnfile1, const char* configfile, Fiber::Y
 	}
 }
 void step2_buildTrainData(Fiber::Yarn &yarn, int skipFactor, int frame0, int frame1, int yarnNum, std::string &dataset, const int isTrain, const int window_size, const float trimPercent) {
-	std::cout << "*** Build training data - new *** \n";
+	std::cout << "*** Build training data  *** \n";
 
 	for (int i = frame0; i < frame1; i++) {
 		int f = i * skipFactor;
 		int seg_subdiv = 10;
 		for (int y = 0; y < yarnNum; ++y) {
-
-			std::string tmp0 = "input/" + dataset + "/NN/trainX_all.txt";
-			const char* all_trainX = tmp0.c_str();
-			std::string tmp1 = "input/" + dataset + "/NN/trainY_all.txt";
-			const char* all_trainY = tmp1.c_str();
-			std::ofstream fout_trainX_all(all_trainX);
-			std::ofstream fout_trainY_all(all_trainY);
 
 			//std::string tmp0 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_" + std::to_string(0) + "_ds.txt";
 			//const char* curvefile_ds = tmp0.c_str();
@@ -700,21 +713,19 @@ void step2_buildTrainData(Fiber::Yarn &yarn, int skipFactor, int frame0, int fra
 				std::vector<Eigen::Matrix3f> all_dg_seg; 
 				for (int d = start; d <= end; d++) all_dg_seg.push_back(all_dg[d]);
 
-				std::vector<Eigen::Matrix3f> all_local_dg_seg, all_local_dg_seg_flip;
+				std::vector<Eigen::Matrix3f> all_local_dg_seg, all_local_dg_seg_flip_norm, all_local_dg_seg_flip_tang, all_local_dg_seg_flip_both;
 				transfer_dg_2local(all_tang_seg, all_norm_seg, all_dg_seg, all_local_dg_seg, 0);
-				transfer_dg_2local(all_tang_seg, all_norm_seg, all_dg_seg, all_local_dg_seg_flip, 1); //augment the data by including the flipped normals
+				transfer_dg_2local(all_tang_seg, all_norm_seg, all_dg_seg, all_local_dg_seg_flip_norm, 1); //augment the data by including the flipped normals
+				transfer_dg_2local(all_tang_seg, all_norm_seg, all_dg_seg, all_local_dg_seg_flip_tang, 2); //augment the data by including the flipped tangents
+				transfer_dg_2local(all_tang_seg, all_norm_seg, all_dg_seg, all_local_dg_seg_flip_both, 3); //augment the data by including the flipped tangents
 
 				for (int d = 0; d < window_size; d++) {
 					Eigen::Matrix3f local_dg = all_local_dg_seg[d];
 					fout_trainX << local_dg(0, 0) << " " << local_dg(0, 1) << " " << local_dg(0, 2) << " " <<
 						local_dg(1, 0) << " " << local_dg(1, 1) << " " << local_dg(1, 2) << " " <<
 						local_dg(2, 0) << " " << local_dg(2, 1) << " " << local_dg(2, 2) << " ";
-					fout_trainX_all << local_dg(0, 0) << " " << local_dg(0, 1) << " " << local_dg(0, 2) << " " <<
-						local_dg(1, 0) << " " << local_dg(1, 1) << " " << local_dg(1, 2) << " " <<
-						local_dg(2, 0) << " " << local_dg(2, 1) << " " << local_dg(2, 2) << " ";
 				}
 				fout_trainX << "\n";
-				fout_trainX_all << "\n";
 
 				const int v_yarn = ceil((start + end) / 2.0);
 				const int v_seg = ceil((end - start) / 2.0);
@@ -731,7 +742,6 @@ void step2_buildTrainData(Fiber::Yarn &yarn, int skipFactor, int frame0, int fra
 					Eigen::Matrix2f S_local;
 					rotate_S_2local(all_S[v_yarn], S_local, angle, 0);
 					fout_trainY << S_local(0, 0) << " " << S_local(0, 1) << " " << S_local(1, 0) << " " << S_local(1, 1) << "\n";
-					fout_trainY_all << S_local(0, 0) << " " << S_local(0, 1) << " " << S_local(1, 0) << " " << S_local(1, 1) << "\n";
 				}
 
 				/******** write test data *******/
@@ -745,47 +755,118 @@ void step2_buildTrainData(Fiber::Yarn &yarn, int skipFactor, int frame0, int fra
 
 
 #if 1 /* augment the training */
+				//****** augment by flipping normals ******
 				for (int d = 0; d < window_size; d++) {
-					Eigen::Matrix3f local_dg = all_local_dg_seg_flip[d];
+					Eigen::Matrix3f local_dg = all_local_dg_seg_flip_norm[d];
 					fout_trainX << local_dg(0, 0) << " " << local_dg(0, 1) << " " << local_dg(0, 2) << " " <<
-						local_dg(1, 0) << " " << local_dg(1, 1) << " " << local_dg(1, 2) << " " <<
-						local_dg(2, 0) << " " << local_dg(2, 1) << " " << local_dg(2, 2) << " ";
-					fout_trainX_all << local_dg(0, 0) << " " << local_dg(0, 1) << " " << local_dg(0, 2) << " " <<
 						local_dg(1, 0) << " " << local_dg(1, 1) << " " << local_dg(1, 2) << " " <<
 						local_dg(2, 0) << " " << local_dg(2, 1) << " " << local_dg(2, 2) << " ";
 				}
 				fout_trainX << "\n";
-				fout_trainX_all << "\n";
 
 				if (isTrain) {
 					Eigen::Matrix2f S_local;
 					rotate_S_2local(all_S[v_yarn], S_local, angle, 1);
 					fout_trainY << S_local(0, 0) << " " << S_local(0, 1) << " " << S_local(1, 0) << " " << S_local(1, 1) << "\n";
-					fout_trainY_all << S_local(0, 0) << " " << S_local(0, 1) << " " << S_local(1, 0) << " " << S_local(1, 1) << "\n";
+				}
+				//****** augment by flipping tangents ******
+				for (int d = 0; d < window_size; d++) {
+					Eigen::Matrix3f local_dg = all_local_dg_seg_flip_tang[d];
+					fout_trainX << local_dg(0, 0) << " " << local_dg(0, 1) << " " << local_dg(0, 2) << " " <<
+						local_dg(1, 0) << " " << local_dg(1, 1) << " " << local_dg(1, 2) << " " <<
+						local_dg(2, 0) << " " << local_dg(2, 1) << " " << local_dg(2, 2) << " ";
+				}
+				fout_trainX << "\n";
+
+
+				if (isTrain) {
+					Eigen::Matrix2f S_local;
+					rotate_S_2local(all_S[v_yarn], S_local, angle, 2);
+					fout_trainY << S_local(0, 0) << " " << S_local(0, 1) << " " << S_local(1, 0) << " " << S_local(1, 1) << "\n";
+				}
+				//****** augment by flipping tangents and normals ******
+				for (int d = 0; d < window_size; d++) {
+					Eigen::Matrix3f local_dg = all_local_dg_seg_flip_both[d];
+					fout_trainX << local_dg(0, 0) << " " << local_dg(0, 1) << " " << local_dg(0, 2) << " " <<
+						local_dg(1, 0) << " " << local_dg(1, 1) << " " << local_dg(1, 2) << " " <<
+						local_dg(2, 0) << " " << local_dg(2, 1) << " " << local_dg(2, 2) << " ";
+				}
+				fout_trainX << "\n";
+
+
+				if (isTrain) {
+					Eigen::Matrix2f S_local;
+					rotate_S_2local(all_S[v_yarn], S_local, angle, 3);
+					fout_trainY << S_local(0, 0) << " " << S_local(0, 1) << " " << S_local(1, 0) << " " << S_local(1, 1) << "\n";
 				}
 #endif
 
 			}
 
-			fout_trainX_all.close();
-			fout_trainY_all.close();
 			fout_testX.close();
 			fout_trainX.close();
 			fout_trainY.close();
 			fout_angle.close();
-
-			//std::ofstream fout_TNB("../data/TNB.txt");
-			//for (int i = 50; i < 100; i++) {
-			//	fout_TNB << all_pts[i][0] << " " << all_pts[i][1] << " " << all_pts[i][2] << " " <<
-			//		all_tg[i][0] << " " << all_tg[i][1] << " " << all_tg[i][2] << " " <<
-			//		all_norm[i][0] << " " << all_norm[i][1] << " " << all_norm[i][2] << "\n";
-			//}
 		}
 
 	}
+}
+
+void step3_appendTraining(int skipFactor, int frame0, int frame1, int yarnNum, std::string &dataset) {
+
+	std::cout << "*** Append training-data for all frames *** \n";
+
+	std::string tmp0 = "input/" + dataset + "/NN/trainX_all.txt";
+	const char* all_trainX = tmp0.c_str();
+	std::string tmp1 = "input/" + dataset + "/NN/trainY_all.txt";
+	const char* all_trainY = tmp1.c_str();
+	std::ofstream fout_trainX_all(all_trainX);
+	std::ofstream fout_trainY_all(all_trainY);
+	std::string content_trainX = "";
+	std::string content_trainY = "";
+
+	for (int i = frame0; i < frame1; i++) {
+		int f = i * skipFactor;
+		int seg_subdiv = 10;
+		for (int y = 0; y < yarnNum; ++y) {
+			std::string tmp4 = "input/" + dataset + "/NN/trainX_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+			const char* trainX = tmp4.c_str();
+			std::string tmp6 = "input/" + dataset + "/NN/trainY_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+			const char* trainY = tmp6.c_str();
+
+
+			std::ifstream finX(trainX);
+			assert(finX.is_open() && "trainX file wasn't found!\n");
+			std::ifstream finY(trainY);
+			assert(finY.is_open() && "trainY file wasn't found!\n");
+			
+			int i;
+			for (i = 0; finX.eof() != true; i++) // get content of infile
+				content_trainX += finX.get();
+			i--;
+			content_trainX.erase(content_trainX.end() - 1);     // erase last character
+			finX.close();
+
+
+			// trainY
+			int j;
+			for (j = 0; finY.eof() != true; j++) // get content of infile
+				content_trainY += finY.get();
+			j--;
+			content_trainY.erase(content_trainY.end() - 1);     // erase last character
+			finY.close();
+
+
+		}
+	}
+	fout_trainX_all << content_trainX;                 // output
+	fout_trainY_all << content_trainY;                 // output
+	fout_trainX_all.close();
+	fout_trainY_all.close();
 
 }
-void step3_NN_output(const char* yarnfile1, const char* configfile, Fiber::Yarn &yarn, int skipFactor, int frame0, int frame1, int yarnNum, std::string &dataset) {
+
+void step4_NN_output(const char* yarnfile1, const char* configfile, Fiber::Yarn &yarn, int skipFactor, int frame0, int frame1, int yarnNum, std::string &dataset) {
 	std::cout << "*** Training phase ***\n";
 
 	for (int i = frame0; i < frame1; i++) {
@@ -844,8 +925,8 @@ void step3_NN_output(const char* yarnfile1, const char* configfile, Fiber::Yarn 
 
 		}
 	}
-
 }
+
 void full_pipeline(const char* yarnfile1, const char* configfile, Fiber::Yarn &yarn, int skipFactor, int frame0, int frame1, int yarnNum, std::string &dataset, 
 	const int isTrain, const int window_size, const float trimPercent) {
 	
@@ -854,6 +935,7 @@ void full_pipeline(const char* yarnfile1, const char* configfile, Fiber::Yarn &y
 	if (isTrain)
 		step1_shapematching(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
 	step2_buildTrainData(yarn, skipFactor, frame0, frame1, yarnNum, dataset, isTrain, window_size, trimPercent);
+	step3_appendTraining(skipFactor, frame0, frame1, yarnNum, dataset);
 }
 
 #if 0

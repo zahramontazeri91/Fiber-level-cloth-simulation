@@ -78,11 +78,11 @@ void CrossSection::buildPlanes(const int num_planes, std::vector<yarnIntersect> 
 	std::vector<std::vector<vec3f>> plyCenters;
 	allPlyCenters(plyCenters, itsLists);
 	// Define inplane 2D coord using the direction from yarn-center to intersection of first ply-center 
-	for (int i = 0; i < num_planes; ++i) {
+	//for (int i = 0; i < num_planes; ++i) {
 		// plyCenters[i][0] - m_planesList[i].point is too small so its dot product with n doesn't show they are perpendicular (e1.n !=0 )
 		//m_planesList[i].e1 = nv::normalize(plyCenters[i][0] - m_planesList[i].point);
 		//m_planesList[i].e2 = cross(m_planesList[i].n, m_planesList[i].e1);
-	}
+	//}
 }
 
 void CrossSection::buildPlanes(const int num_planes, std::vector<yarnIntersect> &itsLists) {

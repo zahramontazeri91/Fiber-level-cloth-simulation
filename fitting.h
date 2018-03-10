@@ -53,6 +53,7 @@ void step0_curveSetup(Fiber::Yarn &yarn, int skipFactor, int frame0, int frame1,
 void step1_dg2local(Fiber::Yarn &yarn, int skipFactor, int frame0, int frame1, int yarnNum, std::string &dataset);
 void step1_shapematching(const char* yarnfile1, const char* configfile, Fiber::Yarn &yarn, int skipFactor, int frame0, int frame1, int yarnNum, std::string &dataset);
 void step2_buildTrainData(Fiber::Yarn &yarn, int skipFactor, int frame0, int frame1, int yarnNum, std::string &dataset, const int isTrain, const int window_size, const float trimPercent);
-void step3_NN_output(const char* yarnfile1, const char* configfile, Fiber::Yarn &yarn, int skipFactor, int frame0, int frame1, int yarnNum, std::string &dataset);
+void step3_appendTraining(int skipFactor, int frame0, int frame1, int yarnNum, std::string &dataset);
+void step4_NN_output(const char* yarnfile1, const char* configfile, Fiber::Yarn &yarn, int skipFactor, int frame0, int frame1, int yarnNum, std::string &dataset);
 void full_pipeline(const char* yarnfile1, const char* configfile, Fiber::Yarn &yarn, int skipFactor, int frame0, int frame1, int yarnNum, std::string &dataset, 
 	const int isTrain, const int window_size, const float trimPercent);
