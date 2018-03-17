@@ -271,6 +271,8 @@ void CrossSection::shapeMatch_A(const Eigen::MatrixXf &pnt_trans, const Eigen::M
 		cm_trans /= n;
 	}
 
+	const int num_of_cores = omp_get_num_procs();
+#pragma omp parallel for num_threads(num_of_cores)
 	for (int i = 0; i < n; ++i) {
 		Apq += (pnt_trans.col(i) - cm_trans)  *  (pnt_ref.col(i) - cm_ref).transpose() / n;
 		Aqq_1 += (pnt_ref.col(i) - cm_ref) *  (pnt_ref.col(i) - cm_ref).transpose() / n;
@@ -297,10 +299,11 @@ void CrossSection::shapeMatch_A(const Eigen::MatrixXf &pnt_trans, const Eigen::M
 
 	//SR decompose
 	Eigen::Matrix2f S = U*sigma*U.transpose();
-	Eigen::Matrix2f R = U*V.transpose();
-	theta_R = atan2(R(1, 0), R(0, 0));
-	theta_R = theta_R < 0 ? theta_R + 2.f*pi : theta_R;
-	//std::cout << atan2(R(1, 0), R(0, 0)) << std::endl;
+	//we don't care about R at this point:
+	//Eigen::Matrix2f R = U*V.transpose();
+	//theta_R = atan2(R(1, 0), R(0, 0));
+	//theta_R = theta_R < 0 ? theta_R + 2.f*pi : theta_R;
+	//std::cout << atan2(R(1, 0), R(0, 0)) * 180.0/pi << std::endl;
 
 	//Now let's assume we've subtracted R-R0 (when R0 is the average)
 	A = S;
@@ -438,6 +441,8 @@ void CrossSection::yarnShapeMatches_A(const std::vector<yarnIntersect2D> &pnts_t
 	assert(pnts_trans.size() == pnts_trans.size());
 	const int n = pnts_trans.size();
 	all_A.resize(n);
+	const int num_of_cores = omp_get_num_procs();
+#pragma omp parallel for num_threads(num_of_cores)
 
 	for (int i = 0; i < n; ++i) {
 		Eigen::Matrix2f A;

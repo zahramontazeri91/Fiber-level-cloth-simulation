@@ -1204,9 +1204,9 @@ namespace Fiber {
 					atof(splits[6].c_str()), atof(splits[7].c_str()), atof(splits[8].c_str());
 			F.push_back(deformGrad);
 
-			Eigen::Vector3f t;
-			t << atof(splits[9].c_str()), atof(splits[10].c_str()), atof(splits[11].c_str());
-			T.push_back(t);
+			//Eigen::Vector3f t;
+			//t << atof(splits[9].c_str()), atof(splits[10].c_str()), atof(splits[11].c_str());
+			//T.push_back(t);
 		}
 		fin.close();
 	}
@@ -1315,7 +1315,7 @@ namespace Fiber {
 					int indx = static_cast<int> ((fiber.vertices[v].z - zMin) / (this->z_step_size) ); //because of flyaways
 
 					Eigen::Matrix3f transf = F[indx];
-					Eigen::Vector3f t = T[indx];
+					//Eigen::Vector3f t = T[indx];
 
 					Eigen::MatrixXf ref(3, 1);
 					ref << fiber.vertices[v].x, fiber.vertices[v].y , fiber.vertices[v].z ;

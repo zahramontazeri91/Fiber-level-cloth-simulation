@@ -24,7 +24,7 @@ for i in range(0, n):
     norm /= np.linalg.norm(norm)
     binorm = np.cross(tang, norm)
     binorm /= np.linalg.norm(binorm)
-    assert (np.dot(binorm, norm) < 0.0001 and np.dot(binorm, tang) < 0.0001 and np.dot(tang, norm)<0.001)
+#    assert (np.dot(binorm, norm) < 0.0001 and np.dot(binorm, tang) < 0.0001 and np.dot(tang, norm)<0.001)
 #    print(np.dot(binorm, norm), np.dot(binorm, tang), np.dot(tang, norm))
 
     ax.plot([data[i, 0], data[i, 0] + L*tang[0]], \
@@ -59,7 +59,7 @@ blue = mpatches.Patch(color='blue', label='binormals')
 green = mpatches.Patch(color='green', label='normals')
 
 plt.legend(handles=[red, green, blue],prop={'size': 15}) 
-ax.view_init(azim=30., elev=50)
+ax.view_init(azim=10., elev=50)
 plt.xlim(-.5,.5)
 plt.ylim(-.5,.5)
 plt.savefig("../../data/vis_crossSections/frame29_hermite_2.png" )

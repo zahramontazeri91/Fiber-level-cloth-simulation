@@ -13,9 +13,6 @@ from shutil import copyfile
 # In[]
  
 def loadData(fn_trainX, fn_trainY):
-    
-#    X_train_all = np.loadtxt(path + "trainX_all.txt",delimiter=None)
-#    Y_train_all = np.loadtxt(path + "trainY_all.txt",delimiter=None)
     X_train_all = np.loadtxt(fn_trainX,delimiter=None)
     Y_train_all = np.loadtxt(fn_trainY,delimiter=None)
 
@@ -29,7 +26,7 @@ def loadData(fn_trainX, fn_trainY):
     
     nb_features = X_train_all.shape[1]
     nb_traindata = X_train_all.shape[0]
-    split = 0.8
+    split = 0.90
     nb_halfdata = round(nb_traindata*split)
     nb_outputs = Y_train_all.shape[1]
     
@@ -93,7 +90,7 @@ def buildModel(input_dim, output_dim, neurons):
 def trainModel(model, X_train, Y_train, X_valid, Y_valid):
     
     # Weights are updated one mini-batch at a time. A running average of the training loss is computed in real time, which is useful for identifying problems (e.g. the loss might explode or get stuck right). The validation loss is evaluated at the end of each epoch (without dropout).
-    history = model.fit(X_train, Y_train, batch_size = 16, epochs = 80, verbose = 2,
+    history = model.fit(X_train, Y_train, batch_size = 16, epochs = 50, verbose = 2,
                         validation_data=(X_valid, Y_valid))
         
     # Plot loss trajectory throughout training.
@@ -179,8 +176,8 @@ def test(neurons,fn_trainX, fn_trainY):
     return model, scaler, nb_outputs
 
 # In[]:
-def append2sets(dataset1, dataset2, w_path):
-    path1 = w_path + dataset1 + '/NN/'
+def append2sets(dataset2, w_path):
+    path1 = w_path + 'train_all/'
     path2 = w_path + dataset2 + '/NN/'
     X_train_all_1 = np.loadtxt(path1 + "trainX_all.txt",delimiter=None)
     Y_train_all_1 = np.loadtxt(path1 + "trainY_all.txt",delimiter=None)
@@ -190,9 +187,8 @@ def append2sets(dataset1, dataset2, w_path):
     X_train_all = np.concatenate((X_train_all_1,X_train_all_2), axis=0)
     Y_train_all = np.concatenate((Y_train_all_1,Y_train_all_2), axis=0)
     
-    np.savetxt(w_path + 'all/NN/trainX_all.txt', X_train_all, fmt='%.6f', delimiter=' ')
-    np.savetxt(w_path + 'all/NN/trainY_all.txt', Y_train_all, fmt='%.6f', delimiter=' ')
-    
+    np.savetxt(w_path + 'train_all/trainX_all.txt', X_train_all, fmt='%.6f', delimiter=' ')
+    np.savetxt(w_path + 'train_all/trainY_all.txt', Y_train_all, fmt='%.6f', delimiter=' ')    
 ## append training data from different datasets
 # In[] 
 def appendTrainingData(datasets, w_path, fn_trainX, fn_trainY):
@@ -203,22 +199,25 @@ def appendTrainingData(datasets, w_path, fn_trainX, fn_trainY):
             copyfile (p0x, fn_trainX)
             copyfile (p0y, fn_trainY)
         else:
-            append2sets('all', datasets[i],w_path)
+            append2sets(datasets[i],w_path)
         
 # In[] 
 datasets = []
-w_path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'
-#datasets.append('spacing0.5x_00011')
-#datasets.append('spacing0.5x_10100')
-#datasets.append('spacing0.5x_11110')
-datasets.append('spacing1.0x_00011')
-datasets.append('spacing1.0x_10100')
-datasets.append('spacing1.0x_11110')
-#datasets.append('spacing1.5x_00011')
-#datasets.append('spacing1.5x_10100')
-#datasets.append('spacing1.5x_11110')
-fn_trainX = w_path + "all/NN/trainX_all.txt"
-fn_trainY = w_path + "all/NN/trainY_all.txt"
+config = 'pattern/yarn4/'
+w_path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/' + config
+#datasets.append('spacing0.5x/00011')
+#datasets.append('spacing0.5x/10100')
+#datasets.append('spacing0.5x/11110')
+datasets.append('spacing1.0x/00011')
+datasets.append('spacing1.0x/10100')
+datasets.append('spacing1.0x/11110')
+#datasets.append('spacing1.5x/00011')
+#datasets.append('spacing1.5x/10100')
+#datasets.append('spacing1.5x/11110')
+
+fn_trainX = w_path + "train_all/trainX_all.txt"
+fn_trainY = w_path + "train_all/trainY_all.txt"
+
 appendTrainingData(datasets, w_path, fn_trainX, fn_trainY)
 
 model, scaler, nb_outputs = test(256, fn_trainX, fn_trainY)
@@ -228,10 +227,48 @@ yarnNum = 1
 stride = 1
 skipFactor = 500        
 vrtxNum = 300
-dataset = 'spacing1.0x_00011'
 firstFrame = 17000
 lastFrame = 17000
-path = w_path + dataset + '/NN/' 
+dataset = 'pattern/yarn4/spacing1.0x/00011'
+path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+#frame0 = int(firstFrame/skipFactor)
+#frame1 = int(lastFrame/skipFactor + 1)
+#for i in range (frame0, frame1):
+#    f = i*skipFactor
+#    for y in range (0,yarnNum):
+#        X_test = np.loadtxt(path + "testX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
+#        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
+#        anglesFile = path + "angles_" + str(f) + '_' + str(y) + ".txt"
+#        predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, anglesFile, 1)
+#        
+# In[] 
+#yarnNum = 1
+#stride = 1
+#skipFactor = 500        
+#vrtxNum = 300
+#firstFrame = 49000
+#lastFrame = 49500
+#dataset = 'twist/yarn4/damp'
+#path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+#frame0 = int(firstFrame/skipFactor)
+#frame1 = int(lastFrame/skipFactor + 1)
+#for i in range (frame0, frame1):
+#    f = i*skipFactor
+#    for y in range (0,yarnNum):
+#        X_test = np.loadtxt(path + "testX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
+#        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
+#        anglesFile = path + "angles_" + str(f) + '_' + str(y) + ".txt"
+#        predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, anglesFile, 1)
+#
+# In[] 
+yarnNum = 46
+stride = 1
+skipFactor = 500        
+vrtxNum = 250
+firstFrame = 0
+lastFrame = 8000
+dataset = 'woven/yarn4/spacing1.0x/00011'
+path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
 frame0 = int(firstFrame/skipFactor)
 frame1 = int(lastFrame/skipFactor + 1)
 for i in range (frame0, frame1):

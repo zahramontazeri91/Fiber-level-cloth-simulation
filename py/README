@@ -1,0 +1,10 @@
+** render a scene using mitsuba **
+
+1. navigate to mitsuba/dist
+2. mitsuba path/to/xml/file
+ex: mitsuba ../scene/fibers.xml
+
+in xml file line 10 you can change the yarn file (no I have genYarn_7000_0)
+
+** use python script to transfer file format (from obj to mitsuba yarn format) **
+mitsuba/python/readOBJ
