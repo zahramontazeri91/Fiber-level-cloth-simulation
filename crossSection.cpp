@@ -1113,12 +1113,16 @@ void CrossSection::yarn2crossSections(std::vector<yarnIntersect2D> &itsLists) {
 	for (int i = 0; i < itsLists.size(); ++i) 
 		itsLists[i].resize(m_yarn.plys.size());
 
+	
+
 	//copy the yarn into new dataStructure
 	for (int p = 0; p < m_yarn.plys.size(); ++p) {
 		plyIntersect plyIts;
 		for (int f = 0; f < m_yarn.plys[p].fibers.size(); ++f) {
+
 			for (int v = 0; v < m_yarn.plys[p].fibers[f].vertices.size(); ++v) {
 				itsLists[v][p].push_back(vec2f(m_yarn.plys[p].fibers[f].vertices[v].x, m_yarn.plys[p].fibers[f].vertices[v].y));
+				//std::cout << "yarn2cs " << f << "  " << v << std::endl;
 			}
 		}
 	}

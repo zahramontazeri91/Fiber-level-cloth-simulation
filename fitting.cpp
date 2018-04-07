@@ -99,7 +99,7 @@ void extractCompress_seg(const char* configfile, const char* yarnfile1, const ch
 	}
 
 	//constant fitting
-	std::cout << "Compression parameters are successfully written to the file!\n";
+	//std::cout << "Compression parameters are successfully written to the file!\n";
 
 	//for debug: visualization
 	//const char* L2File = "../data/L2.txt";
@@ -402,7 +402,7 @@ float get_angle(Eigen::Vector3d &norm1, Eigen::Vector3d &norm2, Eigen::Vector3d 
 }
 
 
-void step0_curveSetup(Fiber::Yarn &yarn, int skipFactor, int frame0, int frame1, int yarnNum, std::string &dataset) {
+void step0_curveSetup(Fiber::Yarn &yarn, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset) {
 	std::cout << "\n**************************************************\n";
 	std::cout << "*** step0: up-sample the curve ***\n";
 	const int num_of_cores = omp_get_num_procs();
@@ -411,7 +411,7 @@ void step0_curveSetup(Fiber::Yarn &yarn, int skipFactor, int frame0, int frame1,
 		int f = i * skipFactor;
 		HermiteCurve curve_ds, curve_us;
 		int seg_subdiv = 10;
-		for (int y = 0; y < yarnNum; ++y) {
+		for (int y = yarn0; y < yarn1; ++y) {
 
 			std::string tmp1 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_ds.txt";
 			const char* curvefile_ds = tmp1.c_str();
@@ -459,7 +459,7 @@ void step0_curveSetup(Fiber::Yarn &yarn, int skipFactor, int frame0, int frame1,
 
 	}
 }
-void step1_dg2local(Fiber::Yarn &yarn, int skipFactor, int frame0, int frame1, int yarnNum, std::string &dataset) {
+void step1_dg2local(Fiber::Yarn &yarn, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset) {
 	std::cout << "\n**************************************************\n";
 	std::cout << "*** step1: Convert external force to local coordinate ***\n";
 	const int num_of_cores = omp_get_num_procs();
@@ -468,7 +468,7 @@ void step1_dg2local(Fiber::Yarn &yarn, int skipFactor, int frame0, int frame1, i
 		int f = i * skipFactor;
 		HermiteCurve curve;
 		int seg_subdiv = 10;
-		for (int y = 0; y < yarnNum; ++y) {
+		for (int y = yarn0; y < yarn1; ++y) {
 
 			std::string tmp9 = "input/" + dataset + "/physicalParam/physical_" + std::to_string(f) + "_" + std::to_string(y) + "_world.txt";
 			const char* physical_world = tmp9.c_str();
@@ -563,20 +563,21 @@ void step1_dg2local(Fiber::Yarn &yarn, int skipFactor, int frame0, int frame1, i
 	}
 
 }
-void step1_shapematching(const char* yarnfile1, const char* configfile, Fiber::Yarn &yarn, int skipFactor, int frame0, int frame1, int yarnNum, std::string &dataset) {
+void step1_shapematching(const char* yarnfile1, const char* configfile, Fiber::Yarn &yarn, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset) {
 	std::cout << "\n**************************\n";
 	std::cout << "*** step1: Fitting phase ***\n";
 	const int num_of_cores = omp_get_num_procs();
 #pragma omp parallel for num_threads(num_of_cores)
 	for (int i = frame0; i < frame1; i++) {
 		int f = i * skipFactor;
-		for (int y = 0; y < yarnNum; ++y) {
+		for (int y = yarn0; y < yarn1; ++y) {
 
 			//pipeline 2:
 			//std::string tmp0 = "data/" + dataset + "/simul_frame_" + std::to_string(f) + "_" + std::to_string(y) + "_DEF.txt";
 			//const char* yarnfile0 = tmp0.c_str();
 			//std::string tmp2 = "input/" + dataset + "/deformGrad_" + std::to_string(cnt) + "_trans.txt";
 			//const char* deformGrad = tmp2.c_str();
+
 
 			std::string tmp1 = "data/" + dataset + "/simul_frame_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
 			const char* yarnfile2 = tmp1.c_str();
@@ -614,8 +615,10 @@ void step1_shapematching(const char* yarnfile1, const char* configfile, Fiber::Y
 			const int upsample = 2;
 			extractCompress_seg(configfile, yarnfile1, yarnfile2, "noNeed.txt", compress_S,
 				curvefile_us, normfile_us, yarn.getPlyNum(), vrtx_num);
+
+			std::cout << "frame-" << f << "-yarn-" << " shapematching is done!\n";
 			/*************************************************/
-#if 0		
+#if 1		
 			std::string tmp8 = "output/" + dataset + "/genYarn_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
 			const char* outfile = tmp8.c_str();
 			//// Procedural step
@@ -624,26 +627,26 @@ void step1_shapematching(const char* yarnfile1, const char* configfile, Fiber::Y
 			const int K = yarn.getPlyNum();
 			yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
 			yarn.build("test_fly.txt", K);
-			//yarn.compress_yarn_A(compress_S);
-			yarn.compress_yarn3D(physical_local);
-
+			yarn.compress_yarn_A(compress_S);
+			//yarn.compress_yarn3D(physical_local);
 			yarn.curve_yarn(curvefile_us, normfile_us);
-			yarn.write_yarn(outfile);
-#endif			
+			yarn.write_yarn(outfile);			
 
-			///////*************************************************/
-			//std::string tmp7 = "output/" + dataset + "/genYarn_wo_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
-			//const char* outfile_wo = tmp7.c_str();
+			/////*************************************************/
+			//std::string tmp9 = "output/" + dataset + "/genYarn_wo_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+			//const char* outfile_wo = tmp9.c_str();
 			//yarn.simulate_ply();
 			//yarn.write_plys("test_ply.txt");
 			//yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
 			//yarn.build("test_fly.txt", K);
-			//yarn.curve_yarn(curvefile, normfile);
+			//yarn.curve_yarn(curvefile_us, normfile_us);
 			//yarn.write_yarn(outfile_wo);
+#endif
+
 		}
 	}
 }
-void step2_buildTrainData(Fiber::Yarn &yarn, int skipFactor, int frame0, int frame1, int yarnNum, std::string &dataset, const int isTrain, const int window_size, const float trimPercent) {
+void step2_buildTrainData(Fiber::Yarn &yarn, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset, const int isTrain, const int window_size, const float trimPercent) {
 	std::cout << "\n****************************\n";
 	std::cout << "*** step 2: Build training data  *** \n";
 	const int num_of_cores = omp_get_num_procs();
@@ -652,7 +655,7 @@ void step2_buildTrainData(Fiber::Yarn &yarn, int skipFactor, int frame0, int fra
 	for (int i = frame0; i < frame1; i++) {
 		int f = i * skipFactor;
 		int seg_subdiv = 10;
-		for (int y = 0; y < yarnNum; ++y) {
+		for (int y = yarn0; y < yarn1; ++y) {
 
 			//std::string tmp0 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_" + std::to_string(0) + "_ds.txt";
 			//const char* curvefile_ds = tmp0.c_str();
@@ -828,7 +831,7 @@ void step2_buildTrainData(Fiber::Yarn &yarn, int skipFactor, int frame0, int fra
 	}
 }
 
-void step3_appendTraining(int skipFactor, int frame0, int frame1, int yarnNum, std::string &dataset) {
+void step3_appendTraining(int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset) {
 	std::cout << "\n********************************************\n";
 	std::cout << "*** step 3: Append training-data for all frames *** \n";
 
@@ -846,7 +849,7 @@ void step3_appendTraining(int skipFactor, int frame0, int frame1, int yarnNum, s
 	for (int i = frame0; i < frame1; i++) {
 		int f = i * skipFactor;
 		int seg_subdiv = 10;
-		for (int y = 0; y < yarnNum; ++y) {
+		for (int y = yarn0; y < yarn1; ++y) {
 			std::string tmp4 = "input/" + dataset + "/NN/trainX_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
 			const char* trainX = tmp4.c_str();
 			std::string tmp6 = "input/" + dataset + "/NN/trainY_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
@@ -884,15 +887,21 @@ void step3_appendTraining(int skipFactor, int frame0, int frame1, int yarnNum, s
 
 }
 
-void step4_NN_output(const char* yarnfile1, const char* configfile, Fiber::Yarn &yarn, int skipFactor, int frame0, int frame1, int yarnNum, std::string &dataset) {
+void step4_NN_output(const char* yarnfile1, const char* configfile, Fiber::Yarn &yarn, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset) {
 	std::cout << "*** Training phase ***\n";
 	const int num_of_cores = omp_get_num_procs();
 #pragma omp parallel for num_threads(num_of_cores)
+	//// Procedural step
+	yarn.simulate_ply();
+	yarn.write_plys("test_ply.txt");
+	const int K = yarn.getPlyNum();
+	yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
+	yarn.build("test_fly.txt", K);
 
 	for (int i = frame0; i < frame1; i++) {
 
 		int f = i * skipFactor;
-		for (int y = 0; y < yarnNum; ++y) {
+		for (int y = yarn0; y < yarn1; ++y) {
 
 			std::string tmp1 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_us.txt";
 			const char* curvefile_us = tmp1.c_str();
@@ -910,16 +919,24 @@ void step4_NN_output(const char* yarnfile1, const char* configfile, Fiber::Yarn 
 			assert(fin4.is_open() && "normfile file wasn't found!\n");
 
 			///*******  write the yarn ******/
+#ifndef IMPROVED_FLYAWAYS
 			std::string tmp3 = "output/" + dataset + "/genYarn_NN_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+#else
+			std::string tmp3 = "output/" + dataset + "/genYarn_NN_fly_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+#endif
 			const char* outfile = tmp3.c_str();
-			// Procedural step
-			yarn.yarn_simulate();
-			//pipeline 2:
-			//yarn.compress_yarn3D(deformGrad, compress_S);
-			yarn.compress_yarn_A(compress_S);
-			yarn.curve_yarn(curvefile_us, normfile_us);
-			yarn.write_yarn(outfile);
-			//std::cout << outfile << std::endl;
+			////// Procedural step
+			//yarn.simulate_ply();
+			//yarn.write_plys("test_ply.txt");
+			//const int K = yarn.getPlyNum();
+			//yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
+			//yarn.build("test_fly.txt", K);
+			Fiber::Yarn yarn_compressed; //renew the yarn
+			yarn_compressed = yarn;
+			yarn_compressed.compress_yarn_A(compress_S);
+			//////yarn.compress_yarn3D(physical_local);
+			yarn_compressed.curve_yarn(curvefile_us, normfile_us);
+			yarn_compressed.write_yarn(outfile);
 
 			/*******  Validate NN by L2-norm ******/
 			//std::string tmp4 = "output/" + dataset + "/genYarn_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
@@ -947,15 +964,15 @@ void step4_NN_output(const char* yarnfile1, const char* configfile, Fiber::Yarn 
 	}
 }
 
-void full_pipeline(const char* yarnfile1, const char* configfile, Fiber::Yarn &yarn, int skipFactor, int frame0, int frame1, int yarnNum, std::string &dataset, 
+void full_pipeline(const char* yarnfile1, const char* configfile, Fiber::Yarn &yarn, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset,
 	const int isTrain, const int window_size, const float trimPercent) {
 	
-	step0_curveSetup(yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-	step1_dg2local(yarn, skipFactor, frame0, frame1, yarnNum, dataset);
+	step0_curveSetup(yarn, skipFactor, frame0, frame1, yarn0, yarn1, dataset);
+	step1_dg2local(yarn, skipFactor, frame0, frame1, yarn0, yarn1, dataset);
 	if (isTrain)
-		step1_shapematching(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarnNum, dataset);
-	step2_buildTrainData(yarn, skipFactor, frame0, frame1, yarnNum, dataset, isTrain, window_size, trimPercent);
-	step3_appendTraining(skipFactor, frame0, frame1, yarnNum, dataset);
+		step1_shapematching(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarn0, yarn1, dataset);
+	step2_buildTrainData(yarn, skipFactor, frame0, frame1, yarn0, yarn1, dataset, isTrain, window_size, trimPercent);
+	step3_appendTraining(skipFactor, frame0, frame1, yarn0, yarn1, dataset);
 }
 
 #if 0

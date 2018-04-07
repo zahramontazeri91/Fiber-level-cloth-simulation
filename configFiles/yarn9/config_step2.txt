@@ -1,11 +1,11 @@
 ply_num: 3
 fiber_num: 33
 
-aabb_min: [-0.0547337,-0.0547337,-0.475838]
-aabb_max: [0.0547337,0.0547337,0.475838]
+aabb_min: [-0.0547337,-0.0547337,-1.5]
+aabb_max: [0.0547337,0.0547337,1.5]
 
 z_step_size: 0.01
-z_step_num: 96
+z_step_num: 300
 fly_step_size: 0
 
 yarn_clock_wise: 0

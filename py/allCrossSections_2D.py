@@ -46,7 +46,7 @@ def visIntersections(fname = ""):
 # In[]:
 def plotIntersects(X1, Y1, X2, Y2, X3, Y3, scale, plane_num, ply_num, its_num, title1, title2, title3):
     for i in range(0, plane_num):  
-        plt.figure(figsize=(5,15))
+#        plt.figure(figsize=(5,15))
         for p in range(0,ply_num):  
             for j in range(0, its_num):
                 if j==10 and p==0:  
@@ -62,28 +62,28 @@ def plotIntersects(X1, Y1, X2, Y2, X3, Y3, scale, plane_num, ply_num, its_num, t
                     c = "C" + str(p)
                     s = 50
     
-                plt.subplot(311)
+#                plt.subplot(311)
                 plt.scatter(X1[i][p][j]*scale, Y1[i][p][j]*scale, alpha=0.8, color = c, zorder = z, s = s)
                 plt.tick_params(axis='both', which='major', labelsize=5)
                 plt.xlim(-0.1,0.1)
                 plt.ylim(-0.1,0.1)
                 plt.title(title1 + ' - %d' %i)
                 
-                plt.subplot(312)
-                plt.scatter(X2[i][p][j]*scale, Y2[i][p][j]*scale, alpha=0.8, color = c, zorder = z, s = s)
-                plt.tick_params(axis='both', which='major', labelsize=5)
-                plt.xlim(-0.1,0.1)
-                plt.ylim(-0.1,0.1)
-                plt.title(title2 + ' - %d' %i)
-                
-                plt.subplot(313)
-                plt.scatter(X3[i][p][j]*scale, Y3[i][p][j]*scale, alpha=0.8, color = c, zorder = z, s = s)
-                plt.tick_params(axis='both', which='major', labelsize=5)
-                plt.xlim(-0.1,0.1)
-                plt.ylim(-0.1,0.1)
-                plt.title(title3 + ' - %d' %i)
+#                plt.subplot(312)
+#                plt.scatter(X2[i][p][j]*scale, Y2[i][p][j]*scale, alpha=0.8, color = c, zorder = z, s = s)
+#                plt.tick_params(axis='both', which='major', labelsize=5)
+#                plt.xlim(-0.1,0.1)
+#                plt.ylim(-0.1,0.1)
+#                plt.title(title2 + ' - %d' %i)
+#                
+#                plt.subplot(313)
+#                plt.scatter(X3[i][p][j]*scale, Y3[i][p][j]*scale, alpha=0.8, color = c, zorder = z, s = s)
+#                plt.tick_params(axis='both', which='major', labelsize=5)
+#                plt.xlim(-0.1,0.1)
+#                plt.ylim(-0.1,0.1)
+#                plt.title(title3 + ' - %d' %i)
         
-        plt.savefig("../../data/vis_crossSections/2Dcompare/plane%d.png" %i)
+        plt.savefig("../../data/vis_crossSections/2Dcompare_curve/plane%d.png" %i)
         plt.show() 
 #        plt.legend()              
 # In[]:
@@ -106,14 +106,15 @@ def plotIntersects(X1, Y1, X2, Y2, X3, Y3, scale, plane_num, ply_num, its_num, t
 
 # In[]:
 ## plot simulated data
-fname = '../../data/allCrossSection2D_ref.txt'
-#fname = '../../data/allCrossSection2D_compress.txt'
+#fname = '../../data/allCrossSection2D_ref.txt'
+fname = '../../data/allCrossSection2D_compress.txt'
+fname = '../../data/allCrossSection2D_curve.txt'
 X1, Y1 = visIntersections(fname)
 #fname = '../../data/allCrossSection2D_simulate.txt'
-fname = '../../data/allCrossSection2D_deformedRef.txt'
-X3, Y3 = visIntersections(fname)
-fname = '../../data/allCrossSection2D_deformed.txt'
-X2, Y2 = visIntersections(fname)
+#fname = '../../data/allCrossSection2D_deformedRef.txt'
+#X3, Y3 = visIntersections(fname)
+#fname = '../../data/allCrossSection2D_deformed.txt'
+#X2, Y2 = visIntersections(fname)
 scale = 1
 title1 = 'Reference'
 title2 = 'Deformed-Ref'

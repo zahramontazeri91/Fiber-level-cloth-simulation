@@ -1429,20 +1429,21 @@ namespace Fiber {
 			for (auto &fiber : ply.fibers) {
 				int i = 0;
 				for (auto &vertex : fiber.vertices) {
-					
-					/*double len = curveLength*(vertex.z - zMin) / zSpan;
+
+#ifndef IMPROVED_FLYAWAYS
+					Eigen::Vector3d ez = all_tang[i];
+					Eigen::Vector3d ey = all_norm[i];
+					Eigen::Vector3d ex = ez.cross(ey);
+					Eigen::Vector3d pos = all_pts[i];
+#else
+					/* faster but doesn't work for flyaways: */
+					double len = curveLength*(vertex.z - zMin) / zSpan;
 					double t = centerCurve.arcLengthInvApprox(len);
 					// use rotated Frenet frame 
 					Eigen::Vector3d ex, ey, ez;
 					centerCurve.getRotatedFrame(t, ex, ey, ez);
-					Eigen::Vector3d pos = centerCurve.eval(t);*/
-
-
-					Eigen::Vector3d ez = all_tang[i];
-					Eigen::Vector3d ey = all_norm[i];
-					Eigen::Vector3d ex = ez.cross(ey);
-
-					Eigen::Vector3d pos = all_pts[i];
+					Eigen::Vector3d pos = centerCurve.eval(t);
+#endif
 					Eigen::Vector3d pos1;
 
 
@@ -1466,12 +1467,11 @@ namespace Fiber {
 				}
 			}
 
-		//plotIntersections("../data/allCrossSection2D_curve.txt",0.0);
+		plotIntersections("../data/allCrossSection2D_curve.txt",0.0);
 	} // curve_yarn
 
 
 	void Yarn::write_yarn_obj(const char* filename) {
-		std::cout << "\n\n";
 		printf("Writing vertices ...\n");
 		int total_fiber_num = 0, ply_num = this->plys.size();
 		for (int i = 0; i < ply_num; i++)
@@ -1506,7 +1506,6 @@ namespace Fiber {
 	}
 
 	void Yarn::write_yarn(const char* filename) {
-		std::cout << "\n\n";
 		printf("Writing vertices ...\n");
 		int total_fiber_num = 0, ply_num = this->plys.size();
 		for (int i = 0; i < ply_num; i++)
@@ -1527,6 +1526,7 @@ namespace Fiber {
 		}
 		fout.close();
 		printf("Writing vertices to file done!\n");
+		std::cout << "\n\n";
 
 		////for debugging:
 		//std::ofstream fout0("genYarn_ply0.txt");
