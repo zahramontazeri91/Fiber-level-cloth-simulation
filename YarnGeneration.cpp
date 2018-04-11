@@ -31,7 +31,7 @@ int main(int argc, const char **argv) {
 	switch (phase) {
 		case 1: {		
 
-			const int window_size = 9;
+			const int window_size = 5; //curve segment must have >2 points
 			/**************** RUN ALL ****************/
 			int yarn0 = 0;
 			int yarn1 = 1;

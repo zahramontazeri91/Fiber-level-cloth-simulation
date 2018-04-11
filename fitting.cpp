@@ -646,7 +646,9 @@ void step1_shapematching(const char* yarnfile1, const char* configfile, Fiber::Y
 		}
 	}
 }
-void step2_buildTrainData(Fiber::Yarn &yarn, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset, const int isTrain, const int window_size, const float trimPercent) {
+
+
+void step2_buildTrainData(Fiber::Yarn &yarn, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset, const int isTrain, const int window_size, const float trimPercent, const int upsample) {
 	std::cout << "\n****************************\n";
 	std::cout << "*** step 2: Build training data  *** \n";
 	const int num_of_cores = omp_get_num_procs();
@@ -659,8 +661,8 @@ void step2_buildTrainData(Fiber::Yarn &yarn, int skipFactor, int frame0, int fra
 
 			//std::string tmp0 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_" + std::to_string(0) + "_ds.txt";
 			//const char* curvefile_ds = tmp0.c_str();
-			std::string tmp2 = "input/" + dataset + "/normYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_ds.txt";
-			const char* normfile_ds = tmp2.c_str();
+			//std::string tmp2 = "input/" + dataset + "/normYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_ds.txt";
+			//const char* normfile_ds = tmp2.c_str();
 			std::string tmp3 = "input/" + dataset + "/physicalParam/physical_" + std::to_string(f) + "_" + std::to_string(y) + "_world.txt";
 			const char* physical_world = tmp3.c_str();
 			std::string tmp4 = "input/" + dataset + "/NN/trainX_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
@@ -757,6 +759,7 @@ void step2_buildTrainData(Fiber::Yarn &yarn, int skipFactor, int frame0, int fra
 				float angle = get_angle(norm1, norm2, tang);
 				fout_angle << angle << "\n";
 
+				/************* write train y **************/
 				if (isTrain) {
 					Eigen::Matrix2f S_local;
 					rotate_S_2local(all_S[v_yarn], S_local, angle, 0);
@@ -971,7 +974,7 @@ void full_pipeline(const char* yarnfile1, const char* configfile, Fiber::Yarn &y
 	step1_dg2local(yarn, skipFactor, frame0, frame1, yarn0, yarn1, dataset);
 	if (isTrain)
 		step1_shapematching(yarnfile1, configfile, yarn, skipFactor, frame0, frame1, yarn0, yarn1, dataset);
-	step2_buildTrainData(yarn, skipFactor, frame0, frame1, yarn0, yarn1, dataset, isTrain, window_size, trimPercent);
+	step2_buildTrainData(yarn, skipFactor, frame0, frame1, yarn0, yarn1, dataset, isTrain, window_size, trimPercent, 2);
 	step3_appendTraining(skipFactor, frame0, frame1, yarn0, yarn1, dataset);
 }
 
