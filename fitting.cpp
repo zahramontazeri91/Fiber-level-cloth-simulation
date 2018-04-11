@@ -708,7 +708,7 @@ void step2_buildTrainData(const int vrtx, int skipFactor, int frame0, int frame1
 				transfer_dg_2local(all_tang_seg, all_norm_seg, all_dg_seg, all_local_dg_seg_flip_tang, 2); //augment the data by including the flipped tangents
 				transfer_dg_2local(all_tang_seg, all_norm_seg, all_dg_seg, all_local_dg_seg_flip_both, 3); //augment the data by including the flipped tangents
 
-				for (int d = 0; d < window_size; (d += 2) ) {
+				for (int d = 0; d < window_size; (d += upsample) ) {
 					Eigen::Matrix3f local_dg = all_local_dg_seg[d];
 					fout_trainX << local_dg(0, 0) << " " << local_dg(0, 1) << " " << local_dg(0, 2) << " " <<
 						local_dg(1, 0) << " " << local_dg(1, 1) << " " << local_dg(1, 2) << " " <<
@@ -735,7 +735,7 @@ void step2_buildTrainData(const int vrtx, int skipFactor, int frame0, int frame1
 				}
 
 				/******** write test data *******/
-				for (int d = 0; d < window_size; (d+=2) ) {
+				for (int d = 0; d < window_size; (d+= upsample) ) {
 					Eigen::Matrix3f local_dg = all_local_dg_seg[d];
 					fout_testX << local_dg(0, 0) << " " << local_dg(0, 1) << " " << local_dg(0, 2) << " " <<
 						local_dg(1, 0) << " " << local_dg(1, 1) << " " << local_dg(1, 2) << " " <<
@@ -746,7 +746,7 @@ void step2_buildTrainData(const int vrtx, int skipFactor, int frame0, int frame1
 
 #if 1 /* augment the training */
 				//****** augment by flipping normals ******
-				for (int d = 0; d < window_size; (d += 2)) {
+				for (int d = 0; d < window_size; (d += upsample)) {
 					Eigen::Matrix3f local_dg = all_local_dg_seg_flip_norm[d];
 					fout_trainX << local_dg(0, 0) << " " << local_dg(0, 1) << " " << local_dg(0, 2) << " " <<
 						local_dg(1, 0) << " " << local_dg(1, 1) << " " << local_dg(1, 2) << " " <<
@@ -760,7 +760,7 @@ void step2_buildTrainData(const int vrtx, int skipFactor, int frame0, int frame1
 					fout_trainY << S_local(0, 0) << " " << S_local(0, 1) << " " << S_local(1, 0) << " " << S_local(1, 1) << "\n";
 				}
 				//****** augment by flipping tangents ******
-				for (int d = 0; d < window_size; (d += 2) ) {
+				for (int d = 0; d < window_size; (d += upsample) ) {
 					Eigen::Matrix3f local_dg = all_local_dg_seg_flip_tang[d];
 					fout_trainX << local_dg(0, 0) << " " << local_dg(0, 1) << " " << local_dg(0, 2) << " " <<
 						local_dg(1, 0) << " " << local_dg(1, 1) << " " << local_dg(1, 2) << " " <<
@@ -775,7 +775,7 @@ void step2_buildTrainData(const int vrtx, int skipFactor, int frame0, int frame1
 					fout_trainY << S_local(0, 0) << " " << S_local(0, 1) << " " << S_local(1, 0) << " " << S_local(1, 1) << "\n";
 				}
 				//****** augment by flipping tangents and normals ******
-				for (int d = 0; d < window_size; (d += 2) ) {
+				for (int d = 0; d < window_size; (d += upsample) ) {
 					Eigen::Matrix3f local_dg = all_local_dg_seg_flip_both[d];
 					fout_trainX << local_dg(0, 0) << " " << local_dg(0, 1) << " " << local_dg(0, 2) << " " <<
 						local_dg(1, 0) << " " << local_dg(1, 1) << " " << local_dg(1, 2) << " " <<

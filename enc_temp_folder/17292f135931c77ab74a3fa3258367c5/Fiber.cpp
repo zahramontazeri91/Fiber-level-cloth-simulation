@@ -992,12 +992,17 @@ namespace Fiber {
 			float S01 = atof(splits[1].c_str());
 			float S10 = atof(splits[2].c_str());
 			float S11 = atof(splits[3].c_str());
-			const int limit = 1000;
+			const int limit = 10;
 			Eigen::Matrix2f A;
 			if (S00 > limit || S01 > limit || S10 > limit || S11 > limit)
 				A = Eigen::Matrix2f::Identity();
 			else
 				A << S00, S01, S10, S11;
+
+			if (S00 > limit || S01 > limit || S10 > limit || S11 > limit)
+				std::cout << " ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ " << S00 << " " << S01 << " " << S10 << " " << S11 << std::endl;
+
+
 
 			all_A.push_back(A);
 			i++;

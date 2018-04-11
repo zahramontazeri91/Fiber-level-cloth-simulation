@@ -1,6 +1,7 @@
 pattern/yarn4/spacing0.5x/10 8000 14000 0 1
-pattern/yarn4/spacing0.5x/00011 8000 16000 0 1
 eof
+pattern/yarn4/spacing0.5x/10 8000 14000 0 1
+pattern/yarn4/spacing0.5x/00011 8000 16000 0 1
 pattern/yarn4/spacing0.5x/10100 8000 15000 0 1
 pattern/yarn4/spacing0.5x/11110 8000 15000 0 1
 pattern/yarn4/spacing1.0x/10 8000 14500 0 1
