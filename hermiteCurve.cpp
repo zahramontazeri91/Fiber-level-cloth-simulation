@@ -36,7 +36,7 @@ void HermiteCurve::printBiNormals(const char* binormsFILE, const int subdiv) {
 	Eigen::Vector3d t = m_splines[i].evalTangent(1);
 	Eigen::Vector3d b = t.cross(n);
 	fout << b[0] << ' ' << b[1] << ' ' << b[2] << std::endl;
-	std::cout << "Normals are written to the file \n";
+	//std::cout << "Normals are written to the file \n";
 	fout.close();
 }
 
@@ -51,7 +51,7 @@ void HermiteCurve::printNormals(const char* normsFILE, const int subdiv) {
 	int i = m_splines.size() - 1;
 	Eigen::Vector3d n = m_splines[i].evalNormal(1);
 	fout << n[0] << ' ' << n[1] << ' ' << n[2] << std::endl;
-	std::cout << "Normals are written to the file \n";
+	//std::cout << "Normals are written to the file \n";
 	fout.close();
 }
 
@@ -161,8 +161,8 @@ void HermiteCurve::init(const std::vector<Eigen::Vector3d> &pts, int subdiv) //s
 		}
 	}
 	assert(isFound && "Assuming there exist one point in the curve that its curvature doesn't vanish");
-	if (firstIndx>0)
-		std::cout << firstIndx << "-th vertex has non-vanishing curvature. \n";
+	//if (firstIndx>0)
+		//std::cout << firstIndx << "-th vertex has non-vanishing curvature. \n";
 
 	//DEBUG:
 	//Eigen::Vector3d v = m_splines[0].evalTangent(0.0);
