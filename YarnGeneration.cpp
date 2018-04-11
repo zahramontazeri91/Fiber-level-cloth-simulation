@@ -86,6 +86,7 @@ int main(int argc, const char **argv) {
 			std::string line;
 			while (std::getline(fin00, line))
 			{
+				if (line == "eof") break;
 				std::vector<std::string> splits = split(line, ' ');
 				std::string dataset = splits[0];
 				int frame0 = atoi(splits[1].c_str()) / skipFactor;

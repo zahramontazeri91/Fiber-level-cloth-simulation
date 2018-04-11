@@ -3,6 +3,7 @@
 
 
 void HermiteCurve::init(const char* pntsFILE, const char* normsFILE, int subdiv) {
+	//std::cout << pntsFILE;
 
     assert(pntsFILE);
 	std::ifstream fin(pntsFILE);

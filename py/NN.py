@@ -199,7 +199,7 @@ def test(neurons,fn_trainX, fn_trainY, reTrain):
         model = trainModel(model, X_train, Y_train, X_valid, Y_valid)
         model.save(storeModel)  # creates a HDF5 file 'my_model.h5'
     else:
-        del model  # deletes the existing model
+#        del model  # deletes the existing model
         model = load_model(storeModel) 
         
     return model, scaler, nb_outputs
@@ -266,6 +266,73 @@ appendTrainingData(datasets, w_path, fn_trainX, fn_trainY)
 reTrain = 1
 model, scaler, nb_outputs = test(256, fn_trainX, fn_trainY, reTrain)
 upsample_rate = 2
+
+# In[] 
+yarn0 = 0
+yarn1 = 1
+stride = 1
+skipFactor = 200        
+vrtxNum = 300
+firstFrame = 0
+lastFrame = 10000
+dataset = 'speedtest/0411/0.1'
+path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+frame0 = int(firstFrame/skipFactor)
+frame1 = int(lastFrame/skipFactor + 1)
+for i in range (frame0, frame1):
+    f = i*skipFactor
+    for y in range (yarn0, yarn1):
+        X_test = np.loadtxt(path + "testX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
+        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
+        anglesFile = path + "angles_" + str(f) + '_' + str(y) + ".txt"
+        predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, anglesFile, 1)
+dataset = 'speedtest/0411/0.3'
+path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+frame0 = int(firstFrame/skipFactor)
+frame1 = int(lastFrame/skipFactor + 1)
+for i in range (frame0, frame1):
+    f = i*skipFactor
+    for y in range (yarn0, yarn1):
+        X_test = np.loadtxt(path + "testX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
+        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
+        anglesFile = path + "angles_" + str(f) + '_' + str(y) + ".txt"
+        predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, anglesFile, 1)
+dataset = 'speedtest/0411/0.4'
+path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+frame0 = int(firstFrame/skipFactor)
+frame1 = int(lastFrame/skipFactor + 1)
+for i in range (frame0, frame1):
+    f = i*skipFactor
+    for y in range (yarn0, yarn1):
+        X_test = np.loadtxt(path + "testX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
+        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
+        anglesFile = path + "angles_" + str(f) + '_' + str(y) + ".txt"
+        predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, anglesFile, 1)
+dataset = 'speedtest/0411/0.5'
+path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+frame0 = int(firstFrame/skipFactor)
+frame1 = int(lastFrame/skipFactor + 1)
+for i in range (frame0, frame1):
+    f = i*skipFactor
+    for y in range (yarn0, yarn1):
+        X_test = np.loadtxt(path + "testX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
+        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
+        anglesFile = path + "angles_" + str(f) + '_' + str(y) + ".txt"
+        predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, anglesFile, 1)
+        
+dataset = 'speedtest/0411/0.6'
+path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+frame0 = int(firstFrame/skipFactor)
+frame1 = int(lastFrame/skipFactor + 1)
+for i in range (frame0, frame1):
+    f = i*skipFactor
+    for y in range (yarn0, yarn1):
+        X_test = np.loadtxt(path + "testX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
+        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
+        anglesFile = path + "angles_" + str(f) + '_' + str(y) + ".txt"
+        predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, anglesFile, 1)
+
+
 # In[] 
 #yarnNum = 1
 #stride = 1
@@ -331,20 +398,20 @@ stride = 1
 skipFactor = 500        
 vrtxNum = 300
 
-firstFrame = 12000
-lastFrame = 14000
-dataset = 'pattern/yarn11/spacing0.5x/10'
-path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
-frame0 = int(firstFrame/skipFactor)
-frame1 = int(lastFrame/skipFactor + 1)
-for i in range (frame0, frame1):
-    f = i*skipFactor
-    for y in range (0,yarnNum):
-        X_test = np.loadtxt(path + "testX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
-        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
-        anglesFile = path + "angles_" + str(f) + '_' + str(y) + ".txt"
-        predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, anglesFile, 1)
-        
+#firstFrame = 12000
+#lastFrame = 14000
+#dataset = 'pattern/yarn11/spacing0.5x/10'
+#path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+#frame0 = int(firstFrame/skipFactor)
+#frame1 = int(lastFrame/skipFactor + 1)
+#for i in range (frame0, frame1):
+#    f = i*skipFactor
+#    for y in range (0,yarnNum):
+#        X_test = np.loadtxt(path + "testX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
+#        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
+#        anglesFile = path + "angles_" + str(f) + '_' + str(y) + ".txt"
+#        predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, anglesFile, 1)
+#        
 #firstFrame = 14000
 #lastFrame = 16000
 #dataset = 'pattern/yarn11/spacing0.5x/00011'
@@ -388,33 +455,33 @@ for i in range (frame0, frame1):
 #        anglesFile = path + "angles_" + str(f) + '_' + str(y) + ".txt"
 #        predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, anglesFile, 1)
 # In[]
-firstFrame = 12500
-lastFrame = 14500
-dataset = 'pattern/yarn11/spacing1.0x/10'
-path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
-frame0 = int(firstFrame/skipFactor)
-frame1 = int(lastFrame/skipFactor + 1)
-for i in range (frame0, frame1):
-    f = i*skipFactor
-    for y in range (0,yarnNum):
-        X_test = np.loadtxt(path + "testX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
-        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
-        anglesFile = path + "angles_" + str(f) + '_' + str(y) + ".txt"
-        predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, anglesFile, 1)
-        
-firstFrame = 15000
-lastFrame = 17000
-dataset = 'pattern/yarn11/spacing1.0x/00011'
-path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
-frame0 = int(firstFrame/skipFactor)
-frame1 = int(lastFrame/skipFactor + 1)
-for i in range (frame0, frame1):
-    f = i*skipFactor
-    for y in range (0,yarnNum):
-        X_test = np.loadtxt(path + "testX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
-        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
-        anglesFile = path + "angles_" + str(f) + '_' + str(y) + ".txt"
-        predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, anglesFile, 1)
+#firstFrame = 12500
+#lastFrame = 14500
+#dataset = 'pattern/yarn11/spacing1.0x/10'
+#path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+#frame0 = int(firstFrame/skipFactor)
+#frame1 = int(lastFrame/skipFactor + 1)
+#for i in range (frame0, frame1):
+#    f = i*skipFactor
+#    for y in range (0,yarnNum):
+#        X_test = np.loadtxt(path + "testX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
+#        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
+#        anglesFile = path + "angles_" + str(f) + '_' + str(y) + ".txt"
+#        predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, anglesFile, 1)
+#        
+#firstFrame = 15000
+#lastFrame = 17000
+#dataset = 'pattern/yarn11/spacing1.0x/00011'
+#path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+#frame0 = int(firstFrame/skipFactor)
+#frame1 = int(lastFrame/skipFactor + 1)
+#for i in range (frame0, frame1):
+#    f = i*skipFactor
+#    for y in range (0,yarnNum):
+#        X_test = np.loadtxt(path + "testX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
+#        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
+#        anglesFile = path + "angles_" + str(f) + '_' + str(y) + ".txt"
+#        predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, anglesFile, 1)
 #        
 #        
 #firstFrame = 13500
@@ -445,7 +512,7 @@ for i in range (frame0, frame1):
 #        anglesFile = path + "angles_" + str(f) + '_' + str(y) + ".txt"
 #        predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, anglesFile, 1) 
 #
-## In[]
+# In[]
 #firstFrame = 13000
 #lastFrame = 15000
 #dataset = 'pattern/yarn11/spacing1.5x/10'
