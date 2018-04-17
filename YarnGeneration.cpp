@@ -11,9 +11,14 @@
 
 int main(int argc, const char **argv) {
 
-	if (argv[0] == "-h" || argc < 4) {
+	if (argv[1] == "0" && argc < 3) {
+		printf("EXAMPLE: YarnGeneration 0 yarnTypes/yarn4/config_step2.txt \n");
+		return 1;
+	}
+	if (argv[1] == "-h" || argc < 4) {
 		printf("USAGE: YarnGeneration [phase1/phase2] [configFile] [datasetFile] -w window-size=10 -s upsample=2 -t isTrain=1 -k skipfactor=500 -x trimPercent -v vrtx-num \n");
 		printf("EXAMPLE: YarnGeneration 1 yarnTypes/yarn4/config_step2.txt yarnTypes/yarn4/datasets.txt -w 10 -s 2 -t 1 -k 500 -x 0.1 -v 300 \n");
+		return 1;
 	}
 	const int phase = atoi(argv[1]);
 	const char* configfile = argv[2];
@@ -98,7 +103,6 @@ int main(int argc, const char **argv) {
 			break;
 		}
 	}
-
 	//	std::system("pause"); //add breakpoint instead 
 	return 0;
 }

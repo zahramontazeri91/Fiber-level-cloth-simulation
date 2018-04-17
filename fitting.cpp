@@ -943,7 +943,8 @@ void full_pipeline(const char* yarnfile1, const char* configfile, const int vrtx
 	if (isTrain)
 		step1_shapematching(yarnfile1, configfile, vrtx, skipFactor, frame0, frame1, yarn0, yarn1, dataset);
 	step2_buildTrainData(vrtx, skipFactor, frame0, frame1, yarn0, yarn1, dataset, isTrain, window_size, trimPercent, upsample);
-	step3_appendTraining(skipFactor, frame0, frame1, yarn0, yarn1, dataset);
+	if (isTrain)
+		step3_appendTraining(skipFactor, frame0, frame1, yarn0, yarn1, dataset);
 }
 
 #if 0

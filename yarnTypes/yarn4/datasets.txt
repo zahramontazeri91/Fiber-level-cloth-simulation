@@ -1,8 +1,6 @@
-speedtest/0411/0.1 0 10000 0 1
-speedtest/0411/0.3 0 10000 0 1
-speedtest/0411/0.4 0 10000 0 1
-speedtest/0411/0.5 0 10000 0 1
-speedtest/0411/0.6 0 10000 0 1
+fall/yarn4/fall 0 99500 0 46
+eof
+stretch/yarn4/stretch 10000 74500 0 46
 eof
 pattern/yarn4/spacing0.5x/10 8000 14000 0 1
 pattern/yarn4/spacing0.5x/00011 8000 16000 0 1
@@ -28,3 +26,11 @@ pattern/yarn4/spacing3.0x/10 8000 16500 0 1
 pattern/yarn4/spacing3.0x/00011 8000 19000 0 1
 pattern/yarn4/spacing3.0x/10100 8000 20000 0 1
 pattern/yarn4/spacing3.0x/11110 8000 19000 0 1
+eof
+speedtest/1.0_both 0 15000 0 1 
+eof
+speedtest/0411/0.1 0 10000 0 1
+speedtest/0411/0.3 0 10000 0 1
+speedtest/0411/0.4 0 10000 0 1
+speedtest/0411/0.5 0 10000 0 1
+speedtest/0411/0.6 0 10000 0 1
