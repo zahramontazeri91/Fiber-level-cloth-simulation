@@ -13,7 +13,7 @@ from keras.models import load_model
 ## Load data
 # In[]
  
-def loadData(fn_trainX, fn_trainY):
+def loadData(fn_trainX, fn_trainY, fn_validX, fn_validY):
     X_train_all = np.loadtxt(fn_trainX,delimiter=None)
     Y_train_all = np.loadtxt(fn_trainY,delimiter=None)
 
@@ -27,7 +27,7 @@ def loadData(fn_trainX, fn_trainY):
     
     nb_features = X_train_all.shape[1]
     nb_traindata = X_train_all.shape[0]
-    split = 0.99
+    split = 1.0
     nb_halfdata = round(nb_traindata*split)
     nb_outputs = Y_train_all.shape[1]
     
@@ -38,9 +38,14 @@ def loadData(fn_trainX, fn_trainY):
     np.random.shuffle(all_train)
     X_train = all_train[0:nb_halfdata,0:nb_features]
     Y_train = all_train[0:nb_halfdata,nb_features:]   
-    X_valid = all_train[nb_halfdata:,0:nb_features]
-    Y_valid = all_train[nb_halfdata:,nb_features:] 
-     
+#    X_valid = all_train[nb_halfdata:,0:nb_features]
+#    Y_valid = all_train[nb_halfdata:,nb_features:] 
+    
+    X_valid_all = np.loadtxt(fn_validX,delimiter=None)
+    Y_valid_all = np.loadtxt(fn_validY,delimiter=None)
+    X_valid = X_valid_all
+    Y_valid = Y_valid_all
+    
     # polynomio
 #    X_train_,params = ml.transforms.rescale(X_train);
 #    X_valid_,_ = ml.transforms.rescale( X_valid, params);
@@ -92,7 +97,7 @@ def buildModel(input_dim, output_dim, neurons):
 def trainModel(model, X_train, Y_train, X_valid, Y_valid):
     
     # Weights are updated one mini-batch at a time. A running average of the training loss is computed in real time, which is useful for identifying problems (e.g. the loss might explode or get stuck right). The validation loss is evaluated at the end of each epoch (without dropout).
-    history = model.fit(X_train, Y_train, batch_size = 16, epochs = 2, verbose = 2,
+    history = model.fit(X_train, Y_train, batch_size = 16, epochs = 50, verbose = 2,
                         validation_data=(X_valid, Y_valid))
         
     # Plot loss trajectory throughout training.
@@ -198,19 +203,18 @@ def predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, angles
         angles = np.loadtxt(anglesFile, delimiter=None)
         predicted = rotate(predicted, angles)
 
-    predicted_reg = regularize(predicted, window)
-        
+    predicted_reg = regularize(predicted, window)      
     predicted_us = upsample(predicted_reg, upsample_rate)
     np.savetxt(path + 'testY_NN.txt', predicted_us, fmt='%.6f', delimiter=' ')
     
     predicted_total = extrapolate(predicted_us, vrtxNum, nb_outputs, stride)
-    np.savetxt(path + filename, predicted_total, fmt='%.6f', delimiter=' ')
+#    np.savetxt(path + filename, predicted_total, fmt='%.6f', delimiter=' ')
     return predicted_total
 ## Main
 # In[]    
-def test(neurons,fn_trainX, fn_trainY, reTrain): 
-    (X_train, Y_train, X_valid, Y_valid, nb_features, nb_outputs, scaler) = loadData(fn_trainX, fn_trainY)
-    storeModel = w_path + 'train_all/model_ws5.h5'
+def test(neurons,fn_trainX, fn_trainY, fn_validX, fn_validY, reTrain): 
+    (X_train, Y_train, X_valid, Y_valid, nb_features, nb_outputs, scaler) = loadData(fn_trainX, fn_trainY, fn_validX, fn_validY)
+    storeModel = w_path + 'train_all/model_ws5_valid.h5'
     if (reTrain):
         model = buildModel(nb_features, nb_outputs, neurons)
         model = trainModel(model, X_train, Y_train, X_valid, Y_valid)
@@ -258,7 +262,7 @@ datasets.append('spacing0.5x/11110')
 datasets.append('spacing1.0x/10')
 datasets.append('spacing1.0x/00011')
 datasets.append('spacing1.0x/10100')
-datasets.append('spacing1.0x/11110')
+#datasets.append('spacing1.0x/11110')
 datasets.append('spacing1.5x/10')
 datasets.append('spacing1.5x/00011')
 datasets.append('spacing1.5x/10100')
@@ -279,12 +283,15 @@ datasets.append('spacing3.0x/11110')
 fn_trainX = w_path + "train_all/trainX_all.txt"
 fn_trainY = w_path + "train_all/trainY_all.txt"
 
+fn_validX = w_path + 'spacing1.0x/11110/elastic/NN/trainX_all.txt'
+fn_validY = w_path + 'spacing1.0x/11110/elastic/NN/trainY_all.txt'
 
-reTrain = 0
+
+reTrain = 1
 if (reTrain):
     appendTrainingData(datasets, w_path, fn_trainX, fn_trainY)
     
-model, scaler, nb_outputs = test(256, fn_trainX, fn_trainY, reTrain)
+model, scaler, nb_outputs = test(256, fn_trainX, fn_trainY, fn_validX, fn_validY, reTrain)
 upsample_rate = 2
 window = 5
 # In[] 
@@ -387,20 +394,24 @@ window = 5
 
 # In[] 
 yarn0 = 0
-yarn1 = 46
+yarn1 = 1
 stride = 1
-skipFactor = 1000        
-vrtxNum = 250
-firstFrame = 0
-lastFrame = 3000
-neighbor_frame = 2
+skipFactor = 500        
+vrtxNum = 300
+firstFrame = 8000
+lastFrame = 21000
 
 predicted_neighbor = []
 for y in range (yarn0, yarn1):
     predicted_neighbor.append([])
 
 #dataset = 'stretch/yarn4/stretch'
-dataset = 'fall/yarn4/fall'
+#dataset = 'fall/yarn4/fall'
+#dataset = 'ball_fall'
+#dataset = 'twist/yarn4/damp2_500'
+#dataset = 'shear/shear0403'
+dataset = 'pattern/yarn4/spacing1.0x/11110/elastic'
+
 path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
 frame0 = int(firstFrame/skipFactor)
 frame1 = int(lastFrame/skipFactor + 1)
@@ -413,15 +424,18 @@ for i in range (frame0, frame1):
         predicted_total = predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, anglesFile, 1)
         predicted_neighbor[y].append(predicted_total)
 
+j = 0
 for i in range (frame0, frame1):
     f = i*skipFactor
     for y in range (yarn0, yarn1):
         filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
         if (i == frame0 or i == frame1-1 ):
-            avg_neighbor = predicted_neighbor[y][i]
+            avg_neighbor = predicted_neighbor[y][j]
         else: 
-            avg_neighbor = (predicted_neighbor[y][i-1] + 2*predicted_neighbor[y][i] + predicted_neighbor[y][i+1])/4.0
-        np.savetxt(path + filename, avg_neighbor, fmt='%.6f', delimiter=' ')
+            avg_neighbor = ( 1*predicted_neighbor[y][j-1] + 2*predicted_neighbor[y][j] + 1*predicted_neighbor[y][j+1] )/4.0
+#            avg_neighbor = (predicted_neighbor[y][j-2] + 2*predicted_neighbor[y][j-1] + 3*predicted_neighbor[y][j] + 2*predicted_neighbor[y][j+1] + predicted_neighbor[y][j+2])/9.0
+        np.savetxt(path + filename, avg_neighbor, fmt='%.6f', delimiter=' ')           
+    j = j+1 #increment frame id
 
 # In[] 
 #yarnNum = 46

@@ -8,7 +8,6 @@
 #include <string>
 #include <cstdlib>
 
-
 int main(int argc, const char **argv) {
 
 	if (argv[1] == "0" && argc < 3) {
@@ -16,8 +15,9 @@ int main(int argc, const char **argv) {
 		return 1;
 	}
 	if (argv[1] == "-h" || argc < 4) {
-		printf("USAGE: YarnGeneration [phase1/phase2] [configFile] [datasetFile] -w window-size=10 -s upsample=2 -t isTrain=1 -k skipfactor=500 -x trimPercent -v vrtx-num \n");
-		printf("EXAMPLE: YarnGeneration 1 yarnTypes/yarn4/config_step2.txt yarnTypes/yarn4/datasets.txt -w 10 -s 2 -t 1 -k 500 -x 0.1 -v 300 \n");
+		std::cout << "Number of argument: " << argc << std::endl;
+		printf("USAGE: YarnGeneration [phase1/phase2] [configFile] [datasetFile] -w window-size=10 -s upsample=2 -t isTrain=1 -k skipfactor=500 -x trimPercent -v vrtx-num -c isCompress \n");
+		printf("EXAMPLE: YarnGeneration 1 yarnTypes/yarn4/config_step2.txt yarnTypes/yarn4/datasets.txt -w 10 -s 2 -t 1 -k 500 -x 0.1 -v 300 -c 1 \n");
 		return 1;
 	}
 	const int phase = atoi(argv[1]);
@@ -28,6 +28,7 @@ int main(int argc, const char **argv) {
 	int isTrain = 1;
 	int skipFactor = 500;
 	float trimPercent = 0.1;
+	int isCompress = 1;
 	int vrtx = 300;
 	for (int i = 4; i < argc-1; ++i) {
 		std::string arg = argv[i];
@@ -44,6 +45,8 @@ int main(int argc, const char **argv) {
 			arg1 >> trimPercent;
 		if (arg == "-v")
 			arg1 >> vrtx;
+		if (arg == "-c")
+			arg1 >> isCompress;
 	}
 
 	std::ifstream fin0(configfile);
@@ -82,7 +85,7 @@ int main(int argc, const char **argv) {
 				int frame1 = atoi(splits[2].c_str()) / skipFactor + 1;
 				int yarn0 = atoi(splits[3].c_str());
 				int yarn1 = atoi(splits[4].c_str());
-				full_pipeline(yarnfile1, configfile, vrtx, skipFactor, frame0, frame1, yarn0, yarn1, dataset, isTrain, window_size, trimPercent);
+				full_pipeline(yarnfile1, configfile, vrtx, skipFactor, frame0, frame1, yarn0, yarn1, dataset, isTrain, window_size, trimPercent, upsample);
 			}
 
 			break;
@@ -98,7 +101,7 @@ int main(int argc, const char **argv) {
 				int frame1 = atoi(splits[2].c_str()) / skipFactor + 1;
 				int yarn0 = atoi(splits[3].c_str());
 				int yarn1 = atoi(splits[4].c_str());
-				step4_NN_output(configfile, vrtx, skipFactor, frame0, frame1, yarn0, yarn1, dataset);
+				step4_NN_output(configfile, vrtx, skipFactor, frame0, frame1, yarn0, yarn1, dataset, isCompress);
 			}
 			break;
 		}

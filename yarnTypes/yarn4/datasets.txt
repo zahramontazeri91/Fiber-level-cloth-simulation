@@ -1,6 +1,16 @@
-fall/yarn4/fall 0 99500 0 46
+yarn_stretch 0 49000 0 1
 eof
-stretch/yarn4/stretch 10000 74500 0 46
+pattern/yarn4/spacing1.0x/11110/elastic 18000 21000 0 1
+eof
+twist/yarn4/damp2_500 0 99500 0 1
+eof
+ball_fall 23000 73500 0 46
+eof
+stretch/yarn4/stretch 10000 70000 0 46
+eof
+shear/shear0403 0 74500 0 46
+eof
+fall/yarn4/fall 50000 99500 0 46
 eof
 pattern/yarn4/spacing0.5x/10 8000 14000 0 1
 pattern/yarn4/spacing0.5x/00011 8000 16000 0 1

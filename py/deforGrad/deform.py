@@ -44,7 +44,9 @@ def transform(vrtNum, cntr_n_obj, cntr_n, twist_n, dg_n, internal_n, physicalPar
                 
     dg = []
     with open( dg_n, "r") as fin:
-        for line in fin.readlines():
+#        for line in fin.readlines():
+        for i in range (0, len(pts1)-1): #-1 because DG is one less than num of particles
+            line = fin.readline()
             val = [float(x) for x in line.strip().split()]
             val = np.reshape(val, (3, 3))
             dg.append(val)
@@ -75,7 +77,7 @@ def transform(vrtNum, cntr_n_obj, cntr_n, twist_n, dg_n, internal_n, physicalPar
   
     
     if (len(pts1) != n + 1 or len(idx) != n + 1):
-        print (len(idx), len(idx), n + 1 )
+        print (len(pts1), len(idx), n + 1 )
     assert len(pts1) == n + 1 and len(idx) == n + 1
     
     fidx = 0.5*(idx[0 : -1] + idx[1 :])
@@ -141,10 +143,10 @@ def transform(vrtNum, cntr_n_obj, cntr_n, twist_n, dg_n, internal_n, physicalPar
     
     if (isTrain==1):    
         with open(def_obj, "w") as fout:
-            print >> fout, bundle.numFibers
-            for i in range(0, bundle.numFibers):
-                print >> fout, bundle.fiberLen
-                for j in range(0, bundle.fiberLen):
+            print >> fout, fiberNum
+            for i in range(0, fiberNum):
+                print >> fout, vrtNum*downSample
+                for j in range(0, vrtNum*downSample):
                     v = bundle.fiber_vertex(i, j)
                     
 #                    v = np.dot(R0, v) + t0  #Don't deform the yarn
@@ -159,6 +161,7 @@ def main (path, dataset, vrtNum, isTrain, firstFrame, lastFrame):
     print (dataset)
     for i in range (firstFrame/skipFactor,lastFrame/skipFactor + 1):  
         f = i * skipFactor
+        print(f)
         frameNum = 'frame_'+str(f).zfill(7)
         for y in range(yarn0,yarn1):
             yarnNum = 'fiber_' + str(y).zfill(2)
@@ -195,19 +198,24 @@ def main (path, dataset, vrtNum, isTrain, firstFrame, lastFrame):
 #############################   
             
 skipFactor = 1000
-downSample = 2 ###############
-vrtNum = 125
-#totalYarn = 1
+downSample = 2 
+vrtNum = 150
+fiberNum = 160
 yarn0 = 0
-yarn1 = 46
-isTrain = 0
+yarn1 = 1
+isTrain = 1 #####
+#dataset = 'pattern/yarn4/spacing1.0x/11110/elastic'
 #dataset = 'woven/yarn4/spacing1.0x/00011'
 #dataset = 'stretch/yarn4/stretch'
-dataset = 'fall/yarn4/fall'
+#dataset = 'fall/yarn4/fall'
+#dataset = 'ball_fall'
+#dataset = 'shear/shear0403'
+dataset = 'yarn_stretch'
+
 path = "D:/sandbox/fiberSimulation/dataSets/" + dataset+"/yarn/"
 restFrame = '0010000'
 firstFrame = 0
-lastFrame = 99500
+lastFrame = 49000
 main (path, dataset, vrtNum, isTrain,  firstFrame, lastFrame)
 
 #############################   

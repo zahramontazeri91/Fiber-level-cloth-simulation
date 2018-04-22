@@ -3,10 +3,13 @@
 
 
 void HermiteCurve::init(const char* pntsFILE, const char* normsFILE, int subdiv) {
-	//std::cout << pntsFILE;
 
     assert(pntsFILE);
 	std::ifstream fin(pntsFILE);
+
+	if (fin.fail())
+		std::cout << pntsFILE;
+
     assert(!fin.fail());
 
     int n;
@@ -124,6 +127,18 @@ void HermiteCurve::init_principleNormal(const char* pntsFILE, const char* binorm
 	printBiNormals(binormsFILE, subdiv);
 }
 
+/*mitsuba implementation: given vector a, it return a,b,c such that they form an orthogonal basis*/
+void coordinateSystem(const vec3f &a, vec3f &b, vec3f &c) {
+	if (std::abs(a.x) > std::abs(a.y)) {
+		float invLen = 1.0f / std::sqrt(a.x * a.x + a.z * a.z);
+		c = vec3f(a.z * invLen, 0.0f, -a.x * invLen);
+	}
+	else {
+		float invLen = 1.0f / std::sqrt(a.y * a.y + a.z * a.z);
+		c = vec3f(0.0f, a.z * invLen, -a.y * invLen);
+	}
+	b = cross(c, a);
+}
 
 #if 0
 void HermiteCurve::init(const std::vector<Eigen::Vector3d> &pts, int subdiv) //subdiv for each segment
@@ -161,25 +176,31 @@ void HermiteCurve::init(const std::vector<Eigen::Vector3d> &pts, int subdiv) //s
 			break;
 		}
 	}
-	assert(isFound && "Assuming there exist one point in the curve that its curvature doesn't vanish");
+
+	//assert(isFound && "Assuming there exist one point in the curve that its curvature doesn't vanish");
 	//if (firstIndx>0)
 		//std::cout << firstIndx << "-th vertex has non-vanishing curvature. \n";
 
-	//DEBUG:
-	//Eigen::Vector3d v = m_splines[0].evalTangent(0.0);
-	//Eigen::Vector3d q = m_splines[0].evalCurvature(0.0);
-	//q.normalize();
-	//std::cout << q.norm() << " \n" << v.norm() << " \n" << v.cross(q).cross(v) << " \n (init_principleNormal) \n";
-	//assert(q.norm() > HERMITE_EPS);
-	//assert(v.norm() > HERMITE_EPS);
-	//assert(v.cross(q).cross(v).norm() > HERMITE_EPS);
-	/***/
+	if (isFound) {
+		m_splines[firstIndx].build(subdiv, m_splines[firstIndx].evalPrincipalNormal(0.0));
+	}
+	else {//when all the points of the window have vanished curvature
+		firstIndx = 0; //pick a fixed normal for the first point
+		Eigen::Vector3d t = m_splines[firstIndx].evalTangent(0.0);
+		vec3f tang(t(0), t(1), t(2));
+		vec3f norm, binorm;
+		coordinateSystem(tang, norm, binorm);
+		Eigen::Vector3d n;
+		n << norm.x, norm.y, norm.z;
+		m_splines[firstIndx].build(subdiv, n);
 
-    m_splines[firstIndx].build(subdiv, m_splines[firstIndx].evalPrincipalNormal(0.0));
+	}
+
+    
 	for (int i = firstIndx+1; i < m_spline_seg; ++i) {
 		m_splines[i].build(subdiv, m_splines[i - 1].evalNormal(1.0), Eigen::Vector3d::Zero());
 	}
-	for (int i = firstIndx - 1; i >= 0; --i) {
+	for (int i = firstIndx - 1; i >= 0; --i) { //go backward
 		m_splines[i].build(subdiv, Eigen::Vector3d::Zero(), m_splines[i + 1].evalNormal(0.0));
 	}
     m_lens.resize(m_spline_seg);
@@ -590,6 +611,8 @@ Eigen::Vector3d HermiteCurve::rotVec3(const float angle, const Eigen::Vector3d &
 void HermiteCurve::twistNormals(const char* twistFile, const std::vector<Eigen::Vector3d> &all_tg, const std::vector<Eigen::Vector3d> &all_norm, std::vector<Eigen::Vector3d> &all_norm_rot) {
 
 	std::ifstream fin(twistFile);
+	if (!fin.is_open())
+		std::cout << twistFile << std::endl;
 	assert(fin.is_open() && "twist-file is not found!\n");
 	int n=0;
 	fin >> n;

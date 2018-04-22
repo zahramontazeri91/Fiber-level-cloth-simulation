@@ -62,22 +62,6 @@ void extractCompress_seg(const char* configfile, const char* yarnfile1, const ch
 	std::vector<yarnIntersect2D> pnts_ref;
 	CrossSection cs1(yarnfile1, configfile, pnts_ref);
 
-	//pipeline 2:
-	//std::vector<yarnIntersect2D> pnts_ref;
-	//CrossSection cs1(yarnfile1, deformGrad, configfile, pnts_ref);
-
-	//const char* normYarn1 = "norms.txt";
-	//const char* centerYarn1 = "centerYarn1.txt";
-	//yarn_tmp.yarnCenter(yarnfile1, centerYarn1);
-	//std::vector<yarnIntersect2D> pnts_ref;
-	//CrossSection cs1(yarnfile1, centerYarn1, normYarn1, ply_num, n, 100, pnts_ref, false);
-
-	// for pipeline 2: (Shuang train data)
-	//Fiber::Yarn yarn_tmp;
-	//yarn_tmp.yarnCenter(yarnfile1, curveFile);
-	//std::vector<yarnIntersect2D> pnts_ref;
-	//CrossSection cs(yarnfile1, curveFile, normFile, ply_num, n, 100, pnts_ref, false);
-
 	//Fiber::Yarn yarn_tmp;
 	//yarn_tmp.yarnCenter(yarnfile2, curveFile);
 	std::vector<yarnIntersect2D> pnts_trans;
@@ -858,7 +842,7 @@ void step3_appendTraining(int skipFactor, int frame0, int frame1, int yarn0, int
 
 }
 
-void step4_NN_output(const char* configfile, const int vrtx, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset) {
+void step4_NN_output(const char* configfile, const int vrtx, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset, const int isCompress) {
 	std::cout << "\n**************************************************\n";
 	std::cout << "*** Testing-NN phase ***\n";
 	std::cout << " @@@@@@@@@@ " << dataset << " @@@@@@@@@@ \n";
@@ -896,16 +880,28 @@ void step4_NN_output(const char* configfile, const int vrtx, int skipFactor, int
 			assert(fin4.is_open() && "normfile file wasn't found!\n");
 
 			///*******  write the yarn ******/
+			std::string tmp3;
+			if (isCompress) {
 #ifndef IMPROVED_FLYAWAYS
-			std::string tmp3 = "output/" + dataset + "/genYarn_NN_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+				tmp3 = "output/" + dataset + "/genYarn_NN_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
 #else
-			std::string tmp3 = "output/" + dataset + "/genYarn_NN_fly_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+				tmp3 = "output/" + dataset + "/genYarn_NN_fly_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
 #endif
+			}
+			else {
+#ifndef IMPROVED_FLYAWAYS
+				tmp3 = "output/" + dataset + "/genYarn_NN_wo_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+#else
+				tmp3 = "output/" + dataset + "/genYarn_NN_fly_wo_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+#endif
+			}
+
 			const char* outfile = tmp3.c_str();
 			////// Procedural step
 			Fiber::Yarn yarn_compressed; //renew the yarn
 			yarn_compressed = yarn;
-			yarn_compressed.compress_yarn_A(compress_S);
+			if (isCompress)
+				yarn_compressed.compress_yarn_A(compress_S);
 			yarn_compressed.curve_yarn(curvefile_us, normfile_us);
 			yarn_compressed.write_yarn(outfile);
 

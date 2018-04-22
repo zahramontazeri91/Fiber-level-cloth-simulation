@@ -49,6 +49,7 @@ void CrossSection::init_norm(const char* yarnfile, const int ply_num, const char
 	PlanesIntersections2D(itsLists, allPlaneIntersect);
 }
 
+
 void CrossSection::buildPlanes(const int num_planes, std::vector<yarnIntersect> &itsLists, const char* twistFile, const int upsample) { //TODO: merge it with next func
 	
 	m_planesList.resize(num_planes);
@@ -76,6 +77,7 @@ void CrossSection::buildPlanes(const int num_planes, std::vector<yarnIntersect> 
 
 	}
 	std::vector<std::vector<vec3f>> plyCenters;
+	allPlanesIntersections(itsLists);
 	allPlyCenters(plyCenters, itsLists);
 	// Define inplane 2D coord using the direction from yarn-center to intersection of first ply-center 
 	//for (int i = 0; i < num_planes; ++i) {
@@ -84,6 +86,8 @@ void CrossSection::buildPlanes(const int num_planes, std::vector<yarnIntersect> 
 		//m_planesList[i].e2 = cross(m_planesList[i].n, m_planesList[i].e1);
 	//}
 }
+
+
 
 void CrossSection::buildPlanes(const int num_planes, std::vector<yarnIntersect> &itsLists) {
 	const double curveLength = m_curve.totalLength();
@@ -138,13 +142,16 @@ void CrossSection::buildPlanes(const int num_planes, std::vector<yarnIntersect> 
 
 	}
 	std::vector<std::vector<vec3f>> plyCenters;
-	allPlyCenters(plyCenters, itsLists);
+	allPlanesIntersections(itsLists);
+	//allPlyCenters(plyCenters, itsLists);
+
+
 	// Define inplane 2D coord using the direction from yarn-center to intersection of first ply-center 
-	for (int i = 0; i < num_planes; ++i) {
+	//for (int i = 0; i < num_planes; ++i) {
 		// plyCenters[i][0] - m_planesList[i].point is too small so its dot product with n doesn't show they are perpendicular (e1.n !=0 )
 		//m_planesList[i].e1 = nv::normalize(plyCenters[i][0] - m_planesList[i].point);
 		//m_planesList[i].e2 = cross(m_planesList[i].n, m_planesList[i].e1);
-	}
+	//}
 
 	//debug: testing the e# coord
 	//std::vector<std::vector<vec3f>> plyCenters;
@@ -242,7 +249,14 @@ bool CrossSection::allPlanesIntersections(std::vector<yarnIntersect> &itsLists) 
 			isIntrsct = true;
 			itsLists.push_back(itsList);
 		}
+		else {
+			// if plane doesn't intersect the yarn, just add some values and will trim it afterward based on trimPercent
+			itsLists.push_back(itsList);
+		}
 	}
+	if (m_planesList.size() != itsLists.size())
+		std::cout << itsLists.size() << " out of " << m_planesList.size() << " many planes had intersections! \n";
+	assert(m_planesList.size() == itsLists.size() && "not all the planes have intersections!");
 
 	if (isIntrsct)
 		return true;
@@ -446,12 +460,13 @@ void CrossSection::yarnShapeMatches_A(const std::vector<yarnIntersect2D> &pnts_t
 
 	for (int i = 0; i < n; ++i) {
 		Eigen::Matrix2f A;
-		if (pnts_trans[i][0].size() != pnts_ref[i][0].size() || pnts_trans[i][1].size() != pnts_ref[i][1].size()) {
+		if (pnts_trans[i][0].size() != pnts_ref[i][0].size() || pnts_trans[i][1].size() != pnts_ref[i][1].size()) { //for two plys!
 			std::cout << "Not equal number of points in simulated and procedural in " << i << "-th cross-section.\n";
+			std::cout << "trans: " << pnts_trans[i][0].size() << " ref: " << pnts_ref[i][0].size() << std::endl;
 			A(0, 0) = 0.0;
-			A(0, 1) = 0.0;
+			A(0, 1) = 1.0;
 			A(1, 0) = 0.0;
-			A(1, 1) = 0.0;
+			A(1, 1) = 1.0;
 			continue;
 		}
 		yarnShapeMatch_A(pnts_trans[i], pnts_ref[i], A);
@@ -489,7 +504,7 @@ void CrossSection::yarnShapeMatches(const std::vector<yarnIntersect2D> &pnts_tra
 
 void CrossSection::allPlyCenters(std::vector<std::vector<vec3f>> &plyCenters, std::vector<yarnIntersect> &itsLists) {
 
-	allPlanesIntersections(itsLists);
+	//allPlanesIntersections(itsLists);
 
 	const int num_of_cores = omp_get_num_procs();
 #pragma omp parallel for num_threads(num_of_cores)
@@ -564,9 +579,6 @@ void CrossSection::project2Plane(const vec3f& P3d, const Plane& plane, vec2f& P2
 }
 
 void CrossSection::PlanesIntersections2D(std::vector<yarnIntersect> &itsLists, std::vector<yarnIntersect2D> &allPlaneIntersect) {
-	if (m_planesList.size() != itsLists.size())
-		std::cout << itsLists.size() << " out of " << m_planesList.size() << " many planes had intersections! \n";
-	assert(m_planesList.size() == itsLists.size() && "not all the planes have intersections!");
 
 	const int ply_num = m_yarn.plys.size();
 	const int num_of_cores = omp_get_num_procs();
