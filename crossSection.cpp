@@ -251,6 +251,10 @@ bool CrossSection::allPlanesIntersections(std::vector<yarnIntersect> &itsLists) 
 		}
 		else {
 			// if plane doesn't intersect the yarn, just add some values and will trim it afterward based on trimPercent
+			vec3f tmp(0.f);
+			plyIntersect tmp2;
+			tmp2.push_back(tmp);
+			itsList.push_back(tmp2);
 			itsLists.push_back(itsList);
 		}
 	}
@@ -489,9 +493,9 @@ void CrossSection::yarnShapeMatches(const std::vector<yarnIntersect2D> &pnts_tra
 		if (pnts_trans[i][0].size() != pnts_ref[i][0].size() || pnts_trans[i][1].size() != pnts_ref[i][1].size()) {
 			std::cout << "Not equal number of points in simulated and procedural in " << i << "-th cross-section.\n";
 			all_mat_S[i].S00 = 0.0;
-			all_mat_S[i].S01 = 0.0;
+			all_mat_S[i].S01 = 1.0;
 			all_mat_S[i].S11 = 0.0;
-			all_theta_R[i] = 0.0;
+			all_theta_R[i] = 1.0;
 			continue;
 		}
 

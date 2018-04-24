@@ -49,6 +49,10 @@ int main(int argc, const char **argv) {
 			arg1 >> isCompress;
 	}
 
+	//if the data is for training, both ends must have some trimPercent
+	if (isTrain)
+		assert(trimPercent > 0 && "For training, both ends must be trimmed");
+
 	std::ifstream fin0(configfile);
 	std::ifstream fin00(datasetfile);
 	if (phase) {
