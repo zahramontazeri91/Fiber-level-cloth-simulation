@@ -3,7 +3,7 @@
 #include "Curve.h"
 #include <Eigen/Dense>
 
-//#define IMPROVED_FLYAWAYS
+#define IMPROVED_FLYAWAYS
 
 
 typedef std::vector<vec3f> fiber_t;
@@ -236,6 +236,9 @@ namespace Fiber {
 		void compress_yarn3D(const char* deformGrad);
 		void compress_yarn3D(const char* deformGrad, const char* compress_S);
 		void compress_yarn_A(const char* compress_S);
+
+		/*spin the yarn around itself to match the phase with simulated input */
+		void rotate_yarn(const float angle);
 
 		/* Write simulated data (single yarns) to disk */
 		void write_yarn(const char* filename);

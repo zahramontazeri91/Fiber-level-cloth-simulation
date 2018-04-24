@@ -1059,6 +1059,53 @@ namespace Fiber {
 
 	}
 
+	void Yarn::rotate_yarn(const float angle) {
+		std::cout << "step7: compress yarn cross-sections ..." << std::endl;
+
+		double zMin = std::numeric_limits<double>::max(), zMax = std::numeric_limits<double>::lowest();
+		for (const auto &ply : plys)
+			for (const auto &fiber : ply.fibers)
+				for (const auto &vertex : fiber.vertices) {
+					zMin = std::min(zMin, static_cast<double>(vertex.z));
+					zMax = std::max(zMax, static_cast<double>(vertex.z));
+				}
+		double zSpan = zMax - zMin;
+
+		const int ply_num = this->plys.size();
+		const int num_of_cores = omp_get_num_procs();
+
+
+
+		// change the yarn cross-sections
+		for (int i = 0; i < ply_num; i++) {
+			const int fiber_num = this->plys[i].fibers.size();
+#pragma omp parallel for num_threads(num_of_cores) 
+			for (int f = 0; f < fiber_num; f++) {
+				Fiber &fiber = this->plys[i].fibers[f];
+				const int vertices_num = this->plys[i].fibers[f].vertices.size();
+
+				for (int v = 0; v < vertices_num; v++) {
+
+					int indx = static_cast<int> ((fiber.vertices[v].z - zMin) / this->z_step_size);
+					//std::cout << v << " " << indx << " " << this->z_step_size << std::endl;
+
+					//Eigen::Matrix2f transf = A[indx];
+					Eigen::Matrix2f rot;
+					const float angle_rad = angle * (pi / 180.f);
+					rot << cos(angle_rad), -sin(angle_rad), sin(angle_rad), cos(angle_rad);
+
+
+					Eigen::MatrixXf ref(2, 1);
+					ref << fiber.vertices[v].x, fiber.vertices[v].y;
+					Eigen::MatrixXf def(2, 1);
+					def = rot*ref;
+					fiber.vertices[v].x = def(0, 0);
+					fiber.vertices[v].y = def(1, 0);
+				}
+			}
+		}
+	} // rotate_yarn
+
 	void Yarn::compress_yarn_A(const char* compress_S) {
 		std::cout << "step7: compress yarn cross-sections ..." << std::endl;
 
@@ -1072,6 +1119,8 @@ namespace Fiber {
 		double zSpan = zMax - zMin;
 
 		const int ply_num = this->plys.size();
+		const int num_of_cores = omp_get_num_procs();
+
 		std::vector<Eigen::Matrix2f> A;
 		readCompressFile_A(compress_S, A);
 		if (A.size() != this->z_step_num)
@@ -1081,6 +1130,7 @@ namespace Fiber {
 		// change the yarn cross-sections
 		for (int i = 0; i < ply_num; i++) {
 			const int fiber_num = this->plys[i].fibers.size();
+#pragma omp parallel for num_threads(num_of_cores) 
 			for (int f = 0; f < fiber_num; f++) {
 				Fiber &fiber = this->plys[i].fibers[f];
 				const int vertices_num = this->plys[i].fibers[f].vertices.size();
@@ -1428,15 +1478,18 @@ namespace Fiber {
 			printf(" (scale: %.4lf)", xyScale = curveLength / zSpan);
 		putchar('\n');
 
+		const int num_of_cores = omp_get_num_procs();
 		for (auto &ply : plys)
+#pragma omp parallel for num_threads(num_of_cores) 
 			for (auto &fiber : ply.fibers) {
 				int i = 0;
 				for (auto &vertex : fiber.vertices) {
 
 #ifndef IMPROVED_FLYAWAYS
 					Eigen::Vector3d ez = all_tang[i];
-					Eigen::Vector3d ey = all_norm[i];
+					Eigen::Vector3d ey = all_norm[i];					
 					Eigen::Vector3d ex = ez.cross(ey);
+
 					Eigen::Vector3d pos = all_pts[i];
 #else
 					/* faster but doesn't work for flyaways: */
@@ -1452,11 +1505,13 @@ namespace Fiber {
 
 					/** local to world **/
 					Eigen::Vector3d local;
-					local << vertex.x, vertex.y, 0.0; //since we are in 2D plane
+					local << vertex.x, vertex.y, 0.0; //0 since we are in 2D plane
 					Eigen::Matrix3d M;
-					M << ex[0], ey[0], ez[0],
-						ex[1], ey[1], ez[1],
-						ex[2], ey[2], ez[2];
+
+					M << ey[0], ex[0], ez[0],
+						ey[1], ex[1], ez[1],
+						ey[2], ex[2], ez[2];
+
 					pos1 = pos + M*local;
 
 					//or:
@@ -1470,7 +1525,7 @@ namespace Fiber {
 				}
 			}
 
-		plotIntersections("../data/allCrossSection2D_curve.txt",0.0);
+		//plotIntersections("../data/allCrossSection2D_curve.txt",0.0);
 	} // curve_yarn
 
 

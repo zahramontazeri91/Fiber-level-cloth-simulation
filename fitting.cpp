@@ -588,6 +588,7 @@ void step1_shapematching(const char* yarnfile1, const char* configfile, const in
 			//// Procedural step
 			Fiber::Yarn yarn_compressed; //renew the yarn
 			yarn_compressed = yarn;
+			//yarn_compressed.rotate_yarn(180);
 			yarn_compressed.compress_yarn_A(compress_S);
 			yarn_compressed.curve_yarn(curvefile_us, normfile_us);
 			yarn_compressed.write_yarn(outfile);
@@ -900,6 +901,7 @@ void step4_NN_output(const char* configfile, const int vrtx, int skipFactor, int
 			////// Procedural step
 			Fiber::Yarn yarn_compressed; //renew the yarn
 			yarn_compressed = yarn;
+			yarn_compressed.rotate_yarn(90);
 			if (isCompress)
 				yarn_compressed.compress_yarn_A(compress_S);
 			yarn_compressed.curve_yarn(curvefile_us, normfile_us);
