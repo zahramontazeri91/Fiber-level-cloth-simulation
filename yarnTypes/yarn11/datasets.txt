@@ -1,24 +1,27 @@
-pattern/yarn11/spacing0.5x/10 8000 14000
-pattern/yarn11/spacing0.5x/00011 8000 16000
-pattern/yarn11/spacing0.5x/10100 8000 15000
-pattern/yarn11/spacing0.5x/11110 8000 15000
-pattern/yarn11/spacing1.0x/10 8000 14500
-pattern/yarn11/spacing1.0x/00011 8000 17000
-pattern/yarn11/spacing1.0x/10100 8000 15500
-pattern/yarn11/spacing1.0x/11110 8000 16000
-pattern/yarn11/spacing1.5x/10 8000 15000
-pattern/yarn11/spacing1.5x/00011 8000 17500
-pattern/yarn11/spacing1.5x/10100 8000 16000
-pattern/yarn11/spacing1.5x/11110 8000 16500
-pattern/yarn11/spacing2.0x/10 8000 16000
-pattern/yarn11/spacing2.0x/00011 8000 18000
-pattern/yarn11/spacing2.0x/10100 8000 17000
-pattern/yarn11/spacing2.0x/11110 8000 17500
-pattern/yarn11/spacing2.5x/10 8000 16500
-pattern/yarn11/spacing2.5x/00011 8000 18500
-pattern/yarn11/spacing2.5x/10100 8000 17500
-pattern/yarn11/spacing2.5x/11110 8000 18500
-pattern/yarn11/spacing3.0x/10 8000 16500
-pattern/yarn11/spacing3.0x/00011 8000 19000
-pattern/yarn11/spacing3.0x/10100 8000 20000
-pattern/yarn11/spacing3.0x/11110 8000 19000
+single_yarn/yarn11/stretch 25000 35000 0 1
+eof
+pattern/yarn11/spacing0.5x/10 7000 14000 0 1
+pattern/yarn11/spacing0.5x/00011 7000 16000 0 1
+pattern/yarn11/spacing0.5x/10100 7000 15000 0 1
+pattern/yarn11/spacing0.5x/11110 7000 15000 0 1
+pattern/yarn11/spacing1.0x/10 7000 14500 0 1
+pattern/yarn11/spacing1.0x/00011 7000 17000 0 1
+pattern/yarn11/spacing1.0x/10100 7000 15500 0 1
+pattern/yarn11/spacing1.0x/11110 7000 16000 0 1
+pattern/yarn11/spacing1.5x/10 7000 15000 0 1
+pattern/yarn11/spacing1.5x/00011 7000 17500 0 1
+pattern/yarn11/spacing1.5x/10100 7000 16000 0 1
+pattern/yarn11/spacing1.5x/11110 7000 16500 0 1
+pattern/yarn11/spacing2.0x/10 7000 16000 0 1
+pattern/yarn11/spacing2.0x/00011 7000 18000 0 1
+pattern/yarn11/spacing2.0x/10100 7000 17000 0 1
+pattern/yarn11/spacing2.0x/11110 7000 17500 0 1
+pattern/yarn11/spacing2.5x/10 7000 16500 0 1
+pattern/yarn11/spacing2.5x/00011 7000 18500 0 1
+pattern/yarn11/spacing2.5x/10100 7000 17500 0 1
+pattern/yarn11/spacing2.5x/11110 7000 18500 0 1
+pattern/yarn11/spacing3.0x/10 7000 16500 0 1
+pattern/yarn11/spacing3.0x/00011 7000 19000 0 1
+pattern/yarn11/spacing3.0x/10100 7000 19500 0 1
+pattern/yarn11/spacing3.0x/11110 7000 19000 0 1
+eof

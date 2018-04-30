@@ -93,10 +93,10 @@ public:
 	}
 
 	/* shape matching pass transformation matrix A */
-	void shapeMatch_A(const Eigen::MatrixXf &pnt_trans, const Eigen::MatrixXf &pnt_ref, Eigen::Matrix2f &A);
-	void yarnShapeMatch_A(const yarnIntersect2D &pnts_trans, const yarnIntersect2D &pnts_ref, Eigen::Matrix2f &A);
+	void shapeMatch_A(const Eigen::MatrixXf &pnt_trans, const Eigen::MatrixXf &pnt_ref, Eigen::Matrix2f &A, std::ofstream &phase_fout);
+	void yarnShapeMatch_A(const yarnIntersect2D &pnts_trans, const yarnIntersect2D &pnts_ref, Eigen::Matrix2f &A, std::ofstream &phase_fout);
 	void yarnShapeMatches_A(const std::vector<yarnIntersect2D> &pnts_trans, const std::vector<yarnIntersect2D> &pnts_ref,
-		std::vector<Eigen::Matrix2f> &all_A);
+		std::vector<Eigen::Matrix2f> &all_A, std::ofstream &phase_fout);
 
 	/* Shape matching per ply */
 	void plyShapeMatch(const plyIntersect2D &pnts_trans, const plyIntersect2D &pnts_ref, Eigen::MatrixXf &mat_S, float &theta_R, Eigen::MatrixXf &T);

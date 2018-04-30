@@ -1059,7 +1059,7 @@ namespace Fiber {
 
 	}
 
-	void Yarn::rotate_yarn(const float angle) {
+	void Yarn::rotate_yarn(const char* global_rot) {
 		std::cout << "step7: compress yarn cross-sections ..." << std::endl;
 
 		double zMin = std::numeric_limits<double>::max(), zMax = std::numeric_limits<double>::lowest();
@@ -1074,7 +1074,8 @@ namespace Fiber {
 		const int ply_num = this->plys.size();
 		const int num_of_cores = omp_get_num_procs();
 
-
+		std::vector<Eigen::Matrix2f> R;
+		readCompressFile_A(global_rot, R);
 
 		// change the yarn cross-sections
 		for (int i = 0; i < ply_num; i++) {
@@ -1090,9 +1091,7 @@ namespace Fiber {
 					//std::cout << v << " " << indx << " " << this->z_step_size << std::endl;
 
 					//Eigen::Matrix2f transf = A[indx];
-					Eigen::Matrix2f rot;
-					const float angle_rad = angle * (pi / 180.f);
-					rot << cos(angle_rad), -sin(angle_rad), sin(angle_rad), cos(angle_rad);
+					Eigen::Matrix2f rot = R[indx];
 
 
 					Eigen::MatrixXf ref(2, 1);
@@ -1106,7 +1105,7 @@ namespace Fiber {
 		}
 	} // rotate_yarn
 
-	void Yarn::compress_yarn_A(const char* compress_S) {
+	void Yarn::compress_yarn_A(const char* compress_S, const char* global_rot) {
 		std::cout << "step7: compress yarn cross-sections ..." << std::endl;
 
 		double zMin = std::numeric_limits<double>::max(), zMax = std::numeric_limits<double>::lowest();
@@ -1122,7 +1121,16 @@ namespace Fiber {
 		const int num_of_cores = omp_get_num_procs();
 
 		std::vector<Eigen::Matrix2f> A;
-		readCompressFile_A(compress_S, A);
+		std::vector<Eigen::Matrix2f> R;
+		readCompressFile_A(compress_S, A); //stretching factor S
+		if (global_rot != "") {
+			readCompressFile_A(global_rot, R); //rotation factor R
+		}
+
+
+
+
+
 		if (A.size() != this->z_step_num)
 			std::cout << "# compress params: " << A.size() << ", # cross-sections: " << this->z_step_num << std::endl;
 		assert(A.size() == this->z_step_num);
@@ -1141,6 +1149,9 @@ namespace Fiber {
 					//std::cout << v << " " << indx << " " << this->z_step_size << std::endl;
 
 					Eigen::Matrix2f transf = A[indx];
+					if (global_rot != "") {
+						transf = A[indx] * R[indx];
+					}
 
 					Eigen::MatrixXf ref(2, 1);
 					ref << fiber.vertices[v].x, fiber.vertices[v].y;
@@ -1485,21 +1496,23 @@ namespace Fiber {
 				int i = 0;
 				for (auto &vertex : fiber.vertices) {
 
-#ifndef IMPROVED_FLYAWAYS
-					Eigen::Vector3d ez = all_tang[i];
-					Eigen::Vector3d ey = all_norm[i];					
-					Eigen::Vector3d ex = ez.cross(ey);
+//#ifndef IMPROVED_FLYAWAYS
+/* faster but doesn't work for flyaways: */
+					//Eigen::Vector3d ez = all_tang[i];
+					//Eigen::Vector3d ey = all_norm[i];					
+					//Eigen::Vector3d ex = ez.cross(ey);
 
-					Eigen::Vector3d pos = all_pts[i];
-#else
-					/* faster but doesn't work for flyaways: */
+					//Eigen::Vector3d pos = all_pts[i];
+//#else
+
+					
 					double len = curveLength*(vertex.z - zMin) / zSpan;
 					double t = centerCurve.arcLengthInvApprox(len);
 					// use rotated Frenet frame 
 					Eigen::Vector3d ex, ey, ez;
 					centerCurve.getRotatedFrame(t, ex, ey, ez);
 					Eigen::Vector3d pos = centerCurve.eval(t);
-#endif
+//#endif
 					Eigen::Vector3d pos1;
 
 
@@ -1511,6 +1524,11 @@ namespace Fiber {
 					M << ey[0], ex[0], ez[0],
 						ey[1], ex[1], ez[1],
 						ey[2], ex[2], ez[2];
+
+					// phase doesn't match:
+					//M << ex[0], ey[0], ez[0],
+					//	ex[1], ey[1], ez[1],
+					//	ex[2], ey[2], ez[2];
 
 					pos1 = pos + M*local;
 

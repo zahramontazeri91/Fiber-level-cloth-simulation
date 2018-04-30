@@ -21,6 +21,7 @@ int main(int argc, const char **argv) {
 		return 1;
 	}
 	const int phase = atoi(argv[1]);
+	assert(phase == 0 || phase == 1 || phase == 2);
 	const char* configfile = argv[2];
 	const char* datasetfile = argv[3];
 	int window_size = 10;
@@ -51,7 +52,7 @@ int main(int argc, const char **argv) {
 
 	//if the data is for training, both ends must have some trimPercent
 	if (isTrain)
-		assert(trimPercent > 0 && "For training, both ends must be trimmed");
+		assert(trimPercent > 0 && "For training, both ends must be trimmed, choose -t larger than 0");
 
 	std::ifstream fin0(configfile);
 	std::ifstream fin00(datasetfile);
@@ -84,6 +85,7 @@ int main(int argc, const char **argv) {
 			{
 				if (line == "eof") break;
 				std::vector<std::string> splits = split(line, ' ');
+				assert(splits.size() == 5 && "USAGE: dataset-location first-frame last-frame first-yarn last-yarn");
 				std::string dataset = splits[0];
 				int frame0 = atoi(splits[1].c_str()) / skipFactor;
 				int frame1 = atoi(splits[2].c_str()) / skipFactor + 1;
@@ -105,11 +107,11 @@ int main(int argc, const char **argv) {
 				int frame1 = atoi(splits[2].c_str()) / skipFactor + 1;
 				int yarn0 = atoi(splits[3].c_str());
 				int yarn1 = atoi(splits[4].c_str());
-				step4_NN_output(configfile, vrtx, skipFactor, frame0, frame1, yarn0, yarn1, dataset, isCompress);
+				step4_NN_output(configfile, vrtx, skipFactor, frame0, frame1, yarn0, yarn1, dataset, isTrain, isCompress);
 			}
 			break;
 		}
 	}
 	//	std::system("pause"); //add breakpoint instead 
-	return 0;
+ 	return 0;
 }

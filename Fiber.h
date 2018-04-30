@@ -235,10 +235,10 @@ namespace Fiber {
 			std::vector<std::vector<Eigen::MatrixXf>> &all_T);
 		void compress_yarn3D(const char* deformGrad);
 		void compress_yarn3D(const char* deformGrad, const char* compress_S);
-		void compress_yarn_A(const char* compress_S);
+		void compress_yarn_A(const char* compress_S, const char* global_rot = "");
 
 		/*spin the yarn around itself to match the phase with simulated input */
-		void rotate_yarn(const float angle);
+		void rotate_yarn(const char *global_rot);
 
 		/* Write simulated data (single yarns) to disk */
 		void write_yarn(const char* filename);

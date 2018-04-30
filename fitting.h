@@ -11,7 +11,7 @@ void decomposeS(const Matrix_S &mat_S, Ellipse &ellipse);
 void writeParameters(std::vector<Matrix_S> &all_mat_S, std::vector<float> &all_theta_R, const char* compress_R, const char* compress_S);
 
 void extractCompress_seg(const char* configfile, const char* yarnfile1, const char* yarnfile2, const char* deformGrad, const char* compress_S,
-	const char* curveFile, const char* normFile, const int ply_num, const int vrtx_num );
+	const char* curveFile, const char* normFile, const char* global_rot, const int ply_num, const int vrtx_num );
 
 //void constFitting_compParam(const std::vector<Ellipse> &ellipses, const std::vector<float> &theta_R,
 	//const float trimPercent, Fiber::Yarn::Compress &compress);
@@ -54,6 +54,6 @@ void step1_dg2local(const int vrtx, int skipFactor, int frame0, int frame1, int 
 void step1_shapematching(const char* yarnfile1, const char* configfile, const int vrtx, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset);
 void step2_buildTrainData(const int vrtx, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset, const int isTrain, const int window_size, const float trimPercent, const int upsample);
 void step3_appendTraining(int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset);
-void step4_NN_output(const char* configfile, const int vrtx, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset, const int isCompress);
+void step4_NN_output(const char* configfile, const int vrtx, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset, const int isTrain, const int isCompress);
 void full_pipeline(const char* yarnfile1, const char* configfile, const int vrtx, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset,
 	const int isTrain, const int window_size, const float trimPercent, const int upsample = 2);

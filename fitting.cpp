@@ -54,7 +54,7 @@ void decomposeS(const Matrix_S &mat_S, Ellipse &ellipse) {
 
 
 void extractCompress_seg(const char* configfile, const char* yarnfile1, const char* yarnfile2, const char* deformGrad, const char* compress_S,
-	const char* curveFile, const char* normFile, const int ply_num, const int vrtx_num)
+	const char* curveFile, const char* normFile, const char* global_rot, const int ply_num, const int vrtx_num)
 {
 	const int n = vrtx_num;
 	
@@ -68,9 +68,11 @@ void extractCompress_seg(const char* configfile, const char* yarnfile1, const ch
 	CrossSection cs2(yarnfile2, curveFile, normFile, ply_num, n, 100, pnts_trans, true);
 	//CrossSection cs2(upsample, yarnfile2, curveFile, normFile, twistFile, ply_num, n, 100, pnts_trans, true);  //changed this to true 
 
+	//write global rotations for phase-matching purpose
+	std::ofstream phase_fout(global_rot);
 	std::vector<Eigen::Matrix2f> all_A;
-	cs2.yarnShapeMatches_A(pnts_trans, pnts_ref, all_A);
-
+	cs2.yarnShapeMatches_A(pnts_trans, pnts_ref, all_A, phase_fout);
+	phase_fout.close();
 
 	FILE *foutS;
 	// write S-matrix for each segment not vertex 
@@ -437,7 +439,6 @@ void step0_curveSetup(const int vrtx, int skipFactor, int frame0, int frame1, in
 			//		all_norm[i][0] << " " << all_norm[i][1] << " " << all_norm[i][2] << "\n";
 			//}
 		}
-
 	}
 }
 void step1_dg2local(const int vrtx, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset) {
@@ -534,7 +535,6 @@ void step1_dg2local(const int vrtx, int skipFactor, int frame0, int frame1, int 
 			fout.close();
 		}
 	}
-
 }
 void step1_shapematching(const char* yarnfile1, const char* configfile, const int vrtx, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset) {
 	std::cout << "\n**************************************************\n";
@@ -568,6 +568,9 @@ void step1_shapematching(const char* yarnfile1, const char* configfile, const in
 			std::string tmp10 = "input/" + dataset + "/physical_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
 			const char* physical_local = tmp10.c_str();
 
+			std::string tmp11 = "input/" + dataset + "/global_rot_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+			const char* global_rot = tmp11.c_str();
+
 			std::ifstream fin1(yarnfile1);
 			std::ifstream fin2(yarnfile2);
 
@@ -579,29 +582,38 @@ void step1_shapematching(const char* yarnfile1, const char* configfile, const in
 			const int upsample = 2;
 			std::cout << "#### shapematching frame" << f << " yarn" << "  is started... \n";
 			extractCompress_seg(configfile, yarnfile1, yarnfile2, "noNeed.txt", compress_S,
-				curvefile_us, normfile_us, yarn.getPlyNum(), vrtx_num);
+				curvefile_us, normfile_us, global_rot, yarn.getPlyNum(), vrtx_num);
 
 			/*************************************************/
+			std::string tmp8, tmp9;
+#ifndef IMPROVED_FLYAWAYS
+			tmp8 = "output/" + dataset + "/genYarn_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+			tmp9 = "output/" + dataset + "/genYarn_wo_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+#else
+			tmp8 = "output/" + dataset + "/genYarn_fly_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+			tmp9 = "output/" + dataset + "/genYarn_wo_fly_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+#endif
+
 #if 1		
-			std::string tmp8 = "output/" + dataset + "/genYarn_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
-			const char* outfile = tmp8.c_str();
-			//// Procedural step
-			Fiber::Yarn yarn_compressed; //renew the yarn
-			yarn_compressed = yarn;
-			//yarn_compressed.rotate_yarn(180);
-			yarn_compressed.compress_yarn_A(compress_S);
-			yarn_compressed.curve_yarn(curvefile_us, normfile_us);
-			yarn_compressed.write_yarn(outfile);
+
+			//const char* outfile = tmp8.c_str();
+			////// Procedural step
+			//Fiber::Yarn yarn_compressed; //renew the yarn
+			//yarn_compressed = yarn;
+			//yarn_compressed.compress_yarn_A(compress_S, global_rot);
+			//yarn_compressed.curve_yarn(curvefile_us, normfile_us);
+			//yarn_compressed.write_yarn(outfile);
 
 			/////*************************************************/
-			//std::string tmp9 = "output/" + dataset + "/genYarn_wo_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
-			//const char* outfile_wo = tmp9.c_str();
-			//yarn.simulate_ply();
-			//yarn.write_plys("test_ply.txt");
-			//yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
-			//yarn.build("test_fly.txt", K);
+			
+			const char* outfile_wo = tmp9.c_str();
+			yarn.simulate_ply();
+			yarn.write_plys("test_ply.txt");
+			yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
+			yarn.build("test_fly.txt", K);
+			//yarn.rotate_yarn(global_rot);
 			//yarn.curve_yarn(curvefile_us, normfile_us);
-			//yarn.write_yarn(outfile_wo);
+			yarn.write_yarn(outfile_wo);
 #endif
 
 		}
@@ -617,6 +629,7 @@ void step2_buildTrainData(const int vrtx, int skipFactor, int frame0, int frame1
 	for (int i = frame0; i < frame1; i++) {
 		int f = i * skipFactor;
 		int seg_subdiv = 10;
+		std::cout << "Build training data for frame " << i << " started ... \n";
 		for (int y = yarn0; y < yarn1; ++y) {
 
 			std::string tmp3 = "input/" + dataset + "/physicalParam/physical_" + std::to_string(f) + "_" + std::to_string(y) + "_world.txt";
@@ -843,7 +856,7 @@ void step3_appendTraining(int skipFactor, int frame0, int frame1, int yarn0, int
 
 }
 
-void step4_NN_output(const char* configfile, const int vrtx, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset, const int isCompress) {
+void step4_NN_output(const char* configfile, const int vrtx, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset, const int isTrain, const int isCompress) {
 	std::cout << "\n**************************************************\n";
 	std::cout << "*** Testing-NN phase ***\n";
 	std::cout << " @@@@@@@@@@ " << dataset << " @@@@@@@@@@ \n";
@@ -871,6 +884,9 @@ void step4_NN_output(const char* configfile, const int vrtx, int skipFactor, int
 			const char* normfile_us = tmp2.c_str();
 			std::string tmp6 = "input/" + dataset + "/NN/testY_NN_full_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
 			const char* compress_S = tmp6.c_str();
+
+			std::string tmp11 = "input/" + dataset + "/global_rot_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+			const char* global_rot = tmp11.c_str();
 
 			std::cout << compress_S << std::endl;
 			std::ifstream fin2(compress_S);
@@ -901,9 +917,12 @@ void step4_NN_output(const char* configfile, const int vrtx, int skipFactor, int
 			////// Procedural step
 			Fiber::Yarn yarn_compressed; //renew the yarn
 			yarn_compressed = yarn;
-			yarn_compressed.rotate_yarn(90);
-			if (isCompress)
-				yarn_compressed.compress_yarn_A(compress_S);
+			if (isTrain) 
+				yarn_compressed.compress_yarn_A(compress_S, global_rot);
+			else {
+				if (isCompress)
+					yarn_compressed.compress_yarn_A(compress_S);
+			}
 			yarn_compressed.curve_yarn(curvefile_us, normfile_us);
 			yarn_compressed.write_yarn(outfile);
 
