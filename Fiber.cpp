@@ -350,6 +350,386 @@ namespace Fiber {
 	Yarn::Yarn() {}
 	Yarn::~Yarn() {}
 
+	void Yarn::simulate_ply_shuang() {
+
+
+#define INDIVIDUAL_PLY 
+		omp_init_lock(&this->lock);
+		// Step1: Obtain center of yarn starting point 
+#ifdef VERBOSE
+		printf("Obtain center of yarn starting point...\n");
+#endif
+		const vec3f base_center = vec3f(0, 0, 0);
+		const float base_radius = this->yarn_radius;
+		this->aabb_procedural.reset();
+		// Step2: Sample initial locations of ply-centers in normal plane around starting point
+#ifdef VERBOSE
+		printf("Sample initial locations of ply-centers in normal plane around starting point...\n");
+#endif
+		const int ply_num = this->plys.size();
+		for (int i = 0; i < ply_num; i++) {
+			float angle = 2 * pi * i / ply_num;
+			this->plys[i].base_theta = angle;
+			this->plys[i].base_center = vec3f(base_radius / 2 * std::cosf(angle), base_radius / 2 * std::sinf(angle), 0);
+		}
+
+		// Step3: Sample initial fiber locations in normal plane around ply-centers using rejection sampling according to the distribution in Sec 4.1
+#ifdef VERBOSE
+		printf("Sample initial fiber locations in normal plane around ply-centers using rejection sampling according to the distribution in Sec 4.1...\n");
+#endif
+
+		const int num_of_cores = omp_get_num_procs();
+
+		for (int i = 0; i < ply_num; i++) {
+			const int fiber_num = this->plys[i].fibers.size();
+#pragma omp parallel for num_threads(num_of_cores) 
+			for (int f = 0; f < fiber_num; f++) {
+				Fiber &fiber = this->plys[i].fibers[f];
+				float radius = this->plys[i].sampleR();
+				float theta = 2 * pi * (float)rand() / (RAND_MAX);
+				float migration_theta = 2 * pi * (float)rand() / (RAND_MAX);
+				fiber.init_radius = radius;
+				fiber.init_theta = theta;
+				fiber.init_migration_theta = migration_theta;
+				fiber.init_vertex = this->plys[i].base_center +
+					vec3f(radius * std::cosf(theta), radius * std::sinf(theta), 0);
+			}
+
+		}
+
+
+		// Step4: Follow cross-section vertices along yarn center paths, while rotating ply centers around the yarn center and rotating fiber positions around ply centers
+#ifdef VERBOSE	
+		printf("Follow cross-section vertices along yarn center paths, while rotating ply centers around the yarn center and rotating fiber positions around ply centers...\n");
+#endif
+
+
+#ifdef IMPROVED_FLYAWAYS
+		std::vector<std::vector<std::vector<float> > > rVals(ply_num);
+#endif
+
+#pragma omp parallel for num_threads(num_of_cores) 
+		for (int i = 0; i < ply_num; i++) {
+			const int fiber_num = this->plys[i].fibers.size();
+
+#ifdef IMPROVED_FLYAWAYS
+			rVals[i].resize(fiber_num);
+#else
+			this->plys[i].flyaway_num = 0;
+			this->plys[i].fly_fiber_num = 0;
+#endif
+
+			for (int f = 0; f < fiber_num; f++) {
+				Fiber &fiber = this->plys[i].fibers[f];
+				fiber.clear();
+
+#ifdef PERTURB_FIBERS
+				std::vector<float> perturbRatios;
+				{
+					const int nsteps = static_cast<int>(std::ceil(this->z_step_num));
+					std::vector<int> eventLoc;
+					for (int step_id = 0; step_id < nsteps; ++step_id)
+						if (rand01() < PERTURB_FIBER_PROB)
+							eventLoc.push_back(step_id);
+					perturbRatios.resize(nsteps, 1.0f);
+					if (!eventLoc.empty())
+					{
+						std::vector<int>::iterator it = eventLoc.begin();
+						perturbRatios[*it] = 1.0f + PERTURB_FIBER_RATIO*(rand01() - 0.5f);
+						for (int j = 0; j < *it; ++j) perturbRatios[j] = perturbRatios[*it];
+						while ((++it) != eventLoc.end())
+						{
+							perturbRatios[*it] = 1.0f + PERTURB_FIBER_RATIO*(rand01() - 0.5f);
+							float extent = static_cast<float>(*it - *(it - 1));
+							for (int j = *(it - 1) + 1; j < *it; ++j)
+							{
+#if 0
+								perturbRatios[j] = (perturbRatios[*(it - 1)] * (*it - j) + perturbRatios[*it] * (j - *(it - 1))) / extent;
+#else
+								float v = static_cast<float>(*it - j) / extent;
+								v = std::sin(0.5f*pi*v);
+								perturbRatios[j] = perturbRatios[*(it - 1)] * v + perturbRatios[*it] * (1.0f - v);
+#endif
+							}
+						}
+						for (int j = eventLoc.back() + 1; j < nsteps; ++j)
+							perturbRatios[j] = perturbRatios[eventLoc.back()];
+					}
+
+					for (int j = 0; j < PERTURB_FIBER_SMOOTHING; ++j)
+					{
+						std::vector<float> perturbRatios0 = perturbRatios;
+						for (int k = 1; k + 1 < nsteps; ++k)
+							perturbRatios[k] = 0.25f*perturbRatios0[k - 1] + 0.5f*perturbRatios0[k] + 0.25f*perturbRatios0[k + 1];
+					}
+				}
+#endif
+
+#ifdef IMPROVED_FLYAWAYS
+				rVals[i][f].clear();
+#endif
+				for (int step_id = 0; step_id < this->z_step_num; step_id++) {
+					const float z = this->z_step_size * (step_id - this->z_step_num / 2.f);
+					const float fiber_theta = this->plys[i].clock_wise ? -z * 2 * pi / this->plys[i].alpha : z * 2 * pi / this->plys[i].alpha;
+					const float yarn_theta = this->clock_wise ? -z * 2 * pi / this->yarn_alpha : z * 2 * pi / this->yarn_alpha;
+					float local_x, local_y, world_x, world_y;
+
+					// Step5: Vary the distance of cross-sectional fiber positions to their ply center according to fiber migration Sec 4.2
+					this->plys[i].helixXYZ(fiber.init_radius, fiber.init_theta, fiber_theta, use_migration, fiber.init_migration_theta, local_x, local_y);
+#ifndef INDIVIDUAL_PLY
+					// Step 6: Transform cross-sectional fiber positions according to strand compression Sec 4.3
+					vec3f short_axis = nv::normalize(this->plys[i].base_center), long_axis = vec3f(-short_axis.y, short_axis.x, 0);
+					vec3f local_p = vec3f(local_x, local_y, 0.f);
+					float _local_x = nv::dot(local_p, short_axis), _local_y = nv::dot(local_p, long_axis);
+					_local_x *= this->plys[i].ellipse_short;
+					_local_y *= this->plys[i].ellipse_long;
+					local_p = _local_x * short_axis + _local_y * long_axis;
+					local_x = local_p.x;
+					local_y = local_p.y;
+
+#ifdef PERTURB_FIBERS
+					local_x *= perturbRatios[step_id];
+					local_y *= perturbRatios[step_id];
+#endif
+
+					float world_x_before_ply_rotation = local_x + this->plys[i].base_center.x;
+					float world_y_before_ply_rotation = local_y + this->plys[i].base_center.y;
+					world_x = world_x_before_ply_rotation * std::cosf(yarn_theta) - world_y_before_ply_rotation * std::sinf(yarn_theta);
+					world_y = world_y_before_ply_rotation * std::cosf(yarn_theta) + world_x_before_ply_rotation * std::sinf(yarn_theta);
+#else 
+					const float balance_radius = std::sqrtf(this->plys[i].ellipse_short * this->plys[i].ellipse_long);
+					local_x *= balance_radius;
+					local_y *= balance_radius;
+#ifdef IMPROVED_FLYAWAYS
+					rVals[i][f].push_back(std::sqrt(local_x*local_x + local_y*local_y));
+#endif
+#ifdef PERTURB_FIBERS
+					local_x *= perturbRatios[step_id];
+					local_y *= perturbRatios[step_id];
+#endif
+
+					world_x = local_x;
+					world_y = local_y;
+#endif
+					vec3f verIn = vec3f(world_x, world_y, z);
+					fiber.vertices.push_back(verIn);
+				}
+			}
+		}
+
+
+#if 1 // 0 DISABLE FLYAWAY 
+
+#ifdef IMPROVED_FLYAWAYS
+		if (this->use_flyaways)
+		{
+			std::uniform_real_distribution<float> distrb1;
+			std::normal_distribution<float> distrb2;
+			std::mt19937 engine;
+			engine.seed(/*1234*/rand());
+#ifdef VERBOSE
+			printf("Generating fly-away fibers...\n");
+#endif
+			const float sig_scale_hair = 0.75f, sig_scale_loop = 0.5f;
+			const int min_loop_span = 10;
+
+			float zextent = this->aabb_micro_ct.pMax.z - this->aabb_micro_ct.pMin.z;
+			for (int i = 0; i < ply_num; ++i)
+			{
+				int nloop = static_cast<int>(std::floor(plys[i].flyaway_loop_density*zextent + 0.5f));
+				if (nloop > 0)
+				{
+
+					std::vector<nv::vec2<int> > locs;
+					int fiber_num = static_cast<int>(this->plys[i].fibers.size());
+					for (int j = 0; j < fiber_num; ++j)
+					{
+						const Fiber &curFiber = this->plys[i].fibers[j];
+						int totVtx = static_cast<int>(curFiber.vertices.size());
+						for (int k = 1; k + 1 < totVtx; ++k)
+							if (rVals[i][j][k] > rVals[i][j][k - 1] && rVals[i][j][k] > rVals[i][j][k + 1])
+								locs.push_back(nv::vec2<int>(j, k));
+					}
+					std::random_shuffle(locs.begin(), locs.end());
+
+					for (int j = 0; j < nloop && j < static_cast<int>(locs.size()); ++j)
+					{
+						int fid = locs[j][0];
+						const std::vector<float> curRs = rVals[i][fid];
+						Fiber &curFiber = this->plys[i].fibers[fid];
+						int totVtx = static_cast<int>(curFiber.vertices.size());
+
+						const int k = locs[j][1];
+						int k0 = std::max(k - min_loop_span, 0);
+						int k1 = std::min(k + min_loop_span, totVtx - 1);
+						while (k0 > 0 && curRs[k0 - 1] < curRs[k0]) --k0;
+						while (k1 + 1 < totVtx && curRs[k1 + 1] < curRs[k1]) ++k1;
+
+						float r1;
+						for (; ; )
+						{
+							r1 = plys[i].flyaway_loop_r1_mu + sig_scale_loop*plys[i].flyaway_loop_r1_sigma*distrb2(engine);
+							if (r1 > 1.05f*curRs[k]) break;
+						}
+
+						float ratio = r1 / curRs[k];
+						for (int t = k0 + 1; t <= k; ++t)
+						{
+							//float v = 1.0f + (ratio - 1.0f)*static_cast<float>(t - k0)/static_cast<float>(k - k0);
+							float v = 1.0f + (ratio - 1.0f)*std::sin(0.5f*pi*static_cast<float>(t - k0) / static_cast<float>(k - k0));
+							curFiber.vertices[t].x *= v;
+							curFiber.vertices[t].y *= v;
+						}
+						for (int t = k1 - 1; t > k; --t)
+						{
+							//float v = 1.0f + (ratio - 1.0f)*static_cast<float>(t - k1)/static_cast<float>(k - k1);
+							float v = 1.0f + (ratio - 1.0f)*std::sin(0.5f*pi*static_cast<float>(t - k1) / static_cast<float>(k - k1));
+							curFiber.vertices[t].x *= v;
+							curFiber.vertices[t].y *= v;
+						}
+					}
+				}
+
+				int nhair = static_cast<int>(std::floor(plys[i].flyaway_hair_density*zextent + 0.5f));
+				for (int j = 0; j < nhair; )
+				{
+					Fiber fiber;
+					float z0 = this->aabb_micro_ct.pMin.z + distrb1(engine)*zextent;
+					float ze = plys[i].flyaway_hair_ze_mu + sig_scale_hair*plys[i].flyaway_hair_ze_sigma*distrb2(engine);
+					float r0 = plys[i].flyaway_hair_r0_mu + sig_scale_hair*plys[i].flyaway_hair_r0_sigma*distrb2(engine);
+					float re = plys[i].flyaway_hair_re_mu + sig_scale_hair*plys[i].flyaway_hair_re_sigma*distrb2(engine);
+					float p0 = 2.0f*pi*distrb1(engine);
+					float pe = plys[i].flyaway_hair_pe_mu + sig_scale_hair*plys[i].flyaway_hair_pe_sigma*distrb2(engine);
+
+					/* Extrapolation */
+
+					float r0_e = 0.0f, re_e = r0 + re;
+					float z0_e = z0 - ze*r0 / re, ze_e = ze + ze*r0 / re;
+					float p0_e = p0 - pe*r0 / re, pe_e = pe + pe*r0 / re;
+
+					int nstep = 100;
+					std::vector<vec3f> vars;
+					for (int k = 0; k <= nstep; ++k)
+					{
+						vec3f cur;
+						cur[0] = r0_e + re_e*static_cast<float>(k) / static_cast<float>(nstep);
+						cur[1] = z0_e + ze_e*static_cast<float>(k) / static_cast<float>(nstep);
+						cur[2] = p0_e + pe_e*static_cast<float>(k) / static_cast<float>(nstep);
+						vars.push_back(cur);
+					}
+
+#ifdef PERTURB_FIBERS
+					/* Perturb parameters */
+					std::vector<float> perturbRatios;
+					for (int k = 0; k < 1; ++k)
+					{
+						std::vector<int> eventLoc;
+						for (int step_id = 0; step_id <= nstep; ++step_id)
+							if (rand01() < 0.2f /* PERTURB_FIBER_PROB */)
+								eventLoc.push_back(step_id);
+						perturbRatios.resize(nstep + 1, 1.0f);
+						if (!eventLoc.empty())
+						{
+							std::vector<int>::iterator it = eventLoc.begin();
+							perturbRatios[*it] = 1.0f + 0.1f /* PERTURB_FIBER_RATIO */ *(rand01() - 0.5f);
+							for (int t = 0; t < *it; ++t) perturbRatios[t] = perturbRatios[*it];
+							while ((++it) != eventLoc.end())
+							{
+								perturbRatios[*it] = 1.0f + 0.1f /* PERTURB_FIBER_RATIO */ *(rand01() - 0.5f);
+								float extent = static_cast<float>(*it - *(it - 1));
+								for (int t = *(it - 1) + 1; t < *it; ++t)
+								{
+#if 0
+									perturbRatios[t] = (perturbRatios[*(it - 1)] * (*it - t) + perturbRatios[*it] * (t - *(it - 1))) / extent;
+#else
+									float v = static_cast<float>(*it - t) / extent;
+									v = std::sin(0.5f*pi*v);
+									perturbRatios[t] = perturbRatios[*(it - 1)] * v + perturbRatios[*it] * (1.0f - v);
+#endif
+								}
+							}
+							for (int t = eventLoc.back() + 1; t <= nstep; ++t)
+								perturbRatios[t] = perturbRatios[eventLoc.back()];
+						}
+
+						for (int t = 0; t < PERTURB_FIBER_SMOOTHING; ++t)
+						{
+							std::vector<float> perturbRatios0 = perturbRatios;
+							for (int o = 1; o + 1 <= nstep; ++o)
+								perturbRatios[o] = 0.25f*perturbRatios0[o - 1] + 0.5f*perturbRatios0[o] + 0.25f*perturbRatios0[o + 1];
+						}
+
+						for (int t = 0; t <= nstep; ++t) vars[t][k] *= perturbRatios[t];
+					}
+#endif	
+					/* Creating fiber curve */
+
+					for (int k = 0; k <= nstep; ++k)
+					{
+						const vec3f &cur = vars[k];
+						vec3f pos;
+						pos[0] = cur[0] * std::cos(cur[2]);
+						pos[1] = cur[0] * std::sin(cur[2]);
+						pos[2] = cur[1];
+						// Crop flyaway fibers using the ply's bounding box
+						if (pos[2] < this->aabb_micro_ct.pMin.z || pos[2] > this->aabb_micro_ct.pMax.z)
+							break;
+						fiber.vertices.push_back(pos);
+					}
+					if (fiber.vertices.size() > 1)
+					{
+						this->plys[i].fibers.push_back(fiber);
+						++j;
+					}
+				}
+#ifdef VERBOSE
+				printf("    Ply #%d: %d type-hair fibers, %d type-loop fibers\n", i, nhair, nloop);
+#endif
+			}
+		}
+#endif
+
+#endif // DISABLE FLYAWAY 
+
+
+
+		for (int i = 0; i < ply_num; ++i)
+			for (auto it = this->plys[i].fibers.begin(); it != this->plys[i].fibers.end(); ++it)
+				for (auto it2 = it->vertices.begin(); it2 != it->vertices.end(); ++it2) {
+					this->aabb_procedural.grow(*it2);
+				}
+
+
+		omp_destroy_lock(&this->lock);
+
+
+
+
+		std::cout << "Checking..." << std::endl;
+		int bad_count = 0;
+		for (int i = 0; i < this->plys.size(); i++)
+		{
+			const int fiberNum = this->plys[i].fibers.size();
+			for (int f = 0; f < fiberNum; f++)
+			{
+				const int vertexNum = this->plys[i].fibers[f].vertices.size();
+				for (int v = 1; v < vertexNum - 1; v++)
+				{
+					vec3f prev = this->plys[i].fibers[f].vertices[v - 1];
+					vec3f curr = this->plys[i].fibers[f].vertices[v];
+					vec3f next = this->plys[i].fibers[f].vertices[v + 1];
+					vec3f dir1 = nv::normalize(next - curr);
+					vec3f dir2 = nv::normalize(curr - prev);
+					if (nv::dot(dir1, dir2) < 0.5) {
+						bad_count++;
+					}
+				}
+			}
+		}
+		std::cout << "Bad count = " << bad_count << std::endl;
+
+	}
+
 
 	void Yarn::simulate_ply() {
 
@@ -1496,14 +1876,14 @@ namespace Fiber {
 				int i = 0;
 				for (auto &vertex : fiber.vertices) {
 
-//#ifndef IMPROVED_FLYAWAYS
+#ifndef IMPROVED_FLYAWAYS
 /* faster but doesn't work for flyaways: */
-					//Eigen::Vector3d ez = all_tang[i];
-					//Eigen::Vector3d ey = all_norm[i];					
-					//Eigen::Vector3d ex = ez.cross(ey);
+					Eigen::Vector3d ez = all_tang[i];
+					Eigen::Vector3d ey = all_norm[i];					
+					Eigen::Vector3d ex = ez.cross(ey);
 
-					//Eigen::Vector3d pos = all_pts[i];
-//#else
+					Eigen::Vector3d pos = all_pts[i];
+#else
 
 					
 					double len = curveLength*(vertex.z - zMin) / zSpan;
@@ -1512,7 +1892,7 @@ namespace Fiber {
 					Eigen::Vector3d ex, ey, ez;
 					centerCurve.getRotatedFrame(t, ex, ey, ez);
 					Eigen::Vector3d pos = centerCurve.eval(t);
-//#endif
+#endif
 					Eigen::Vector3d pos1;
 
 
@@ -1700,6 +2080,75 @@ namespace Fiber {
 		printf("Writing vertices to file done!\n");
 #endif
 	}
+
+
+//	void Yarn::write_plys(const char *fn) {
+//#ifdef VERBOSE
+//		printf("Writing vertices to file...\n");
+//#endif
+//		std::string filename;
+//		int ply_num = this->plys.size();
+//		std::string path = WORK_PATH;
+//		std::vector<std::ofstream> fouts(ply_num);
+//		for (int i = 0; i < ply_num; i++) {
+//			if (fn) {
+//				filename = std::string(fn);
+//				filename = filename.substr(0, filename.find('.')) + std::to_string(static_cast<long long>(i)) + ".txt";
+//			}
+//			else
+//				filename = (path + this->output_file.substr(0, this->output_file.find('.')) + std::to_string(static_cast<long long>(i)) + ".txt");
+//
+//			fouts[i].open(filename.c_str());
+//#ifdef VERBOSE
+//			std::cout << "Writing File : " << filename << std::endl;
+//#endif
+//			int fiber_num = this->plys[i].fibers.size();
+//#ifndef IMPROVED_FLYAWAYS
+//			int fly_fiber_num = this->plys[i].fly_fiber_num;
+//#endif
+//
+//#ifdef VERBOSE
+//			std::cout << "fiber_num = " << fiber_num
+//#ifndef IMPROVED_FLYAWAYS
+//				<< " flyaway_num = " << fly_fiber_num
+//#endif
+//				<< std::endl;
+//#endif
+//
+//			fouts[i] << fiber_num
+//#ifndef IMPROVED_FLYAWAYS
+//				+ fly_fiber_num
+//#endif
+//				<< std::endl;
+//
+//			for (int f = 0; f < fiber_num; f++) {
+//				Fiber &fiber = this->plys[i].fibers[f];
+//
+//				int fiber_vertex_num = fiber.vertices.size();
+//				fouts[i] << fiber_vertex_num << std::endl;
+//				for (int v = 0; v < fiber_vertex_num; v++) {
+//					fouts[i] << fiber.vertices[v].x << " " << fiber.vertices[v].y << " " << fiber.vertices[v].z << std::endl;
+//				}
+//
+//#ifndef IMPROVED_FLYAWAYS
+//				int fly_fiber_num = fiber.fly_vertices_list.size();
+//				if (fly_fiber_num > 0) {
+//					for (int fi = 0; fi < fly_fiber_num; fi++) {
+//						int fly_fiber_vertex = fiber.fly_vertices_list[fi].size();
+//						fouts[i] << fly_fiber_vertex << std::endl;
+//						for (int v = 0; v < fly_fiber_vertex; v++)
+//							fouts[i] << fiber.fly_vertices_list[fi][v].x << " " << fiber.fly_vertices_list[fi][v].y << " " << fiber.fly_vertices_list[fi][v].z << std::endl;
+//					}
+//				}
+//#endif
+//			}
+//			fouts[i].close();
+//		}
+//
+//#ifdef VERBOSE
+//		printf("Writing vertices to file done!\n");
+//#endif
+//	}
 
 	void Yarn:: L2norm_3D(const Yarn &yarn1, const Yarn &yarn2, const int trimPercent, float &L2) {
 		assert(yarn1.getPlyNum() == yarn2.getPlyNum());

@@ -218,6 +218,7 @@ namespace Fiber {
 		/* Simulate yarn with flyaways*/
 		/* Simulate ply  */
 		void simulate_ply();
+		void simulate_ply_shuang();
 		/* Load unrolled plys*/
 		void roll_plys(const int K, const std::string &ply_fn, const std::string &fiber_fn);
 		/* Write simulated data (separate plys) to disk */

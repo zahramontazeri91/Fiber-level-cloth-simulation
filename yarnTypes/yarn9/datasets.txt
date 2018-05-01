@@ -1,4 +1,4 @@
-single_yarn/yarn9/stretch 0 0 0 1
+single_yarn/yarn9/stretch 25000 35000 0 1
 eof
 woven/release/yarn9/8x8_10x 1000 1100 0 16
 eof

@@ -543,7 +543,7 @@ void step1_shapematching(const char* yarnfile1, const char* configfile, const in
 	/* This yarn is what will be compressed (has flyaways) */
 	Fiber::Yarn yarn;
 	yarn.parse(configfile);
-	yarn.simulate_ply();
+	yarn.simulate_ply_shuang();
 	yarn.write_plys("test_ply.txt");
 	const int K = yarn.getPlyNum();
 	yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
@@ -607,13 +607,11 @@ void step1_shapematching(const char* yarnfile1, const char* configfile, const in
 			/////*************************************************/
 			
 			const char* outfile_wo = tmp9.c_str();
-			yarn.simulate_ply();
-			yarn.write_plys("test_ply.txt");
-			yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
-			yarn.build("test_fly.txt", K);
-			//yarn.rotate_yarn(global_rot);
-			//yarn.curve_yarn(curvefile_us, normfile_us);
-			yarn.write_yarn(outfile_wo);
+			Fiber::Yarn yarn_wo; //renew the yarn
+			yarn_wo = yarn;
+			yarn.rotate_yarn(global_rot);
+			yarn_wo.curve_yarn(curvefile_us, normfile_us);
+			yarn_wo.write_yarn(outfile_wo);
 #endif
 
 		}
@@ -867,7 +865,7 @@ void step4_NN_output(const char* configfile, const int vrtx, int skipFactor, int
 	Fiber::Yarn yarn;
 	yarn.parse(configfile);
 	yarn.setStepNum(vrtx);
-	yarn.simulate_ply();
+	yarn.simulate_ply_shuang();
 	yarn.write_plys("test_ply.txt");
 	const int K = yarn.getPlyNum();
 	yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");

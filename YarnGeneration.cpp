@@ -10,18 +10,29 @@
 
 int main(int argc, const char **argv) {
 
-	if (argv[1] == "0" && argc < 3) {
-		printf("EXAMPLE: YarnGeneration 0 yarnTypes/yarn4/config_step2.txt \n");
-		return 1;
+
+	const int phase = atoi(argv[1]);
+	assert(phase == 0 || phase == 1 || phase == 2);
+
+	if (phase == 0 ) {
+		Fiber::Yarn yarn;
+		yarn.parse(argv[2]);
+		yarn.simulate_ply_shuang();
+		yarn.write_plys("test_ply.txt");
+		const int K = yarn.getPlyNum();
+		yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
+		yarn.build("test_fly.txt", K);
+		yarn.write_yarn("genYarn_fly.txt");
+		return 0;
 	}
-	if (argv[1] == "-h" || argc < 4) {
+
+	if ( argc < 4 ) {
 		std::cout << "Number of argument: " << argc << std::endl;
 		printf("USAGE: YarnGeneration [phase1/phase2] [configFile] [datasetFile] -w window-size=10 -s upsample=2 -t isTrain=1 -k skipfactor=500 -x trimPercent -v vrtx-num -c isCompress \n");
 		printf("EXAMPLE: YarnGeneration 1 yarnTypes/yarn4/config_step2.txt yarnTypes/yarn4/datasets.txt -w 10 -s 2 -t 1 -k 500 -x 0.1 -v 300 -c 1 \n");
 		return 1;
 	}
-	const int phase = atoi(argv[1]);
-	assert(phase == 0 || phase == 1 || phase == 2);
+
 	const char* configfile = argv[2];
 	const char* datasetfile = argv[3];
 	int window_size = 10;
@@ -62,15 +73,6 @@ int main(int argc, const char **argv) {
 	}
 
 	switch (phase) {
-		case 0: {
-			const char* yarnfile1 = "genYarn.txt";
-			Fiber::Yarn yarn;
-			yarn.parse(configfile);	
-			//yarn.setStepNum(vrtx);
-			yarn.yarn_simulate();
-			yarn.write_yarn(yarnfile1);
-			break;
-		}
 		case 1: {		
 
 			const char* yarnfile1 = "genYarn_ref.txt";
