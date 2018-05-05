@@ -1496,6 +1496,7 @@ namespace Fiber {
 					zMax = std::max(zMax, static_cast<double>(vertex.z));
 				}
 		double zSpan = zMax - zMin;
+		//double curveLength = centerCurve.totalLength();
 
 		const int ply_num = this->plys.size();
 		const int num_of_cores = omp_get_num_procs();
@@ -1509,8 +1510,6 @@ namespace Fiber {
 
 
 
-
-
 		if (A.size() != this->z_step_num)
 			std::cout << "# compress params: " << A.size() << ", # cross-sections: " << this->z_step_num << std::endl;
 		assert(A.size() == this->z_step_num);
@@ -1518,15 +1517,19 @@ namespace Fiber {
 		// change the yarn cross-sections
 		for (int i = 0; i < ply_num; i++) {
 			const int fiber_num = this->plys[i].fibers.size();
-#pragma omp parallel for num_threads(num_of_cores) 
+//#pragma omp parallel for num_threads(num_of_cores) 
 			for (int f = 0; f < fiber_num; f++) {
 				Fiber &fiber = this->plys[i].fibers[f];
 				const int vertices_num = this->plys[i].fibers[f].vertices.size();
 
 				for (int v = 0; v < vertices_num; v++) {
 
-					int indx = static_cast<int> ((fiber.vertices[v].z - zMin) / this->z_step_size);
-					//std::cout << v << " " << indx << " " << this->z_step_size << std::endl;
+					//because of flyaways we should find the closest indx to v
+					//int indx = static_cast<int> ((fiber.vertices[v].z - zMin) / this->z_step_size);  //was working before
+					int indx = static_cast<int> ( ((fiber.vertices[v].z - zMin) / zSpan) * (this->z_step_num-1)  ); // -1 because index starts from 0
+					//if (f == 0 && i == 0)
+						//std::cout << v << "  " << vertices_num  << " " << indx << " " << indx2  << " " << A.size() << " " <<  this->z_step_size << std::endl;
+
 
 					Eigen::Matrix2f transf = A[indx];
 					if (global_rot != "") {
@@ -1901,14 +1904,15 @@ namespace Fiber {
 					local << vertex.x, vertex.y, 0.0; //0 since we are in 2D plane
 					Eigen::Matrix3d M;
 
-					M << ey[0], ex[0], ez[0],
-						ey[1], ex[1], ez[1],
-						ey[2], ex[2], ez[2];
-
 					// phase doesn't match:
-					//M << ex[0], ey[0], ez[0],
-					//	ex[1], ey[1], ez[1],
-					//	ex[2], ey[2], ez[2];
+					//M << ey[0], ex[0], ez[0],
+						//ey[1], ex[1], ez[1],
+						//ey[2], ex[2], ez[2];
+
+					
+					M << ex[0], ey[0], ez[0],
+						ex[1], ey[1], ez[1],
+						ex[2], ey[2], ez[2];
 
 					pos1 = pos + M*local;
 

@@ -1,0 +1,2 @@
+single_yarn/yarn90/teeth 25000 35000 0 1
+eof

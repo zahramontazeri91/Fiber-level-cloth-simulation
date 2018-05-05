@@ -13,7 +13,7 @@ fiber_clock_wise: 1
 yarn_alpha: 0.37229
 alpha: 0.380801
 
-yarn_radius: 0.0286676
+yarn_radius: 0.0486676
 ellipse_long: 0.0282957
 ellipse_short: 0.0208841
 

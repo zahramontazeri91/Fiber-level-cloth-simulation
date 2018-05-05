@@ -388,12 +388,13 @@ float get_angle(Eigen::Vector3d &norm1, Eigen::Vector3d &norm2, Eigen::Vector3d 
 }
 
 
-void step0_curveSetup(const int vrtx, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset) {
+void step0_curveSetup(const int vrtx, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset, const int upsample) {
 	std::cout << "\n**************************************************\n";
 	std::cout << "*** step0: up-sample the curve ***\n";
 	const int num_of_cores = omp_get_num_procs();
 #pragma omp parallel for num_threads(num_of_cores)
 	for (int i = frame0; i < frame1; i++) {
+		std::cout << "up-ssample frame " << i << " started...\n";
 		int f = i * skipFactor;
 		HermiteCurve curve_ds, curve_us;
 		int seg_subdiv = 10;
@@ -419,7 +420,7 @@ void step0_curveSetup(const int vrtx, int skipFactor, int frame0, int frame1, in
 			std::vector<Eigen::Vector3d> all_pts, all_tang, all_norm;
 			
 			// assign local frames for each point
-			curve_ds.assign_twist(twistfile, all_pts, all_tang, all_norm, 2);
+			curve_ds.assign_twist(twistfile, all_pts, all_tang, all_norm, upsample);
 
 			// write up-sampled centerline so later we can crop a segment out of it
 			fout_cntr << vrtx << std::endl;
@@ -536,13 +537,15 @@ void step1_dg2local(const int vrtx, int skipFactor, int frame0, int frame1, int 
 		}
 	}
 }
-void step1_shapematching(const char* yarnfile1, const char* configfile, const int vrtx, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset) {
+void step1_shapematching(const char* yarnfile1, const char* configfile, const int vrtx, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset, const float stepSize) {
 	std::cout << "\n**************************************************\n";
 	std::cout << "*** step1: Fitting phase ***\n";
 
 	/* This yarn is what will be compressed (has flyaways) */
 	Fiber::Yarn yarn;
 	yarn.parse(configfile);
+	yarn.setStepNum(vrtx);
+	yarn.setStepSize(stepSize);
 	yarn.simulate_ply_shuang();
 	yarn.write_plys("test_ply.txt");
 	const int K = yarn.getPlyNum();
@@ -609,7 +612,7 @@ void step1_shapematching(const char* yarnfile1, const char* configfile, const in
 			const char* outfile_wo = tmp9.c_str();
 			Fiber::Yarn yarn_wo; //renew the yarn
 			yarn_wo = yarn;
-			yarn.rotate_yarn(global_rot);
+			yarn_wo.rotate_yarn(global_rot);
 			yarn_wo.curve_yarn(curvefile_us, normfile_us);
 			yarn_wo.write_yarn(outfile_wo);
 #endif
@@ -618,7 +621,7 @@ void step1_shapematching(const char* yarnfile1, const char* configfile, const in
 	}
 }
 
-void step2_buildTrainData(const int vrtx, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset, const int isTrain, const int window_size, const float trimPercent, const int upsample) {
+void step2_buildTrainData(const int vrtx, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset, const int isTrain, const int ws_ds, const float trimPercent, const int upsample) {
 	std::cout << "\n**************************************************\n";
 	std::cout << "*** step 2: Build training data  *** \n";
 	const int num_of_cores = omp_get_num_procs();
@@ -679,6 +682,7 @@ void step2_buildTrainData(const int vrtx, int skipFactor, int frame0, int frame1
 
 			/* window-level */
 			const int ignorPlanes = trimPercent * vrtx_num; // crop the first and last #% of the yarn
+			const int window_size = ws_ds * upsample;
 			for (int w = ignorPlanes; w < (vrtx_num - window_size + 1) - ignorPlanes; w=w+upsample) {
 				//std::cout << w << std::endl;
 
@@ -854,7 +858,7 @@ void step3_appendTraining(int skipFactor, int frame0, int frame1, int yarn0, int
 
 }
 
-void step4_NN_output(const char* configfile, const int vrtx, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset, const int isTrain, const int isCompress) {
+void step4_NN_output(const char* configfile, const int vrtx, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset, const int isTrain, const int isCompress, const float stepSize) {
 	std::cout << "\n**************************************************\n";
 	std::cout << "*** Testing-NN phase ***\n";
 	std::cout << " @@@@@@@@@@ " << dataset << " @@@@@@@@@@ \n";
@@ -865,6 +869,7 @@ void step4_NN_output(const char* configfile, const int vrtx, int skipFactor, int
 	Fiber::Yarn yarn;
 	yarn.parse(configfile);
 	yarn.setStepNum(vrtx);
+	yarn.setStepSize(stepSize);
 	yarn.simulate_ply_shuang();
 	yarn.write_plys("test_ply.txt");
 	const int K = yarn.getPlyNum();
@@ -951,12 +956,12 @@ void step4_NN_output(const char* configfile, const int vrtx, int skipFactor, int
 }
 
 void full_pipeline(const char* yarnfile1, const char* configfile, const int vrtx, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset,
-	const int isTrain, const int window_size, const float trimPercent, const int upsample) {
+	const int isTrain, const int window_size, const float trimPercent, const int upsample, const float stepSize) {
 	std::cout << " @@@@@@@@@@ " << dataset << " @@@@@@@@@@ \n";
-	step0_curveSetup(vrtx, skipFactor, frame0, frame1, yarn0, yarn1, dataset);
+	step0_curveSetup(vrtx, skipFactor, frame0, frame1, yarn0, yarn1, dataset, upsample);
 	step1_dg2local(vrtx, skipFactor, frame0, frame1, yarn0, yarn1, dataset);
 	if (isTrain)
-		step1_shapematching(yarnfile1, configfile, vrtx, skipFactor, frame0, frame1, yarn0, yarn1, dataset);
+		step1_shapematching(yarnfile1, configfile, vrtx, skipFactor, frame0, frame1, yarn0, yarn1, dataset, stepSize);
 	step2_buildTrainData(vrtx, skipFactor, frame0, frame1, yarn0, yarn1, dataset, isTrain, window_size, trimPercent, upsample);
 	if (isTrain)
 		step3_appendTraining(skipFactor, frame0, frame1, yarn0, yarn1, dataset);

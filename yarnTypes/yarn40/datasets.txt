@@ -1,14 +1,10 @@
-woven/release/yarn4/100x100 9000 9500 0 200
+single_yarn/yarn4/teeth/4_1.6 24000 24000 0 1 
 eof
-single_yarn/yarn4/stretch 30000 30000 0 1
-eof
-pattern/yarn4/spacing1.0x/00011 15000 17000 0 1
-eof
-single_yarn/yarn4/teeth/4_1.6 0 24000 0 1 
-eof
-single_yarn/yarn4/synthetic 0 13000 0 1
+woven/release/yarn4/100x100 9000 9000 0 200
 eof
 woven/release/yarn4/60x60 0 8000 0 120
+eof
+single_yarn/yarn4/stretch 25000 35000 0 1
 eof
 pattern/yarn4/spacing0.5x/10/Raymond 0 3000 0 1
 eof
