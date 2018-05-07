@@ -1,8 +1,8 @@
-woven/push/yarn4/100x100 0 2400 0 200
-eof
-woven/stretch/yarn4/100x100 500 2400 0 200
+woven/push/yarn4/100x100 2400 2400 0 200
 eof
 single_yarn/yarn4/stretch 25000 35000 0 1
+eof
+woven/stretch/yarn4/100x100 500 2400 0 200
 eof
 woven/release/yarn4/100x100 9000 9500 0 200
 eof
