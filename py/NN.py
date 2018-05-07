@@ -225,8 +225,12 @@ def regularize(predicted, window_reg):
         sum_w = 0       
         
         s = 0
-        gauss = [0.01, 0.05, 0.32, 1, 0.32, 0.05, 0.01]
-#        gauss = [0.05, 0.32, 1, 0.32, 0.05]
+        if (window_reg == 7):
+            gauss = [0.01, 0.05, 0.32, 1, 0.32, 0.05, 0.01]
+        if (window_reg == 5):
+            gauss = [0.05, 0.32, 1, 0.32, 0.05]
+        if (window_reg ==3):
+            gauss = [ 0.32, 1, 0.32 ]
         for w in gauss:
             sum_window = w*predicted[i+s] + sum_window
             sum_w = sum_w + w
@@ -263,8 +267,8 @@ def predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, angles
         angles = np.loadtxt(anglesFile, delimiter=None)
         predicted = rotate(predicted, angles)
 
-    predicted_sweep = predicted
-#    predicted_sweep = sweep(predicted, window_sweep)
+#    predicted_sweep = predicted
+    predicted_sweep = sweep(predicted, window_sweep)
     predicted_reg = regularize(predicted_sweep, window_reg) 
 #    predicted_reg = predicted_sweep
     
@@ -318,7 +322,7 @@ def appendTrainingData(datasets, w_path, fn_trainX, fn_trainY):
         
 # In[] 
 datasets = []
-yarn_type = 'yarn9'
+yarn_type = 'yarn4'
 config = 'pattern/'+ yarn_type +'/'
 loc = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'
 w_path =  loc + config
@@ -361,53 +365,18 @@ if (reTrain):
     appendTrainingData(datasets, w_path, fn_trainX, fn_trainY)
     
 model, scaler, nb_outputs = test(256, fn_trainX, fn_trainY, fn_validX, fn_validY, reTrain)
-upsample_rate = 2
-window_reg = 7
+upsample_rate = 1
+window_reg = 5
 window_sweep = 3
 # In[] 
-#yarn0 = 0
-#yarn1 = 200
-#
-#stride = 1
-#skipFactor = 1000        
-#vrtxNum = 500 #300*2 ## after upsampling
-#firstFrame = 0
-#lastFrame = 0
-#
-#
-##dataset = 'stretch/yarn4/stretch'
-##dataset = 'fall/yarn4/fall'
-##dataset = 'ball_fall'
-##dataset = 'twist/yarn4/damp2_500'
-##dataset = 'woven/yarn4/spacing1.0x/00011/shear'
-##dataset = 'pattern/yarn4/spacing0.5x/10/Raymond'
-##dataset = 'single_yarn/yarn11/stretch'
-##dataset = 'single_yarn/yarn4/teeth/4_1.6'
-##dataset = 'woven/release/yarn9/8x8_10x' 
-#dataset = 'woven/release/yarn4/100x100'
-#
-#
-#path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
-#frame0 = int(firstFrame/skipFactor)
-#frame1 = int(lastFrame/skipFactor + 1)
-#for i in range (frame0, frame1):
-#    f = i*skipFactor
-#    for y in range (yarn0, yarn1):
-#        X_test = np.loadtxt(path + "testX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
-#        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
-#        anglesFile = path + "angles_" + str(f) + '_' + str(y) + ".txt"
-#        predicted_total = predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, anglesFile, 1)
-#        np.savetxt(path + filename, predicted_total, fmt='%.6f', delimiter=' ') 
-#  
-# In[] 
 yarn0 = 0
-yarn1 = 1
+yarn1 = 200
 
 stride = 1
-skipFactor = 1000        
-vrtxNum = 150*2 ## after upsampling
-firstFrame = 8000
-lastFrame = 24000
+skipFactor = 100        
+vrtxNum = 500 #300*2 ## after upsampling
+firstFrame = 0
+lastFrame = 2400
 
 
 #dataset = 'stretch/yarn4/stretch'
@@ -415,13 +384,11 @@ lastFrame = 24000
 #dataset = 'ball_fall'
 #dataset = 'twist/yarn4/damp2_500'
 #dataset = 'woven/yarn4/spacing1.0x/00011/shear'
-#dataset = 'pattern/yarn4/spacing1.0x/00011'
-#dataset = 'single_yarn/yarn4/stretch'
+#dataset = 'pattern/yarn4/spacing0.5x/10/Raymond'
+#dataset = 'single_yarn/yarn11/stretch'
 #dataset = 'single_yarn/yarn4/teeth/4_1.6'
-dataset = 'single_yarn/yarn9/teeth/4_1.2'
-#dataset = 'single_yarn/yarn100'
-#dataset = 'woven/release/yarn9/8x8' 
-#dataset = 'woven/release/yarn4/100x100'
+#dataset = 'woven/release/yarn9/8x8_10x' 
+dataset = 'woven/stretch/yarn4/100x100'
 
 
 path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
@@ -435,4 +402,41 @@ for i in range (frame0, frame1):
         anglesFile = path + "angles_" + str(f) + '_' + str(y) + ".txt"
         predicted_total = predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, anglesFile, 1)
         np.savetxt(path + filename, predicted_total, fmt='%.6f', delimiter=' ') 
-       
+  
+# In[] 
+#yarn0 = 0
+#yarn1 = 1
+#
+#stride = 1
+#skipFactor = 1000        
+#vrtxNum = 150*2 ## after upsampling
+#firstFrame = 25000
+#lastFrame = 35000
+#
+#
+##dataset = 'stretch/yarn4/stretch'
+##dataset = 'fall/yarn4/fall'
+##dataset = 'ball_fall'
+##dataset = 'twist/yarn4/damp2_500'
+##dataset = 'woven/yarn4/spacing1.0x/00011/shear'
+##dataset = 'pattern/yarn4/spacing1.0x/00011'
+#dataset = 'single_yarn/yarn11/stretch'
+##dataset = 'single_yarn/yarn4/teeth/4_1.6'
+##dataset = 'single_yarn/yarn9/teeth/4_1.2'
+##dataset = 'single_yarn/yarn100'
+##dataset = 'woven/release/yarn9/8x8' 
+##dataset = 'woven/release/yarn4/100x100'
+#
+#
+#path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+#frame0 = int(firstFrame/skipFactor)
+#frame1 = int(lastFrame/skipFactor + 1)
+#for i in range (frame0, frame1):
+#    f = i*skipFactor
+#    for y in range (yarn0, yarn1):
+#        X_test = np.loadtxt(path + "testX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
+#        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
+#        anglesFile = path + "angles_" + str(f) + '_' + str(y) + ".txt"
+#        predicted_total = predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, anglesFile, 1)
+#        np.savetxt(path + filename, predicted_total, fmt='%.6f', delimiter=' ') 
+#       

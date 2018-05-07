@@ -184,7 +184,7 @@ def main (path, dataset, vrtNum, isTrain, firstFrame, lastFrame):
             transform(vrtNum, cntr_n_obj, cntr_n, twist_n, dg_n, internal_n, physicalParam_trans, def_obj, src_obj, isTrain)
 # In[]:  
             
-skipFactor = 1000
+skipFactor = 100
 downSample = 1
 vrtNum = 500 ###before upsampling
 fiberNum = 160
@@ -199,14 +199,14 @@ isTrain = 0 #####
 #dataset = 'shear/shear0403'
 #dataset = 'yarn_stretch'
 #dataset = 'single_yarn/yarn4/teeth/4_1.6'
-dataset = 'woven/release/yarn4/100x100'
+dataset = 'woven/push/yarn4/100x100'
 
 
 path = "D:/sandbox/fiberSimulation/dataSets/" + dataset+"/yarn/"
 
 restFrame = '0010000'
 firstFrame = 0
-lastFrame = 9500
+lastFrame = 2400
 main (path, dataset, vrtNum, isTrain,  firstFrame, lastFrame)
 
 
@@ -233,18 +233,18 @@ main (path, dataset, vrtNum, isTrain,  firstFrame, lastFrame)
 ##            
 #############################   
 #            
-#skipFactor = 100
-#downSample = 1 ############### can change from 2 only if not the training data because of fiber-sim
+#skipFactor = 1000
+#downSample = 2 ############### can change from 2 only if not the training data because of fiber-sim
 #vrtNum = 150 #without upsample
 #fiberNum = 160
 #yarn0 = 0
 #yarn1 = 1
 #isTrain = 0
-#firstFrame = 30000
+#firstFrame = 0
 ##dataset = 'pattern/yarn4/spacing1.0x/00011'
 #dataset = 'single_yarn/yarn4/stretch'
 #path = "D:/sandbox/fiberSimulation/dataSets/" +dataset+ "/yarn/"
-#lastFrame = 30000
+#lastFrame = 35000
 #main (path, dataset, vrtNum, isTrain, firstFrame, lastFrame)
 
 ############################
