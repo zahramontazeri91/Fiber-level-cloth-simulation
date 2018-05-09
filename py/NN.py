@@ -254,40 +254,7 @@ def regularize(predicted, window_reg):
         predicted_reg.append(avg_window)
     
     predicted_reg_np = np.array(predicted_reg)
-    
-    
-    #########
-#    window_reg_again=3
-#    predicted_reg_again = []
-#    for i in range (0, sz - window_reg_again + 1):
-#        sum_window = np.zeros(predicted_reg_np.shape[1])
-#        sum_w = 0       
-#        
-##        s = 0
-##        if (window_reg == 7):
-##            gauss = [0.01, 0.05, 0.32, 1, 0.32, 0.05, 0.01]
-##        if (window_reg == 5):
-##            gauss = [0.05, 0.32, 1, 0.32, 0.05]
-##        if (window_reg ==3):
-##            gauss = [ 0.32, 1, 0.32 ]
-##        for w in gauss:
-##            sum_window = w*predicted[i+s] + sum_window
-##            sum_w = sum_w + w
-##            s = s+1
-#        
-#        
-#        for s in range (0, window_reg_again):             
-#            w=1  #for mean filter
-#            sum_window = w*predicted_reg_np[i+s] + sum_window
-#            sum_w = sum_w + w
-#            
-#            
-#        avg_window = sum_window/sum_w
-#        predicted_reg_again.append(avg_window)
-#    
-#    predicted_reg_np_again = np.array(predicted_reg_again)
-    ###############
-    
+      
     return predicted_reg_np
 #    return predicted_reg_np_again
 
@@ -307,11 +274,11 @@ def predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, angles
         angles = np.loadtxt(anglesFile, delimiter=None)
         predicted = rotate(predicted, angles)
 
-    predicted_sweep = predicted
-#    predicted_sweep = sweep(predicted, window_sweep)
-#    predicted_reg = regularize(predicted_sweep, window_reg) 
-#    predicted_reg2 = regularize(predicted_reg, window_reg+2) 
-    predicted_reg2 = predicted_sweep
+#    predicted_sweep = predicted
+    predicted_sweep = sweep(predicted, window_sweep)
+    predicted_reg = regularize(predicted_sweep, window_reg) 
+    predicted_reg2 = regularize(predicted_reg, window_reg+2) 
+#    predicted_reg = predicted_sweep
     
     predicted_us = upsample(predicted_reg2, upsample_rate)
     np.savetxt(path + 'testY_NN.txt', predicted_us, fmt='%.6f', delimiter=' ')
@@ -363,7 +330,7 @@ def appendTrainingData(datasets, w_path, fn_trainX, fn_trainY):
         
 # In[] 
 datasets = []
-yarn_type = 'yarn4'
+yarn_type = 'yarn9'
 config = 'pattern/'+ yarn_type +'/'
 loc = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'
 w_path =  loc + config
@@ -451,18 +418,17 @@ yarn1 = 1
 stride = 1
 skipFactor = 1000        
 vrtxNum = 150*2 ## after upsampling
-firstFrame = 17000
-lastFrame = 17000
+firstFrame = 30000
+lastFrame = 30000
 
 
-#dataset = 'stretch/yarn4/stretch'
 #dataset = 'fall/yarn4/fall'
 #dataset = 'ball_fall'
 #dataset = 'twist/yarn4/damp2_500'
 #dataset = 'woven/yarn4/spacing1.0x/00011/shear'
 #dataset = 'pattern/yarn4/spacing1.0x/00011'
-#dataset = 'single_yarn/yarn9/stretch'
-dataset = 'single_yarn/yarn4/teeth/4_1.6'
+dataset = 'single_yarn/yarn9/stretch'
+#dataset = 'single_yarn/yarn4/teeth/4_1.6'
 #dataset = 'single_yarn/yarn9/teeth/4_1.2'
 #dataset = 'single_yarn/yarn100'
 #dataset = 'woven/release/yarn9/8x8' 

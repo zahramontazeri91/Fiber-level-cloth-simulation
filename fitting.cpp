@@ -1316,9 +1316,9 @@ void upsample_stretched(const char* configfile, const int vrtx, std::string &dat
 	const char* twistfile_ds = tmp5.c_str();
 	std::string tmp6 = "input/" + dataset + "/stretch/twist_" + std::to_string(f) + "_" + std::to_string(y) + "_us_us.txt";
 	const char* twistfile = tmp6.c_str();
-	std::string tmp7 = "input/" + dataset + "/matrix_S_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+	std::string tmp7 = "input/" + dataset + "/NN/testY_NN_full_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
 	const char* compress_S_ds = tmp7.c_str();
-	std::string tmp8 = "input/" + dataset + "/stretch/matrix_S_" + std::to_string(f) + "_" + std::to_string(y) + "_us.txt";
+	std::string tmp8 = "input/" + dataset + "/stretch/testY_NN_full_" + std::to_string(f) + "_" + std::to_string(y) + "_us.txt";
 	const char* compress_S = tmp8.c_str();
 	std::string tmp9 = "input/" + dataset + "/global_rot_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
 	const char* global_rot_ds = tmp9.c_str();
@@ -1329,7 +1329,7 @@ void upsample_stretched(const char* configfile, const int vrtx, std::string &dat
 
 	upsampleValue(twistfile_ds, upsample, twistfile);
 	upsampleMatrix(compress_S_ds, upsample, compress_S, 0);
-	upsampleMatrix(global_rot_ds, upsample, global_rot, 1);
+	upsampleMatrix(global_rot_ds, upsample, global_rot, 0);
 	upsampleCurve(vrtx, upsample, curvefile_ds, curvefile_us, normfile_ds, normfile_us, twistfile);
 
 

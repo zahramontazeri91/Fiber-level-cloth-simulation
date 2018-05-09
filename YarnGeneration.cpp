@@ -18,7 +18,7 @@ int main(int argc, const char **argv) {
 	if (phase == 0 ) {
 		std::string dataset = "single_yarn/yarn9/stretch";
 		const char* congif = "yarnTypes/yarn9/config_step2.txt";
-		const int upsample = 2;
+		const int upsample = 3;
 		const int vrtx = 300 * upsample;
 		upsample_stretched(congif, vrtx, dataset, upsample);
 		return 0;
