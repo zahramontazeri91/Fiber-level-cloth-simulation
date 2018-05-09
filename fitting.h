@@ -51,6 +51,9 @@ void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char
 // write bounding box around centerlines
 void step5_createVOL(int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset, const int resol_x, const int resol_y, const int resol_z, const float radius);
 
+// upsample the yarn for stretched case
+void upsample_stretched(const char* configfile, const int vrtx, std::string &dataset, const int upsample);
+
 // full pipeline:
 void step0_curveSetup(const int vrtx, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset, const int upsample);
 void step1_dg2local(const int vrtx, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset);
@@ -58,6 +61,5 @@ void step1_shapematching(const char* yarnfile1, const char* configfile, const in
 void step2_buildTrainData(const int vrtx, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset, const int isTrain, const int ws_ds, const float trimPercent, const int upsample);
 void step3_appendTraining(int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset);
 void step4_NN_output(const char* configfile, const int vrtx, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset, const int isTrain, const int isCompress, const float stepSize);
-void step5_createVOL(int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset);
 void full_pipeline(const char* yarnfile1, const char* configfile, const int vrtx, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset,
 	const int isTrain, const int window_size, const float trimPercent, const int upsample, const float stepSize);

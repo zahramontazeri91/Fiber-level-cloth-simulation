@@ -397,6 +397,8 @@ void HermiteCurve::assign_twist(const char* twistFile, std::vector<Eigen::Vector
 		all_norm.push_back(norm);
 		if (i == 0) {
 			for (int d = 1; d < 2* upsample - 1; d++) { // for upsampling, one sample will already counted for t=0
+				std::cout << "assign_twist " <<m_splines.size() << " " << d << std::endl;
+
 				float t = float(d) * (1.0 / (2.0*upsample - 1) );
 				pnt = m_splines[i].eval(t);
 				tg = m_splines[i].evalTangent(t);

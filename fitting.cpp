@@ -584,6 +584,7 @@ void writeVol(std::string &dataset, const int frame, const int yarn0, const int 
 
 }
 
+
 void step0_curveSetup(const int vrtx, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset, const int upsample) {
 	std::cout << "\n**************************************************\n";
 	std::cout << "*** step0: up-sample the curve ***\n";
@@ -635,9 +636,11 @@ void step0_curveSetup(const int vrtx, int skipFactor, int frame0, int frame1, in
 			//		all_tang[i][0] << " " << all_tang[i][1] << " " << all_tang[i][2] << " " <<
 			//		all_norm[i][0] << " " << all_norm[i][1] << " " << all_norm[i][2] << "\n";
 			//}
+
 		}
 	}
 }
+
 void step1_dg2local(const int vrtx, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset) {
 	std::cout << "\n**************************************************\n";
 	std::cout << "*** step1: Convert external-force to local coordinate ***\n";
@@ -1178,6 +1181,176 @@ void full_pipeline(const char* yarnfile1, const char* configfile, const int vrtx
 	step2_buildTrainData(vrtx, skipFactor, frame0, frame1, yarn0, yarn1, dataset, isTrain, window_size, trimPercent, upsample);
 	if (isTrain)
 		step3_appendTraining(skipFactor, frame0, frame1, yarn0, yarn1, dataset);
+}
+
+
+void upsampleMatrix(const char* filename, const int upsample, const char* filename_us, const int offset) {
+	// file contains 4 values in each row
+	std::ifstream fin(filename);
+	assert(fin.is_open());
+
+	Eigen::Vector4f value;
+	std::vector<Eigen::Vector4f> values;
+	while (1) {
+		fin >> value[0] >> value[1] >> value[2] >> value[3];
+		if (fin.eof()) break;
+		values.push_back(value);
+	}
+	const int N = values.size();
+
+	// Let's interpolate for upsampled vector
+	std::vector<Eigen::Vector4f> values_us;
+	for (int j = 0; j < N; j++) {
+		for (int s = 0; s < upsample; s++) {
+			if (j == N - 1) {
+				values_us.push_back(values[j]);
+			}
+			else {
+				const float w = float(s) / float(upsample);
+				Eigen::Vector4f value_us = (1.0 - w) * values[j] + w * values[j + 1];
+				//std::cout << values[j] << " \n" << values[j + 1] << " \n" << value_us << std::endl << std::endl;
+				values_us.push_back(value_us);
+			}
+		}
+	}
+
+
+	assert(values_us.size() == N*upsample);
+	std::ofstream fout(filename_us);
+	//fout << N*upsample << "\n";
+	for (int i = 0; i < N*upsample; i++) {
+		if (offset) { // rotation_90 = [0 -1 ; 1 0] so [a b; c d][0 -1; 1 0] = [b -a; d -c]
+			fout << values_us[i][1] << " " << -1.0*values_us[i][0] << " " << values_us[i][3] << " " << -1.0*values_us[i][2] << "\n";
+			continue;
+		}
+		fout << values_us[i][0] << " " << values_us[i][1] << " " << values_us[i][2] << " " << values_us[i][3] << "\n";
+	}
+	fout.close();
+}
+
+void upsampleValue(const char* filename, const int upsample, const char* filename_us) {
+	// file starts with #N and contains 1 value in a row 
+	std::ifstream fin(filename);
+	assert(fin.is_open());
+
+	int N;
+	float value;
+	std::vector<float> values;
+	fin >> N;
+	for (int i = 0; i < N; i++) {
+		fin >> value;
+		values.push_back(value);
+	}
+
+	// Let's interpolate for upsampled vector
+	std::vector<float> values_us;
+	for (int j = 0; j < N; j++) {
+		for (int s = 0; s < upsample; s++) {
+			if (j == N - 1) {
+				values_us.push_back(values[j]);
+			}
+			else {
+				const float w = float(s) / float(upsample);
+				float value_us = (1.0 - w) * values[j] + w * values[j + 1];
+				//std::cout << values[j] << " " << values[j+1] << " " << value_us << std::endl;
+
+				values_us.push_back(value_us);
+			}
+		}
+	}
+
+	assert(values_us.size() == N*upsample);
+	std::ofstream fout(filename_us);
+	fout << N*upsample << "\n";
+	for (int i = 0; i < N*upsample; i++) {
+		fout << values_us[i] << "\n";
+	}
+	fout.close();
+
+}
+
+void upsampleCurve(const int vrtx, const int upsample, const char* curvefile_ds, const char* curvefile_us, const char* normfile_ds, const char* normfile_us, const char* twistfile) {
+	std::cout << "\n**************************************************\n";
+	std::cout << "*** step0: up-sample the curve for stretched yarn ***\n";
+
+	HermiteCurve curve_ds, curve_us;
+	int seg_subdiv = 10;
+
+
+	std::ofstream fout_cntr(curvefile_us);
+	std::ofstream fout_norm(normfile_us);
+
+	curve_ds.init_norm(curvefile_ds, normfile_ds, seg_subdiv);
+	std::vector<Eigen::Vector3d> all_pts, all_tang, all_norm;
+
+	// assign local frames for each point
+	curve_ds.assign_twist(twistfile, all_pts, all_tang, all_norm, upsample);
+
+	// write up-sampled centerline so later we can crop a segment out of it
+	fout_cntr << vrtx << std::endl;
+	fout_norm << vrtx << std::endl;
+	for (int v = 0; v < vrtx; ++v) {
+		fout_cntr << all_pts[v][0] << " " << all_pts[v][1] << " " << all_pts[v][2] << "\n";
+		fout_norm << all_norm[v][0] << " " << all_norm[v][1] << " " << all_norm[v][2] << "\n";
+	}
+	fout_cntr.close();
+	fout_norm.close();
+}
+
+void upsample_stretched(const char* configfile, const int vrtx, std::string &dataset, const int upsample) {
+
+	int f = 30000;
+	int y = 0;
+	HermiteCurve curve_ds, curve_us;
+	int seg_subdiv = 10;
+
+	std::string tmp1 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_us.txt";
+	const char* curvefile_ds = tmp1.c_str();
+	std::string tmp2 = "input/" + dataset + "/stretch/centerYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_us_us.txt";
+	const char* curvefile_us = tmp2.c_str();
+	std::string tmp3 = "input/" + dataset + "/normYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_us.txt";
+	const char* normfile_ds = tmp3.c_str();
+	std::string tmp4 = "input/" + dataset + "/stretch/normYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_us_us.txt";
+	const char* normfile_us = tmp4.c_str();
+	std::string tmp5 = "input/" + dataset + "/twist_" + std::to_string(f) + "_" + std::to_string(y) + "_us.txt";
+	const char* twistfile_ds = tmp5.c_str();
+	std::string tmp6 = "input/" + dataset + "/stretch/twist_" + std::to_string(f) + "_" + std::to_string(y) + "_us_us.txt";
+	const char* twistfile = tmp6.c_str();
+	std::string tmp7 = "input/" + dataset + "/matrix_S_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+	const char* compress_S_ds = tmp7.c_str();
+	std::string tmp8 = "input/" + dataset + "/stretch/matrix_S_" + std::to_string(f) + "_" + std::to_string(y) + "_us.txt";
+	const char* compress_S = tmp8.c_str();
+	std::string tmp9 = "input/" + dataset + "/global_rot_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+	const char* global_rot_ds = tmp9.c_str();
+	std::string tmp10 = "input/" + dataset + "/stretch/global_rot_" + std::to_string(f) + "_" + std::to_string(y) + "_us.txt";
+	const char* global_rot = tmp10.c_str();
+	std::string tmp11 = "output/" + dataset + "/genYarn_NN_" + std::to_string(f) + "_" + std::to_string(y) + "_us.txt";
+	const char* outfile = tmp11.c_str();
+
+	upsampleValue(twistfile_ds, upsample, twistfile);
+	upsampleMatrix(compress_S_ds, upsample, compress_S, 0);
+	upsampleMatrix(global_rot_ds, upsample, global_rot, 1);
+	upsampleCurve(vrtx, upsample, curvefile_ds, curvefile_us, normfile_ds, normfile_us, twistfile);
+
+
+	//// Procedural step
+	Fiber::Yarn yarn;
+	yarn.parse(configfile);
+	yarn.setStepNum(vrtx);
+	const float stepSize = yarn.getStepSize()/float(upsample); 
+	yarn.setStepSize(stepSize);
+	yarn.simulate_ply_shuang();
+	yarn.write_plys("test_ply.txt");
+	const int K = yarn.getPlyNum();
+	yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
+	yarn.build("test_fly.txt", K);
+
+	Fiber::Yarn yarn_compressed; //renew the yarn
+	yarn_compressed = yarn;
+	yarn_compressed.compress_yarn_A(compress_S, global_rot);
+	yarn_compressed.curve_yarn(curvefile_us, normfile_us);
+	yarn_compressed.write_yarn(outfile);
+
 }
 
 #if 0

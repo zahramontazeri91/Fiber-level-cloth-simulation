@@ -1,4 +1,4 @@
-single_yarn/yarn8/stretch 25000 35000 0 1
+single_yarn/yarn8/stretch 30000 30000 0 1
 eof
 pattern/yarn8/spacing0.5x/10 7000 14000 0 1
 pattern/yarn8/spacing0.5x/00011 7000 16000 0 1
