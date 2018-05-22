@@ -83,7 +83,7 @@ def plotIntersects(X1, Y1, X2, Y2, X3, Y3, scale, plane_num, ply_num, its_num, t
 #                plt.ylim(-0.1,0.1)
 #                plt.title(title3 + ' - %d' %i)
         
-        plt.savefig("../../data/vis_crossSections/2Dcompare_curve/plane%d.png" %i)
+        plt.savefig("../../data/plane%d.png" %i)
         plt.show() 
 #        plt.legend()              
 # In[]:
@@ -106,21 +106,22 @@ def plotIntersects(X1, Y1, X2, Y2, X3, Y3, scale, plane_num, ply_num, its_num, t
 
 # In[]:
 ## plot simulated data
+fname = '../../data/allCrossSection2D_simulate.txt'
 #fname = '../../data/allCrossSection2D_ref.txt'
-fname = '../../data/allCrossSection2D_compress.txt'
-fname = '../../data/allCrossSection2D_curve.txt'
+#fname = '../../data/allCrossSection2D_compress.txt'
+#fname = '../../data/allCrossSection2D_curve.txt'
 X1, Y1 = visIntersections(fname)
 #fname = '../../data/allCrossSection2D_simulate.txt'
 #fname = '../../data/allCrossSection2D_deformedRef.txt'
-#X3, Y3 = visIntersections(fname)
+X3, Y3 = visIntersections(fname)
 #fname = '../../data/allCrossSection2D_deformed.txt'
-#X2, Y2 = visIntersections(fname)
+X2, Y2 = visIntersections(fname)
 scale = 1
 title1 = 'Reference'
 title2 = 'Deformed-Ref'
 title3 = 'Simulated '
-plane_num = 120 
+plane_num = 180 
 ply_num = 2
-its_num = 80
+its_num = 75
 plotIntersects(X1, Y1, X2, Y2, X3, Y3, scale, plane_num, ply_num, its_num, title1, title2, title3)
 

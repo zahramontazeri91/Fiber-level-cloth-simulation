@@ -1319,7 +1319,7 @@ namespace Fiber {
 				}
 			}
 		}
-		//plotIntersections("../data/allCrossSection2D_simulate.txt",0.2);
+		plotIntersections("../data/allCrossSection2D_simulate.txt",0.2);
 	} // yarn_simulate
 
 

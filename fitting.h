@@ -52,7 +52,7 @@ void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char
 void step5_createVOL(int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset, const int resol_x, const int resol_y, const int resol_z, const float radius);
 
 // upsample the yarn for stretched case
-void upsample_stretched(const char* configfile, const int vrtx, std::string &dataset, const int upsample);
+void upsample_stretched(const char* configfile, const int vrtx, const int f, std::string &dataset, const int upsample);
 
 // full pipeline:
 void step0_curveSetup(const int vrtx, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset, const int upsample);

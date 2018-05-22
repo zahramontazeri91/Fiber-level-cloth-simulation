@@ -16,11 +16,13 @@ int main(int argc, const char **argv) {
 	assert(phase == 0 || phase == 1 || phase == 2);
 
 	if (phase == 0 ) {
-		std::string dataset = "single_yarn/yarn9/stretch";
-		const char* congif = "yarnTypes/yarn9/config_step2.txt";
-		const int upsample = 3;
+		/* For upsampling the stretched yarn: */ 
+		std::string dataset = "single_yarn/yarn4/teeth/4_1.2_00110";
+		const char* congif = "yarnTypes/yarn4/config_step2.txt";
+		const int upsample = 3; //odd number so phase matches better
 		const int vrtx = 300 * upsample;
-		upsample_stretched(congif, vrtx, dataset, upsample);
+		const int frame = 17000;
+		upsample_stretched(congif, vrtx, frame, dataset, upsample);
 		return 0;
 
 
@@ -31,6 +33,7 @@ int main(int argc, const char **argv) {
 		const int K = yarn.getPlyNum();
 		yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
 		yarn.build("test_fly.txt", K);
+
 		yarn.write_yarn("genYarn.txt");
 		return 0;
 	}

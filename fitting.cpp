@@ -1187,6 +1187,7 @@ void full_pipeline(const char* yarnfile1, const char* configfile, const int vrtx
 void upsampleMatrix(const char* filename, const int upsample, const char* filename_us, const int offset) {
 	// file contains 4 values in each row
 	std::ifstream fin(filename);
+	if (!fin.is_open()) std::cout << filename << " not fount! \n";
 	assert(fin.is_open());
 
 	Eigen::Vector4f value;
@@ -1231,6 +1232,7 @@ void upsampleMatrix(const char* filename, const int upsample, const char* filena
 void upsampleValue(const char* filename, const int upsample, const char* filename_us) {
 	// file starts with #N and contains 1 value in a row 
 	std::ifstream fin(filename);
+	if (!fin.is_open()) std::cout << filename;
 	assert(fin.is_open());
 
 	int N;
@@ -1297,9 +1299,8 @@ void upsampleCurve(const int vrtx, const int upsample, const char* curvefile_ds,
 	fout_norm.close();
 }
 
-void upsample_stretched(const char* configfile, const int vrtx, std::string &dataset, const int upsample) {
+void upsample_stretched(const char* configfile, const int vrtx, const int f, std::string &dataset, const int upsample) {
 
-	int f = 30000;
 	int y = 0;
 	HermiteCurve curve_ds, curve_us;
 	int seg_subdiv = 10;

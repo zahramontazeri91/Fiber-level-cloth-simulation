@@ -398,6 +398,7 @@ void CrossSection::yarnShapeMatch_A(const yarnIntersect2D &pnts_trans, const yar
 	for (int p = 0; p < pnts_trans.size(); ++p)
 		sz_trans += pnts_trans[p].size();
 
+
 	assert(sz_ref == sz_trans);
 	const int n = sz_ref;
 	Eigen::MatrixXf all_ref(2, n);

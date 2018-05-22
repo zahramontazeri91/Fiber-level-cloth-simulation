@@ -36,7 +36,7 @@ def transform(vrtNum, cntr_n_obj, cntr_n, twist_n, dg_n, internal_n, physicalPar
                 val = np.array([float(x) for x in line[1:].strip().split()]) 
                 pts1.append(val[0 : 3])
 #                if (abs(val[3]) > 10**-5):
-                pre = val[3] 
+#                pre = val[3] 
                 twist.append(pre)
                 fout.writelines('%.8f %.8f %.8f \n' % (val[0]*0.25, val[1]*0.25, val[2]*0.25) )
                 if len(pts1) == vrtNum:
@@ -177,6 +177,7 @@ def transform(vrtNum, cntr_n_obj, cntr_n, twist_n, dg_n, internal_n, physicalPar
 ###########################
 def main (path, dataset, vrtNum, isTrain, firstFrame, lastFrame):
     print (dataset)
+    print('frames', firstFrame/skipFactor, lastFrame/skipFactor + 1)
     for i in range (firstFrame/skipFactor,lastFrame/skipFactor + 1):  
         f = i * skipFactor
         print(f)
@@ -200,6 +201,8 @@ def main (path, dataset, vrtNum, isTrain, firstFrame, lastFrame):
             physicalParam_trans = wrtPath + "/physicalParam/physical_"+str(f) + '_' + str(y)+"_world.txt"
             cntr_n = wrtPath + '/centerYarn_' + str(f) + '_' + str(y) + '_ds.txt'
             twist_n = wrtPath + '/twist_' + str(f) + '_' + str(y) + '_us.txt'
+            
+#            print (dg_n)
             transform(vrtNum, cntr_n_obj, cntr_n, twist_n, dg_n, internal_n, physicalParam_trans, def_obj, src_obj, isTrain)
 # In[]:  
             
@@ -218,53 +221,57 @@ def main (path, dataset, vrtNum, isTrain, firstFrame, lastFrame):
 ##dataset = 'shear/shear0403'
 ##dataset = 'yarn_stretch'
 ##dataset = 'single_yarn/yarn4/teeth/4_1.6'
-#dataset = 'woven/push/yarn4/100x100'
-#
+##dataset = 'woven/push/yarn4/100x100'
+#dataset = 'woven/stretch/yarn4/100x100'
+##dataset = 'woven/6x6'
 #
 #path = "D:/sandbox/fiberSimulation/dataSets/" + dataset+"/yarn/"
 #
 #restFrame = '0010000'
 #firstFrame = 0
-#lastFrame = 0
+#lastFrame = 2400
 #main (path, dataset, vrtNum, isTrain,  firstFrame, lastFrame)
 
 
 #############################   
 # In[]:            
-#skipFactor = 1000
-#downSample = 2
-#vrtNum = 50
-#fiberNum = 99 #160
-#yarn0 = 0
-#yarn1 = 16
-#isTrain = 0
-#firstFrame = 0
-##dataset = 'speedtest/1.0_both'
-##dataset = 'single_yarn/yarn11/stretch'
-##dataset = 'single_yarn/yarn4/teeth/4_1.6'
-##dataset = 'single_yarn/yarn9/teeth/4_1.2'
-##dataset = 'single_yarn/yarn100'
-#dataset = 'woven/release/yarn9/8x8'
-#
-#path = "D:/sandbox/fiberSimulation/dataSets/" + dataset+"/yarn/"
-#lastFrame = 12000
-#main (path, dataset, vrtNum, isTrain, firstFrame, lastFrame)
-##            
-#############################   
-#            
-skipFactor = 1000
-downSample = 2 ############### can change from 2 only if not the training data because of fiber-sim
-vrtNum = 150 #without upsample
-fiberNum = 99
+skipFactor = 500
+downSample = 2
+vrtNum = 51
+fiberNum = 111 #160
 yarn0 = 0
-yarn1 = 1
+yarn1 = 12
 isTrain = 1
 firstFrame = 0
-#dataset = 'pattern/yarn4/spacing1.0x/00011'
-dataset = 'single_yarn/yarn9/stretch'
-path = "D:/sandbox/fiberSimulation/dataSets/" +dataset+ "/yarn/"
-lastFrame = 35000
+#dataset = 'speedtest/1.0_both'
+#dataset = 'single_yarn/yarn100'
+dataset = 'woven/6x6'
+
+path = "D:/sandbox/fiberSimulation/dataSets/" + dataset+"/yarn/"
+lastFrame = 9500
 main (path, dataset, vrtNum, isTrain, firstFrame, lastFrame)
+#            
+#############################   
+#            
+#skipFactor = 1000
+#downSample = 2 ############### can change from 2 only if not the training data because of fiber-sim
+#vrtNum = 150 #without upsample
+#fiberNum = 150
+#yarn0 = 0
+#yarn1 = 1
+#isTrain = 1
+#firstFrame = 0
+##dataset =  'single_yarn/yarn11/teeth/4_1.2_00110'
+##dataset = 'pattern/yarn8/spacing1.0x/00011'
+#dataset = 'single_yarn/yarn100/stretch'
+##dataset = 'single_yarn/yarn8/teeth/4_1.6'
+##dataset = 'single_yarn/yarn11/teeth/4_1.2'
+##dataset = 'pattern/yarn4/spacing1.0x/00011'
+##dataset = 'single_yarn/yarn4/stretch'
+##dataset = 'single_yarn/yarn4/teeth/1.2_110'
+#path = "D:/sandbox/fiberSimulation/dataSets/" +dataset+ "/yarn/"
+#lastFrame = 24500
+#main (path, dataset, vrtNum, isTrain, firstFrame, lastFrame)
 
 ############################
 # In[]: 
@@ -275,136 +282,136 @@ yarn0 = 0
 yarn1 = 1
 isTrain = 1
 firstFrame = 7000  
-yarn_type = 'pattern/yarn11'
-fiberNum = 120
+yarn_type = 'pattern/yarn100'
+fiberNum = 150
 ###########################
 
 #dataset =  yarn_type + '/spacing0.5x/10'
 #path = "D:/sandbox/fiberSimulation/dataSets/"  +'/'+dataset+"/yarn/"
-#lastFrame = 14000
+#lastFrame = 18500
 #main (path, dataset, vrtNum, isTrain,  firstFrame, lastFrame)
 #
 #dataset =  yarn_type + '/spacing0.5x/00011'
 #path = "D:/sandbox/fiberSimulation/dataSets/" +dataset+"/yarn/"
-#lastFrame = 16000
+#lastFrame = 20500
 #main (path, dataset, vrtNum, isTrain, firstFrame, lastFrame)
 ##
 #dataset =  yarn_type + '/spacing0.5x/10100'
 #path = "D:/sandbox/fiberSimulation/dataSets/" + dataset+"/yarn/"
-#lastFrame = 15000
+#lastFrame = 18000
 #main (path, dataset, vrtNum, isTrain,  firstFrame, lastFrame)
 #
 #dataset =  yarn_type + '/spacing0.5x/11110' 
 #path = "D:/sandbox/fiberSimulation/dataSets/" + dataset+"/yarn/"
-#lastFrame = 15000
+#lastFrame = 20500
 #main (path, dataset, vrtNum, isTrain,  firstFrame, lastFrame)
 #
 #########
 #dataset =  yarn_type + '/spacing1.0x/10'
 #path = "D:/sandbox/fiberSimulation/dataSets/" +'/'+dataset+"/yarn/"
-#lastFrame = 14500
+#lastFrame = 19500
 #main (path, dataset, vrtNum, isTrain,  firstFrame, lastFrame) 
 #
 #dataset =  yarn_type + '/spacing1.0x/00011' 
 #path = "D:/sandbox/fiberSimulation/dataSets/" +dataset+"/yarn/"
-#lastFrame = 17000
+#lastFrame = 21500
 #main (path, dataset, vrtNum, isTrain, firstFrame, lastFrame)
 #
 #dataset =  yarn_type + '/spacing1.0x/10100'
 #path = "D:/sandbox/fiberSimulation/dataSets/" +dataset+"/yarn/"
-#lastFrame = 15500
+#lastFrame = 19000
 #main (path, dataset, vrtNum, isTrain,  firstFrame, lastFrame)
 #
 #dataset =  yarn_type + '/spacing1.0x/11110'
 #path = "D:/sandbox/fiberSimulation/dataSets/" +dataset+"/yarn/"
-#lastFrame = 16000
+#lastFrame = 21500
 #main (path, dataset, vrtNum, isTrain,  firstFrame, lastFrame)  
 #
 #########
 #dataset =  yarn_type + '/spacing1.5x/10'
 #path = "D:/sandbox/fiberSimulation/dataSets/" +'/'+dataset+"/yarn/"
-#lastFrame = 15000
+#lastFrame = 20500
 #main (path, dataset, vrtNum, isTrain,  firstFrame, lastFrame)
 #
 #dataset =  yarn_type + '/spacing1.5x/00011'
 #path = "D:/sandbox/fiberSimulation/dataSets/" +dataset+"/yarn/"
-#lastFrame = 17500
+#lastFrame = 22500
 #main (path, dataset, vrtNum, isTrain,  firstFrame, lastFrame)
 #
 #
 #dataset =  yarn_type + '/spacing1.5x/10100'
 #path = "D:/sandbox/fiberSimulation/dataSets/" +dataset+"/yarn/"
-#lastFrame = 16000
+#lastFrame = 20000
 #main (path, dataset, vrtNum, isTrain,  firstFrame, lastFrame)
 #
 #
 #dataset =  yarn_type + '/spacing1.5x/11110'
 #path = "D:/sandbox/fiberSimulation/dataSets/" +dataset+"/yarn/"
-#lastFrame = 16500
+#lastFrame = 22500
 #main (path, dataset, vrtNum, isTrain,  firstFrame, lastFrame)
 #
 #########
 #dataset =  yarn_type + '/spacing2.0x/10'
 #path = "D:/sandbox/fiberSimulation/dataSets/" +'/'+dataset+"/yarn/"
-#lastFrame = 16000
+#lastFrame = 21500
 #main (path, dataset, vrtNum, isTrain,  firstFrame, lastFrame)
 #
 #dataset =  yarn_type + '/spacing2.0x/00011'
 #path = "D:/sandbox/fiberSimulation/dataSets/" +dataset+"/yarn/"
-#lastFrame = 18000
+#lastFrame = 23500
 #main (path, dataset, vrtNum, isTrain, firstFrame, lastFrame)
 #
 #dataset =  yarn_type + '/spacing2.0x/10100'
 #path = "D:/sandbox/fiberSimulation/dataSets/" +dataset+"/yarn/"
-#lastFrame = 17000
+#lastFrame = 21000
 #main (path, dataset, vrtNum, isTrain,  firstFrame, lastFrame)
 #
 #dataset =  yarn_type + '/spacing2.0x/11110'
 #path = "D:/sandbox/fiberSimulation/dataSets/" +dataset+"/yarn/"
-#lastFrame = 17500
+#lastFrame = 23500
 #main (path, dataset, vrtNum, isTrain,  firstFrame, lastFrame)
 #
 ###########
 #dataset =  yarn_type + '/spacing2.5x/10'
 #path = "D:/sandbox/fiberSimulation/dataSets/" +'/'+dataset+"/yarn/"
-#lastFrame = 16500
+#lastFrame = 22500
 #main (path, dataset, vrtNum, isTrain,  firstFrame, lastFrame)
 #
 #dataset =  yarn_type + '/spacing2.5x/00011'
 #path = "D:/sandbox/fiberSimulation/dataSets/" +dataset+"/yarn/"
-#lastFrame = 18500
+#lastFrame = 24500
 #main (path, dataset, vrtNum, isTrain,  firstFrame, lastFrame)
 #
 #
 #dataset =  yarn_type + '/spacing2.5x/10100'
 #path = "D:/sandbox/fiberSimulation/dataSets/" +dataset+"/yarn/"
-#lastFrame = 17500
+#lastFrame = 22000
 #main (path, dataset, vrtNum, isTrain,  firstFrame, lastFrame)
 #
 #
 #dataset =  yarn_type + '/spacing2.5x/11110'
 #path = "D:/sandbox/fiberSimulation/dataSets/" +dataset+"/yarn/"
-#lastFrame = 18500
+#lastFrame = 24500
 #main (path, dataset, vrtNum, isTrain,  firstFrame, lastFrame)
 #
 ###########
 #
 #dataset =  yarn_type + '/spacing3.0x/10'
 #path = "D:/sandbox/fiberSimulation/dataSets/" +'/'+dataset+"/yarn/"
-#lastFrame = 16500
+#lastFrame = 23500
 #main (path, dataset, vrtNum, isTrain,  firstFrame, lastFrame)
 #
 #dataset =  yarn_type + '/spacing3.0x/00011'
 #path = "D:/sandbox/fiberSimulation/dataSets/" +dataset+"/yarn/"
-#lastFrame = 19000
+#lastFrame = 25500
 #main (path, dataset, vrtNum, isTrain, firstFrame, lastFrame)
 #
 #dataset =  yarn_type + '/spacing3.0x/10100'
 #path = "D:/sandbox/fiberSimulation/dataSets/" +dataset+"/yarn/"
-#lastFrame = 19500
+#lastFrame = 23000
 #main (path, dataset, vrtNum, isTrain,  firstFrame, lastFrame)
 #
 #dataset =  yarn_type + '/spacing3.0x/11110'
 #path = "D:/sandbox/fiberSimulation/dataSets/" +dataset+"/yarn/"
-#lastFrame = 19000
+#lastFrame = 18000
 #main (path, dataset, vrtNum, isTrain,  firstFrame, lastFrame)
