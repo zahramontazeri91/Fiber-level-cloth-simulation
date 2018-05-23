@@ -276,9 +276,9 @@ def predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, angles
 
     predicted_sweep = predicted
 #    predicted_sweep = sweep(predicted, window_sweep)
-#    predicted_reg = regularize(predicted_sweep, window_reg) 
-#    predicted_reg2 = regularize(predicted_reg, window_reg+2) 
-    predicted_reg2 = predicted_sweep
+    predicted_reg = regularize(predicted_sweep, window_reg) 
+    predicted_reg2 = regularize(predicted_reg, window_reg+2) 
+#    predicted_reg2 = predicted_sweep
     
     predicted_us = upsample(predicted_reg2, upsample_rate)
     np.savetxt(path + 'testY_NN.txt', predicted_us, fmt='%.6f', delimiter=' ')
@@ -376,16 +376,16 @@ model, scaler, nb_outputs = test(256, fn_trainX, fn_trainY, fn_validX, fn_validY
 
 window_reg = 3
 window_sweep = 3
-upsample_rate = 2
+upsample_rate = 1
 # In[] 
 yarn0 = 0
-yarn1 = 12
+yarn1 = 1
 
 stride = 1
 skipFactor = 500       
-vrtxNum = 62 #300*2 ## after upsampling
+vrtxNum = 594 #300*2 ## after upsampling
 firstFrame = 0
-lastFrame = 9500
+lastFrame = 0
 
 
 #dataset = 'stretch/yarn4/stretch'
@@ -396,7 +396,8 @@ lastFrame = 9500
 #dataset = 'pattern/yarn4/spacing0.5x/10/Raymond'
 #dataset = 'single_yarn/yarn11/stretch'
 #dataset = 'single_yarn/yarn4/teeth/4_1.6'
-dataset = 'woven/6x6' 
+#dataset = 'woven/6x6' 
+dataset = 'woven/arbitrary_pattern/100x100'
 #dataset = 'woven/stretch/yarn4/100x100'
 #dataset = 'woven/push/yarn4/100x100'
 

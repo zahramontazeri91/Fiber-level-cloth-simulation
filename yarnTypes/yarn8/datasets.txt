@@ -1,3 +1,5 @@
+woven/arbitrary_pattern/100x100 0 0 0 1
+eof
 woven/6x6 0 9500 0 12
 eof
 single_yarn/yarn8/stretch 25000 30000 0 1

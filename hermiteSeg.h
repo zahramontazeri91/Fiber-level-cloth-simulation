@@ -56,7 +56,7 @@ public:
     {
         Eigen::Vector3d ret = (u1*3.0*t + u2*2.0)*t + m0;
         if ( normalize ) {
-            assert(ret.norm() > HERMITE_EPS); 
+            //assert(ret.norm() > HERMITE_EPS); 
             ret.normalize();
         }
         return ret;
@@ -90,20 +90,21 @@ public:
 		Eigen::Vector3d ret;
         Eigen::Vector3d q = evalCurvature(t), v = evalTangent(t);
 		q.normalize(); //normalize the curvature before VxQxV 
+		v.normalize();
 
 		//assing a perpendicular vector if q vanishes
 		//assert(q.norm() > HERMITE_EPS); //for now let's assume curves aren't never straight
 		if (q.norm() <= HERMITE_EPS) 
 			return rotateTang(v);
 
-		//assert(q.norm() > HERMITE_EPS);
-		//assert(v.norm() > HERMITE_EPS);
-		//assert(v.cross(q).norm() > 1e-3);
+		assert(q.norm() > HERMITE_EPS);
+		assert(v.norm() > HERMITE_EPS);
+		//assert(v.cross(q).norm() > HERMITE_EPS);
 
 
         ret = v.cross(q).cross(v);
         if ( normalize ) {
-			assert(ret.norm() > HERMITE_EPS && "Either normal or tangent is zero!");
+			//assert(ret.norm() > HERMITE_EPS && "Either normal or tangent is zero!");
 			ret.normalize();            
         }
 		assert(std::abs(ret.dot(v)) < HERMITE_EPS && "normal and tangent are not perpendicular!");
