@@ -274,6 +274,12 @@ def predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, angles
         angles = np.loadtxt(anglesFile, delimiter=None)
         predicted = rotate(predicted, angles)
 
+    ########## Regularize synthesized example ##########
+#    predicted_sweep = sweep(predicted, window_sweep)
+#    predicted_sweep2 = sweep(predicted_sweep, window_sweep)
+#    predicted_reg = regularize(predicted_sweep2, window_reg) 
+#    predicted_reg2 = regularize(predicted_reg, window_reg+2) 
+    ####################
     predicted_sweep = predicted
 #    predicted_sweep = sweep(predicted, window_sweep)
     predicted_reg = regularize(predicted_sweep, window_reg) 
@@ -379,13 +385,13 @@ window_sweep = 3
 upsample_rate = 1
 # In[] 
 yarn0 = 0
-yarn1 = 1
+yarn1 = 200
 
 stride = 1
-skipFactor = 500       
-vrtxNum = 594 #300*2 ## after upsampling
-firstFrame = 0
-lastFrame = 0
+skipFactor = 10       
+vrtxNum = 500 #300*2 ## after upsampling
+firstFrame = 1800
+lastFrame = 1800
 
 
 #dataset = 'stretch/yarn4/stretch'
@@ -397,9 +403,9 @@ lastFrame = 0
 #dataset = 'single_yarn/yarn11/stretch'
 #dataset = 'single_yarn/yarn4/teeth/4_1.6'
 #dataset = 'woven/6x6' 
-dataset = 'woven/arbitrary_pattern/100x100'
+#dataset = 'woven/arbitrary_pattern/100x100'
 #dataset = 'woven/stretch/yarn4/100x100'
-#dataset = 'woven/push/yarn4/100x100'
+dataset = 'woven/push/yarn8/100x100'
 
 path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
 frame0 = int(firstFrame/skipFactor)
@@ -416,13 +422,50 @@ for i in range (frame0, frame1):
 #  
 # In[] 
 #yarn0 = 0
+#yarn1 = 12
+#
+#stride = 1
+#skipFactor = 500       
+#vrtxNum = 102 #300*2 ## after upsampling
+#firstFrame = 15000
+#lastFrame = 15000
+#
+#
+##dataset = 'stretch/yarn4/stretch'
+##dataset = 'fall/yarn4/fall'
+##dataset = 'ball_fall'
+##dataset = 'twist/yarn4/damp2_500'
+##dataset = 'woven/yarn4/spacing1.0x/00011/shear'
+##dataset = 'pattern/yarn4/spacing0.5x/10/Raymond'
+##dataset = 'single_yarn/yarn11/stretch'
+##dataset = 'single_yarn/yarn4/teeth/4_1.6'
+#dataset = 'woven/6x6' 
+##dataset = 'woven/arbitrary_pattern/100x100'
+##dataset = 'woven/stretch/yarn4/100x100'
+##dataset = 'woven/push/yarn4/100x100'
+#
+#path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+#frame0 = int(firstFrame/skipFactor)
+#frame1 = int(lastFrame/skipFactor + 1)
+#for i in range (frame0, frame1):
+#    f = i*skipFactor
+#    print(i)
+#    for y in range (yarn0, yarn1):
+#        X_test = np.loadtxt(path + "testX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
+#        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
+#        anglesFile = path + "angles_" + str(f) + '_' + str(y) + ".txt"
+#        predicted_total = predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, anglesFile, 1)
+#        np.savetxt(path + filename, predicted_total, fmt='%.6f', delimiter=' ') 
+#  
+# In[] 
+#yarn0 = 0
 #yarn1 = 1
 #
 #stride = 1
 #skipFactor = 1000        
 #vrtxNum = 300 ## after upsampling
 #firstFrame = 0
-#lastFrame = 24000
+#lastFrame = 20000
 #
 #
 ##dataset = 'fall/yarn4/fall'
@@ -430,10 +473,10 @@ for i in range (frame0, frame1):
 ##dataset = 'twist/yarn4/damp2_500'
 ##dataset = 'woven/yarn4/spacing1.0x/00011/shear'
 ##dataset = 'pattern/yarn100/spacing2.5x/10'
-#dataset = 'single_yarn/yarn100/stretch'
+##dataset = 'single_yarn/yarn4/stretch'
 ##dataset = 'single_yarn/yarn11/teeth/4_1.6'
 ##dataset = 'single_yarn/yarn4/teeth/4_1.2'
-##dataset = 'single_yarn/yarn11/teeth/4_1.2_00110'
+#dataset = 'single_yarn/yarn8/teeth/4_1.2_00110'
 ##dataset = 'single_yarn/yarn100'
 ##dataset = 'woven/release/yarn9/8x8' 
 ##dataset = 'woven/release/yarn4/100x100'
@@ -444,6 +487,7 @@ for i in range (frame0, frame1):
 #frame1 = int(lastFrame/skipFactor + 1)
 #for i in range (frame0, frame1):
 #    f = i*skipFactor
+#    print(f)
 #    for y in range (yarn0, yarn1):
 #        X_test = np.loadtxt(path + "testX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
 #        filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
@@ -451,3 +495,19 @@ for i in range (frame0, frame1):
 #        predicted_total = predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, anglesFile, 1)
 #        np.savetxt(path + filename, predicted_total, fmt='%.6f', delimiter=' ') 
 #       
+
+# In[]
+## Regularize the global rotation for 6x6 result:
+#fn_global_rot = '../input/woven/6x6/'
+#for i in range (0,12):
+#    global_rot = np.loadtxt(fn_global_rot + "global_rot_15000_" +str(i)+".txt",delimiter=None)
+##    global_rot_sweep = global_rot
+#    global_rot_sweep = sweep(global_rot, 3)
+#    global_rot_reg = regularize(global_rot_sweep, 3)
+#    
+#    diff = global_rot.shape[0] - global_rot_reg.shape[0]
+#    for j in range (0,diff):
+#        add = np.array([ [1,0, 0,1] ])
+#        global_rot_reg = np.concatenate((global_rot_reg,add), axis=0)
+#    np.savetxt(fn_global_rot + "global_rot_15000_" +str(i)+".txt", global_rot_reg, fmt='%.6f', delimiter=' ')
+#            

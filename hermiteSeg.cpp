@@ -383,6 +383,7 @@ Eigen::Vector3d HermiteSpline::computeRotatedNormal_backward(const Eigen::Vector
 	}
 
 	Eigen::Matrix3d m = Eigen::AngleAxisd(std::acos(val), tang0.cross(tang1).normalized()).toRotationMatrix();
+	std::cout << ((m*tang0 - tang1).norm());
 	assert((m*tang0 - tang1).norm() < HERMITE_EPS);
 	assert(std::abs((m*norm1).norm() - 1.0) < HERMITE_EPS);
 	return (m*norm1).normalized();

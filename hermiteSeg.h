@@ -83,33 +83,32 @@ public:
 		return (Rz*v == v ? Ry*v : Rz*v);
 	}
 
-    /* get the principle normal at t */
+    /* get the principle normal at t (new) */ 
     inline Eigen::Vector3d evalPrincipalNormal(double t, bool normalize = true) const
     {
 
 		Eigen::Vector3d ret;
         Eigen::Vector3d q = evalCurvature(t), v = evalTangent(t);
-		q.normalize(); //normalize the curvature before VxQxV 
-		v.normalize();
 
-		//assing a perpendicular vector if q vanishes
-		//assert(q.norm() > HERMITE_EPS); //for now let's assume curves aren't never straight
-		if (q.norm() <= HERMITE_EPS) 
-			return rotateTang(v);
+		q.normalize();
 
-		assert(q.norm() > HERMITE_EPS);
-		assert(v.norm() > HERMITE_EPS);
-		//assert(v.cross(q).norm() > HERMITE_EPS);
+		if (normalize) {
+			assert(q.norm() > HERMITE_EPS);
+			assert(v.norm() > HERMITE_EPS);
 
+			q.normalize(); //normalize the curvature before VxQxV 
+			v.normalize();
+		}
 
         ret = v.cross(q).cross(v);
         if ( normalize ) {
-			//assert(ret.norm() > HERMITE_EPS && "Either normal or tangent is zero!");
+			assert(ret.norm() > HERMITE_EPS && "Either normal or tangent is zero!");
 			ret.normalize();            
         }
 		assert(std::abs(ret.dot(v)) < HERMITE_EPS && "normal and tangent are not perpendicular!");
         return ret;
     }
+
 
 	/* Get the total length of the spline */
 	inline double totalLength() {

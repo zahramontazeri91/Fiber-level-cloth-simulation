@@ -1536,6 +1536,14 @@ namespace Fiber {
 						transf = A[indx] * R[indx];
 					}
 
+					/* Manually match the phase for short yarns: (6x6 result) */
+					//Eigen::Matrix2f globalrot;
+					//float theta = -90.0 * pi/180.f;
+					//globalrot << cos(theta), -sin(theta), sin(theta), cos(theta);
+					//transf = A[indx] * globalrot ;
+					/**/
+
+
 					Eigen::MatrixXf ref(2, 1);
 					ref << fiber.vertices[v].x, fiber.vertices[v].y;
 					Eigen::MatrixXf def(2, 1);

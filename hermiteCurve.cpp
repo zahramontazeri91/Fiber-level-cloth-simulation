@@ -169,7 +169,8 @@ void HermiteCurve::init(const std::vector<Eigen::Vector3d> &pts, int subdiv) //s
 	const int num_of_cores = omp_get_num_procs();
 #pragma omp parallel for num_threads(num_of_cores)
 	for (int i = 0; i < m_spline_seg; ++i) {
-		Eigen::Vector3d q = m_splines[i].evalCurvature(0.0);
+		Eigen::Vector3d q = m_splines[i].evalPrincipalNormal(0.0, false);
+		//Eigen::Vector3d q = m_splines[i].evalCurvature(0.0);
 		if (q.norm() > HERMITE_EPS) {
 			firstIndx = i;
 			isFound = true;

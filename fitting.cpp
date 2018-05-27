@@ -591,7 +591,7 @@ void step0_curveSetup(const int vrtx, int skipFactor, int frame0, int frame1, in
 	const int num_of_cores = omp_get_num_procs();
 #pragma omp parallel for num_threads(num_of_cores)
 	for (int i = frame0; i < frame1; i++) {
-		std::cout << "up-ssample frame " << i << " started...\n";
+		std::cout << "up-sample frame " << i << " started...\n";
 		int f = i * skipFactor;
 		HermiteCurve curve_ds, curve_us;
 		int seg_subdiv = 10;
@@ -823,6 +823,7 @@ void step1_shapematching(const char* yarnfile1, const char* configfile, const in
 void step2_buildTrainData(const int vrtx, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset, const int isTrain, const int ws_ds, const float trimPercent, const int upsample) {
 	std::cout << "\n**************************************************\n";
 	std::cout << "*** step 2: Build training data  *** \n";
+	std::cout << " @@@@@@@@@@ " << dataset << " @@@@@@@@@@ \n";
 	const int num_of_cores = omp_get_num_procs();
 #pragma omp parallel for num_threads(num_of_cores)
 

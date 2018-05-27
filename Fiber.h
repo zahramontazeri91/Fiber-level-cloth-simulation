@@ -3,7 +3,7 @@
 #include "Curve.h"
 #include <Eigen/Dense>
 
-//#define IMPROVED_FLYAWAYS
+#define IMPROVED_FLYAWAYS
 
 
 typedef std::vector<vec3f> fiber_t;

@@ -16,26 +16,72 @@ int main(int argc, const char **argv) {
 	assert(phase == 0 || phase == 1 || phase == 2);
 
 	if (phase == 0 ) {
-		/* For upsampling the stretched yarn: */ 
-		std::string dataset = "single_yarn/yarn4/teeth/4_1.2_00110";
-		const char* congif = "yarnTypes/yarn4/config_step2.txt";
-		const int upsample = 3; //odd number so phase matches better
-		const int vrtx = 300 * upsample;
-		const int frame = 17000;
-		upsample_stretched(congif, vrtx, frame, dataset, upsample);
+
+		/* given an obj file, sample points uniformaly for specific #vertices along curve */
+		/**** first generate fe and obj using "woven_generator_arbitrary.py" then use "deform.py" to extract them as usual, then run this with phase 0! ***/
+		int seg_subdiv = 10;
+		const int yarn0 = 0;
+		const int yarn1 = 200;
+		std::string dataset = "woven/arbitrary_pattern/100x100";
+		for (int y = yarn0; y < yarn1; ++y) {
+
+			std::string tmp1 = "input/" + dataset + "/centerYarn_0_" + std::to_string(y) + "_ds.txt";
+			const char* curvefile = tmp1.c_str();
+			std::string tmp2 = "input/" + dataset + "/centerYarn_0_" + std::to_string(y) + "_sampled.obj";
+			const char*curvefile_new = tmp2.c_str();
+
+			/*knitted example*/
+			//const char* curvefile = "D:/sandbox/fiberSimulation/dataSets/woven/knitted/yarn/openwork_trellis_pattern.txt";
+			//const char* curvefile_new = "D:/sandbox/fiberSimulation/dataSets/woven/knitted/yarn/openwork_trellis_pattern_new.obj";
+
+			const char* normfile = "junk_norm.txt";
+
+			HermiteCurve curve;
+			curve.init(curvefile, normfile, seg_subdiv);
+			double curveLength = curve.totalLength();
+			double edgeLength = 0.08;
+			const int pnts = int(std::ceil(curveLength / edgeLength));
+			edgeLength = curveLength / static_cast<double>(pnts);
+			std::ofstream fout(curvefile_new);
+
+			for (int v = 0; v <= pnts; v++) {
+				double len = v * edgeLength;
+				double t = curve.arcLengthInvApprox(len);
+				Eigen::Vector3d pos = curve.eval(t);
+				fout << "v " << 4.f*pos[0] << " " << 4.f*pos[1] << " " << 4.f*pos[2] << std::endl;
+			}
+
+			for (int l = 1; l <= pnts; l++) {
+				fout << "l " << l << " " << l + 1 << std::endl;
+			}
+			fout.close();
+		}
+
+		std::system("pause");
 		return 0;
 
 
-		Fiber::Yarn yarn;
-		yarn.parse(argv[2]);
-		yarn.simulate_ply_shuang();
-		yarn.write_plys("test_ply.txt");
-		const int K = yarn.getPlyNum();
-		yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
-		yarn.build("test_fly.txt", K);
+		///* For upsampling the stretched yarn: */ 
+		//std::string dataset = "single_yarn/yarn100/stretch";
+		//const char* congif = "yarnTypes/yarn100/config_step2.txt";
+		//const int upsample = 3; //odd number so phase matches better
+		//const int vrtx = 300 * upsample;
+		//const int frame = 21000;
+		//upsample_stretched(congif, vrtx, frame, dataset, upsample);
+		//return 0;
 
-		yarn.write_yarn("genYarn.txt");
-		return 0;
+
+		///* procedurally generate a straight yarn given the config file */
+		//Fiber::Yarn yarn;
+		//yarn.parse(argv[2]);
+		//yarn.simulate_ply_shuang();
+		//yarn.write_plys("test_ply.txt");
+		//const int K = yarn.getPlyNum();
+		//yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
+		//yarn.build("test_fly.txt", K);
+
+		//yarn.write_yarn("genYarn.txt");
+		//return 0;
 	}
 
 	if ( argc < 4 ) {
