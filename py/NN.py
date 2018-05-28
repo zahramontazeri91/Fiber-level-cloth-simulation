@@ -385,14 +385,13 @@ window_sweep = 3
 upsample_rate = 1
 # In[] 
 yarn0 = 0
-yarn1 = 200
+yarn1 = 1024
 
 stride = 1
 skipFactor = 10       
-vrtxNum = 500 #300*2 ## after upsampling
-firstFrame = 1800
-lastFrame = 1800
-
+vrtxNum = 3291 #300*2 ## after upsampling
+firstFrame = 0
+lastFrame = 0
 
 #dataset = 'stretch/yarn4/stretch'
 #dataset = 'fall/yarn4/fall'
@@ -403,9 +402,10 @@ lastFrame = 1800
 #dataset = 'single_yarn/yarn11/stretch'
 #dataset = 'single_yarn/yarn4/teeth/4_1.6'
 #dataset = 'woven/6x6' 
+dataset = 'woven/arbitrary_pattern/512x512'
 #dataset = 'woven/arbitrary_pattern/100x100'
 #dataset = 'woven/stretch/yarn4/100x100'
-dataset = 'woven/push/yarn8/100x100'
+#dataset = 'woven/push/yarn8/100x100'
 
 path = 'D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
 frame0 = int(firstFrame/skipFactor)

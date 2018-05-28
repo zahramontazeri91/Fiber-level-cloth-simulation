@@ -206,33 +206,34 @@ def main (path, dataset, vrtNum, isTrain, firstFrame, lastFrame):
             transform(vrtNum, cntr_n_obj, cntr_n, twist_n, dg_n, internal_n, physicalParam_trans, def_obj, src_obj, isTrain)
 # In[]:  
             
-skipFactor = 100
-downSample = 1
-vrtNum = 628 ###before upsampling
-fiberNum = 111
-yarn0 = 0
-yarn1 = 200
-isTrain = 0 #####
-#dataset = 'pattern/yarn4/spacing0.5x/10/Raymond'
-#dataset = 'woven/yarn4/spacing1.0x/00011'
-#dataset = 'stretch/yarn4/stretch'
-#dataset = 'fall/yarn4/fall'
-#dataset = 'ball_fall'
-#dataset = 'shear/shear0403'
-#dataset = 'yarn_stretch'
-#dataset = 'single_yarn/yarn4/teeth/4_1.6'
-#dataset = 'woven/push/yarn4/100x100'
-#dataset = 'woven/stretch/yarn4/100x100'
-#dataset = 'woven/6x6'
-dataset = 'woven/arbitrary_pattern/100x100'
-
-path = "D:/sandbox/fiberSimulation/dataSets/" + dataset+"/yarn/"
-
-restFrame = '0010000'
-firstFrame = 0
-lastFrame = 0
-main (path, dataset, vrtNum, isTrain,  firstFrame, lastFrame)
-
+#skipFactor = 100
+#downSample = 1
+#vrtNum = 3291 ###before upsampling
+#fiberNum = 111
+#yarn0 = 0
+#yarn1 = 1024
+#isTrain = 0 #####
+##dataset = 'pattern/yarn4/spacing0.5x/10/Raymond'
+##dataset = 'woven/yarn4/spacing1.0x/00011'
+##dataset = 'stretch/yarn4/stretch'
+##dataset = 'fall/yarn4/fall'
+##dataset = 'ball_fall'
+##dataset = 'shear/shear0403'
+##dataset = 'yarn_stretch'
+##dataset = 'single_yarn/yarn4/teeth/4_1.6'
+##dataset = 'woven/push/yarn4/100x100'
+##dataset = 'woven/stretch/yarn4/100x100'
+##dataset = 'woven/6x6'
+##dataset = 'woven/arbitrary_pattern/100x100'
+#dataset = 'woven/arbitrary_pattern/512x512'
+#
+#path = "D:/sandbox/fiberSimulation/dataSets/" + dataset+"/yarn/"
+#
+#restFrame = '0010000'
+#firstFrame = 0
+#lastFrame = 0
+#main (path, dataset, vrtNum, isTrain,  firstFrame, lastFrame)
+#
 
 
 #skipFactor = 10
@@ -284,25 +285,26 @@ main (path, dataset, vrtNum, isTrain,  firstFrame, lastFrame)
 #            
 #############################   
 #            
-#skipFactor = 1000
-#downSample = 2 ############### can change from 2 only if not the training data because of fiber-sim
-#vrtNum = 150 #without upsample
-#fiberNum = 111
-#yarn0 = 0
-#yarn1 = 1
-#isTrain = 1
-#firstFrame = 0
+skipFactor = 500
+downSample = 2 ############### can change from 2 only if not the training data because of fiber-sim
+vrtNum = 34607 #without upsample
+fiberNum = 111
+yarn0 = 0
+yarn1 = 1
+isTrain = 0
+firstFrame = 0
 #dataset =  'single_yarn/yarn8/teeth/4_1.2_00110'
-##dataset = 'pattern/yarn8/spacing1.0x/00011'
-##dataset = 'single_yarn/yarn4/stretch'
-##dataset = 'single_yarn/yarn11/teeth/4_1.6'
-##dataset = 'single_yarn/yarn11/teeth/4_1.2'
-##dataset = 'pattern/yarn4/spacing1.0x/00011'
-##dataset = 'single_yarn/yarn4/stretch'
-##dataset = 'single_yarn/yarn4/teeth/1.2_110'
-#path = "D:/sandbox/fiberSimulation/dataSets/" +dataset+ "/yarn/"
-#lastFrame = 20000
-#main (path, dataset, vrtNum, isTrain, firstFrame, lastFrame)
+#dataset = 'pattern/yarn8/spacing1.0x/00011'
+#dataset = 'single_yarn/yarn4/stretch'
+#dataset = 'single_yarn/yarn11/teeth/4_1.6'
+#dataset = 'single_yarn/yarn11/teeth/4_1.2'
+#dataset = 'pattern/yarn4/spacing1.0x/00011'
+#dataset = 'single_yarn/yarn4/stretch'
+#dataset = 'single_yarn/yarn4/teeth/1.2_110'
+dataset = 'woven/knitted'
+path = "D:/sandbox/fiberSimulation/dataSets/" +dataset+ "/yarn/"
+lastFrame = 24500
+main (path, dataset, vrtNum, isTrain, firstFrame, lastFrame)
 
 ############################
 # In[]: 

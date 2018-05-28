@@ -63,9 +63,9 @@ segLen = height*2 #because of spacing1.0x and so tanh is simpler
 top = height/2.0
 bottom = -1.0*top
 step = segLen/sample
-sz = 100
-#pattern_type = '512x512'
-pattern_type = '100x100'
+sz = 512
+pattern_type = '512x512'
+#pattern_type = '100x100'
 path = "D:/sandbox/fiberSimulation/dataSets/woven/arbitrary_pattern/" + pattern_type + "/yarn"
 fn_pattern = pattern_type + '_pattern_1.png'
 pattern = loadPattern(fn_pattern)
@@ -119,7 +119,7 @@ for yarn in range(0,sz):
     print(fn_obj)
     writeOBJ(fn_obj, all_x, all_y, all_z)
     writeFE(fn_fe, all_x, all_y, all_z)
-    writeCurve(fn_txt, all_x, all_y, all_z)
+#    writeCurve(fn_txt, all_x, all_y, all_z)
     
 # write yarns along z
 for yarn in range(0,sz):
@@ -160,7 +160,7 @@ for yarn in range(0,sz):
     print(fn_obj)
     writeOBJ(fn_obj, all_x, all_y, all_z)
     writeFE(fn_fe, all_x, all_y, all_z)
-    writeCurve(fn_txt, all_x, all_y, all_z)
+#    writeCurve(fn_txt, all_x, all_y, all_z)
     
  # In[]: GENERATE DG   
 # deformation gradient in simulation space:
