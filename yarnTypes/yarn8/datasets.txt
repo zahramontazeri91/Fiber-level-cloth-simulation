@@ -1,3 +1,7 @@
+woven/arbitrary_pattern/100x100 0 0 0 100
+eof
+single_yarn/yarn8/stretch 30000 30000 0 1
+eof
 woven/arbitrary_pattern/512x512 0 0 0 1024
 eof
 woven/push/yarn8/100x100 1800 1800 0 200
@@ -17,8 +21,6 @@ eof
 single_yarn/yarn8/teeth/4_1.6 12000 12000 0 1 
 eof
 single_yarn/yarn8/teeth/4_1.6 17000 17000 0 1 
-eof
-single_yarn/yarn8/stretch 30000 30000 0 1
 eof
 pattern/yarn8/spacing0.5x/10 7000 14000 0 1
 pattern/yarn8/spacing0.5x/00011 7000 16000 0 1

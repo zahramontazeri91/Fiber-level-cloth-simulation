@@ -145,7 +145,7 @@ Eigen::Vector3d HermiteSpline::evalNormal(double t) const
         Eigen::Vector3d norm0 = computeRotatedNormal(tangents[idx], tang0, norms[idx]),
                         norm1 = computeRotatedNormal(tangents[idx + 1], tang0, norms[idx + 1]);
         double w = (t*subdiv) - idx;
-        Eigen::Vector3d ret = (1.0 - w)*norm0 + norm1;
+        Eigen::Vector3d ret = (1.0 - w)*norm0 + w*norm1;
         ret = tang0.cross(ret).cross(tang0);
         assert(ret.norm() > HERMITE_EPS);
         ret.normalize();
