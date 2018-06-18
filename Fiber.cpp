@@ -55,7 +55,7 @@ namespace Fiber {
 		std::getline(fin, line);
 		fiber_num = atoi(line.c_str()) / ply_num;
 		this->plys.resize(ply_num);
-#pragma omp parallel for num_threads(num_of_cores) 
+
 		for (int p = 0; p < ply_num; ++p) {
 			this->plys[p].fibers.resize(fiber_num);
 			for (int f = 0; f < fiber_num; ++f) {
@@ -93,7 +93,6 @@ namespace Fiber {
 		yarn.plys.resize(ply_num);
 
 
-#pragma omp parallel for num_threads(num_of_cores) 
 		for (int p = 0; p < ply_num; ++p) {
 			yarn.plys[p].fibers.resize(fiber_num);
 			for (int f = 0; f < fiber_num; ++f) {
@@ -382,10 +381,14 @@ namespace Fiber {
 
 		for (int i = 0; i < ply_num; i++) {
 			const int fiber_num = this->plys[i].fibers.size();
-#pragma omp parallel for num_threads(num_of_cores) 
+//#pragma omp parallel for num_threads(num_of_cores) 
 			for (int f = 0; f < fiber_num; f++) {
 				Fiber &fiber = this->plys[i].fibers[f];
-				float radius = this->plys[i].sampleR();
+
+				float radius;
+//#pragma omp critical
+				radius = this->plys[i].sampleR();
+
 				float theta = 2 * pi * (float)rand() / (RAND_MAX);
 				float migration_theta = 2 * pi * (float)rand() / (RAND_MAX);
 				fiber.init_radius = radius;
@@ -408,7 +411,7 @@ namespace Fiber {
 		std::vector<std::vector<std::vector<float> > > rVals(ply_num);
 #endif
 
-#pragma omp parallel for num_threads(num_of_cores) 
+//#pragma omp parallel for num_threads(num_of_cores) 
 		for (int i = 0; i < ply_num; i++) {
 			const int fiber_num = this->plys[i].fibers.size();
 
@@ -764,10 +767,14 @@ namespace Fiber {
 
 		for (int i = 0; i < ply_num; i++) {
 			const int fiber_num = this->plys[i].fibers.size();
-#pragma omp parallel for num_threads(num_of_cores) 
+//#pragma omp parallel for num_threads(num_of_cores) 
 			for (int f = 0; f < fiber_num; f++) {
 				Fiber &fiber = this->plys[i].fibers[f];
-				float radius = this->plys[i].sampleR();
+
+				float radius;
+//#pragma omp critical
+				radius = this->plys[i].sampleR();
+
 				float theta = 2 * pi * (float)rand() / (RAND_MAX);
 				float migration_theta = 2 * pi * (float)rand() / (RAND_MAX);
 				fiber.init_radius = radius;
@@ -790,7 +797,7 @@ namespace Fiber {
 		std::vector<std::vector<std::vector<float> > > rVals(ply_num);
 #endif
 
-#pragma omp parallel for num_threads(num_of_cores) 
+//#pragma omp parallel for num_threads(num_of_cores) 
 		for (int i = 0; i < ply_num; i++) {
 			const int fiber_num = this->plys[i].fibers.size();
 
@@ -1256,10 +1263,14 @@ namespace Fiber {
 		std::cout << "step3: initial plys locations ... \n";
 		for (int i = 0; i < ply_num; i++) {
 			const int fiber_num = this->plys[i].fibers.size();
-#pragma omp parallel for num_threads(num_of_cores) 
+//#pragma omp parallel for num_threads(num_of_cores) 
 			for (int f = 0; f < fiber_num; f++) {
 				Fiber &fiber = this->plys[i].fibers[f];
-				float radius = this->plys[i].sampleR();
+				
+				float radius;
+//#pragma omp critical
+				radius = this->plys[i].sampleR();
+
 				float theta = 2 * pi * (float)rand() / (RAND_MAX);
 				float migration_theta = 2 * pi * (float)rand() / (RAND_MAX);
 				fiber.init_radius = radius;
@@ -1271,8 +1282,7 @@ namespace Fiber {
 		}
 
 		std::cout << "step4-5-6: rotate ply-centers around yarn-center and fibers around ply-centers and apply the compression ... \n";
-#pragma omp parallel for num_threads(num_of_cores)
-
+//#pragma omp parallel for num_threads(num_of_cores)
 		for (int i = 0; i < ply_num; i++) {
 			const int fiber_num = this->plys[i].fibers.size();
 
@@ -1319,7 +1329,7 @@ namespace Fiber {
 				}
 			}
 		}
-		plotIntersections("../data/allCrossSection2D_simulate.txt",0.2);
+		//plotIntersections("../data/allCrossSection2D_simulate.txt",0.2);
 	} // yarn_simulate
 
 
@@ -1460,7 +1470,7 @@ namespace Fiber {
 		// change the yarn cross-sections
 		for (int i = 0; i < ply_num; i++) {
 			const int fiber_num = this->plys[i].fibers.size();
-#pragma omp parallel for num_threads(num_of_cores) 
+//#pragma omp parallel for num_threads(num_of_cores) 
 			for (int f = 0; f < fiber_num; f++) {
 				Fiber &fiber = this->plys[i].fibers[f];
 				const int vertices_num = this->plys[i].fibers[f].vertices.size();
@@ -1517,11 +1527,11 @@ namespace Fiber {
 		// change the yarn cross-sections
 		for (int i = 0; i < ply_num; i++) {
 			const int fiber_num = this->plys[i].fibers.size();
-//#pragma omp parallel for num_threads(num_of_cores) 
 			for (int f = 0; f < fiber_num; f++) {
 				Fiber &fiber = this->plys[i].fibers[f];
-				const int vertices_num = this->plys[i].fibers[f].vertices.size();
 
+				const int vertices_num = this->plys[i].fibers[f].vertices.size();
+//#pragma omp parallel for num_threads(num_of_cores) 
 				for (int v = 0; v < vertices_num; v++) {
 
 					//because of flyaways we should find the closest indx to v
@@ -1535,6 +1545,12 @@ namespace Fiber {
 					if (global_rot != "") {
 						transf = A[indx] * R[indx];
 					}
+
+#ifdef SHRINK
+					float scale;
+					scale = 0.95;
+					transf = scale * transf;
+#endif
 
 					/* Manually match the phase for short yarns: (6x6 result) */
 					//Eigen::Matrix2f globalrot;
@@ -1550,6 +1566,8 @@ namespace Fiber {
 					def = transf*ref;
 					fiber.vertices[v].x = def(0, 0);
 					fiber.vertices[v].y = def(1, 0);
+
+
 				}
 			}
 		}
@@ -1880,23 +1898,21 @@ namespace Fiber {
 			printf(" (scale: %.4lf)", xyScale = curveLength / zSpan);
 		putchar('\n');
 
-		const int num_of_cores = omp_get_num_procs();
-		for (auto &ply : plys)
-#pragma omp parallel for num_threads(num_of_cores) 
+		for (auto &ply : plys) {
 			for (auto &fiber : ply.fibers) {
 				int i = 0;
 				for (auto &vertex : fiber.vertices) {
 
 #ifndef IMPROVED_FLYAWAYS
-/* faster but doesn't work for flyaways: */
+					/* faster but doesn't work for flyaways: */
 					Eigen::Vector3d ez = all_tang[i];
-					Eigen::Vector3d ey = all_norm[i];					
+					Eigen::Vector3d ey = all_norm[i];
 					Eigen::Vector3d ex = ez.cross(ey);
 
 					Eigen::Vector3d pos = all_pts[i];
 #else
 
-					
+
 					double len = curveLength*(vertex.z - zMin) / zSpan;
 					double t = centerCurve.arcLengthInvApprox(len);
 					// use rotated Frenet frame 
@@ -1917,7 +1933,7 @@ namespace Fiber {
 						//ey[1], ex[1], ez[1],
 						//ey[2], ex[2], ez[2];
 
-					
+
 					M << ex[0], ey[0], ez[0],
 						ex[1], ey[1], ez[1],
 						ex[2], ey[2], ez[2];
@@ -1934,6 +1950,7 @@ namespace Fiber {
 					i++;
 				}
 			}
+		}
 
 		//plotIntersections("../data/allCrossSection2D_curve.txt",0.0);
 	} // curve_yarn
@@ -1974,6 +1991,7 @@ namespace Fiber {
 	}
 
 	void Yarn::write_yarn(const char* filename) {
+#ifndef DROPOUT
 		printf("Writing vertices ...\n");
 		int total_fiber_num = 0, ply_num = this->plys.size();
 		for (int i = 0; i < ply_num; i++)
@@ -1995,6 +2013,31 @@ namespace Fiber {
 		fout.close();
 		printf("Writing vertices to file done!\n");
 		std::cout << "\n\n";
+#else
+		const int dropOut = 2; //discard half of the fibers to accelerate rendering process for large textiles
+		printf("Writing vertices ...\n");
+		int total_fiber_num = 0, ply_num = this->plys.size();
+		for (int i = 0; i < ply_num; i++)
+			total_fiber_num += this->plys[i].fibers.size();
+		std::ofstream fout(filename);
+		fout << ceil(total_fiber_num / dropOut) << std::endl; //TODO : generated yarn format should be same as simulated yarn 
+		for (int i = 0; i < ply_num; i++) {
+			int fiber_num = this->plys[i].fibers.size();
+			for (int f = 0; f < fiber_num; f++) {
+				if (f % dropOut != 0) continue;
+				//Fiber &fiber = this->plys[i].fibers[10]; //render one fiber
+				Fiber &fiber = this->plys[i].fibers[f];
+				int fiber_vertex_num = fiber.vertices.size();
+				fout << fiber_vertex_num << std::endl;
+				for (int v = 0; v < fiber_vertex_num; v++) {
+					fout << fiber.vertices[v].x << " " << fiber.vertices[v].y << " " << fiber.vertices[v].z << std::endl;
+				}
+			}
+		}
+		fout.close();
+		printf("Writing vertices to file done!\n");
+		std::cout << "\n\n";
+#endif
 
 		////for debugging:
 		//std::ofstream fout0("genYarn_ply0.txt");
@@ -2338,7 +2381,6 @@ namespace Fiber {
 		}
 
 		std::cout << "step4-5-6: rotate ply-centers around yarn-center and fibers around ply-centers and apply the compression ... \n";
-#pragma omp parallel for num_threads(num_of_cores)
 		/* initialize the yarn fibers by assigning the ply-center to the fiber[0]*/
 		//assignPlyCenters(plyCenterFile);
 		assignParameterizePlyCenters(plyCenterFile);

@@ -4,7 +4,8 @@
 #include <Eigen/Dense>
 
 //#define IMPROVED_FLYAWAYS
-
+//#define DROPOUT
+//#define SHRINK
 
 typedef std::vector<vec3f> fiber_t;
 typedef std::vector<fiber_t> yarn_t;

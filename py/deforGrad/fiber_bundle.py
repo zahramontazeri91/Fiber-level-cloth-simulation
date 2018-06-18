@@ -28,7 +28,7 @@ class FiberBundle:
 
         # ----------------------------
         self._nFibers = len( self._fibers ) # number of fibers
-        print '%d fibers loaded' % self._nFibers
+#        print '%d fibers loaded' % self._nFibers
         self._fiberLen = len( self._fibers[0] )
         for ii in xrange(1,self._nFibers):
             assert len( self._fibers[ii] ) == self._fiberLen
