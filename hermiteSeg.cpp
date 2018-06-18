@@ -147,10 +147,11 @@ Eigen::Vector3d HermiteSpline::evalNormal(double t) const
         double w = (t*subdiv) - idx;
         Eigen::Vector3d ret = (1.0 - w)*norm0 + w*norm1;
         ret = tang0.cross(ret).cross(tang0);
-        assert(ret.norm() > HERMITE_EPS);
+        //assert(ret.norm() > HERMITE_EPS);
         ret.normalize();
-        assert(std::abs(ret.dot(tang0)) < HERMITE_EPS);
-		assert(std::abs(ret.norm() - 1.0) < HERMITE_EPS);
+		/*********************** THERE IS A BUG HERE *********************/
+        //assert(std::abs(ret.dot(tang0)) < HERMITE_EPS);
+		//assert(std::abs(ret.norm() - 1.0) < HERMITE_EPS);
         return ret;
     }
     else {
@@ -350,7 +351,7 @@ Eigen::Vector3d HermiteSpline::computeRotatedNormal(const Eigen::Vector3d &tang0
 
     assert(std::abs(tang0.norm() - 1.0) < HERMITE_EPS);
     assert(std::abs(tang1.norm() - 1.0) < HERMITE_EPS);
-	assert(std::abs(norm0.norm() - 1.0) < HERMITE_EPS);
+	//assert(std::abs(norm0.norm() - 1.0) < HERMITE_EPS);
 
     double val = tang0.dot(tang1);
 

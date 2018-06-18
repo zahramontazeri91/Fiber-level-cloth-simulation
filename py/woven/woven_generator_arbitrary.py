@@ -17,8 +17,10 @@ def loadPattern(fn):
     pattern = np.array(arr[:,:,0])  
     return pattern
 # In[]: 
-def writeCurve(fn_txt, all_x, all_y, all_z):
-
+def writeCurve(fn_txt, all_x, all_y, all_z):  #doesn't work for the part and I don't know why. 
+    ''' I had to use fe and obj file generated from this and run DEFORM.py code to generate files in our formate,
+    Then run c++ code with phase=0 which encoded sampling along a curve with defined distance using hermite class. And that returns obj file in proper distance (0.08 simulation friendly)
+'''
     with open(fn_txt, "w") as fout_txt:
         fout_txt.writelines('%d \n' % (all_x.shape[0]) )
         for i in range (1, all_x.shape[0]): #start from line1 because o is trash thanks to numpy initization
@@ -63,8 +65,10 @@ segLen = height*2 #because of spacing1.0x and so tanh is simpler
 top = height/2.0
 bottom = -1.0*top
 step = segLen/sample
-sz = 512
-pattern_type = '512x512'
+#sz = 512
+sz0 = 600
+sz1 = 400
+pattern_type = '600x400'
 #pattern_type = '100x100'
 path = "D:/sandbox/fiberSimulation/dataSets/woven/arbitrary_pattern/" + pattern_type + "/yarn"
 fn_pattern = pattern_type + '_pattern_1.png'
@@ -73,13 +77,13 @@ pattern = loadPattern(fn_pattern)
 #noise = np.random.normal(0,0.001,sz)
 
 # write yarns along x 
-for yarn in range(0,sz):
+for yarn in range(0,sz0):
     all_x = np.empty([1])
     all_y = np.empty([1])
     all_z = np.empty([1])
     
     
-    for seg in range(0,sz-1):
+    for seg in range(0,sz1-1):
         q = str(int(pattern[yarn,seg]) ) + str(int(pattern[yarn,seg+1]) )
 #        print(q)
         
@@ -119,14 +123,14 @@ for yarn in range(0,sz):
     print(fn_obj)
     writeOBJ(fn_obj, all_x, all_y, all_z)
     writeFE(fn_fe, all_x, all_y, all_z)
-#    writeCurve(fn_txt, all_x, all_y, all_z)
+############    writeCurve(fn_txt, all_x, all_y, all_z)
     
-# write yarns along z
-for yarn in range(0,sz):
+## write yarns along z
+for yarn in range(0,sz1):
     all_x = np.empty([1])
     all_y = np.empty([1])
     all_z = np.empty([1])
-    for seg in range(0,sz-1):
+    for seg in range(0,sz0-1):
         q = str(int(1 - pattern[seg, yarn]) ) + str(int(1 - pattern[seg+1, yarn]) ) #inverse the pattern
 #        print(q)
         
@@ -154,14 +158,14 @@ for yarn in range(0,sz):
         
         all_y = np.append(all_y, y , axis=0)
     
-    fn_fe = path + '/frame_0000000fiber_' + str(yarn+sz).zfill(2) + '.fe'
-    fn_obj = path + '/frame_0000000fiber_' + str(yarn+sz).zfill(2) + '.obj'
-    fn_txt = path + '/frame_0000000fiber_' + str(yarn+sz).zfill(2) + '.txt'
+    fn_fe = path + '/frame_0000000fiber_' + str(yarn+sz0).zfill(2) + '.fe'
+    fn_obj = path + '/frame_0000000fiber_' + str(yarn+sz0).zfill(2) + '.obj'
+    fn_txt = path + '/frame_0000000fiber_' + str(yarn+sz0).zfill(2) + '.txt'
     print(fn_obj)
     writeOBJ(fn_obj, all_x, all_y, all_z)
     writeFE(fn_fe, all_x, all_y, all_z)
-#    writeCurve(fn_txt, all_x, all_y, all_z)
-    
+############    writeCurve(fn_txt, all_x, all_y, all_z)
+#    
  # In[]: GENERATE DG   
 # deformation gradient in simulation space:
 # Multiplying DG to x-axis would give us the tangent

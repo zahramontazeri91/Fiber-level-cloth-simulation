@@ -61,7 +61,7 @@ void extractCompress_seg(const char* configfile, const char* yarnfile1, const ch
 	const char* curveFile, const char* normFile, const char* global_rot, const int ply_num, const int vrtx_num)
 {
 	const int n = vrtx_num;
-	
+
 	//pipeline 1:
 	std::vector<yarnIntersect2D> pnts_ref;
 	CrossSection cs1(yarnfile1, configfile, pnts_ref);
@@ -83,7 +83,7 @@ void extractCompress_seg(const char* configfile, const char* yarnfile1, const ch
 	if (fopen_s(&foutS, compress_S, "wt") == 0) {
 		//fprintf_s(foutS, "%d \n", all_mat_S.size());
 		for (int i = 0; i < all_A.size(); ++i) {
-			fprintf_s(foutS, "%.6f %.6f %.6f %.6f \n", all_A[i](0,0), all_A[i](0,1), all_A[i](1,0), all_A[i](1,1) );
+			fprintf_s(foutS, "%.6f %.6f %.6f %.6f \n", all_A[i](0, 0), all_A[i](0, 1), all_A[i](1, 0), all_A[i](1, 1));
 		}
 		fclose(foutS);
 	}
@@ -313,7 +313,7 @@ void assign_twist(const char* twistFile, std::vector<float> &twists) {
 	}
 }
 
-void transfer_dg_2local(const std::vector<Eigen::Vector3d> &all_tang, const std::vector<Eigen::Vector3d> &all_norm, 
+void transfer_dg_2local(const std::vector<Eigen::Vector3d> &all_tang, const std::vector<Eigen::Vector3d> &all_norm,
 	const std::vector<Eigen::Matrix3f> &all_world_dg, std::vector<Eigen::Matrix3f> &all_local_dg, const int flip) {
 
 	assert(all_tang.size() == all_world_dg.size() && all_norm.size() == all_world_dg.size());
@@ -321,7 +321,7 @@ void transfer_dg_2local(const std::vector<Eigen::Vector3d> &all_tang, const std:
 	Eigen::Vector3d ex, ey, ez;
 	for (int i = 0; i < n; i++) {
 
-		
+
 		if (flip == 1) { //flip normal
 			ez = all_tang[i];
 			ey = -1.0*all_norm[i];
@@ -338,7 +338,7 @@ void transfer_dg_2local(const std::vector<Eigen::Vector3d> &all_tang, const std:
 			ez = all_tang[i];
 			ey = all_norm[i];
 		}
-		ex = ez.cross(ey);			
+		ex = ez.cross(ey);
 
 		/** world to local **/
 		Eigen::Matrix3f local_dg, M;
@@ -367,7 +367,7 @@ void rotate_S_2local(const Eigen::Matrix2f &S, Eigen::Matrix2f &S_local, const f
 		A << 1, 0, 0, -1;
 	else if (flip == 3)  //flip tangent and normal
 		A << -1, 0, 0, -1;
-	else 
+	else
 		A << 1, 0, 0, 1;
 
 	S_local = A*S_local*A.transpose();
@@ -385,7 +385,7 @@ float get_angle(Eigen::Vector3d &norm1, Eigen::Vector3d &norm2, Eigen::Vector3d 
 	if (cross.norm() < eps) return 0.0;
 
 	float dist = (cross - tang).norm();
-	float dist_ = (cross - (-1.0*tang) ).norm();
+	float dist_ = (cross - (-1.0*tang)).norm();
 	angle = dist < dist_ ? angle : -1.0*angle;
 
 	return angle;
@@ -505,7 +505,7 @@ void writeVol(std::string &dataset, const int frame, const int yarn0, const int 
 	std::vector<Eigen::Vector3f> pnts;
 	//for loop over yarns y
 	for (int y = yarn0; y < yarn1; y++) {
-		std::string tmp = "input/" + dataset + "/centerYarn_" + std::to_string(frame) + "_" + std::to_string(y) + "_us.txt";  
+		std::string tmp = "input/" + dataset + "/centerYarn_" + std::to_string(frame) + "_" + std::to_string(y) + "_us.txt";
 		const char* curvefile_us = tmp.c_str();
 		loadSamples(curvefile_us, pnts);
 	}
@@ -513,14 +513,17 @@ void writeVol(std::string &dataset, const int frame, const int yarn0, const int 
 	float min_x, min_y, min_z, max_x, max_y, max_z;
 	findAABB(pnts, min_x, min_y, min_z, max_x, max_y, max_z);
 
+
 	float minAABB[3], maxAABB[3];
 	float *data;
 	float *data_vol;
 	//int resol[3];
 	int N;
 
+
 	minAABB[0] = min_x - radius, minAABB[1] = min_y - radius, minAABB[2] = min_z - radius;
 	maxAABB[0] = max_x + radius, maxAABB[1] = max_y + radius, maxAABB[2] = max_z + radius;
+
 
 	// Modify tile scale here
 	float scale = 1.0;
@@ -572,6 +575,9 @@ void writeVol(std::string &dataset, const int frame, const int yarn0, const int 
 	fwrite(&ch, sizeof(int), 1, fout);
 
 	// Write AABB
+	//const float crop = 0.15; //needed for cropping stretching dataset
+	//minAABB[0] = min_x - radius + crop*max_x, minAABB[1] = min_y - radius + crop*max_y, minAABB[2] = min_z - radius + crop*max_z; //use max as min is close to zero
+	//maxAABB[0] = max_x + radius - crop*max_x, maxAABB[1] = max_y + radius - crop*max_y, maxAABB[2] = max_z + radius - crop*max_z;
 	fwrite(minAABB, sizeof(float), 3, fout);
 	fwrite(maxAABB, sizeof(float), 3, fout);
 
@@ -589,10 +595,12 @@ void step0_curveSetup(const int vrtx, int skipFactor, int frame0, int frame1, in
 	std::cout << "\n**************************************************\n";
 	std::cout << "*** step0: up-sample the curve ***\n";
 	const int num_of_cores = omp_get_num_procs();
-#pragma omp parallel for num_threads(num_of_cores)
-	for (int i = frame0; i < frame1; i++) {
-		std::cout << "up-sample frame " << i << " started...\n";
-		int f = i * skipFactor;
+
+	const int total_frame = (frame1 - frame0) / skipFactor + 1;
+	for (int i = 0; i < total_frame; i++) {
+		int f = frame0 + i * skipFactor;
+		std::cout << "up-sample frame " << f << " started...\n";
+		
 		HermiteCurve curve_ds, curve_us;
 		int seg_subdiv = 10;
 		for (int y = yarn0; y < yarn1; ++y) {
@@ -615,7 +623,7 @@ void step0_curveSetup(const int vrtx, int skipFactor, int frame0, int frame1, in
 			HermiteCurve curve_ds;
 			curve_ds.init(curvefile_ds, normfile_ds, seg_subdiv);
 			std::vector<Eigen::Vector3d> all_pts, all_tang, all_norm;
-			
+
 			// assign local frames for each point
 			curve_ds.assign_twist(twistfile, all_pts, all_tang, all_norm, upsample);
 
@@ -645,9 +653,12 @@ void step1_dg2local(const int vrtx, int skipFactor, int frame0, int frame1, int 
 	std::cout << "\n**************************************************\n";
 	std::cout << "*** step1: Convert external-force to local coordinate ***\n";
 	const int num_of_cores = omp_get_num_procs();
-#pragma omp parallel for num_threads(num_of_cores)
-	for (int i = frame0; i < frame1; i++) {
-		int f = i * skipFactor;
+
+	const int total_frame = (frame1 - frame0) / skipFactor + 1;
+	for (int i = 0; i < total_frame; i++) {
+		int f = frame0 + i * skipFactor;
+
+		std::cout << "Transfer DG to local for frame " << f << "\n";
 		HermiteCurve curve;
 		int seg_subdiv = 10;
 		for (int y = yarn0; y < yarn1; ++y) {
@@ -674,7 +685,7 @@ void step1_dg2local(const int vrtx, int skipFactor, int frame0, int frame1, int 
 			//curve.assign_twist(twistfile, all_pts, all_tang, all_norm, 1);
 			assert(all_pts.size() == vrtx);
 			//curve.init_principleNormal(curvefile, normfile, seg_subdiv);
-  
+
 
 			std::ifstream fin(physical_world);
 			std::ofstream fout(physical_local);
@@ -710,8 +721,8 @@ void step1_dg2local(const int vrtx, int skipFactor, int frame0, int frame1, int 
 
 				Eigen::Matrix3f M;
 				M << ez[0], ez[1], ez[2],
-				ey[0], ey[1], ey[2],
-				ex[0], ex[1], ex[2];
+					ey[0], ey[1], ey[2],
+					ex[0], ex[1], ex[2];
 
 				//local = M*world*M.transpose();
 				local = M*world;
@@ -751,10 +762,12 @@ void step1_shapematching(const char* yarnfile1, const char* configfile, const in
 	yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
 	yarn.build("test_fly.txt", K);
 
-	const int num_of_cores = omp_get_num_procs();
-#pragma omp parallel for num_threads(num_of_cores)
-	for (int i = frame0; i < frame1; i++) {
-		int f = i * skipFactor;
+
+	const int total_frame = (frame1 - frame0) / skipFactor + 1;
+	for (int i = 0; i < total_frame; i++) {
+		int f = frame0 + i * skipFactor;
+
+
 		for (int y = yarn0; y < yarn1; ++y) {
 
 			std::string tmp1 = "data/" + dataset + "/simul_frame_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
@@ -807,7 +820,7 @@ void step1_shapematching(const char* yarnfile1, const char* configfile, const in
 			//yarn_compressed.write_yarn(outfile);
 
 			/////*************************************************/
-			
+
 			const char* outfile_wo = tmp9.c_str();
 			Fiber::Yarn yarn_wo; //renew the yarn
 			yarn_wo = yarn;
@@ -825,12 +838,14 @@ void step2_buildTrainData(const int vrtx, int skipFactor, int frame0, int frame1
 	std::cout << "*** step 2: Build training data  *** \n";
 	std::cout << " @@@@@@@@@@ " << dataset << " @@@@@@@@@@ \n";
 	const int num_of_cores = omp_get_num_procs();
-#pragma omp parallel for num_threads(num_of_cores)
 
-	for (int i = frame0; i < frame1; i++) {
-		int f = i * skipFactor;
+	const int total_frame = (frame1 - frame0) / skipFactor + 1;
+	for (int i = 0; i < total_frame; i++) {
+		int f = frame0 + i * skipFactor;
+
 		int seg_subdiv = 10;
-		std::cout << "Build training data for frame " << i << " started ... \n";
+		std::cout << "Build training data for frame " << f << " started ... \n";
+
 		for (int y = yarn0; y < yarn1; ++y) {
 
 			std::string tmp3 = "input/" + dataset + "/physicalParam/physical_" + std::to_string(f) + "_" + std::to_string(y) + "_world.txt";
@@ -883,8 +898,21 @@ void step2_buildTrainData(const int vrtx, int skipFactor, int frame0, int frame1
 			/* window-level */
 			const int ignorPlanes = trimPercent * vrtx_num; // crop the first and last #% of the yarn
 			const int window_size = ws_ds * upsample;
-			for (int w = ignorPlanes; w < (vrtx_num - window_size + 1) - ignorPlanes; w=w+upsample) {
-				//std::cout << w << std::endl;
+			
+
+
+			const int window_num = ((vrtx_num - window_size + 1) - 2 * ignorPlanes);
+
+			std::vector<int> indices;
+			for (int w = ignorPlanes; w < (vrtx_num - window_size + 1) - ignorPlanes; w = w + upsample)
+				indices.push_back(w);
+			std::vector <Eigen::VectorXd> store_NN_test_total(indices.size());
+			std::vector <float> angle_total(indices.size());
+
+			const int num_of_cores = omp_get_num_procs();
+#pragma omp parallel for num_threads(num_of_cores)
+			for (int omp_i = 0; omp_i < static_cast<int>(indices.size()); ++omp_i) {
+				const int w = indices[omp_i];
 
 				//define a curve segment 
 				const int start = w;
@@ -899,22 +927,27 @@ void step2_buildTrainData(const int vrtx, int skipFactor, int frame0, int frame1
 				std::vector<float> twists_seg(first, last);
 				segment.assign_twist(twists_seg, all_pts_seg, all_tang_seg, all_norm_seg, 1);
 
-				std::vector<Eigen::Matrix3f> all_dg_seg; 
+				std::vector<Eigen::Matrix3f> all_dg_seg;
 				for (int d = start; d <= end; d++) all_dg_seg.push_back(all_dg[d]);
 
 				std::vector<Eigen::Matrix3f> all_local_dg_seg, all_local_dg_seg_flip_norm, all_local_dg_seg_flip_tang, all_local_dg_seg_flip_both;
 				transfer_dg_2local(all_tang_seg, all_norm_seg, all_dg_seg, all_local_dg_seg, 0);
-				transfer_dg_2local(all_tang_seg, all_norm_seg, all_dg_seg, all_local_dg_seg_flip_norm, 1); //augment the data by including the flipped normals
-				transfer_dg_2local(all_tang_seg, all_norm_seg, all_dg_seg, all_local_dg_seg_flip_tang, 2); //augment the data by including the flipped tangents
-				transfer_dg_2local(all_tang_seg, all_norm_seg, all_dg_seg, all_local_dg_seg_flip_both, 3); //augment the data by including the flipped tangents
-
-				for (int d = 0; d < window_size; (d += upsample) ) {
-					Eigen::Matrix3f local_dg = all_local_dg_seg[d];
-					fout_trainX << local_dg(0, 0) << " " << local_dg(0, 1) << " " << local_dg(0, 2) << " " <<
-						local_dg(1, 0) << " " << local_dg(1, 1) << " " << local_dg(1, 2) << " " <<
-						local_dg(2, 0) << " " << local_dg(2, 1) << " " << local_dg(2, 2) << " ";
+				if (isTrain) {
+					transfer_dg_2local(all_tang_seg, all_norm_seg, all_dg_seg, all_local_dg_seg_flip_norm, 1); //augment the data by including the flipped normals
+					transfer_dg_2local(all_tang_seg, all_norm_seg, all_dg_seg, all_local_dg_seg_flip_tang, 2); //augment the data by including the flipped tangents
+					transfer_dg_2local(all_tang_seg, all_norm_seg, all_dg_seg, all_local_dg_seg_flip_both, 3); //augment the data by including the flipped tangents
 				}
-				fout_trainX << "\n";
+
+
+				if (isTrain) {
+					for (int d = 0; d < window_size; (d += upsample)) {
+						Eigen::Matrix3f local_dg = all_local_dg_seg[d];
+						fout_trainX << local_dg(0, 0) << " " << local_dg(0, 1) << " " << local_dg(0, 2) << " " <<
+							local_dg(1, 0) << " " << local_dg(1, 1) << " " << local_dg(1, 2) << " " <<
+							local_dg(2, 0) << " " << local_dg(2, 1) << " " << local_dg(2, 2) << " ";
+					}
+					fout_trainX << "\n";
+				}
 
 				const int v_yarn = ceil((start + end) / 2.0);
 				const int v_seg = ceil((end - start) / 2.0);
@@ -925,72 +958,108 @@ void step2_buildTrainData(const int vrtx, int skipFactor, int frame0, int frame1
 				Eigen::Vector3d tang = all_tang[v_yarn];
 				assert((all_tang[v_yarn] - all_tang_seg[v_seg]).norm() < eps && "tangents for both frames must be similar!\n");
 				float angle = get_angle(norm1, norm2, tang);
-				fout_angle << angle << "\n";
+				/****************************/
+				angle_total[omp_i] = angle;
+				//fout_angle << angle << "\n";
 
-				/************* write train y **************/
 				if (isTrain) {
-					Eigen::Matrix2f S_local;
-					rotate_S_2local(all_S[v_yarn], S_local, angle, 0);
-					fout_trainY << S_local(0, 0) << " " << S_local(0, 1) << " " << S_local(1, 0) << " " << S_local(1, 1) << "\n";
+					/************* write train y **************/
+					if (isTrain) {
+						Eigen::Matrix2f S_local;
+						rotate_S_2local(all_S[v_yarn], S_local, angle, 0);
+						fout_trainY << S_local(0, 0) << " " << S_local(0, 1) << " " << S_local(1, 0) << " " << S_local(1, 1) << "\n";
+					}
 				}
 
 				/******** write test data *******/
-				for (int d = 0; d < window_size; (d+= upsample) ) {
+				Eigen::VectorXd store_NN_test(int(window_size * 9)); //9 is size of DG
+				int p = 0;
+				for (int d = 0; d < window_size; (d += upsample)) {
+
 					Eigen::Matrix3f local_dg = all_local_dg_seg[d];
-					fout_testX << local_dg(0, 0) << " " << local_dg(0, 1) << " " << local_dg(0, 2) << " " <<
-						local_dg(1, 0) << " " << local_dg(1, 1) << " " << local_dg(1, 2) << " " <<
-						local_dg(2, 0) << " " << local_dg(2, 1) << " " << local_dg(2, 2) << " ";
+
+					store_NN_test(p * 9 + 0) = local_dg(0, 0);
+					store_NN_test(p * 9 + 1) = local_dg(0, 1);
+					store_NN_test(p * 9 + 2) = local_dg(0, 2);
+					store_NN_test(p * 9 + 3) = local_dg(1, 0);
+					store_NN_test(p * 9 + 4) = local_dg(1, 1);
+					store_NN_test(p * 9 + 5) = local_dg(1, 2);
+					store_NN_test(p * 9 + 6) = local_dg(2, 0);
+					store_NN_test(p * 9 + 7) = local_dg(2, 1);
+					store_NN_test(p * 9 + 8) = local_dg(2, 2);
+					p++;
+				}
+				store_NN_test_total[omp_i] = store_NN_test;
+
+
+				///******** write test data *******/
+				//for (int d = 0; d < window_size; (d += upsample)) {
+
+				//	Eigen::Matrix3f local_dg = all_local_dg_seg[d];
+				//	fout_testX << local_dg(0, 0) << " " << local_dg(0, 1) << " " << local_dg(0, 2) << " " <<
+				//		local_dg(1, 0) << " " << local_dg(1, 1) << " " << local_dg(1, 2) << " " <<
+				//		local_dg(2, 0) << " " << local_dg(2, 1) << " " << local_dg(2, 2) << " ";
+				//}
+				//fout_testX << "\n";
+
+				if (isTrain) {
+#if 1 /* augment the training */
+					//****** augment by flipping normals ******
+					for (int d = 0; d < window_size; (d += upsample)) {
+						Eigen::Matrix3f local_dg = all_local_dg_seg_flip_norm[d];
+						fout_trainX << local_dg(0, 0) << " " << local_dg(0, 1) << " " << local_dg(0, 2) << " " <<
+							local_dg(1, 0) << " " << local_dg(1, 1) << " " << local_dg(1, 2) << " " <<
+							local_dg(2, 0) << " " << local_dg(2, 1) << " " << local_dg(2, 2) << " ";
+					}
+					fout_trainX << "\n";
+
+					if (isTrain) {
+						Eigen::Matrix2f S_local;
+						rotate_S_2local(all_S[v_yarn], S_local, angle, 1);
+						fout_trainY << S_local(0, 0) << " " << S_local(0, 1) << " " << S_local(1, 0) << " " << S_local(1, 1) << "\n";
+					}
+					//****** augment by flipping tangents ******
+					for (int d = 0; d < window_size; (d += upsample)) {
+						Eigen::Matrix3f local_dg = all_local_dg_seg_flip_tang[d];
+						fout_trainX << local_dg(0, 0) << " " << local_dg(0, 1) << " " << local_dg(0, 2) << " " <<
+							local_dg(1, 0) << " " << local_dg(1, 1) << " " << local_dg(1, 2) << " " <<
+							local_dg(2, 0) << " " << local_dg(2, 1) << " " << local_dg(2, 2) << " ";
+					}
+					fout_trainX << "\n";
+
+
+					if (isTrain) {
+						Eigen::Matrix2f S_local;
+						rotate_S_2local(all_S[v_yarn], S_local, angle, 2);
+						fout_trainY << S_local(0, 0) << " " << S_local(0, 1) << " " << S_local(1, 0) << " " << S_local(1, 1) << "\n";
+					}
+					//****** augment by flipping tangents and normals ******
+					for (int d = 0; d < window_size; (d += upsample)) {
+						Eigen::Matrix3f local_dg = all_local_dg_seg_flip_both[d];
+						fout_trainX << local_dg(0, 0) << " " << local_dg(0, 1) << " " << local_dg(0, 2) << " " <<
+							local_dg(1, 0) << " " << local_dg(1, 1) << " " << local_dg(1, 2) << " " <<
+							local_dg(2, 0) << " " << local_dg(2, 1) << " " << local_dg(2, 2) << " ";
+					}
+					fout_trainX << "\n";
+
+
+					if (isTrain) {
+						Eigen::Matrix2f S_local;
+						rotate_S_2local(all_S[v_yarn], S_local, angle, 3);
+						fout_trainY << S_local(0, 0) << " " << S_local(0, 1) << " " << S_local(1, 0) << " " << S_local(1, 1) << "\n";
+					}
+#endif
+				}
+			}
+
+			for (int l = 0; l < store_NN_test_total.size(); l++) {
+				for (int p = 0; p < int(window_size * 9); p++) {
+					fout_testX << store_NN_test_total[l](p) << " ";
 				}
 				fout_testX << "\n";
-
-
-#if 1 /* augment the training */
-				//****** augment by flipping normals ******
-				for (int d = 0; d < window_size; (d += upsample)) {
-					Eigen::Matrix3f local_dg = all_local_dg_seg_flip_norm[d];
-					fout_trainX << local_dg(0, 0) << " " << local_dg(0, 1) << " " << local_dg(0, 2) << " " <<
-						local_dg(1, 0) << " " << local_dg(1, 1) << " " << local_dg(1, 2) << " " <<
-						local_dg(2, 0) << " " << local_dg(2, 1) << " " << local_dg(2, 2) << " ";
-				}
-				fout_trainX << "\n";
-
-				if (isTrain) {
-					Eigen::Matrix2f S_local;
-					rotate_S_2local(all_S[v_yarn], S_local, angle, 1);
-					fout_trainY << S_local(0, 0) << " " << S_local(0, 1) << " " << S_local(1, 0) << " " << S_local(1, 1) << "\n";
-				}
-				//****** augment by flipping tangents ******
-				for (int d = 0; d < window_size; (d += upsample) ) {
-					Eigen::Matrix3f local_dg = all_local_dg_seg_flip_tang[d];
-					fout_trainX << local_dg(0, 0) << " " << local_dg(0, 1) << " " << local_dg(0, 2) << " " <<
-						local_dg(1, 0) << " " << local_dg(1, 1) << " " << local_dg(1, 2) << " " <<
-						local_dg(2, 0) << " " << local_dg(2, 1) << " " << local_dg(2, 2) << " ";
-				}
-				fout_trainX << "\n";
-
-
-				if (isTrain) {
-					Eigen::Matrix2f S_local;
-					rotate_S_2local(all_S[v_yarn], S_local, angle, 2);
-					fout_trainY << S_local(0, 0) << " " << S_local(0, 1) << " " << S_local(1, 0) << " " << S_local(1, 1) << "\n";
-				}
-				//****** augment by flipping tangents and normals ******
-				for (int d = 0; d < window_size; (d += upsample) ) {
-					Eigen::Matrix3f local_dg = all_local_dg_seg_flip_both[d];
-					fout_trainX << local_dg(0, 0) << " " << local_dg(0, 1) << " " << local_dg(0, 2) << " " <<
-						local_dg(1, 0) << " " << local_dg(1, 1) << " " << local_dg(1, 2) << " " <<
-						local_dg(2, 0) << " " << local_dg(2, 1) << " " << local_dg(2, 2) << " ";
-				}
-				fout_trainX << "\n";
-
-
-				if (isTrain) {
-					Eigen::Matrix2f S_local;
-					rotate_S_2local(all_S[v_yarn], S_local, angle, 3);
-					fout_trainY << S_local(0, 0) << " " << S_local(0, 1) << " " << S_local(1, 0) << " " << S_local(1, 1) << "\n";
-				}
-#endif
-
+			}
+			for (int l = 0; l < store_NN_test_total.size(); l++) {
+				fout_angle << angle_total[l] << "\n";
 			}
 
 			fout_testX.close();
@@ -1014,11 +1083,11 @@ void step3_appendTraining(int skipFactor, int frame0, int frame1, int yarn0, int
 	std::ofstream fout_trainY_all(all_trainY);
 	std::string content_trainX = "";
 	std::string content_trainY = "";
-	const int num_of_cores = omp_get_num_procs();
-#pragma omp parallel for num_threads(num_of_cores)
 
-	for (int i = frame0; i < frame1; i++) {
-		int f = i * skipFactor;
+	const int total_frame = (frame1 - frame0) / skipFactor + 1;
+	for (int i = 0; i < total_frame; i++) {
+		int f = frame0 + i * skipFactor;
+
 		int seg_subdiv = 10;
 		for (int y = yarn0; y < yarn1; ++y) {
 			std::string tmp4 = "input/" + dataset + "/NN/trainX_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
@@ -1031,7 +1100,7 @@ void step3_appendTraining(int skipFactor, int frame0, int frame1, int yarn0, int
 			assert(finX.is_open() && "trainX file wasn't found!\n");
 			std::ifstream finY(trainY);
 			assert(finY.is_open() && "trainY file wasn't found!\n");
-			
+
 			int i;
 			for (i = 0; finX.eof() != true; i++) // get content of infile
 				content_trainX += finX.get();
@@ -1063,7 +1132,7 @@ void step4_NN_output(const char* configfile, const int vrtx, int skipFactor, int
 	std::cout << "*** Testing-NN phase ***\n";
 	std::cout << " @@@@@@@@@@ " << dataset << " @@@@@@@@@@ \n";
 	const int num_of_cores = omp_get_num_procs();
-#pragma omp parallel for num_threads(num_of_cores)
+
 	//// Procedural step
 	/* This yarn is what will be compressed (has flyaways) */
 	Fiber::Yarn yarn;
@@ -1076,9 +1145,12 @@ void step4_NN_output(const char* configfile, const int vrtx, int skipFactor, int
 	yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
 	yarn.build("test_fly.txt", K);
 
-	for (int i = frame0; i < frame1; i++) {
+	const int total_frame = (frame1 - frame0) / skipFactor + 1;
+	for (int i = 0; i < total_frame; i++) {
+		int f = frame0 + i * skipFactor;
 
-		int f = i * skipFactor;
+		std::cout << "Generate fibers for frame " << f << " started... \n";
+
 		for (int y = yarn0; y < yarn1; ++y) {
 
 			std::string tmp1 = "input/" + dataset + "/centerYarn_" + std::to_string(f) + "_" + std::to_string(y) + "_us.txt";
@@ -1093,7 +1165,8 @@ void step4_NN_output(const char* configfile, const int vrtx, int skipFactor, int
 
 			std::cout << compress_S << std::endl;
 			std::ifstream fin2(compress_S);
-			assert(fin2.is_open() && "compress_S_NN file wasn't found!\n");
+			if (isTrain)
+				assert(fin2.is_open() && "compress_S_NN file wasn't found!\n");
 			std::ifstream fin3(curvefile_us);
 			assert(fin3.is_open() && "curvefile file wasn't found!\n");
 			std::ifstream fin4(normfile_us);
@@ -1120,7 +1193,7 @@ void step4_NN_output(const char* configfile, const int vrtx, int skipFactor, int
 			////// Procedural step
 			Fiber::Yarn yarn_compressed; //renew the yarn
 			yarn_compressed = yarn;
-			if (isTrain) 
+			if (isTrain)
 				yarn_compressed.compress_yarn_A(compress_S, global_rot);
 			else {
 				if (isCompress)
@@ -1161,9 +1234,11 @@ void step5_createVOL(int skipFactor, int frame0, int frame1, int yarn0, int yarn
 	std::cout << " @@@@@@@@@@ " << dataset << " @@@@@@@@@@ \n";
 
 	const int num_of_cores = omp_get_num_procs();
-#pragma omp parallel for num_threads(num_of_cores)
-	for (int i = frame0; i < frame1; i++) {
-		int f = i * skipFactor;
+
+	const int total_frame = (frame1 - frame0) / skipFactor + 1;
+	for (int i = 0; i < total_frame; i++) {
+		int f = frame0 + i * skipFactor;
+
 		std::string tmp = "output/" + dataset + "/volume_" + std::to_string(f) + ".vol";
 		const char* volfile_us = tmp.c_str();
 		std::cout << frame0 << " " << f << " " << volfile_us << " generation is started... \n";
@@ -1339,7 +1414,7 @@ void upsample_stretched(const char* configfile, const int vrtx, const int f, std
 	Fiber::Yarn yarn;
 	yarn.parse(configfile);
 	yarn.setStepNum(vrtx);
-	const float stepSize = yarn.getStepSize()/float(upsample); 
+	const float stepSize = yarn.getStepSize() / float(upsample);
 	yarn.setStepSize(stepSize);
 	yarn.simulate_ply_shuang();
 	yarn.write_plys("test_ply.txt");

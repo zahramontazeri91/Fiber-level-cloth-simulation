@@ -97,6 +97,8 @@ void HermiteCurve::init_seg(const char* pntsFILE, const int start, const int end
 	const int seg_size = end - start + 1;
 	std::vector<Eigen::Vector3d> allPts(n), pts(seg_size);
 	int j = 0;
+	const int num_of_cores = omp_get_num_procs();
+
 	for (int i = 0; i < n; ++i) {
 		fin >> allPts[i][0] >> allPts[i][1] >> allPts[i][2];
 		if (i >= start && i <= end) {
@@ -167,7 +169,7 @@ void HermiteCurve::init(const std::vector<Eigen::Vector3d> &pts, int subdiv) //s
 	int firstIndx = 0;
 	bool isFound = false;
 	const int num_of_cores = omp_get_num_procs();
-#pragma omp parallel for num_threads(num_of_cores)
+
 	for (int i = 0; i < m_spline_seg; ++i) {
 		Eigen::Vector3d q = m_splines[i].evalPrincipalNormal(0.0, false);
 		//Eigen::Vector3d q = m_splines[i].evalCurvature(0.0);
@@ -197,10 +199,11 @@ void HermiteCurve::init(const std::vector<Eigen::Vector3d> &pts, int subdiv) //s
 
 	}
 
-    
+
 	for (int i = firstIndx+1; i < m_spline_seg; ++i) {
 		m_splines[i].build(subdiv, m_splines[i - 1].evalNormal(1.0), Eigen::Vector3d::Zero());
 	}
+
 	for (int i = firstIndx - 1; i >= 0; --i) { //go backward
 		m_splines[i].build(subdiv, Eigen::Vector3d::Zero(), m_splines[i + 1].evalNormal(0.0));
 	}
@@ -252,12 +255,14 @@ void HermiteCurve::init_principleNormal(const std::vector<Eigen::Vector3d> &pts,
 
 
 	m_splines[0].build(subdiv, m_splines[0].evalPrincipalNormal(0.0));
+
 	for (int i = 1; i < m_spline_seg; ++i) {
 		// norm0: should be t=1 defines the very last segment of the spline[i-1] and for norm1: t = 1 as it will be interpolated in build()
 		m_splines[i].build(subdiv, m_splines[i - 1].evalPrincipalNormal(1.0), m_splines[i].evalPrincipalNormal(1.0));
 	}
 
 	m_lens.resize(m_spline_seg);
+
 	for (int i = 0; i < m_spline_seg; ++i) {
 		m_lens[i] = m_splines[i].totalLength();
 		if (i) m_lens[i] += m_lens[i - 1];
@@ -270,8 +275,7 @@ void HermiteCurve::initPoints(const std::vector<Eigen::Vector3d> &pts)
 
     m_spline_seg = static_cast<int>(pts.size()) - 1;
     m_splines.resize(m_spline_seg);
-	const int num_of_cores = omp_get_num_procs();
-#pragma omp parallel for num_threads(num_of_cores)
+
     for ( int i = 0; i < m_spline_seg; ++i ) {
         Eigen::Vector3d m0, m1;
         if ( i == 0 )
@@ -321,8 +325,7 @@ void HermiteCurve::assign_upsample(std::vector<Eigen::Vector3d> &all_pts, std::v
 	all_tg.push_back(tg);
 	all_norm.push_back(norm);
 
-	const int num_of_cores = omp_get_num_procs();
-#pragma omp parallel for num_threads(num_of_cores)
+
 	for (int i = 1; i < m_splines.size(); ++i) {
 		pnt = m_splines[i].eval(t0);
 		tg = m_splines[i].evalTangent(t0);
@@ -358,8 +361,6 @@ void HermiteCurve::assign(std::vector<Eigen::Vector3d> &all_pts, std::vector<Eig
 
 	float t = 0.0;
 
-	const int num_of_cores = omp_get_num_procs();
-#pragma omp parallel for num_threads(num_of_cores)
 	for (int i = 0; i < m_splines.size(); ++i) {
 		Eigen::Vector3d pnt = m_splines[i].eval(t);
 		Eigen::Vector3d tg = m_splines[i].evalTangent(t);
@@ -387,8 +388,7 @@ void HermiteCurve::assign_twist(const char* twistFile, std::vector<Eigen::Vector
 	std::vector<Eigen::Vector3d> all_norm;
 
 	float t0 = 0.0;
-	const int num_of_cores = omp_get_num_procs();
-#pragma omp parallel for num_threads(num_of_cores)
+
 	for (int i = 0; i < m_splines.size(); ++i) {
 		Eigen::Vector3d pnt = m_splines[i].eval(t0);
 		Eigen::Vector3d tg = m_splines[i].evalTangent(t0);
@@ -440,7 +440,7 @@ void HermiteCurve::assign_twist(const std::vector<float> &twists, std::vector<Ei
 
 	float t0 = 0.0;
 	const int num_of_cores = omp_get_num_procs();
-#pragma omp parallel for num_threads(num_of_cores)
+
 	for (int i = 0; i < m_splines.size(); ++i) {
 		Eigen::Vector3d pnt = m_splines[i].eval(t0);
 		Eigen::Vector3d tg = m_splines[i].evalTangent(t0);
@@ -449,6 +449,7 @@ void HermiteCurve::assign_twist(const std::vector<float> &twists, std::vector<Ei
 		all_tg.push_back(tg);
 		all_norm.push_back(norm);
 		if (i == 0) {
+
 			for (int d = 1; d < 2 * upsample - 1; d++) { // for upsampling, one sample will already counted for t=0
 				float t = float(d) * (1.0 / (2.0*upsample - 1));
 				pnt = m_splines[i].eval(t);
@@ -460,6 +461,7 @@ void HermiteCurve::assign_twist(const std::vector<float> &twists, std::vector<Ei
 			}
 			continue;
 		}
+
 		for (int d = 1; d < upsample; d++) {
 			float t = float(d) * (1.0 / upsample);
 			pnt = m_splines[i].eval(t);
@@ -619,10 +621,10 @@ void HermiteCurve::twistNormals(const char* twistFile, const std::vector<Eigen::
 	int n=0;
 	fin >> n;
 
-	//std::cout << "twistNormals " << all_tg.size() << " " << all_norm.size() << std::endl;
+	if (n != all_tg.size() && n != all_norm.size())
+		std::cout << "mismatch " << n << " " << all_tg.size() << " " << all_norm.size() << std::endl;
 	assert(n == all_tg.size() && n == all_norm.size());
-	const int num_of_cores = omp_get_num_procs();
-#pragma omp parallel for num_threads(num_of_cores)
+
 	for (int i = 0; i < n; i++) {
 
 		float twist;
@@ -641,8 +643,7 @@ void HermiteCurve::twistNormals(const std::vector<float> &twists, const std::vec
 	if (n != all_tg.size() || n != all_norm.size())
 		std::cout << "n: " << n << " all_tg: " << all_tg.size() << " all_norm: " << all_norm.size();
 	assert(n == all_tg.size() && n == all_norm.size());
-	const int num_of_cores = omp_get_num_procs();
-#pragma omp parallel for num_threads(num_of_cores)
+
 	for (int i = 0; i < n; i++) {
 
 		float twist;

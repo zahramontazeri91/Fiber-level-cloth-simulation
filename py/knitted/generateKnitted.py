@@ -8,7 +8,7 @@ Created on Thu May 24 14:19:45 2018
 # This gets a BCC file from http://www.cemyuksel.com/research/yarnmodels/ and returns the centerlines in obj file
 
 import numpy as np
-import io, struct, time, sys
+import io, struct
 
 fn_bcc = 'openwork_trellis_pattern.bcc'
 fn_obj = 'openwork_trellis_pattern.obj'
