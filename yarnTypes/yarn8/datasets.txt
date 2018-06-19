@@ -2,8 +2,6 @@ woven/arbitrary_pattern/150x100 400 400 150 151
 eof
 woven/6x6 6000 6000 0 12
 eof
-woven/arbitrary_pattern/150x100 400 6500 0 150
-eof
 woven/knitted 2000 36000 0 1
 eof
 woven/6x6 111100 111100 0 12

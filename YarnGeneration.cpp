@@ -61,8 +61,6 @@ int main(int argc, const char **argv) {
 		return 0;
 #endif
 
-
-
 #if 1
 		/* given an obj file, sample points uniformaly for specific #vertices along curve */
 		/**** first generate fe and obj using "woven_generator_arbitrary.py" then use "deform.py" to extract them as usual, then run this with phase 0! ***/
