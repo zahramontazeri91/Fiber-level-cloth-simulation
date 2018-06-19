@@ -14,7 +14,7 @@ import os
 # set paramters for the dataset: (later read these parameters from dataset.txt)
 skipFactor = 200
 downSample = 1
-vrtNum = 397 ###before upsampling
+vrtNum = 264 #397 ###before upsampling
 fiberNum = 111
 isTrain = 0
 yarnType = 'yarn8'
@@ -30,10 +30,9 @@ with open(fn, 'r') as fin:
     yarn0 = int(info[3])
     yarn1 = int(info[4])
 
-# In[]:
+
 str1 = "yarnTypes/" + yarnType + "/config_step2.txt"
 str2 = "yarnTypes/" + yarnType + "/datasets.txt"
-
 ########################## read input
 print ("*************** phase0: READ INPUT ***************\n")
 path = "F:/sandbox/fiberSimulation/dataSets/" + dataset+"/yarn/"

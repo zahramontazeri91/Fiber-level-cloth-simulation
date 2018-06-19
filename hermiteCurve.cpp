@@ -246,6 +246,7 @@ void HermiteCurve::init_principleNormal(const std::vector<Eigen::Vector3d> &pts,
 {
 	initPoints(pts);
 	
+	//debug:
 	//Eigen::Vector3d q = m_splines[0].evalCurvature(0.0);
 	//Eigen::Vector3d v = m_splines[0].evalTangent(0.0);
 	//std::cout << q.norm() << " " << v.norm() << " " << v.cross(q).cross(v) << " \n (init_principleNormal) \n";

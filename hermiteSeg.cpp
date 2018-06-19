@@ -149,9 +149,14 @@ Eigen::Vector3d HermiteSpline::evalNormal(double t) const
         ret = tang0.cross(ret).cross(tang0);
         //assert(ret.norm() > HERMITE_EPS);
         ret.normalize();
-		/*********************** THERE IS A BUG HERE *********************/
-        //assert(std::abs(ret.dot(tang0)) < HERMITE_EPS);
-		//assert(std::abs(ret.norm() - 1.0) < HERMITE_EPS);
+
+
+
+		/*********************** TODO: error for very straight curve *********************/
+        assert(std::abs(ret.dot(tang0)) < HERMITE_EPS);
+		assert(std::abs(ret.norm() - 1.0) < HERMITE_EPS);
+		/********************************************/
+
         return ret;
     }
     else {
@@ -347,11 +352,14 @@ void HermiteSpline::output(int n, Eigen::Vector3d *bufferPosition, Eigen::Vector
 
 Eigen::Vector3d HermiteSpline::computeRotatedNormal(const Eigen::Vector3d &tang0, const Eigen::Vector3d &tang1, const Eigen::Vector3d norm0)
 {
-	//std::cout << std::abs(norm0.norm() - 1.0) << " ******** \n " << norm0 << std::endl;
-
+	//debug:
+	if (std::abs(norm0.norm() - 1.0) > HERMITE_EPS)
+		std::cout << std::abs(norm0.norm() - 1.0) << " ******** norm0 \n" << norm0 << std::endl;
+	if (std::abs(tang0.norm() - 1.0) > HERMITE_EPS)
+		std::cout << std::abs(tang0.norm() - 1.0) << " ******** tang0 \n" << tang0 << std::endl;
+	assert(std::abs(norm0.norm() - 1.0) < HERMITE_EPS);
     assert(std::abs(tang0.norm() - 1.0) < HERMITE_EPS);
     assert(std::abs(tang1.norm() - 1.0) < HERMITE_EPS);
-	//assert(std::abs(norm0.norm() - 1.0) < HERMITE_EPS);
 
     double val = tang0.dot(tang1);
 
