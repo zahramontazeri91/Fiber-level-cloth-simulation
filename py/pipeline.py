@@ -1,7 +1,6 @@
 ''' open this file in python3.5 where tensorflow is installed
 change the parameters for each dataset accordingly
-Make sure yarnTypes/dataset matches with the dataset here 
-NOTE THAT YARN8 IS HARD CODED'''
+Inputs are listed in yarnTypes/#yarnType/dataset '''
 
 
 import sys

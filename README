@@ -1,0 +1,9 @@
+This project consists of four steps. To run, tensorflow for GPU, python 3.5, Eigen and OpenCV is needed.
+py/pipeline.py runs all the steps in order. 
+
+1. First reading the input files which are simulation results
+2. Generate the NN inputs. It reads the Deformation Gradients and based on the specified window size, it generates the local DG's for each window as NN input
+3. NN from python is called. This returns the procedural values (4 values) for deformation of the cross-sections
+4. Apply the NN output to the yarn in relax state
+
+Note that in last step, we can generate the non-deformed version of the yarn-level as well as the deformed by changing c (compress) parameter
