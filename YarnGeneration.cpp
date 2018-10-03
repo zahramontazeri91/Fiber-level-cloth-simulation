@@ -57,8 +57,6 @@ int main(int argc, const char **argv) {
 			std::cout << outfile << " is written! \n";
 			fout.close();
 		}
-
-
 		return 0;
 #endif
 
@@ -141,8 +139,8 @@ int main(int argc, const char **argv) {
 
 	if ( argc < 4 ) {
 		std::cout << "Number of argument: " << argc << std::endl;
-		printf("USAGE: YarnGeneration [phase1/phase2] [configFile] [datasetFile] -w window-size=10 -s upsample=2 -t isTrain=1 -x trimPercent -k skipfactor=500 -v vrtx-num -c isCompress -z stepSize_ds -rx resolution-AABB-x -ry -rz -rad radius-AABB \n");
-		printf("EXAMPLE: YarnGeneration 1 yarnTypes/yarn4/config_step2.txt yarnTypes/yarn4/datasets.txt -w 5 -s 2 -t 0 -x 0.0 -k 500 -v 300 -c 1 -z 0.02 -rx 5 -ry 5 -rz 20 -rad 0.1 \n");
+		printf("USAGE: YarnGeneration [phase1/phase2] [configFile] [datasetFile] -w window-size=5 -s upsample=2 -t isTrain=1 -x trimPercent -k skipfactor=500 -v vrtx-num -c isCompress -z stepSize_ds -rx resolution-AABB-x -ry -rz -rad radius-AABB \n");
+		printf("EXAMPLE: YarnGeneration 1 yarnTypes/yarn4/config_step2.txt yarnTypes/yarn4/datasets.txt -w 5 -s 2 -t 0 -x 0.0 -k 500 -v 150 -c 1 -z 0.02 -rx 5 -ry 5 -rz 20 -rad 0.1 \n");
 		return 1;
 	}
 
@@ -227,7 +225,6 @@ int main(int argc, const char **argv) {
 				int yarn1 = atoi(splits[4].c_str());
 				full_pipeline(yarnfile1, configfile, vrtx, skipFactor, frame0, frame1, yarn0, yarn1, dataset, isTrain, window_size, trimPercent, upsample, stepSize);
 			}
-
 			break;
 		}
 		case 2: {

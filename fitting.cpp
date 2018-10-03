@@ -637,7 +637,7 @@ void step0_curveSetup(const int vrtx, int skipFactor, int frame0, int frame1, in
 			fout_cntr.close();
 			fout_norm.close();
 
-			/* debug perpuse */
+			/* debug purpose */
 			//std::ofstream fout_TNB("../data/TNB.txt");
 			//for (int i = 0; i < vrtx_num; i++) {
 			//	fout_TNB << all_pts[i][0] << " " << all_pts[i][1] << " " << all_pts[i][2] << " " <<
@@ -971,8 +971,11 @@ void step2_buildTrainData(const int vrtx, int skipFactor, int frame0, int frame1
 					}
 				}
 
+				// d+=upsample because we skip the upsampled DG's and we only care about the simulated ones
+				
 				/******** write test data *******/
-				Eigen::VectorXd store_NN_test(int(window_size * 9)); //9 is size of DG
+				///Eigen::VectorXd store_NN_test(int(window_size * 9)); //9 is size of DG
+				Eigen::VectorXd store_NN_test(int(ws_ds * 9)); //9 is size of DG
 				int p = 0;
 				for (int d = 0; d < window_size; (d += upsample)) {
 
@@ -1004,8 +1007,10 @@ void step2_buildTrainData(const int vrtx, int skipFactor, int frame0, int frame1
 
 				if (isTrain) {
 #if 1 /* augment the training */
+					
 					//****** augment by flipping normals ******
 					for (int d = 0; d < window_size; (d += upsample)) {
+
 						Eigen::Matrix3f local_dg = all_local_dg_seg_flip_norm[d];
 						fout_trainX << local_dg(0, 0) << " " << local_dg(0, 1) << " " << local_dg(0, 2) << " " <<
 							local_dg(1, 0) << " " << local_dg(1, 1) << " " << local_dg(1, 2) << " " <<
@@ -1053,7 +1058,10 @@ void step2_buildTrainData(const int vrtx, int skipFactor, int frame0, int frame1
 			}
 
 			for (int l = 0; l < store_NN_test_total.size(); l++) {
-				for (int p = 0; p < int(window_size * 9); p++) {
+				//for (int p = 0; p < int(window_size * 9); p++) { 
+				// this was writing all window-size although we want the downsampled Dg's which are the actual 
+				// simulated ones. Have to sanity check if I mess up other parts
+				for (int p = 0; p < int(ws_ds * 9); p++) {
 					fout_testX << store_NN_test_total[l](p) << " ";
 				}
 				fout_testX << "\n";
@@ -1070,6 +1078,114 @@ void step2_buildTrainData(const int vrtx, int skipFactor, int frame0, int frame1
 
 	}
 }
+
+
+void step3_temporalTrainData(int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset, const int isTrain) {
+	std::cout << "\n**************************************************\n";
+	std::cout << "*** step 2: Add temporal support to training data  *** \n";
+	std::cout << " @@@@@@@@@@ " << dataset << " @@@@@@@@@@ \n";
+
+	const int total_frame = (frame1 - frame0) / skipFactor + 1;
+	for (int i = 0; i < total_frame; i++) {
+		int f = frame0 + i * skipFactor;
+		for (int y = yarn0; y < yarn1; ++y) {
+
+			
+			// Padding for the first frame 
+			int preFrame = f - skipFactor;
+			int postFrame = f + skipFactor;
+			if (i == 0)
+				preFrame = f;
+			else if (i == total_frame - 1)
+				postFrame = f;
+
+			std::string tmp0 = "input/" + dataset + "/NN/trainX_" + std::to_string(preFrame) + "_" + std::to_string(y) + ".txt";
+			const char* physical_local_seg_pre = tmp0.c_str();
+			std::string tmp1 = "input/" + dataset + "/NN/testX_" + std::to_string(preFrame) + "_" + std::to_string(y) + ".txt";
+			const char* physical_local_seg_test_pre = tmp1.c_str();
+
+			std::string tmp2 = "input/" + dataset + "/NN/trainX_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+			const char* physical_local_seg = tmp2.c_str();
+			std::string tmp3 = "input/" + dataset + "/NN/testX_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+			const char* physical_local_seg_test = tmp3.c_str();
+
+			std::string tmp4 = "input/" + dataset + "/NN/trainX_" + std::to_string(postFrame) + "_" + std::to_string(y) + ".txt";
+			const char* physical_local_seg_post = tmp4.c_str();
+			std::string tmp5 = "input/" + dataset + "/NN/testX_" + std::to_string(postFrame) + "_" + std::to_string(y) + ".txt";
+			const char* physical_local_seg_test_post = tmp5.c_str();
+
+			std::string tmp6 = "input/" + dataset + "/NN/trainX_" + std::to_string(f) + "_" + std::to_string(y) + "_temporal.txt";
+			const char* physical_local_seg_temporal = tmp6.c_str();
+			std::string tmp7 = "input/" + dataset + "/NN/testX_" + std::to_string(f) + "_" + std::to_string(y) + "_temporal.txt";
+			const char* physical_local_seg_test_temporal = tmp7.c_str();
+
+
+			if (isTrain) {
+				std::ifstream finTrain_pre(physical_local_seg_pre);
+				assert(finTrain_pre.is_open() && "trainx pre wasn't found!\n");
+				std::ifstream finTrain(physical_local_seg);
+				assert(finTrain.is_open() && "trainx wasn't found!\n");
+				std::ifstream finTrain_post(physical_local_seg_post);
+				assert(finTrain_post.is_open() && "trainx post wasn't found!\n");
+
+				std::ofstream foutTrain(physical_local_seg_temporal);
+
+
+				for (int i = 0; finTrain.eof() != true; i++) {
+					std::string content_trainX = "";
+					std::string content_trainX_pre = "";
+					std::string content_trainX_post = "";
+
+					std::getline(finTrain_pre, content_trainX_pre);
+					std::getline(finTrain, content_trainX);
+					std::getline(finTrain_post, content_trainX_post);
+
+					foutTrain << content_trainX_pre << " " << content_trainX << " " << content_trainX_post << std::endl;
+
+				}
+				//content_trainX_temporal.erase(content_trainX_temporal.end() - 1);     // erase last character
+				finTrain_pre.close();
+				finTrain.close();
+				finTrain_post.close();
+
+				// write the updated training data
+
+				foutTrain.close();
+			}
+			std::ifstream finTest_pre(physical_local_seg_test_pre);
+			assert(finTest_pre.is_open() && "testx pre wasn't found!\n");
+			std::ifstream finTest(physical_local_seg_test);
+			assert(finTest.is_open() && "testx wasn't found!\n");
+			std::ifstream finTest_post(physical_local_seg_test_post);
+			assert(finTest_post.is_open() && "testx post wasn't found!\n");
+
+			std::ofstream foutTest(physical_local_seg_test_temporal);
+
+
+			for (int i = 0; finTest.eof() != true; i++) {
+				std::string content_testX = "";
+				std::string content_testX_pre = "";
+				std::string content_testX_post = "";
+
+				std::getline(finTest_pre, content_testX_pre);
+				std::getline(finTest, content_testX);
+				std::getline(finTest_post, content_testX_post);
+
+				foutTest << content_testX_pre << " " << content_testX << " " << content_testX_post << std::endl ;
+
+			}
+			//content_trainX_temporal.erase(content_trainX_temporal.end() - 1);     // erase last character
+			finTest_pre.close();
+			finTest.close();
+			finTest_post.close();
+
+			// write the updated training data
+
+			foutTest.close();
+		}
+	}
+}
+
 
 void step3_appendTraining(int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset) {
 	std::cout << "\n**************************************************\n";
@@ -1145,7 +1261,7 @@ void step4_NN_output(const char* configfile, const int vrtx, int skipFactor, int
 	yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
 	yarn.build("test_fly.txt", K);
 
-	const int total_frame = (frame1 - frame0) / skipFactor + 1;
+	const int total_frame = (frame1 - frame0) / skipFactor + 1; 
 	for (int i = 0; i < total_frame; i++) {
 		int f = frame0 + i * skipFactor;
 
@@ -1255,6 +1371,7 @@ void full_pipeline(const char* yarnfile1, const char* configfile, const int vrtx
 	if (isTrain)
 		step1_shapematching(yarnfile1, configfile, vrtx, skipFactor, frame0, frame1, yarn0, yarn1, dataset, stepSize);
 	step2_buildTrainData(vrtx, skipFactor, frame0, frame1, yarn0, yarn1, dataset, isTrain, window_size, trimPercent, upsample);
+	//step3_temporalTrainData(skipFactor, frame0, frame1, yarn0, yarn1, dataset, isTrain);
 	if (isTrain)
 		step3_appendTraining(skipFactor, frame0, frame1, yarn0, yarn1, dataset);
 }

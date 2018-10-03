@@ -1,3 +1,4 @@
+
 import numpy as np
 import matplotlib.pyplot as plt
 #import mltools as ml
@@ -8,7 +9,8 @@ from keras.layers.normalization import BatchNormalization
 import math
 from shutil import copyfile
 from keras.models import load_model
-
+from sklearn import linear_model
+from sklearn.preprocessing import PolynomialFeatures
 
 ## Load data
 # In[]
@@ -121,23 +123,43 @@ def buildModel(input_dim, output_dim, neurons):
 def trainModel(model, X_train, Y_train, X_valid, Y_valid):
     
     # Weights are updated one mini-batch at a time. A running average of the training loss is computed in real time, which is useful for identifying problems (e.g. the loss might explode or get stuck right). The validation loss is evaluated at the end of each epoch (without dropout).
-    history = model.fit(X_train, Y_train, batch_size = 16, epochs = 2, verbose = 2,
-                        validation_data=(X_valid, Y_valid))
+#    history = model.fit(X_train, Y_train, batch_size = 16, epochs = 30, verbose = 2,
+#                        validation_data=(X_valid, Y_valid))
+    ######## linear regression
+    print ("fitting the model...")
+#    model = linear_model.LinearRegression()
+# Train the model using the training sets
+#    history = model.fit(X_train_, Y_train_)   
+    ####### polynomial regression degree 2
+    
+    # create a Linear Regressor 
+    # Polynomial regression is a special case of linear regression
+    model = linear_model.LinearRegression()
+    
+    # pass the order of your polynomial here  
+    poly = PolynomialFeatures(degree=10)
+    
+    # convert to be used further to linear regression
+    X_train_ = poly.fit_transform(X_train)
+
+    # Train the model using the training sets
+    history = model.fit(X_train_, Y_train)
+    ##########
 
     # Plot loss trajectory throughout training.
-    plt.figure()
-    plt.subplot(1,2,1)
-    plt.plot(history.history['mean_squared_error'], label='train')
-    plt.plot(history.history['val_mean_squared_error'], label='valid')
-    plt.xlabel('Epoch')
-    plt.ylabel('mse')
-    plt.legend()
-    plt.show()
+#    plt.figure()
+#    plt.subplot(1,2,1)
+#    plt.plot(history.history['mean_squared_error'], label='train')
+#    plt.plot(history.history['val_mean_squared_error'], label='valid')
+#    plt.xlabel('Epoch')
+#    plt.ylabel('mse')
+#    plt.legend()
+#    plt.show()
     
     # ## Evaluate performance    
     # Note: when calling evaluate, dropout is automatically turned off.
-    score = model.evaluate(X_valid, Y_valid, verbose=0)
-    print('Validation loss: %0.5f' % score[0])
+#    score = model.evaluate(X_valid, Y_valid, verbose=0)
+#    print('Validation loss: %0.5f' % score[0])
 
     return model
 
@@ -263,8 +285,7 @@ def regularize(predicted, window_reg):
 # In[]:
 def predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, anglesFile, isRot, upsample_rate, path):
     
-
-    predicted = model.predict(X_test, verbose=0)
+    predicted = model.predict(X_test)
 #    all_test = np.concatenate((X_test,predicted), axis=1)
     predicted = scaler.inverse_transform(predicted)
 #    np.savetxt(path + 'testY_NN.txt', all_test[:, -3:], fmt='%.6f', delimiter=' ')
@@ -281,35 +302,31 @@ def predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, angles
 #    predicted_reg = regularize(predicted_sweep2, window_reg) 
 #    predicted_reg2 = regularize(predicted_reg, window_reg+2) 
     ####################
-    predicted_sweep = predicted
+#    predicted_sweep = predicted
 #    predicted_sweep = sweep(predicted, window_sweep)
-    predicted_reg = regularize(predicted_sweep, window_reg) 
-    predicted_reg2 = regularize(predicted_reg, window_reg+2) 
+#    predicted_reg = regularize(predicted_sweep, window_reg) 
+#    predicted_reg2 = regularize(predicted_reg, window_reg+2) 
 #    predicted_reg2 = predicted_sweep
     
-    predicted_us = upsample(predicted_reg2, upsample_rate)
+    predicted_us = upsample(predicted, upsample_rate)
     np.savetxt(path + 'testY_NN.txt', predicted_us, fmt='%.6f', delimiter=' ')
     
     predicted_total = extrapolate(predicted_us, vrtxNum, nb_outputs, stride)
 #    np.savetxt(path + filename, predicted_total, fmt='%.6f', delimiter=' ')
-    
     return predicted_total
 ## Main
 # In[]    
 def test(neurons,fn_trainX, fn_trainY, fn_validX, fn_validY, reTrain, w_path): 
-#    storeModel = w_path + 'train_all/model_ws5_temporal.h5'
     storeModel = w_path + 'train_all/model_ws5.h5'
     if (reTrain):
-        print ('<<<<< train the model >>>>>>')
         (X_train, Y_train, X_valid, Y_valid, nb_features, nb_outputs, scaler) = loadData(fn_trainX, fn_trainY, fn_validX, fn_validY)
         model = buildModel(nb_features, nb_outputs, neurons)
         model = trainModel(model, X_train, Y_train, X_valid, Y_valid)
-        model.save(storeModel)  # creates a HDF5 file 'my_model.h5'
+#        model.save(storeModel)  # creates a HDF5 file 'my_model.h5'
     else:
-        print ('<<<<< load the stored model >>>>>')
         (nb_features, nb_outputs, scaler) = loadScaler(fn_trainX, fn_trainY)
 #        del model  # deletes the existing model
-        model = load_model(storeModel) 
+#        model = load_model(storeModel) 
         
     return model, scaler, nb_outputs
 
@@ -326,7 +343,8 @@ def append2sets(dataset2, w_path):
     Y_train_all = np.concatenate((Y_train_all_1,Y_train_all_2), axis=0)
     
     np.savetxt(w_path + 'train_all/trainX_all.txt', X_train_all, fmt='%.6f', delimiter=' ')
-    np.savetxt(w_path + 'train_all/trainY_all.txt', Y_train_all, fmt='%.6f', delimiter=' ')    
+    np.savetxt(w_path + 'train_all/trainY_all.txt', Y_train_all, fmt='%.6f', delimiter=' ')  
+    print('all training are written to ', w_path + 'train_all' )
 ## append training data from different datasets
 # In[] 
 def appendTrainingData(datasets, w_path, fn_trainX, fn_trainY):
@@ -382,9 +400,9 @@ def main_NN(yarn_type,upsample_rate, dataset, firstFrame, lastFrame, yarn0, yarn
     fn_validX = loc + 'single_yarn/' + yarn_type + '/stretch/NN/trainX_all.txt'
     fn_validY = loc + 'single_yarn/' + yarn_type + '/stretch/NN/trainY_all.txt'
     
-    reTrain = 0
-    if (reTrain):
-        appendTrainingData(datasets, w_path, fn_trainX, fn_trainY)
+    reTrain = 1
+#    if (reTrain):
+#        appendTrainingData(datasets, w_path, fn_trainX, fn_trainY)
         
     model, scaler, nb_outputs = test(256, fn_trainX, fn_trainY, fn_validX, fn_validY, reTrain, w_path)
     #upsample_rate = 1
@@ -412,7 +430,6 @@ def main_NN(yarn_type,upsample_rate, dataset, firstFrame, lastFrame, yarn0, yarn
     #dataset = 'woven/stretch/yarn4/100x100'
     #dataset = 'woven/push/yarn8/100x100'
     
-    print ('***** predict for the test data ******')
     path = 'F:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
     frame0 = int(firstFrame/skipFactor)
     frame1 = int(lastFrame/skipFactor) + 1
@@ -421,7 +438,15 @@ def main_NN(yarn_type,upsample_rate, dataset, firstFrame, lastFrame, yarn0, yarn
         print(i)
         for y in range (yarn0, yarn1):
             X_test = np.loadtxt(path + "testX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
-            #X_test = np.loadtxt(path + "testX_" + str(f) + '_' + str(y) + "_temporal.txt",delimiter=None)
+            
+            #####
+            # pass the order of your polynomial here  
+            poly = PolynomialFeatures(degree=10)
+            # convert to be used further to linear regression
+            X_test_ = poly.fit_transform(X_test)
+            X_test = X_test_
+            #####
+    
             filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
             anglesFile = path + "angles_" + str(f) + '_' + str(y) + ".txt"
             isRot = 1
@@ -430,16 +455,17 @@ def main_NN(yarn_type,upsample_rate, dataset, firstFrame, lastFrame, yarn0, yarn
   
     
 # In[] 
-#skipFactor = 200
-#downSample = 1
-#vrtNum = 397 ###before upsampling
-#fiberNum = 111
-#yarn0 = 150
-#yarn1 = 151
-#isTrain = 0
-#dataset = 'woven/arbitrary_pattern/150x100'
-#firstFrame = 500
-#lastFrame = 500
+#skipFactor = 1000
+#downSample = 2
+#vrtNum = 150 ###before upsampling
+#fiberNum = 160
+#yarn0 = 0
+#yarn1 = 1
+#isTrain = 1
+##dataset = 'woven/arbitrary_pattern/150x100'
+#dataset = 'single_yarn/yarn8/stretch'
+#firstFrame = 25000
+#lastFrame = 35000
 #
 ########################### NN
 #vrtx_us = vrtNum*downSample

@@ -12,14 +12,14 @@ class FiberBundle:
             for line in fin:
                 tks = line.strip().split()
                 if tks[0] == 'v':
-                    self._vertices.append( np.array([ float(tks[i]) for i in xrange(1,4)]) )
+                    self._vertices.append( np.array([ float(tks[i]) for i in range(1,4)]) )
                 elif tks[0] == 'l':
                     edges.append( (int(tks[1])-1, int(tks[2])-1) )
 
         # now create individual fiber
         for e in edges:
             ll = len(self._fibers)
-            for ii in xrange(ll-1,-1,-1):
+            for ii in range(ll-1,-1,-1):
                 if self._fibers[ii][-1] == e[0]:
                     self._fibers[ii].append( e[1] )
                     break
@@ -30,7 +30,7 @@ class FiberBundle:
         self._nFibers = len( self._fibers ) # number of fibers
 #        print '%d fibers loaded' % self._nFibers
         self._fiberLen = len( self._fibers[0] )
-        for ii in xrange(1,self._nFibers):
+        for ii in range(1,self._nFibers):
             assert len( self._fibers[ii] ) == self._fiberLen
 
     @property
@@ -58,9 +58,9 @@ class FiberBundle:
 
     def gen_central_line(self):
         self._cLine = np.zeros( (3, self._fiberLen) )
-        for vi in xrange(self._fiberLen):
+        for vi in range(self._fiberLen):
             v = np.zeros((3,))
-            for jj in xrange(self._nFibers):
+            for jj in range(self._nFibers):
                 v += self._vertices[ self._fibers[jj][vi] ]
             v /= self._nFibers
             self._cLine[:,vi] = v
@@ -68,24 +68,24 @@ class FiberBundle:
     def output_obj(self, filename):
         (t,L) = self._cLine.shape
         with open(filename, 'w') as fout:
-            for vi in xrange(L):
+            for vi in range(L):
                 print >> fout, 'v %f %f %f' % ( self._cLine[0,vi], self._cLine[1,vi], self._cLine[2,vi] )
-            for vi in xrange(1,L):
+            for vi in range(1,L):
                 print >> fout, 'l %d %d' % (vi, vi+1)
     
     def smooth_curve(self, W, S):
         tt = W/2 + 1
         dw = 1. / float(tt)
-        ws = [ (i+1)*dw for i in xrange(W) ]
-        for ii in xrange(W):
+        ws = [ (i+1)*dw for i in range(W) ]
+        for ii in range(W):
             if ws[ii] > 1+1E-8:
                 ws[ii] = 2 - ws[ii]
         
         sline = np.zeros(self._cLine.shape)
-        for ii in xrange(self._cLine.shape[1]):
+        for ii in range(self._cLine.shape[1]):
             # print '------'
             ww = 0.
-            for jj in xrange(W):
+            for jj in range(W):
                 idx = jj - W/2 + ii
                 if idx >= 0 and idx < self._cLine.shape[1]:
                     # print '(%d, %f)' % (idx, ws[jj])

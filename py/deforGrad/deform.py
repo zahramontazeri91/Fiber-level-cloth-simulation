@@ -170,19 +170,16 @@ def transform(vrtNum, fiberNum, cntr_n_obj, cntr_n, cntr_n_mitsuba, twist_n, dg_
 #            fout_twist.writelines('%.8f \n' %theta)
 ##############################################
                 
-                
-    
     if (isTrain==1):    
         with open(def_obj, "w") as fout:
-            print >> fout, fiberNum
+            fout.writelines('%d \n' %fiberNum) ## python3: print >> fout, fiberNum
             for i in range(0, fiberNum):
-                print >> fout, vrtNum*downSample
+                fout.writelines('%d\n' %(vrtNum*downSample) )  ## python3: print >> fout, vrtNum*downSample
                 for j in range(0, vrtNum*downSample):
-                    v = bundle.fiber_vertex(i, j)
-                    
+                    v = bundle.fiber_vertex(i, j)                    
 #                    v = np.dot(R0, v) + t0  #Don't deform the yarn
 #                    print >> fout, '%.6f %.6f %.6f' % (v[0], v[1], v[2])
-                    print >> fout, '%.6f %.6f %.6f' % (v[0]*0.25, v[1]*0.25, v[2]*0.25)
+                    fout.writelines('%.6f %.6f %.6f \n' % (v[0]*0.25, v[1]*0.25, v[2]*0.25) ) ## python3: print >> fout, '%.6f %.6f %.6f' % (v[0]*0.25, v[1]*0.25, v[2]*0.25)
     #FiberBundle(path + "frame_0015000fiber_00.obj").output_mitsuba("test0.txt")
  
 # In[]:
