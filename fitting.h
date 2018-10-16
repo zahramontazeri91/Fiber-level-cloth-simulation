@@ -2,65 +2,63 @@
 #include "crossSection.h"
 #include "Fiber.h"
 
-//void interpolate(const std::vector<float> vals, const int interval, std::vector<float> newVals);
-//void appendCompress_yarn(const std::vector<Fiber::Yarn::Compress> &compress_segs, const int seg_vrtx, const int yarn_vrtx, const char* compressFile);
-//void appendCenter_yarn(const std::vector<Fiber::Yarn::CenterLine> &centerlines, const int seg_vrtx, const int yarn_vrtx, const char* curveFile);
 
-void decomposeS(const Matrix_S &mat_S, Ellipse &ellipse);
-
-void writeParameters(std::vector<Matrix_S> &all_mat_S, std::vector<float> &all_theta_R, const char* compress_R, const char* compress_S);
-
-void extractCompress_seg(const char* configfile, const char* yarnfile1, const char* yarnfile2, const char* deformGrad, const char* compress_S,
-	const char* curveFile, const char* normFile, const char* global_rot, const int ply_num, const int vrtx_num );
-
-//void constFitting_compParam(const std::vector<Ellipse> &ellipses, const std::vector<float> &theta_R,
-	//const float trimPercent, Fiber::Yarn::Compress &compress);
-//void sinFitting_curve(const char* curveFile, const float trimPercent, Fiber::Yarn::CenterLine &curve);
-
-//void fittingPlyCenter(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const float yarn_radius, const char* plyCenterFile);
-//void fittingCompress(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const char* compressFile);
-//void fittingFiberTwisting(CrossSection & cs, std::vector<yarnIntersect2D> &allPlaneIntersect, const float yarn_radius, const char* fiberTwistFile);
+// utilities
+void upsampleVector(const std::vector<double> &values, const int upsample, std::vector<double> &values_us);
+void upsampleMatrix3d(const std::vector<Eigen::Matrix3d> &DGs, const int upsample, std::vector<Eigen::Matrix3d> &DGs_up);
+void writeVec2file( const std::vector<Eigen::Vector3d> values, const char* filename);
 void plotIntersections(const std::vector<yarnIntersect2D> &its, const char* filename, const float trimPercent);
-void deformRef(const std::vector<yarnIntersect2D> &its, std::vector<yarnIntersect2D> &its_deformed,
-	const std::vector<Ellipse> &ellipses, const std::vector<float> &all_theta_R);
-void deformRef(const std::vector<yarnIntersect2D> &its, std::vector<yarnIntersect2D> &its_deformed,
-	const std::vector<Matrix_S> &all_mat_S, const std::vector<float> &all_theta_R);
-void deformRef(const std::vector<yarnIntersect2D> &its, std::vector<yarnIntersect2D> &its_deformed,
-	const std::vector<Eigen::Matrix2f> &all_A);
-
 void L2norm(const std::vector<yarnIntersect2D> &its_deform, const std::vector<yarnIntersect2D> &its_trans, std::vector<float> &L2, const char* filename, const float trimPercent);
-
-void nonPeriodicTheta(const std::vector<float> &theta, std::vector<float> &theta_new);
 
 
 /****** Preparing data for training *****/
-void assign_dg(const char* physical_world, std::vector<Eigen::Matrix3f> &all_world_dg);
-void assign_S(const char* compress_S, std::vector<Eigen::Matrix2f> &all_S);
-void assign_twist(const char* twistFile, std::vector<float> &twists);
 void transfer_dg_2local(const std::vector<Eigen::Vector3d> &all_tang, const std::vector<Eigen::Vector3d> &all_norm,
-	const std::vector<Eigen::Matrix3f> &all_world_dg, std::vector<Eigen::Matrix3f> &all_local_dg, const int flip=0);
+	const std::vector<Eigen::Matrix3d> &all_world_dg, std::vector<Eigen::Matrix3d> &all_local_dg, const int flip=0);
 void rotate_S_2local (const Eigen::Matrix2f &S, Eigen::Matrix2f &S_local, const float &angle, const int flip=0);
 float get_angle(Eigen::Vector3d &norm1, Eigen::Vector3d &norm2, Eigen::Vector3d &tang);
 
-// old version for training data
-void buildTraning_all(Fiber::Yarn &yarn, int skipFactor, int frame0, int frame1, int yarnNum, std::string &dataset, const int window_size, const float trimPercent, const int isTrain);
-void buildTraining(const char* curvefile_ds, const char* normfile_ds, const char* physical_world, const char* compress_S, Fiber::Yarn &yarn, const float trimPercent,
-	const int window_size, const char* curvefile_us, const char* angles, const char* physical_local_window, const char* physical_local_window_test, const char* compress_S_window,
-	std::ofstream &fout_trainX_all, std::ofstream &fout_trainY_all, int isTrain);
+// ******** phase 1 **********
+// *** phase 1 *** generate training and test data
+void generateNNinput(const char* configfile, const int vrtx, const int skipFactor, const int frame0, const int frame1,
+	const int yarn0, const int yarn1, const std::string &dataset, const int isTrain,
+	const float scaleSim, const int ws_ds, const float trimPercent, const int upsample);
 
-// write bounding box around centerlines
-void step5_createVOL(int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset, const int resol_x, const int resol_y, const int resol_z, const float radius);
+// phase1 - step0: parse the simulatd files: fibersim fibers to mitsuba forrmat, yarnsim to centerlines and fe files as world-DGs. Then upsample all 
+void step0_parseSimulData(const char* fibersim_in, const char* yarnsim_in, const char* DG_in, const int vrtx,
+	const int fiberNum, const int isTrain, const float scaleSim, const int upsample, std::vector<Eigen::Vector3d> &pnts,
+	std::vector<Eigen::Vector3d> &norms, std::vector<Eigen::Vector3d> &tangs, std::vector<double> &twists,
+	std::vector<Eigen::Matrix3d> &worldDGs, const char* centerfile, const char* normfile, const char* fibersimfile);
 
-// upsample the yarn for stretched case
-void upsample_stretched(const char* configfile, const int vrtx, const int f, std::string &dataset, const int upsample);
+// phase1 - step1: trasfer simulated DGs which are in world space to local space using defined frames
+void step1_DG2local( const std::vector<Eigen::Vector3d> &norms, const std::vector<Eigen::Vector3d> &tangs, 
+	const std::vector<Eigen::Matrix3d> &worldDGs, std::vector<Eigen::Matrix3d> &localDGs);
 
-// full pipeline:
-void step0_curveSetup(const int vrtx, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset, const int upsample);
-void step1_dg2local(const int vrtx, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset);
-void step1_shapematching(const char* yarnfile1, const char* configfile, const int vrtx, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset, const float stepSize);
-void step2_buildTrainData(const int vrtx, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset, const int isTrain, const int ws_ds, const float trimPercent, const int upsample);
-void step3_temporalTrainData(int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset, const int isTrain);
-void step3_appendTraining(int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset);
-void step4_NN_output(const char* configfile, const int vrtx, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset, const int isTrain, const int isCompress, const float stepSize);
-void full_pipeline(const char* yarnfile1, const char* configfile, const int vrtx, int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset,
-	const int isTrain, const int window_size, const float trimPercent, const int upsample, const float stepSize);
+// phase1 - step2: Apply shapematching and extract matrix-s for each cross-section (isTrain)
+void step2_shapematching(const char* configfile, const char* fiberRefFile, const char* fibersimfile, const char* centerFile, 
+	const char* normFile, const char* globalRot, const int ply_num, const int vrtx, std::vector<Eigen::Matrix2f> &matrixS);
+
+// phase1 - step3: Generate test data files and training files (if isTrain)
+void step3_buildNNfiles(const int isTrain, const int ws_ds, const float trimPercent, const int downsample,
+	const std::vector<Eigen::Vector3d> &all_pnts, const std::vector<Eigen::Vector3d> &all_norm, const std::vector<Eigen::Vector3d> &all_tang,
+	std::vector<double> &twists, std::vector<Eigen::Matrix3d> &worldDGs, std::vector<Eigen::Matrix2f> &matrixS,
+	const char* trainXfile, const char* trainYfile, const char* testXfile, const char* anglefile);
+
+// phase1 - step4: append training data in one file (if isTrain)
+void step4_appendTraining(int skipFactor, int frame0, int frame1, int yarn0, int yarn1, const std::string &dataset);
+
+// ******** phase 2 **********
+// *** phase 1 *** apply NN files and generate deformed fibers
+
+void step5_applyNNoutput(const char* configfile, const int vrtx, int skipFactor, int frame0, int frame1,
+	int yarn0, int yarn1, const std::string &dataset, const int isTrain, const int isCompress, const float stepSize);
+
+// phase 2 - step2: write bounding box around centerlines needed for volume rendering
+void step6_createVOL(int skipFactor, int frame0, int frame1, int yarn0, int yarn1, const std::string &dataset, const int resol_x, const int resol_y, const int resol_z, const float radius);
+
+// further upsample the fibers to avoid facet artifact
+void step7_upsample(int skipFactor, int frame0, int frame1, int yarn0, int yarn1, const std::string &dataset, const int isTrain, const int isCompress, const int sampleRate);
+
+// Generate NN files such that it inputs neighbor frames to NN to handle temporal coherency 
+#if 0
+void temporalTrainData(int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset, const int isTrain);
+#endif

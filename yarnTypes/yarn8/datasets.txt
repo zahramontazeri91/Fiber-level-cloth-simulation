@@ -1,3 +1,5 @@
+single_yarn/yarn8/teeth/4_1.2_00110 19500 19500 0 1 -k 500
+eof
 single_yarn/yarn8/stretch 0 49500 0 1
 eof
 single_yarn/yarn8/teeth/4_1.2 0 24800 0 1 
@@ -48,8 +50,6 @@ eof
 woven/arbitrary_pattern/512x512 0 0 0 1024
 eof
 woven/push/yarn8/100x100 1800 1800 0 200
-eof
-single_yarn/yarn8/teeth/4_1.2_00110 0 20000 0 1
 eof
 woven/arbitrary_pattern/100x100 0 0 0 200
 eof

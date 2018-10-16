@@ -15,7 +15,7 @@ void HermiteCurve::init(const char* pntsFILE, const char* normsFILE, int subdiv)
     int n;
     fin >> n;
 
-    std::vector<Eigen::Vector3d> pts(n), norms(n);
+    std::vector<Eigen::Vector3d> pts(n);
     for ( int i = 0; i < n; ++i ) fin >> pts[i][0] >> pts[i][1] >> pts[i][2];
 
 	assert(pts.size()>2);
@@ -64,6 +64,7 @@ void HermiteCurve::init_norm(const char* pntsFILE, const char* normsFILE, int su
 	// import the points
 	assert(pntsFILE);
 	std::ifstream fin(pntsFILE);
+	if (!fin.is_open()) std::cout << pntsFILE << std::endl;
 	assert(!fin.fail());
 	int n;
 	fin >> n;
@@ -82,6 +83,27 @@ void HermiteCurve::init_norm(const char* pntsFILE, const char* normsFILE, int su
 	}
 
 	init_norm(pts, norms, subdiv);
+}
+
+void HermiteCurve::init_seg(const std::vector<Eigen::Vector3d> &all_pnts, const int start, const int end, const int subdiv) {
+
+	int n = all_pnts.size();
+	assert(start <= end);
+
+	const int seg_size = end - start + 1;
+	std::vector<Eigen::Vector3d> pts(seg_size);
+	int j = 0;
+
+	for (int i = 0; i < n; ++i) {
+		if (i >= start && i <= end) {
+			pts[j] = all_pnts[i];
+			j++;
+		}
+	}
+	assert(pts.size()>2);
+
+	init(pts, subdiv);
+
 }
 
 void HermiteCurve::init_seg(const char* pntsFILE, const int start, const int end, int subdiv) {
@@ -180,6 +202,7 @@ void HermiteCurve::init(const std::vector<Eigen::Vector3d> &pts, int subdiv) //s
 		}
 	}
 
+	// TODO
 	//assert(isFound && "Assuming there exist one point in the curve that its curvature doesn't vanish");
 	//if (firstIndx>0)
 		//std::cout << firstIndx << "-th vertex has non-vanishing curvature. \n";
@@ -381,6 +404,7 @@ void HermiteCurve::assign(std::vector<Eigen::Vector3d> &all_pts, std::vector<Eig
 	all_norm.push_back(norm);
 }
 
+// later will remove this, below funtion will take over
 void HermiteCurve::assign_twist(const char* twistFile, std::vector<Eigen::Vector3d> &all_pts, std::vector<Eigen::Vector3d> &all_tg, 
 	std::vector<Eigen::Vector3d> &all_norm_rot, const int upsample) {
 	all_pts.clear();
@@ -432,7 +456,7 @@ void HermiteCurve::assign_twist(const char* twistFile, std::vector<Eigen::Vector
 	//all_norm_rot = all_norm;
 	twistNormals(twistFile, all_tg, all_norm, all_norm_rot);
 }
-void HermiteCurve::assign_twist(const std::vector<float> &twists, std::vector<Eigen::Vector3d> &all_pts, std::vector<Eigen::Vector3d> &all_tg,
+void HermiteCurve::assign_twist(const std::vector<double> &twists, std::vector<Eigen::Vector3d> &all_pts, std::vector<Eigen::Vector3d> &all_tg,
 	std::vector<Eigen::Vector3d> &all_norm_rot, const int upsample) {
 	all_pts.clear();
 	all_tg.clear();
@@ -613,6 +637,8 @@ Eigen::Vector3d HermiteCurve::rotVec3(const float angle, const Eigen::Vector3d &
 	return  M*vec;
 }
 
+
+// later will remove this, above function will take over
 void HermiteCurve::twistNormals(const char* twistFile, const std::vector<Eigen::Vector3d> &all_tg, const std::vector<Eigen::Vector3d> &all_norm, std::vector<Eigen::Vector3d> &all_norm_rot) {
 
 	std::ifstream fin(twistFile);
@@ -637,7 +663,7 @@ void HermiteCurve::twistNormals(const char* twistFile, const std::vector<Eigen::
 	}
 }
 
-void HermiteCurve::twistNormals(const std::vector<float> &twists, const std::vector<Eigen::Vector3d> &all_tg,
+void HermiteCurve::twistNormals(const std::vector<double> &twists, const std::vector<Eigen::Vector3d> &all_tg,
 	const std::vector<Eigen::Vector3d> &all_norm, std::vector<Eigen::Vector3d> &all_norm_rot) {
 
 	int n = twists.size();

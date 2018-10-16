@@ -281,8 +281,8 @@ def predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, angles
 #    predicted_reg = regularize(predicted_sweep2, window_reg) 
 #    predicted_reg2 = regularize(predicted_reg, window_reg+2) 
     ####################
-    predicted_sweep = predicted
-#    predicted_sweep = sweep(predicted, window_sweep)
+#    predicted_sweep = predicted
+    predicted_sweep = sweep(predicted, window_sweep)
     predicted_reg = regularize(predicted_sweep, window_reg) 
     predicted_reg2 = regularize(predicted_reg, window_reg+2) 
 #    predicted_reg2 = predicted_sweep
@@ -387,30 +387,6 @@ def main_NN(yarn_type,upsample_rate, dataset, firstFrame, lastFrame, yarn0, yarn
         appendTrainingData(datasets, w_path, fn_trainX, fn_trainY)
         
     model, scaler, nb_outputs = test(256, fn_trainX, fn_trainY, fn_validX, fn_validY, reTrain, w_path)
-    #upsample_rate = 1
-    
-    
-    
-    #yarn0 = 150
-    #yarn1 = 250
-    #skipFactor = 200       
-    #vrtxNum = 397  #300*2 ## after upsampling
-    #firstFrame = 400
-    #lastFrame = 6500
-    
-    
-    #dataset = 'stretch/yarn4/stretch'
-    #dataset = 'fall/yarn4/fall'
-    #dataset = 'ball_fall'
-    #dataset = 'twist/yarn4/damp2_500'
-    #dataset = 'woven/yarn4/spacing1.0x/00011/shear'
-    #dataset = 'pattern/yarn4/spacing0.5x/10/Raymond'
-    #dataset = 'single_yarn/yarn11/stretch'
-    #dataset = 'single_yarn/yarn4/teeth/4_1.6'
-    #dataset = 'woven/6x6' 
-    #dataset = 'woven/arbitrary_pattern/150x100'
-    #dataset = 'woven/stretch/yarn4/100x100'
-    #dataset = 'woven/push/yarn8/100x100'
     
     print ('***** predict for the test data ******')
     path = 'F:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'

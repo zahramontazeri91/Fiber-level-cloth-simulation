@@ -1,5 +1,5 @@
 ply_num: 2
-fiber_num: 75
+fiber_num: 30
 
 aabb_min: [-0.0892505,-0.0892505,-1.5]
 aabb_max: [0.0892505,0.0892505,1.5]
@@ -11,14 +11,14 @@ fly_step_size: 0
 yarn_clock_wise: 1
 fiber_clock_wise: 0
 yarn_alpha: 0.639347
-alpha: 0.710055
+alpha: 1
 
 yarn_radius: 0.0507064
 ellipse_long: 0.0531133
 ellipse_short: 0.0355896
 
 epsilon: 0.138909
-beta: 0.682253
+beta: 0
 R_max: 1
 
 use_migration: 1

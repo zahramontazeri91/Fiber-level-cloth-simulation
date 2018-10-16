@@ -354,9 +354,12 @@ Eigen::Vector3d HermiteSpline::computeRotatedNormal(const Eigen::Vector3d &tang0
 {
 	//debug:
 	if (std::abs(norm0.norm() - 1.0) > HERMITE_EPS)
-		std::cout << std::abs(norm0.norm() - 1.0) << " ******** norm0 \n" << norm0 << std::endl;
+		std::cout << "norm0.norm: " << std::abs(norm0.norm() - 1.0) << ", norm0 \n" << norm0 << std::endl;
 	if (std::abs(tang0.norm() - 1.0) > HERMITE_EPS)
-		std::cout << std::abs(tang0.norm() - 1.0) << " ******** tang0 \n" << tang0 << std::endl;
+		std::cout << "tang0.norm: " << std::abs(tang0.norm() - 1.0) << ", tang0 \n" << tang0 << std::endl;
+	if (std::abs(tang1.norm() - 1.0) > HERMITE_EPS)
+		std::cout << "tang1.norm: " << std::abs(tang1.norm() - 1.0) << ", tang1 \n" << tang1 << std::endl;
+
 	assert(std::abs(norm0.norm() - 1.0) < HERMITE_EPS);
     assert(std::abs(tang0.norm() - 1.0) < HERMITE_EPS);
     assert(std::abs(tang1.norm() - 1.0) < HERMITE_EPS);

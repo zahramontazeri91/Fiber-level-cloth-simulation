@@ -12,6 +12,9 @@ from keras.models import load_model
 from sklearn import linear_model
 from sklearn.preprocessing import PolynomialFeatures
 
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
+
 ## Load data
 # In[]
 def loadScaler(fn_trainX, fn_trainY):
@@ -125,26 +128,34 @@ def trainModel(model, X_train, Y_train, X_valid, Y_valid):
     # Weights are updated one mini-batch at a time. A running average of the training loss is computed in real time, which is useful for identifying problems (e.g. the loss might explode or get stuck right). The validation loss is evaluated at the end of each epoch (without dropout).
 #    history = model.fit(X_train, Y_train, batch_size = 16, epochs = 30, verbose = 2,
 #                        validation_data=(X_valid, Y_valid))
-    ######## linear regression
+    ################ linear regression
     print ("fitting the model...")
 #    model = linear_model.LinearRegression()
 # Train the model using the training sets
 #    history = model.fit(X_train_, Y_train_)   
-    ####### polynomial regression degree 2
-    
+
+    ############### polynomial regression degree 2
     # create a Linear Regressor 
     # Polynomial regression is a special case of linear regression
-    model = linear_model.LinearRegression()
+#    model = linear_model.LinearRegression()
+#    
+#    # pass the order of your polynomial here  
+#    poly = PolynomialFeatures(degree=10)
+#    
+#    # convert to be used further to linear regression
+#    X_train_ = poly.fit_transform(X_train)
+#
+#    # Train the model using the training sets
+#    history = model.fit(X_train_, Y_train)
+    ###############
     
-    # pass the order of your polynomial here  
-    poly = PolynomialFeatures(degree=10)
-    
-    # convert to be used further to linear regression
-    X_train_ = poly.fit_transform(X_train)
-
+    # Instantiate a Gaussian Process model
+    kernel = C(1.0, (1e-3, 1e3)) * RBF(10, (1e-2, 1e2))
+    #RBF( length_scale, length_scale_bounds )
+    # RBF is covarrience function
+    model = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=9)
     # Train the model using the training sets
-    history = model.fit(X_train_, Y_train)
-    ##########
+    history = model.fit(X_train, Y_train)
 
     # Plot loss trajectory throughout training.
 #    plt.figure()
@@ -367,10 +378,10 @@ def main_NN(yarn_type,upsample_rate, dataset, firstFrame, lastFrame, yarn0, yarn
     config = 'pattern/'+ yarn_type +'/'
     loc = 'F:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'
     w_path =  loc + config
-    datasets.append('spacing0.5x/10')
-    datasets.append('spacing0.5x/00011')
-    datasets.append('spacing0.5x/10100')
-    datasets.append('spacing0.5x/11110')
+#    datasets.append('spacing0.5x/10')
+#    datasets.append('spacing0.5x/00011')
+#    datasets.append('spacing0.5x/10100')
+#    datasets.append('spacing0.5x/11110')
     datasets.append('spacing1.0x/10')
     datasets.append('spacing1.0x/00011')
     datasets.append('spacing1.0x/10100')
@@ -392,7 +403,7 @@ def main_NN(yarn_type,upsample_rate, dataset, firstFrame, lastFrame, yarn0, yarn
     datasets.append('spacing3.0x/10100')
     datasets.append('spacing3.0x/11110')
     
-    #datasets.append('../../yarn_stretch')
+    datasets.append('../../yarn_stretch')
     
     fn_trainX = w_path + "train_all/trainX_all.txt"
     fn_trainY = w_path + "train_all/trainY_all.txt"
@@ -401,8 +412,8 @@ def main_NN(yarn_type,upsample_rate, dataset, firstFrame, lastFrame, yarn0, yarn
     fn_validY = loc + 'single_yarn/' + yarn_type + '/stretch/NN/trainY_all.txt'
     
     reTrain = 1
-#    if (reTrain):
-#        appendTrainingData(datasets, w_path, fn_trainX, fn_trainY)
+    if (reTrain):
+        appendTrainingData(datasets, w_path, fn_trainX, fn_trainY)
         
     model, scaler, nb_outputs = test(256, fn_trainX, fn_trainY, fn_validX, fn_validY, reTrain, w_path)
     #upsample_rate = 1
@@ -440,11 +451,11 @@ def main_NN(yarn_type,upsample_rate, dataset, firstFrame, lastFrame, yarn0, yarn
             X_test = np.loadtxt(path + "testX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
             
             #####
-            # pass the order of your polynomial here  
-            poly = PolynomialFeatures(degree=10)
-            # convert to be used further to linear regression
-            X_test_ = poly.fit_transform(X_test)
-            X_test = X_test_
+#            # pass the order of your polynomial here  
+#            poly = PolynomialFeatures(degree=10)
+#            # convert to be used further to linear regression
+#            X_test_ = poly.fit_transform(X_test)
+#            X_test = X_test_
             #####
     
             filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"

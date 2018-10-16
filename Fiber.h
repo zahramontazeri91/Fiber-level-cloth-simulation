@@ -210,16 +210,11 @@ namespace Fiber {
 		void parse(const char *filename = NULL);
 
 		/* Simulate yarn */
-		//void assignParameterizePlyCenters(const char *plyCenterFile);
-		//void assignPlyCenters(const char *plyCenterFile);
-		//float extractFiberTwist(const char *fiberTwistFile);
-		//void yarn_simulate(const char *plyCenter, const char *fiberTwistFile);
 		void yarn_simulate();
 
 		/* Simulate yarn with flyaways*/
 		/* Simulate ply  */
 		void simulate_ply();
-		void simulate_ply_shuang();
 		/* Load unrolled plys*/
 		void roll_plys(const int K, const std::string &ply_fn, const std::string &fiber_fn);
 		/* Write simulated data (separate plys) to disk */
@@ -227,16 +222,8 @@ namespace Fiber {
 
 		/* compress yarn with theta, direction, a and b, cross section ellipse param. */
 		void readCompressFile_A(const char* compress_S, std::vector<Eigen::Matrix2f> &all_A);
-		void readCompressFile(const char* compress_R, const char* compress_S, std::vector<Transform> &all_Transform);
-		/* Find the spanning circle for generated yarn before applying the compression */
-		void fitCircle(const yarnIntersect2D &pts, float &radius);
-		void yarn2crossSections(std::vector<yarnIntersect2D> &itsLists);
-		void getPlyCenter(std::vector<std::vector<vec2f>> &plycenters);
-		void compress_yarn(const char* compress_R, const char* compress_S);
-		void compress_yarn(std::vector<std::vector<Eigen::MatrixXf>> &all_mat_S, std::vector<std::vector<float>> &all_theta_R,
-			std::vector<std::vector<Eigen::MatrixXf>> &all_T);
-		void compress_yarn3D(const char* deformGrad);
-		void compress_yarn3D(const char* deformGrad, const char* compress_S);
+
+		/* compress the yarn using given matrix S*/
 		void compress_yarn_A(const char* compress_S, const char* global_rot = "");
 
 		/*spin the yarn around itself to match the phase with simulated input */
@@ -249,11 +236,23 @@ namespace Fiber {
 		/* map the straight yarn on a curved spline */
 		void curve_yarn(const char* pntsFile, const char* normsFile = "", bool scaleXY = false);
 
+		/* Debug functions */
 		void plotIntersections(const char* filename, const float trimPercent);
-
 		void L2norm_3D(const Yarn &yarn1, const Yarn &yarn2, const int trimPercent, float &L2);
 
-		/* Find the yarn-radius for each cross-section */
-		//void shapeCrossSection(yarnIntersect2D &its, float &rLong, float &rShort);
+		/* return number of fibers */
+		int getFiberNum() {
+			int fiberNum = 0;
+			const int plyNum = this->plys.size();
+			for (int i = 0; i < plyNum; i++)
+				fiberNum += this->plys[i].fibers.size();
+			return fiberNum;
+		}
+
+		/* return number of plys */
+		int getPlyNum() {
+			return this->plys.size();
+		}
+
 	};
 }

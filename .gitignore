@@ -4,11 +4,12 @@
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
 # data directories
-data/
+fibersim/
 input/
 output/
 NN/
 genYarn.txt
+genYarnRef.txt
 
 # User-specific files
 *.suo

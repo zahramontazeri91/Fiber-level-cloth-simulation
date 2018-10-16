@@ -1,4 +1,4 @@
-single_yarn/yarn11/stretch 0 49500 0 1
+single_yarn/yarn11/teeth/4_1.6 0 19500 0 1 -k 500
 eof
 single_yarn/yarn11/teeth/4_1.2 0 24800 0 1 
 eof

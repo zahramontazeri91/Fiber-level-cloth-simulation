@@ -186,7 +186,7 @@ def transform(vrtNum, fiberNum, cntr_n_obj, cntr_n, cntr_n_mitsuba, twist_n, dg_
 ###########################
 def main (path, dataset, vrtNum, fiberNum, isTrain, firstFrame, lastFrame, yarn0, yarn1, skipFactor, downSample):
     print (dataset)
-    print('frames', firstFrame/skipFactor, lastFrame/skipFactor + 1)
+    print('frames:', firstFrame/skipFactor, lastFrame/skipFactor + 1)
     for i in range (int(firstFrame/skipFactor), int(lastFrame/skipFactor) + 1):  
         f = i * skipFactor
         print(f)
@@ -203,7 +203,7 @@ def main (path, dataset, vrtNum, fiberNum, isTrain, firstFrame, lastFrame, yarn0
             cntr_n_obj = path + frameNum + yarnNum + '.obj'
             dg_n = path + frameNum + yarnNum + '.fe' 
             internal_n = path + frameNum + yarnNum + '.sforce'
-            def_obj = "F:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/data/" + dataset + '/simul_frame_' + str(f) + '_' + str(y) +'.txt'
+            def_obj = "F:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/fibersim/" + dataset + '/simul_frame_' + str(f) + '_' + str(y) +'.txt'
 
             #output file:
             wrtPath = "F:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/" + dataset
