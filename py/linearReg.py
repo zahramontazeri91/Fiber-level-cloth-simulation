@@ -408,8 +408,8 @@ def main_NN(yarn_type,upsample_rate, dataset, firstFrame, lastFrame, yarn0, yarn
     fn_trainX = w_path + "train_all/trainX_all.txt"
     fn_trainY = w_path + "train_all/trainY_all.txt"
     
-    fn_validX = loc + 'single_yarn/' + yarn_type + '/stretch/NN/trainX_all.txt'
-    fn_validY = loc + 'single_yarn/' + yarn_type + '/stretch/NN/trainY_all.txt'
+    fn_validX = loc + 'single_yarn/' + yarn_type + '/stretch/trainX_all.txt'
+    fn_validY = loc + 'single_yarn/' + yarn_type + '/stretch/trainY_all.txt'
     
     reTrain = 1
     if (reTrain):
@@ -441,7 +441,7 @@ def main_NN(yarn_type,upsample_rate, dataset, firstFrame, lastFrame, yarn0, yarn
     #dataset = 'woven/stretch/yarn4/100x100'
     #dataset = 'woven/push/yarn8/100x100'
     
-    path = 'F:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+    path = 'F:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/'
     frame0 = int(firstFrame/skipFactor)
     frame1 = int(lastFrame/skipFactor) + 1
     for i in range (frame0, frame1):
@@ -458,8 +458,8 @@ def main_NN(yarn_type,upsample_rate, dataset, firstFrame, lastFrame, yarn0, yarn
 #            X_test = X_test_
             #####
     
-            filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
-            anglesFile = path + "angles_" + str(f) + '_' + str(y) + ".txt"
+            filename = "testY_NN_" + str(f) + '_' + str(y) +  ".txt"
+            anglesFile = path + "angle_" + str(f) + '_' + str(y) + ".txt"
             isRot = 1
             predicted_total = predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, anglesFile, isRot, upsample_rate, path)
             np.savetxt(path + filename, predicted_total, fmt='%.6f', delimiter=' ') 

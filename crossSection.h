@@ -16,15 +16,6 @@ struct Plane {
 	vec3f point;         //plane center
 };
 
-
-struct Ellipse {
-	Ellipse() : center(vec2f(0.f)), longR(0.f), shortR(0.f) {}
-	vec2f center;
-	float longR;
-	float shortR;
-	float angle;
-};
-
 struct Matrix_S {
 	Matrix_S() : S00(0.f), S01(0.f), S11(0.f) {}
 	float S00;

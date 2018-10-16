@@ -44,9 +44,9 @@ namespace Fiber {
 
 	void Yarn::build(const char *yarnfile, const int ply_num) {
 		//all other parameters already initialized after parse()
-		std::ifstream fin;
-		if (yarnfile != NULL)
-			fin.open(yarnfile);
+		std::ifstream fin (yarnfile);
+		if (!fin.is_open()) std::cout << yarnfile << std::endl;
+		assert(fin.is_open() && "yarnfile doesn't exist!\n");
 
 		const int num_of_cores = omp_get_num_procs();
 		int fiber_num = 0;

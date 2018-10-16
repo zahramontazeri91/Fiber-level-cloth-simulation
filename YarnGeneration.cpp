@@ -97,7 +97,7 @@ int main(int argc, const char **argv) {
 	if ( argc < 4 ) {
 		std::cout << "Number of argument: " << argc << std::endl;
 		printf("USAGE: YarnGeneration [phase1/phase2] [configFile] [datasetFile] -w window-size=5 -s upsample=2 -t isTrain=1 -x trimPercent -v vrtx-num -c isCompress -z stepSize_ds -v hasVol -rx resolution-AABB-x -ry -rz -rad radius-AABB \n");
-		printf("EXAMPLE: YarnGeneration 1 yarnTypes/yarn4/config_step2.txt yarnTypes/yarn4/datasets.txt -w 5 -s 2 -t 0 -x 0.0 -k 500 -v 150 -c 1 -z 0.02 -vol 1 -rx 5 -ry 5 -rz 20 -rad 0.1 \n");
+		printf("EXAMPLE: YarnGeneration 1 yarnTypes/yarn4/config_step2.txt yarnTypes/yarn4/datasets.txt -w 5 -s 2 -t 0 -x 0.0 -k 500 -v 150 -c 1 -scale 0.25 -z 0.02 -vol 1 -rx 5 -ry 5 -rz 20 -rad 0.1 \n");
 		return 1;
 	}
 
@@ -116,6 +116,7 @@ int main(int argc, const char **argv) {
 	int resol_y = 1;
 	int resol_z = 1;
 	float radius = 0.1;
+	float scaleSim = 0.25;
 
 	for (int i = 4; i < argc-1; ++i) {
 		std::string arg = argv[i];
@@ -134,6 +135,8 @@ int main(int argc, const char **argv) {
 			arg1 >> vrtx_ds;
 		if (arg == "-c")
 			arg1 >> isCompress;
+		if (arg == "-scale")
+			arg1 >> scaleSim;
 		if (arg == "-z")
 			arg1 >> stepSize_ds;
 		if (arg == "-vol")
@@ -169,7 +172,7 @@ int main(int argc, const char **argv) {
 			{
 				if (line == "eof") break;
 				std::vector<std::string> splits = split(line, ' ');
-				//assert(splits.size() == 7 && "USAGE: dataset-location first-frame last-frame first-yarn last-yarn -k skipFactor");
+				assert(splits.size() == 7 && "USAGE: dataset-location first-frame last-frame first-yarn last-yarn -k skipFactor");
 				std::string dataset = splits[0];
 				int frame0 = atoi(splits[1].c_str());
 				int frame1 = atoi(splits[2].c_str());
@@ -177,7 +180,6 @@ int main(int argc, const char **argv) {
 				int yarn1 = atoi(splits[4].c_str());
 				int skipFactor = atoi(splits[6].c_str());
 
-				const float scaleSim = 0.25;
 				generateNNinput(configfile, vrtx, skipFactor, frame0, frame1, yarn0, yarn1, dataset, isTrain, scaleSim, window_size, trimPercent, upsample);
 			}
 			break;

@@ -17,6 +17,7 @@ void transfer_dg_2local(const std::vector<Eigen::Vector3d> &all_tang, const std:
 void rotate_S_2local (const Eigen::Matrix2f &S, Eigen::Matrix2f &S_local, const float &angle, const int flip=0);
 float get_angle(Eigen::Vector3d &norm1, Eigen::Vector3d &norm2, Eigen::Vector3d &tang);
 
+// ***************************
 // ******** phase 1 **********
 // *** phase 1 *** generate training and test data
 void generateNNinput(const char* configfile, const int vrtx, const int skipFactor, const int frame0, const int frame1,
@@ -46,8 +47,9 @@ void step3_buildNNfiles(const int isTrain, const int ws_ds, const float trimPerc
 // phase1 - step4: append training data in one file (if isTrain)
 void step4_appendTraining(int skipFactor, int frame0, int frame1, int yarn0, int yarn1, const std::string &dataset);
 
+// ***************************
 // ******** phase 2 **********
-// *** phase 1 *** apply NN files and generate deformed fibers
+// phase 2 - apply NN files and generate deformed fibers
 
 void step5_applyNNoutput(const char* configfile, const int vrtx, int skipFactor, int frame0, int frame1,
 	int yarn0, int yarn1, const std::string &dataset, const int isTrain, const int isCompress, const float stepSize);

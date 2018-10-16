@@ -265,10 +265,8 @@ def predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, angles
     
 
     predicted = model.predict(X_test, verbose=0)
-#    all_test = np.concatenate((X_test,predicted), axis=1)
     predicted = scaler.inverse_transform(predicted)
-#    np.savetxt(path + 'testY_NN.txt', all_test[:, -3:], fmt='%.6f', delimiter=' ')
-    
+
     # rotate the shape-match back to original frame (window-Rotation-minimizing to yarn-rotation-minimizing)
 #    predicted = np.loadtxt(path + 'trainY_15000_0.txt')
     if isRot:
@@ -288,8 +286,6 @@ def predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, angles
 #    predicted_reg2 = predicted_sweep
     
     predicted_us = upsample(predicted_reg2, upsample_rate)
-    np.savetxt(path + 'testY_NN.txt', predicted_us, fmt='%.6f', delimiter=' ')
-    
     predicted_total = extrapolate(predicted_us, vrtxNum, nb_outputs, stride)
 #    np.savetxt(path + filename, predicted_total, fmt='%.6f', delimiter=' ')
     
@@ -316,7 +312,7 @@ def test(neurons,fn_trainX, fn_trainY, fn_validX, fn_validY, reTrain, w_path):
 # In[]:
 def append2sets(dataset2, w_path):
     path1 = w_path + 'train_all/'
-    path2 = w_path + dataset2 + '/NN/'
+    path2 = w_path + dataset2 
     X_train_all_1 = np.loadtxt(path1 + "trainX_all.txt",delimiter=None)
     Y_train_all_1 = np.loadtxt(path1 + "trainY_all.txt",delimiter=None)
     X_train_all_2 = np.loadtxt(path2 + "trainX_all.txt",delimiter=None)
@@ -332,8 +328,8 @@ def append2sets(dataset2, w_path):
 def appendTrainingData(datasets, w_path, fn_trainX, fn_trainY):
     for i in range (0, len(datasets)):
         if (i==0):
-            p0x = w_path + datasets[i] + '/NN/trainX_all.txt'
-            p0y = w_path + datasets[i] + '/NN/trainY_all.txt'
+            p0x = w_path + datasets[i] + '/trainX_all.txt'
+            p0y = w_path + datasets[i] + '/trainY_all.txt'
             copyfile (p0x, fn_trainX)
             copyfile (p0y, fn_trainY)
         else:
@@ -374,13 +370,11 @@ def main_NN(yarn_type,upsample_rate, dataset, firstFrame, lastFrame, yarn0, yarn
     datasets.append('spacing3.0x/10100')
     datasets.append('spacing3.0x/11110')
     
-    #datasets.append('../../yarn_stretch')
-    
     fn_trainX = w_path + "train_all/trainX_all.txt"
     fn_trainY = w_path + "train_all/trainY_all.txt"
     
-    fn_validX = loc + 'single_yarn/' + yarn_type + '/stretch/NN/trainX_all.txt'
-    fn_validY = loc + 'single_yarn/' + yarn_type + '/stretch/NN/trainY_all.txt'
+    fn_validX = loc + 'single_yarn/' + yarn_type + '/stretch/trainX_all.txt'
+    fn_validY = loc + 'single_yarn/' + yarn_type + '/stretch/trainY_all.txt'
     
     reTrain = 0
     if (reTrain):
@@ -389,7 +383,7 @@ def main_NN(yarn_type,upsample_rate, dataset, firstFrame, lastFrame, yarn0, yarn
     model, scaler, nb_outputs = test(256, fn_trainX, fn_trainY, fn_validX, fn_validY, reTrain, w_path)
     
     print ('***** predict for the test data ******')
-    path = 'F:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset+'/NN/'
+    path = 'F:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'+dataset + '/'
     frame0 = int(firstFrame/skipFactor)
     frame1 = int(lastFrame/skipFactor) + 1
     for i in range (frame0, frame1):
@@ -398,8 +392,8 @@ def main_NN(yarn_type,upsample_rate, dataset, firstFrame, lastFrame, yarn0, yarn
         for y in range (yarn0, yarn1):
             X_test = np.loadtxt(path + "testX_" + str(f) + '_' + str(y) + ".txt",delimiter=None)
             #X_test = np.loadtxt(path + "testX_" + str(f) + '_' + str(y) + "_temporal.txt",delimiter=None)
-            filename = "testY_NN_full_" + str(f) + '_' + str(y) +  ".txt"
-            anglesFile = path + "angles_" + str(f) + '_' + str(y) + ".txt"
+            filename = "testY_NN_" + str(f) + '_' + str(y) +  ".txt"
+            anglesFile = path + "angle_" + str(f) + '_' + str(y) + ".txt"
             isRot = 1
             predicted_total = predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, anglesFile, isRot, upsample_rate, path)
             np.savetxt(path + filename, predicted_total, fmt='%.6f', delimiter=' ') 

@@ -9,6 +9,334 @@
 #include <iomanip>
 #include <sstream>
 
+void L2norm(const std::vector<yarnIntersect2D> &its_deform, const std::vector<yarnIntersect2D> &its_trans, std::vector<float> &L2, const char* filename, const float trimPercent) {
+
+	if (its_deform.size() != its_trans.size())
+		std::cout << its_deform.size() << " " << its_trans.size() << std::endl;
+	assert(its_deform.size() == its_trans.size());
+	FILE *fout;
+
+	const int ignorPlanes = trimPercent * its_deform.size(); // crop the first and last 10% of the yarn
+	if (fopen_s(&fout, filename, "wt") == 0) {
+		fprintf_s(fout, "%d \n", its_deform.size());
+		for (int i = ignorPlanes; i < its_deform.size() - ignorPlanes; ++i) { //number of planes
+			float e = 0.f;
+			for (int p = 0; p < its_deform[i].size(); ++p) { //number of plys
+				for (int j = 0; j < its_deform[i][p].size(); ++j) { //number of intersections
+					e += square_norm(its_deform[i][p][j] - its_trans[i][p][j]);
+				}
+			}
+			L2.push_back(e);
+			fprintf_s(fout, "%.6f \n", e);
+		}
+		fclose(fout);
+	}
+}
+
+void plotIntersections(const std::vector<yarnIntersect2D> &its, const char* filename, const float trimPercent) {
+	// plot cross-sections in 2D for debug purpos
+	FILE *fout;
+	// write the plycenters
+	if (fopen_s(&fout, filename, "wt") == 0) {
+		const int ignorPlanes = trimPercent * its.size(); // crop the first and last 10% of the yarn
+
+		fprintf_s(fout, "plane_num: %d \n", its.size() - 2 * ignorPlanes);
+		fprintf_s(fout, "ply_num: %d \n", its[0].size());
+		fprintf_s(fout, "\n");
+
+		for (int i = ignorPlanes; i < its.size() - ignorPlanes; ++i) { //number of planes
+			fprintf_s(fout, "index_plane : %d \n", i - ignorPlanes);
+			for (int p = 0; p < its[i].size(); ++p) { //number of plys
+				fprintf_s(fout, "ply_fiber_num: %d \n", its[i][p].size());
+				vec2f plyCenter(0.f);
+				for (int j = 0; j < its[i][p].size(); ++j) { //number of intersections
+					plyCenter += its[i][p][j];
+				}
+				plyCenter /= its[i][p].size();
+				fprintf_s(fout, "plyCenter: %.4lf %.4lf \n", plyCenter.x, plyCenter.y);
+
+				for (int j = 0; j < its[i][p].size(); ++j) { //number of intersections
+					fprintf_s(fout, "%.4f %.4f \n", its[i][p][j].x, its[i][p][j].y);
+				}
+			}
+			fprintf_s(fout, "\n");
+		}
+		fclose(fout);
+	}
+}
+
+void transfer_dg_2local(const std::vector<Eigen::Vector3d> &all_tang, const std::vector<Eigen::Vector3d> &all_norm,
+	const std::vector<Eigen::Matrix3d> &all_world_dg, std::vector<Eigen::Matrix3d> &all_local_dg, const int flip) {
+
+	assert(all_tang.size() == all_world_dg.size() && all_norm.size() == all_world_dg.size());
+	const int n = all_world_dg.size();
+	Eigen::Vector3d ex, ey, ez;
+	for (int i = 0; i < n; i++) {
+
+
+		if (flip == 1) { //flip normal
+			ez = all_tang[i];
+			ey = -1.0*all_norm[i];
+		}
+		else if (flip == 2) { //flip tangent
+			ez = -1.0*all_tang[i];
+			ey = all_norm[i];
+		}
+		else if (flip == 3) { //flip tangent
+			ez = -1.0*all_tang[i];
+			ey = -1.0*all_norm[i];
+		}
+		else {
+			ez = all_tang[i];
+			ey = all_norm[i];
+		}
+		ex = ez.cross(ey);
+
+		/** world to local **/
+		Eigen::Matrix3d local_dg, M;
+		M << ez[0], ez[1], ez[2],
+			ey[0], ey[1], ey[2],
+			ex[0], ex[1], ex[2];
+
+		////local_dg = M*all_world_dg[i] * M.transpose();
+		local_dg = M*all_world_dg[i];
+
+		all_local_dg.push_back(local_dg);
+	}
+}
+
+void rotate_S_2local(const Eigen::Matrix2f &S, Eigen::Matrix2f &S_local, const float &angle, const int flip) {
+
+	Eigen::Matrix2f R, A;
+
+	R << cos(angle), -sin(angle),
+		sin(angle), cos(angle);
+	S_local = R*S* R.transpose();
+
+	if (flip == 1) //flip normal
+		A << -1, 0, 0, -1;
+	else if (flip == 2)  //flip tangent
+		A << 1, 0, 0, -1;
+	else if (flip == 3)  //flip tangent and normal
+		A << -1, 0, 0, -1;
+	else
+		A << 1, 0, 0, 1;
+
+	S_local = A*S_local*A.transpose();
+
+}
+
+float get_angle(Eigen::Vector3d &norm1, Eigen::Vector3d &norm2, Eigen::Vector3d &tang) {
+
+	// rotate the shape-matching matrix to align the new normal
+	float angle = acos(norm1.dot(norm2));
+	if (angle != angle) //dot product (must be 1) but might be larger than 1 and so acos return nan 
+		angle = norm1.dot(norm2) > 0 ? 0.0 : pi;
+
+	Eigen::Vector3d cross = (norm1.cross(norm2)).normalized();
+	if (cross.norm() < eps) return 0.0;
+
+	float dist = (cross - tang).norm();
+	float dist_ = (cross - (-1.0*tang)).norm();
+	angle = dist < dist_ ? angle : -1.0*angle;
+
+	return angle;
+}
+
+
+void loadSamples(const char* curvefile, std::vector<Eigen::Vector3f> &pnts) {
+	std::ifstream fin(curvefile);
+	if (!fin.is_open())
+		std::cout << curvefile << std::endl;
+	assert(fin.is_open() && "curvefile file wasn't found!\n");
+	int pnts_num = 0;
+	fin >> pnts_num;
+	Eigen::Vector3f pnt;
+	for (int i = 0; i < pnts_num; i++) {
+		fin >> pnt[0] >> pnt[1] >> pnt[2];
+		pnts.push_back(pnt);
+	}
+}
+
+void findAABB(std::vector<Eigen::Vector3f> &pnts, float &min_x, float &min_y, float &min_z, float &max_x, float &max_y, float &max_z) {
+
+	const int sz = pnts.size();
+	max_x = std::numeric_limits<float>::min();
+	max_y = max_x;
+	max_z = max_x;
+	min_x = std::numeric_limits<float>::max();
+	min_y = min_x;
+	min_z = min_x;
+	for (int i = 0; i < sz; i++) {
+		//minimum
+		if (pnts[i][0] < min_x)
+			min_x = pnts[i][0];
+		if (pnts[i][1] < min_y)
+			min_y = pnts[i][1];
+		if (pnts[i][2] < min_z)
+			min_z = pnts[i][2];
+		// maximum
+		if (pnts[i][0] > max_x)
+			max_x = pnts[i][0];
+		if (pnts[i][1] > max_y)
+			max_y = pnts[i][1];
+		if (pnts[i][2] > max_z)
+			max_z = pnts[i][2];
+	}
+}
+
+void fillVolume(const std::vector<Eigen::Vector3f> &pnts, const float radius, const float minAABB[3], const float maxAABB[3], const int resol[3], std::vector<std::vector<std::vector<float>>> &vol) {
+
+	//initialize vol
+	vol.resize(resol[0]);
+	for (int x = 0; x < resol[0]; x++) {
+		vol[x].resize(resol[1]);
+		for (int y = 0; y < resol[1]; y++) {
+			vol[x][y].resize(resol[2]);
+			for (int z = 0; z < resol[2]; z++) {
+				vol[x][y].push_back(0.f);
+			}
+		}
+	}
+
+	const int sz = pnts.size();
+	for (int i = 0; i < sz; i++) {
+		const float len_x = maxAABB[0] - minAABB[0];
+		const float len_y = maxAABB[1] - minAABB[1];
+		const float len_z = maxAABB[2] - minAABB[2];
+
+		int idx_x = ((pnts[i][0] - minAABB[0]) / len_x) * resol[0];
+		int idx_y = ((pnts[i][1] - minAABB[1]) / len_y) * resol[1];
+		int idx_z = ((pnts[i][2] - minAABB[2]) / len_z) * resol[2];
+
+		if (idx_x == resol[0]) idx_x = idx_x - 1;
+		if (idx_y == resol[1]) idx_y = idx_y - 1;
+		if (idx_z == resol[2]) idx_z = idx_z - 1;
+
+		vol[idx_x][idx_y][idx_z] = 1.f;
+
+		// go d distance in all 6 directions and add neighbor voxels if needed
+		float bottom_x = minAABB[0] + idx_x * (len_x / float(resol[0]));
+		float top_x = bottom_x + (len_x / float(resol[0]));
+
+		float bottom_y = minAABB[1] + idx_y * (len_y / float(resol[1]));
+		float top_y = bottom_y + (len_y / float(resol[1]));
+
+		float bottom_z = minAABB[2] + idx_z * (len_z / float(resol[2]));
+		float top_z = bottom_z + (len_z / float(resol[2]));
+
+
+		if ((top_x - pnts[i][0]) < radius)
+			if (idx_x + 1 != resol[0])
+				vol[idx_x + 1][idx_y][idx_z] = 1.f;
+		if ((pnts[i][0] - bottom_x) < radius)
+			if (idx_x - 1 >= 0)
+				vol[idx_x - 1][idx_y][idx_z] = 1.f;
+
+		if ((top_y - pnts[i][1]) < radius)
+			if (idx_y + 1 != resol[1])
+				vol[idx_x][idx_y + 1][idx_z] = 1.f;
+		if ((pnts[i][1] - bottom_y) < radius)
+			if (idx_y - 1 >= 0)
+				vol[idx_x][idx_y - 1][idx_z] = 1.f;
+
+		if ((top_z - pnts[i][2]) < radius)
+			if (idx_z + 1 != resol[2])
+				vol[idx_x][idx_y][idx_z + 1] = 1.f;
+		if ((pnts[i][2] - bottom_z) < radius)
+			if (idx_z - 1 >= 0)
+				vol[idx_x][idx_y][idx_z - 1] = 1.f;
+
+	}
+}
+
+void writeVol(const std::string &dataset, const int frame, const int yarn0, const int yarn1, const int resol_x, const int resol_y, const int resol_z, const float radius, const char* volumeFile) {
+
+	std::vector<Eigen::Vector3f> pnts;
+	//for loop over yarns y
+	for (int y = yarn0; y < yarn1; y++) {
+		std::string tmp = "input/" + dataset + "/centerYarn_" + std::to_string(frame) + "_" + std::to_string(y) + "_us.txt";
+		const char* curvefile_us = tmp.c_str();
+		loadSamples(curvefile_us, pnts);
+	}
+
+	float min_x, min_y, min_z, max_x, max_y, max_z;
+	findAABB(pnts, min_x, min_y, min_z, max_x, max_y, max_z);
+
+
+	float minAABB[3], maxAABB[3];
+	float *data;
+	float *data_vol;
+	//int resol[3];
+	int N;
+
+
+	minAABB[0] = min_x - radius, minAABB[1] = min_y - radius, minAABB[2] = min_z - radius;
+	maxAABB[0] = max_x + radius, maxAABB[1] = max_y + radius, maxAABB[2] = max_z + radius;
+
+
+	// Modify tile scale here
+	float scale = 1.0;
+
+	int resol[3];
+	resol[0] = resol_x;
+	resol[1] = resol_y;
+	resol[2] = resol_z;
+
+	N = resol[0] * resol[1] * resol[2];
+	data = new float[N];
+	data_vol = new float[N];
+
+
+	std::vector<std::vector<std::vector<float> > > volume;
+	fillVolume(pnts, radius, minAABB, maxAABB, resol, volume);
+	// flatten the volume
+	int i = 0;
+	for (int z = 0; z < resol[2]; z++) {
+		for (int y = 0; y < resol[1]; y++) {
+			for (int x = 0; x < resol[0]; x++) {
+				data_vol[i] = volume[x][y][z];
+				i++;
+			}
+		}
+	}
+
+	//Modidy data here
+	for (int i = 0; i < N; i++) {
+		data[i] = data_vol[i];
+		//data[i] = 0.1;
+	}
+
+
+	//FILE *fout = fopen_s("testVOL.vol", "wb");
+	FILE *fout;
+	fopen_s(&fout, volumeFile, "wb");
+	static const char tag[] = "VOL";
+	fwrite(tag, 1, 3, fout);
+	static const unsigned char ver = 0x3;
+	fwrite(&ver, sizeof(uint8_t), 1, fout);
+	int data_format = 1;
+	fwrite(&data_format, sizeof(int), 1, fout);
+
+	// Write resolution
+	fwrite(resol, sizeof(int), 3, fout);
+
+	int ch = 1;
+	fwrite(&ch, sizeof(int), 1, fout);
+
+	// Write AABB
+	fwrite(minAABB, sizeof(float), 3, fout);
+	fwrite(maxAABB, sizeof(float), 3, fout);
+
+	// write voxel extent
+	for (int i = 0; i < N; i++)
+		fwrite(&(data[i]), sizeof(float), 1, fout);
+	delete[] data;
+
+	fclose(fout);
+
+}
+
 void generateNNinput(const char* configfile, const int vrtx, const int skipFactor, const int frame0, const int frame1,
 	const int yarn0, const int yarn1, const std::string &dataset, const int isTrain, 
 	const float scaleSim, const int ws_ds, const float trimPercent, const int upsample) {
@@ -26,11 +354,12 @@ void generateNNinput(const char* configfile, const int vrtx, const int skipFacto
 	const int fiberNum = yarnRef.getFiberNum();
 	const int plyNum = yarnRef.getPlyNum();
 
+	std::cout << "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n";
+	std::cout << "@@@@@@@@@@ " << dataset << " @@@@@@@@@@ \n";
+
 	for (int f = frame0; f < frame1 + 1; f += skipFactor) {
 		for (int y = yarn0; y < yarn1; y++) {
 
-			std::cout << "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n";
-			std::cout << " @@@@@@@@@@ " << dataset << " @@@@@@@@@@ \n";
 			std::cout << "@@@@@@@@@@@@@@@@ frame " << f << " - yarn " << y << " @@@@@@@@@@@@@@@@\n";
 
 			std::stringstream frameSS;
@@ -39,11 +368,11 @@ void generateNNinput(const char* configfile, const int vrtx, const int skipFacto
 			yarnSS << std::setfill('0') << std::setw(2) << std::to_string(y);
 
 			// input files
-			std::string tmp1 = "../dataSets/" + dataset + "/fiber/frame_" + frameSS.str() + "fiber_" + yarnSS.str() + ".obj";
+			std::string tmp1 = "dataSets/" + dataset + "/fiber/frame_" + frameSS.str() + "fiber_" + yarnSS.str() + ".obj";
 			const char* fibersim_in = tmp1.c_str();
-			std::string tmp2 = "../dataSets/" + dataset + "/yarn/frame_" + frameSS.str() + "fiber_" + yarnSS.str() + ".obj";
+			std::string tmp2 = "dataSets/" + dataset + "/yarn/frame_" + frameSS.str() + "fiber_" + yarnSS.str() + ".obj";
 			const char* yarnsim_in = tmp2.c_str();
-			std::string tmp3 = "../dataSets/" + dataset + "/yarn/frame_" + frameSS.str() + "fiber_" + yarnSS.str() + ".fe";
+			std::string tmp3 = "dataSets/" + dataset + "/yarn/frame_" + frameSS.str() + "fiber_" + yarnSS.str() + ".fe";
 			const char* DG_in = tmp3.c_str();
 
 			// output files
@@ -536,7 +865,7 @@ void step5_applyNNoutput(const char* configfile, const int vrtx, int skipFactor,
 			const char* curvefile = tmp1.c_str();
 			std::string tmp2 = "input/" + dataset + "/normYarn_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
 			const char* normfile = tmp2.c_str();
-			std::string tmp6 = "input/" + dataset + "/testY_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+			std::string tmp6 = "input/" + dataset + "/testY_NN_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
 			const char* compress_S = tmp6.c_str();
 
 			std::string tmp11 = "input/" + dataset + "/globalRot_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
@@ -742,334 +1071,6 @@ void writeVec2file(const std::vector<Eigen::Vector3d> values, const char* filena
 }
 
 
-void L2norm(const std::vector<yarnIntersect2D> &its_deform, const std::vector<yarnIntersect2D> &its_trans, std::vector<float> &L2, const char* filename, const float trimPercent) {
-
-	if (its_deform.size() != its_trans.size())
-		std::cout << its_deform.size() << " " << its_trans.size() << std::endl;
-	assert(its_deform.size() == its_trans.size());
-	FILE *fout;
-
-	const int ignorPlanes = trimPercent * its_deform.size(); // crop the first and last 10% of the yarn
-	if (fopen_s(&fout, filename, "wt") == 0) {
-		fprintf_s(fout, "%d \n", its_deform.size());
-		for (int i = ignorPlanes; i < its_deform.size() - ignorPlanes; ++i) { //number of planes
-			float e = 0.f;
-			for (int p = 0; p < its_deform[i].size(); ++p) { //number of plys
-				for (int j = 0; j < its_deform[i][p].size(); ++j) { //number of intersections
-					e += square_norm(its_deform[i][p][j] - its_trans[i][p][j]);
-				}
-			}
-			L2.push_back(e);
-			fprintf_s(fout, "%.6f \n", e);
-		}
-		fclose(fout);
-	}
-}
-
-void plotIntersections(const std::vector<yarnIntersect2D> &its, const char* filename, const float trimPercent) {
-	// plot cross-sections in 2D for debug purpos
-	FILE *fout;
-	// write the plycenters
-	if (fopen_s(&fout, filename, "wt") == 0) {
-		const int ignorPlanes = trimPercent * its.size(); // crop the first and last 10% of the yarn
-
-		fprintf_s(fout, "plane_num: %d \n", its.size() - 2 * ignorPlanes);
-		fprintf_s(fout, "ply_num: %d \n", its[0].size());
-		fprintf_s(fout, "\n");
-
-		for (int i = ignorPlanes; i < its.size() - ignorPlanes; ++i) { //number of planes
-			fprintf_s(fout, "index_plane : %d \n", i - ignorPlanes);
-			for (int p = 0; p < its[i].size(); ++p) { //number of plys
-				fprintf_s(fout, "ply_fiber_num: %d \n", its[i][p].size());
-				vec2f plyCenter(0.f);
-				for (int j = 0; j < its[i][p].size(); ++j) { //number of intersections
-					plyCenter += its[i][p][j];
-				}
-				plyCenter /= its[i][p].size();
-				fprintf_s(fout, "plyCenter: %.4lf %.4lf \n", plyCenter.x, plyCenter.y);
-
-				for (int j = 0; j < its[i][p].size(); ++j) { //number of intersections
-					fprintf_s(fout, "%.4f %.4f \n", its[i][p][j].x, its[i][p][j].y);
-				}
-			}
-			fprintf_s(fout, "\n");
-		}
-		fclose(fout);
-	}
-}
-
-void transfer_dg_2local(const std::vector<Eigen::Vector3d> &all_tang, const std::vector<Eigen::Vector3d> &all_norm,
-	const std::vector<Eigen::Matrix3d> &all_world_dg, std::vector<Eigen::Matrix3d> &all_local_dg, const int flip) {
-
-	assert(all_tang.size() == all_world_dg.size() && all_norm.size() == all_world_dg.size());
-	const int n = all_world_dg.size();
-	Eigen::Vector3d ex, ey, ez;
-	for (int i = 0; i < n; i++) {
-
-
-		if (flip == 1) { //flip normal
-			ez = all_tang[i];
-			ey = -1.0*all_norm[i];
-		}
-		else if (flip == 2) { //flip tangent
-			ez = -1.0*all_tang[i];
-			ey = all_norm[i];
-		}
-		else if (flip == 3) { //flip tangent
-			ez = -1.0*all_tang[i];
-			ey = -1.0*all_norm[i];
-		}
-		else {
-			ez = all_tang[i];
-			ey = all_norm[i];
-		}
-		ex = ez.cross(ey);
-
-		/** world to local **/
-		Eigen::Matrix3d local_dg, M;
-		M << ez[0], ez[1], ez[2],
-			ey[0], ey[1], ey[2],
-			ex[0], ex[1], ex[2];
-
-		////local_dg = M*all_world_dg[i] * M.transpose();
-		local_dg = M*all_world_dg[i];
-
-		all_local_dg.push_back(local_dg);
-	}
-}
-
-void rotate_S_2local(const Eigen::Matrix2f &S, Eigen::Matrix2f &S_local, const float &angle, const int flip) {
-
-	Eigen::Matrix2f R, A;
-
-	R << cos(angle), -sin(angle),
-		sin(angle), cos(angle);
-	S_local = R*S* R.transpose();
-
-	if (flip == 1) //flip normal
-		A << -1, 0, 0, -1;
-	else if (flip == 2)  //flip tangent
-		A << 1, 0, 0, -1;
-	else if (flip == 3)  //flip tangent and normal
-		A << -1, 0, 0, -1;
-	else
-		A << 1, 0, 0, 1;
-
-	S_local = A*S_local*A.transpose();
-
-}
-
-float get_angle(Eigen::Vector3d &norm1, Eigen::Vector3d &norm2, Eigen::Vector3d &tang) {
-
-	// rotate the shape-matching matrix to align the new normal
-	float angle = acos(norm1.dot(norm2));
-	if (angle != angle) //dot product (must be 1) but might be larger than 1 and so acos return nan 
-		angle = norm1.dot(norm2) > 0 ? 0.0 : pi;
-
-	Eigen::Vector3d cross = (norm1.cross(norm2)).normalized();
-	if (cross.norm() < eps) return 0.0;
-
-	float dist = (cross - tang).norm();
-	float dist_ = (cross - (-1.0*tang)).norm();
-	angle = dist < dist_ ? angle : -1.0*angle;
-
-	return angle;
-}
-
-
-void loadSamples(const char* curvefile, std::vector<Eigen::Vector3f> &pnts) {
-	std::ifstream fin(curvefile);
-	if (!fin.is_open())
-		std::cout << curvefile << std::endl;
-	assert(fin.is_open() && "curvefile file wasn't found!\n");
-	int pnts_num = 0;
-	fin >> pnts_num;
-	Eigen::Vector3f pnt;
-	for (int i = 0; i < pnts_num; i++) {
-		fin >> pnt[0] >> pnt[1] >> pnt[2];
-		pnts.push_back(pnt);
-	}
-}
-
-void findAABB(std::vector<Eigen::Vector3f> &pnts, float &min_x, float &min_y, float &min_z, float &max_x, float &max_y, float &max_z) {
-
-	const int sz = pnts.size();
-	max_x = std::numeric_limits<float>::min();
-	max_y = max_x;
-	max_z = max_x;
-	min_x = std::numeric_limits<float>::max();
-	min_y = min_x;
-	min_z = min_x;
-	for (int i = 0; i < sz; i++) {
-		//minimum
-		if (pnts[i][0] < min_x)
-			min_x = pnts[i][0];
-		if (pnts[i][1] < min_y)
-			min_y = pnts[i][1];
-		if (pnts[i][2] < min_z)
-			min_z = pnts[i][2];
-		// maximum
-		if (pnts[i][0] > max_x)
-			max_x = pnts[i][0];
-		if (pnts[i][1] > max_y)
-			max_y = pnts[i][1];
-		if (pnts[i][2] > max_z)
-			max_z = pnts[i][2];
-	}
-}
-
-void fillVolume(const std::vector<Eigen::Vector3f> &pnts, const float radius, const float minAABB[3], const float maxAABB[3], const int resol[3], std::vector<std::vector<std::vector<float>>> &vol) {
-
-	//initialize vol
-	vol.resize(resol[0]);
-	for (int x = 0; x < resol[0]; x++) {
-		vol[x].resize(resol[1]);
-		for (int y = 0; y < resol[1]; y++) {
-			vol[x][y].resize(resol[2]);
-			for (int z = 0; z < resol[2]; z++) {
-				vol[x][y].push_back(0.f);
-			}
-		}
-	}
-
-	const int sz = pnts.size();
-	for (int i = 0; i < sz; i++) {
-		const float len_x = maxAABB[0] - minAABB[0];
-		const float len_y = maxAABB[1] - minAABB[1];
-		const float len_z = maxAABB[2] - minAABB[2];
-
-		int idx_x = ((pnts[i][0] - minAABB[0]) / len_x) * resol[0];
-		int idx_y = ((pnts[i][1] - minAABB[1]) / len_y) * resol[1];
-		int idx_z = ((pnts[i][2] - minAABB[2]) / len_z) * resol[2];
-
-		if (idx_x == resol[0]) idx_x = idx_x - 1;
-		if (idx_y == resol[1]) idx_y = idx_y - 1;
-		if (idx_z == resol[2]) idx_z = idx_z - 1;
-
-		vol[idx_x][idx_y][idx_z] = 1.f;
-
-		// go d distance in all 6 directions and add neighbor voxels if needed
-		float bottom_x = minAABB[0] + idx_x * (len_x / float(resol[0]));
-		float top_x = bottom_x + (len_x / float(resol[0]));
-
-		float bottom_y = minAABB[1] + idx_y * (len_y / float(resol[1]));
-		float top_y = bottom_y + (len_y / float(resol[1]));
-
-		float bottom_z = minAABB[2] + idx_z * (len_z / float(resol[2]));
-		float top_z = bottom_z + (len_z / float(resol[2]));
-
-
-		if ((top_x - pnts[i][0]) < radius)
-			if (idx_x + 1 != resol[0])
-				vol[idx_x + 1][idx_y][idx_z] = 1.f;
-		if ((pnts[i][0] - bottom_x) < radius)
-			if (idx_x - 1 >= 0)
-				vol[idx_x - 1][idx_y][idx_z] = 1.f;
-
-		if ((top_y - pnts[i][1]) < radius)
-			if (idx_y + 1 != resol[1])
-				vol[idx_x][idx_y + 1][idx_z] = 1.f;
-		if ((pnts[i][1] - bottom_y) < radius)
-			if (idx_y - 1 >= 0)
-				vol[idx_x][idx_y - 1][idx_z] = 1.f;
-
-		if ((top_z - pnts[i][2]) < radius)
-			if (idx_z + 1 != resol[2])
-				vol[idx_x][idx_y][idx_z + 1] = 1.f;
-		if ((pnts[i][2] - bottom_z) < radius)
-			if (idx_z - 1 >= 0)
-				vol[idx_x][idx_y][idx_z - 1] = 1.f;
-
-	}
-}
-
-void writeVol(const std::string &dataset, const int frame, const int yarn0, const int yarn1, const int resol_x, const int resol_y, const int resol_z, const float radius, const char* volumeFile) {
-
-	std::vector<Eigen::Vector3f> pnts;
-	//for loop over yarns y
-	for (int y = yarn0; y < yarn1; y++) {
-		std::string tmp = "input/" + dataset + "/centerYarn_" + std::to_string(frame) + "_" + std::to_string(y) + "_us.txt";
-		const char* curvefile_us = tmp.c_str();
-		loadSamples(curvefile_us, pnts);
-	}
-
-	float min_x, min_y, min_z, max_x, max_y, max_z;
-	findAABB(pnts, min_x, min_y, min_z, max_x, max_y, max_z);
-
-
-	float minAABB[3], maxAABB[3];
-	float *data;
-	float *data_vol;
-	//int resol[3];
-	int N;
-
-
-	minAABB[0] = min_x - radius, minAABB[1] = min_y - radius, minAABB[2] = min_z - radius;
-	maxAABB[0] = max_x + radius, maxAABB[1] = max_y + radius, maxAABB[2] = max_z + radius;
-
-
-	// Modify tile scale here
-	float scale = 1.0;
-
-	int resol[3];
-	resol[0] = resol_x;
-	resol[1] = resol_y;
-	resol[2] = resol_z;
-
-	N = resol[0] * resol[1] * resol[2];
-	data = new float[N];
-	data_vol = new float[N];
-
-
-	std::vector<std::vector<std::vector<float> > > volume;
-	fillVolume(pnts, radius, minAABB, maxAABB, resol, volume);
-	// flatten the volume
-	int i = 0;
-	for (int z = 0; z < resol[2]; z++) {
-		for (int y = 0; y < resol[1]; y++) {
-			for (int x = 0; x < resol[0]; x++) {
-				data_vol[i] = volume[x][y][z];
-				i++;
-			}
-		}
-	}
-
-	//Modidy data here
-	for (int i = 0; i < N; i++) {
-		data[i] = data_vol[i];
-		//data[i] = 0.1;
-	}
-
-
-	//FILE *fout = fopen_s("testVOL.vol", "wb");
-	FILE *fout;
-	fopen_s(&fout, volumeFile, "wb");
-	static const char tag[] = "VOL";
-	fwrite(tag, 1, 3, fout);
-	static const unsigned char ver = 0x3;
-	fwrite(&ver, sizeof(uint8_t), 1, fout);
-	int data_format = 1;
-	fwrite(&data_format, sizeof(int), 1, fout);
-
-	// Write resolution
-	fwrite(resol, sizeof(int), 3, fout);
-
-	int ch = 1;
-	fwrite(&ch, sizeof(int), 1, fout);
-
-	// Write AABB
-	fwrite(minAABB, sizeof(float), 3, fout);
-	fwrite(maxAABB, sizeof(float), 3, fout);
-
-	// write voxel extent
-	for (int i = 0; i < N; i++)
-		fwrite(&(data[i]), sizeof(float), 1, fout);
-	delete[] data;
-
-	fclose(fout);
-
-}
-
 #if 0
 void temporalTrainData(int skipFactor, int frame0, int frame1, int yarn0, int yarn1, std::string &dataset, const int isTrain) {
 	std::cout << "\n**************************************************\n";
@@ -1081,7 +1082,7 @@ void temporalTrainData(int skipFactor, int frame0, int frame1, int yarn0, int ya
 		int f = frame0 + i * skipFactor;
 		for (int y = yarn0; y < yarn1; ++y) {
 
-
+			
 			// Padding for the first frame 
 			int preFrame = f - skipFactor;
 			int postFrame = f + skipFactor;
@@ -1162,7 +1163,7 @@ void temporalTrainData(int skipFactor, int frame0, int frame1, int yarn0, int ya
 				std::getline(finTest, content_testX);
 				std::getline(finTest_post, content_testX_post);
 
-				foutTest << content_testX_pre << " " << content_testX << " " << content_testX_post << std::endl;
+				foutTest << content_testX_pre << " " << content_testX << " " << content_testX_post << std::endl ;
 
 			}
 			//content_trainX_temporal.erase(content_trainX_temporal.end() - 1);     // erase last character

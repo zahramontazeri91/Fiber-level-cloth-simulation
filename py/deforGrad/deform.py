@@ -214,6 +214,11 @@ def main (path, dataset, vrtNum, fiberNum, isTrain, firstFrame, lastFrame, yarn0
             
 #            print (dg_n)
             transform(vrtNum, fiberNum, cntr_n_obj, cntr_n, cntr_n_mitsuba, twist_n, dg_n, internal_n, physicalParam_trans, def_obj, src_obj, isTrain, downSample)
+# In[]:
+#path = "F:/sandbox/fiberSimulation/dataSets/" + dataset+"/yarn/"
+#main (path, dataset, vrtNum, fiberNum, isTrain,  firstFrame, lastFrame, yarn0, yarn1, skipFactor, downSample)
+
+
 # In[]: 
 # set paramters for the dataset:
 #skipFactor = 500

@@ -4,12 +4,17 @@
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
 # data directories
+dataSets/
 fibersim/
 input/
 output/
 NN/
 genYarn.txt
 genYarnRef.txt
+test_ply0.txt
+test_ply1.txt
+test_ply2.txt
+test_fly.txt
 
 # User-specific files
 *.suo
