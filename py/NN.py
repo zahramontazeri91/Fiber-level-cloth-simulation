@@ -338,7 +338,7 @@ def appendTrainingData(datasets, w_path, fn_trainX, fn_trainY):
         
 # In[]
 stride = 1
-window_reg = 5
+window_reg = 5 #for stretching
 #window_reg = 3 #for non-stretching
 window_sweep = 3
 def main_NN(yarn_type,upsample_rate, dataset, firstFrame, lastFrame, yarn0, yarn1, skipFactor, vrtxNum):

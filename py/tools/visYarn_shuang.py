@@ -1,3 +1,6 @@
+"""
+visualize yarn in mitsuba format 
+"""
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt

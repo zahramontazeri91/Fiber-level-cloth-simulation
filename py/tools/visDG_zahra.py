@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Mar 13 17:42:00 2018
-
+visualize a cylinder and then compress it using the DG to see the orientation
+same as visDG_shuang.py
 @author: zahra
 """
 

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 Created on Sat Mar 17 10:06:03 2018
-
+Use PCA to reduce dimention of DGs from 9*windowSize to 3 so to visualize them in 3D
+Tools is useful to compare how different training DGs are from test data
 @author: zahra
 """
 

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Visualize yarn intersection with given planes
+and draw the bounding ellipse
 """
 import numpy as np
 import matplotlib

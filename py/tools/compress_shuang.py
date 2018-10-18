@@ -1,15 +1,13 @@
+#given a yarn, generate noised yarn?
+
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 from perlin import SimplexNoise
 
 m = 0
-#with open("frame00001_hairs.txt", "r") as fin:
 with open("../genYarn_frame1.txt", "r") as fin:
-
-    line = fin.readline()
-    m=0
-    while True: 
+    while True:
         line = fin.readline()
         if not line:
             break
@@ -22,16 +20,12 @@ with open("../genYarn_frame1.txt", "r") as fin:
             assert n == int(line.strip())
         curCurve = np.zeros((n, 3))
         for i in range(0, n):
-            pos = np.array([float(x) for x in fin.readline().strip().split()])
-#            assert len(pos) == 4
+            pos = np.array([float(x) for x in fin.readline().strip().split()])*0.25
+            assert len(pos) == 4
             curCurve[i, :] = pos[0 : 3]
         avgCurve += curCurve
         curves.append(curCurve)
 avgCurve /= m
-
-# print(n)
-# for i in range(0, n):
-#     print("%.6f %.6f %.6f" % (avgCurve[i, 0], avgCurve[i, 1], avgCurve[i, 2]))
 
 noise = SimplexNoise()
 theta = np.linspace(0.0, 4.0*np.pi, n)
@@ -52,12 +46,6 @@ for i in range(0, n):
     offset = noise.noise2(0.5*thetaR[i], 0.0)
     thetaR[i] += offset
 
-with open("../compress_info.txt", "w") as fout:
-    fout.write(str(n) + "\n")
-    for i in range(0, n):
-        fout.write("%.6f %.6f %.6f\n" % (R1[i], R2[i], theta[i]))
-    fout.close()
-
 for i in range(0, m):
     for j in range(0, n):
         offset = curves[i][j] - avgCurve[j]
@@ -73,10 +61,38 @@ for i in range(0, m):
 
         curves[i][j] = avgCurve[j] + offset
 
-
-with open("../genYarn_frame1_compressed_R.txt", "w") as fout:
+with open("../genYarn_frame1_compressed.txt", "w") as fout:
     fout.write(str(m) + "\n")
     for i in range(0, m):
         fout.write(str(n) + "\n")
         for j in range(0, n):
             fout.write("%.6f %.6f %.6f\n" % (curves[i][j, 0], curves[i][j, 1], curves[i][j, 2]))
+
+
+#print(m)
+#for i in range(0, m):
+#    print(n)
+#    for j in range(0, n):
+#        print("%.6f %.6f %.6f" % (curves[i][j, 0], curves[i][j, 1], curves[i][j, 2]))
+
+# with open("compress_info.txt", "w") as fout:
+#     fout.write(str(n) + "\n")
+#     for i in range(0, n):
+#         fout.write("%.6f %.6f %.6f\n" % (R1[i], R2[i], theta[i]))
+#     fout.close()
+
+plt.figure(figsize=(9, 4))
+
+plt.subplot(121)
+plt.plot(R1, label='Sx')
+plt.plot(R2, label='Sy')
+plt.legend()
+
+plt.subplot(122)
+plt.plot(theta, label=r'$\theta_S$')
+plt.plot(thetaR, label=r'$\theta_R$')
+plt.legend()
+
+plt.tight_layout()
+plt.savefig('ref.png', dpi=200)
+plt.show()

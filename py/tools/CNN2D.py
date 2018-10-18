@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Dec 19 16:59:25 2017
-
+using CNN2d for the fitting process
 @author: zahra
 """
 from __future__ import print_function

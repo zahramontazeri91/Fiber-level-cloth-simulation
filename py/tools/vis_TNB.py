@@ -1,3 +1,8 @@
+"""
+read fresnet frame and visualize the local frame on the curve
+"""
+
+
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt

@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 Visualize yarn intersection with given planes
+compare for procedural-generated yarn, simulated, and compressed.
+Each cross-section visualize in one plane (figure)
 """
 import numpy as np
 import matplotlib

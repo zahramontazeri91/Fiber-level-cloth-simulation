@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Mar 16 15:32:40 2018
-
+visualize a rainbow cylinder that gets compressed
+using the given DG.
 @author: zahra
 """
 

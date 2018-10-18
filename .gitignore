@@ -5,10 +5,10 @@
 
 # data directories
 dataSets/
+scene/
 fibersim/
 input/
 output/
-NN/
 genYarn.txt
 genYarnRef.txt
 test_ply0.txt

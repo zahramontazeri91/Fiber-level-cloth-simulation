@@ -52,7 +52,13 @@ os.system('YarnGeneration 2 %s %s -w 5 -s %d -s2 %d -t %d -x %f -k %d -v %d -c 1
 os.system('YarnGeneration 2 %s %s -w 5 -s %d -s2 %d -t %d -x %f -k %d -v %d -c 0 -vol 0-rx 10 -ry 10 -rz 10 -rad 0.1' %(str1, str2, upsample, upsampleMore, isTrain, trimPercent, skipFactor, vrtNum)) #without deformation
 
 # In[]
-########################## phase2
+########################## write mitsuba xml file
+xmlfile = 'fibers_test.xml'
+spp = 10
+def generateSingle (xmlfile, spp, isYarn4=1 )
+
+# In[]
+########################## rendering
 os.chdir('F:/sandbox/fiberSimulation/yarn_generation_project/scene')
 
 for i in range (int(firstFrame/skipFactor), int(lastFrame/skipFactor+1)):
@@ -63,6 +69,6 @@ for i in range (int(firstFrame/skipFactor), int(lastFrame/skipFactor+1)):
         fn = "../YarnGeneration/output/" + dataset + "/genYarn_NN_" + str(f) + "_" + str(y)+ "_us.txt"
         print(fn)
         os.system('F:/sandbox/fiberSimulation/dist_fiber_mitsuba/dist/mitsuba -D fn="%s" fibers.xml' % (fn))
-        os.rename("fibers.exr", '../results/' + dataset + '/NN_' + str(f) + '_' + str(y) + '_diffuse_dirtest_bcsdf_reg5.exr')
+        os.rename("fibers.exr", '../results/' + dataset + '/NN_' + str(f) + '_' + str(y) + '_sweep_reg5.exr')
         
     
