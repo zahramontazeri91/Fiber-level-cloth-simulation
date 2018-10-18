@@ -39,7 +39,7 @@ void step2_shapematching(const char* configfile, const char* fiberRefFile, const
 	const char* normFile, const char* globalRot, const int ply_num, const int vrtx, std::vector<Eigen::Matrix2f> &matrixS);
 
 // phase1 - step3: Generate test data files and training files (if isTrain)
-void step3_buildNNfiles(const int isTrain, const int ws_ds, const float trimPercent, const int downsample,
+void step3_buildNNfiles(const int isTrain, const int ws_ds, const float trimPercent, const int sampleRate,
 	const std::vector<Eigen::Vector3d> &all_pnts, const std::vector<Eigen::Vector3d> &all_norm, const std::vector<Eigen::Vector3d> &all_tang,
 	std::vector<double> &twists, std::vector<Eigen::Matrix3d> &worldDGs, std::vector<Eigen::Matrix2f> &matrixS,
 	const char* trainXfile, const char* trainYfile, const char* testXfile, const char* anglefile);

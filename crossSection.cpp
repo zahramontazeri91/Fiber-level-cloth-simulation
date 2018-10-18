@@ -9,7 +9,6 @@ void CrossSection::init(const char* yarnfile, const int ply_num, const char* cur
 	m_curve.init(curvefile, normfile, seg_subdiv);
 	std::vector<yarnIntersect> itsLists;
 	buildPlanes(num_planes, itsLists);
-	std::cout << "Finding the intersections with the cross-sectional plane... \n";
 	PlanesIntersections2D(itsLists, allPlaneIntersect);
 }
 void CrossSection::init_norm(const char* yarnfile, const int ply_num, const char* curvefile, const char* normfile,
@@ -18,7 +17,6 @@ void CrossSection::init_norm(const char* yarnfile, const int ply_num, const char
 	m_curve.init_norm(curvefile, normfile, seg_subdiv);
 	std::vector<yarnIntersect> itsLists;
 	buildPlanes(num_planes, itsLists);
-	std::cout << "Finding the intersections with the cross-sectional plane... \n";
 	PlanesIntersections2D(itsLists, allPlaneIntersect);
 }
 
@@ -200,7 +198,7 @@ void CrossSection::yarnShapeMatch_A(const yarnIntersect2D &pnts_trans, const yar
 	for (int p = 0; p < pnts_trans.size(); ++p)
 		sz_trans += pnts_trans[p].size();
 
-
+	if (sz_ref != sz_trans) std::cout << "size ref-yarn and simulated are: " << sz_ref << " " << sz_trans << std::endl;
 	assert(sz_ref == sz_trans);
 	const int n = sz_ref;
 	Eigen::MatrixXf all_ref(2, n);
@@ -240,8 +238,7 @@ void CrossSection::yarnShapeMatches_A(const std::vector<yarnIntersect2D> &pnts_t
 	for (int i = 0; i < n; ++i) {
 		Eigen::Matrix2f A;
 		if (pnts_trans[i][0].size() != pnts_ref[i][0].size() || pnts_trans[i][1].size() != pnts_ref[i][1].size() ) { //for two plys!
-			std::cout << "Not equal number of points in simulated and procedural in " << i << "-th cross-section.\n";
-			std::cout << "trans: " << pnts_trans[i][0].size() << " ref: " << pnts_ref[i][0].size() << std::endl;
+			std::cout << "Mismatch in " << i << "-th cross-section. fibersim:" << pnts_trans[i][0].size() << " ref: " << pnts_ref[i][0].size() << std::endl;
 			A(0, 0) = 0.0;
 			A(0, 1) = 1.0;
 			A(1, 0) = 0.0;

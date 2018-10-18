@@ -992,7 +992,6 @@ namespace Fiber {
 				for (int v = 0; v < vertices_num; v++) {
 
 					int indx = static_cast<int> ((fiber.vertices[v].z - zMin) / this->z_step_size);
-					//std::cout << v << " " << indx << " " << this->z_step_size << std::endl;
 
 					//Eigen::Matrix2f transf = A[indx];
 					Eigen::Matrix2f rot = R[indx];
@@ -1051,9 +1050,6 @@ namespace Fiber {
 					//because of flyaways we should find the closest indx to v
 					//int indx = static_cast<int> ((fiber.vertices[v].z - zMin) / this->z_step_size);  //was working before
 					int indx = static_cast<int> ( ((fiber.vertices[v].z - zMin) / zSpan) * (this->z_step_num-1)  ); // -1 because index starts from 0
-					//if (f == 0 && i == 0)
-						//std::cout << v << "  " << vertices_num  << " " << indx << " " << indx2  << " " << A.size() << " " <<  this->z_step_size << std::endl;
-
 
 					Eigen::Matrix2f transf = A[indx];
 					if (global_rot != "") {

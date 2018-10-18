@@ -279,8 +279,9 @@ def predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, angles
 #    predicted_reg = regularize(predicted_sweep2, window_reg) 
 #    predicted_reg2 = regularize(predicted_reg, window_reg+2) 
     ####################
-#    predicted_sweep = predicted
-    predicted_sweep = sweep(predicted, window_sweep)
+    predicted_sweep = predicted
+    #uncomment sweep only for stretching
+#    predicted_sweep = sweep(predicted, window_sweep)
     predicted_reg = regularize(predicted_sweep, window_reg) 
     predicted_reg2 = regularize(predicted_reg, window_reg+2) 
 #    predicted_reg2 = predicted_sweep
@@ -337,7 +338,8 @@ def appendTrainingData(datasets, w_path, fn_trainX, fn_trainY):
         
 # In[]
 stride = 1
-window_reg = 3
+window_reg = 5
+#window_reg = 3 #for non-stretching
 window_sweep = 3
 def main_NN(yarn_type,upsample_rate, dataset, firstFrame, lastFrame, yarn0, yarn1, skipFactor, vrtxNum):
     datasets = []

@@ -1,4 +1,4 @@
-single_yarn/yarn8/teeth/4_1.2_00110 19500 19500 0 1 -k 500
+single_yarn/yarn8/teeth_1.2_00110 0 19500 0 1 -k 500
 eof
 single_yarn/yarn8/stretch 0 49500 0 1
 eof
@@ -31,7 +31,7 @@ pattern/yarn8/spacing3.0x/00011 7000 19000 0 1
 pattern/yarn8/spacing3.0x/10100 7000 19500 0 1
 pattern/yarn8/spacing3.0x/11110 7000 19000 0 1
 eof
-single_yarn/yarn8/teeth/4_1.2 8000 8000 0 1
+single_yarn/yarn8/teeth_1.2 8000 8000 0 1
 eof
 woven/arbitrary_pattern/150x100 0 0 110 115
 eof
@@ -57,10 +57,10 @@ single_yarn/yarn8/stretch 25000 30000 0 1
 eof
 pattern/yarn8/spacing1.0x/00011 17000 17000 0 1
 eof
-single_yarn/yarn8/teeth/4_1.2 12000 12000 0 1
+single_yarn/yarn8/teeth_1.2 12000 12000 0 1
 eof
-single_yarn/yarn8/teeth/4_1.6 12000 12000 0 1 
+single_yarn/yarn8/teeth_1.6 12000 12000 0 1 
 eof
-single_yarn/yarn8/teeth/4_1.6 17000 17000 0 1 
+single_yarn/yarn8/teeth_1.6 17000 17000 0 1 
 eof
 
