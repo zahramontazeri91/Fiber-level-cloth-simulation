@@ -1,7 +1,6 @@
 ''' open this file in python3.5 where tensorflow is installed
 change the parameters for each dataset accordingly
 Inputs are listed in yarnTypes/#yarnType/dataset '''
-
 import os
 #from linearReg import main_NN
 from NN import main_NN
@@ -35,7 +34,7 @@ str2 = "yarnTypes/" + yarnType + "/datasets.txt"
 # In[] 
 ########################## phase1
 print ("*************** phase1: GENERATE NN INPUT ***************\n")
-os.chdir('F:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/x64/Release')
+os.chdir('F:/YarnGeneration/x64/Release')
 os.system('YarnGeneration 1 %s %s -w 5 -s %d -t %d -x %f -k %d -v %d' %(str1, str2, upsample, isTrain, trimPercent, skipFactor, vrtNum))
 
 # In[]
@@ -47,28 +46,31 @@ main_NN(yarnType, upsample, dataset, firstFrame, lastFrame, yarn0, yarn1, skipFa
 # In[]
 ########################## phase2
 print ("*************** phase2: APPLY NN OUTPUT ***************\n")
-os.chdir('F:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/x64/Release')
+os.chdir('F:/YarnGeneration/x64/Release')
 os.system('YarnGeneration 2 %s %s -w 5 -s %d -s2 %d -t %d -x %f -k %d -v %d -c 1 -vol 0 -rx 10 -ry 10 -rz 10 -rad 0.1' %(str1, str2, upsample, upsampleMore, isTrain, trimPercent, skipFactor, vrtNum)) #deform the yarn
 os.system('YarnGeneration 2 %s %s -w 5 -s %d -s2 %d -t %d -x %f -k %d -v %d -c 0 -vol 0-rx 10 -ry 10 -rz 10 -rad 0.1' %(str1, str2, upsample, upsampleMore, isTrain, trimPercent, skipFactor, vrtNum)) #without deformation
 
 # In[]
 ########################## write mitsuba xml file
-xmlfile = 'fibers_test.xml'
-spp = 10
-def generateSingle (xmlfile, spp, isYarn4=1 )
+import sys
+sys.path.insert(0, '../scene')
+import generate_single
+xmlfile = 'fibers.xml'
+spp = 8
+generate_single.genScene (xmlfile, spp, yarnType )
 
 # In[]
 ########################## rendering
-os.chdir('F:/sandbox/fiberSimulation/yarn_generation_project/scene')
+os.chdir('F:/YarnGeneration/scene')
 
 for i in range (int(firstFrame/skipFactor), int(lastFrame/skipFactor+1)):
     f = i*skipFactor
     for y in range (yarn0, yarn1):
-#        fn = "../YarnGeneration/fibersim/" + dataset + "/simul_frame_" + str(f) + "_" + str(y)+ ".txt"
-#        fn = "../YarnGeneration/output/" + dataset + "/genYarn_wo_" + str(f) + "_" + str(y)+ ".txt"
-        fn = "../YarnGeneration/output/" + dataset + "/genYarn_NN_" + str(f) + "_" + str(y)+ "_us.txt"
+#        fn = "../fibersim/" + dataset + "/simul_frame_" + str(f) + "_" + str(y)+ ".txt"
+#        fn = "../output/" + dataset + "/genYarn_wo_" + str(f) + "_" + str(y)+ ".txt"
+        fn = "../output/" + dataset + "/genYarn_NN_" + str(f) + "_" + str(y)+ "_us.txt"
         print(fn)
         os.system('F:/sandbox/fiberSimulation/dist_fiber_mitsuba/dist/mitsuba -D fn="%s" fibers.xml' % (fn))
-        os.rename("fibers.exr", '../results/' + dataset + '/NN_' + str(f) + '_' + str(y) + '_sweep_reg5.exr')
+#        os.rename("fibers.exr", '../../results/' + dataset + '/NN_' + str(f) + '_' + str(y) + '_sweep_reg5_test2.exr')
         
     
