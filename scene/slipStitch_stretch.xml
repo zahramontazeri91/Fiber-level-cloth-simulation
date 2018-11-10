@@ -1,0 +1,56 @@
+<?xml version='1.0' encoding='utf-8'?>
+<scene version="0.4.4"> 
+	<integrator type="volpath"> 
+		<integer name="maxDepth" value="25"/> 
+		<integer name="rrDepth" value="30"/> 
+	</integrator> 
+
+	<shape type="hair">
+		<string name="filename" value="F:/YarnGeneration/output/knitted/slipStitch_stretch/genYarn_wo_0_0.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.8, 0.1, 0.1"/>
+			<float name="alpha" value="0.05"/>
+		</bsdf> 
+	</shape>
+
+<!-- 	<shape type="rectangle">
+		<transform name="toWorld">
+			<rotate y="1" angle="-90"/>
+			<scale x="5" y="5" z="5"/>
+			<translate x="3"/>
+		</transform>
+		<bsdf type="diffuse">
+			<spectrum name="diffuseReflectance" value="0.5, 0.5, 0.5"/>
+		</bsdf>
+	</shape> -->
+	<shape type="rectangle"> 
+		<transform name="toWorld"> 
+			<rotate y="1" angle="90"/> 
+			<rotate x="1" angle="45"/> 
+			<scale x="25" y="25" z="25"/> 
+			<translate x="-20" y="60" z="0.0"/> 
+		</transform> 
+		<emitter type="area"> 
+			<spectrum name="radiance" value="25"/>  
+		</emitter> 
+	</shape> 
+	<sensor type="perspective">
+		<string name="fovAxis" value="smaller"/>
+		<transform name="toWorld">
+			<lookAt origin="0 0 40" target="0 0 0" up="0 1 0"/>  
+		</transform>
+		<float name="fov" value="10.0"/>
+		<sampler type="ldsampler">
+			<integer name="sampleCount" value="32"/>
+		</sampler>
+		<film id="film" type="hdrfilm">
+			<integer name="width" value="1024"/>
+			<integer name="height" value="1024"/>
+			<rfilter type="gaussian"/>
+			<boolean name="banner" value="false" />
+		</film>
+	</sensor>
+
+</scene>

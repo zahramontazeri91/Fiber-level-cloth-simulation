@@ -1,0 +1,138 @@
+<?xml version='1.0' encoding='utf-8'?>
+
+<scene version="0.5.0">
+	<integrator type="volpath_simple">
+		<integer name="maxDepth" value="10"/>
+		<integer name="rrDepth" value="15"/>
+	</integrator>
+
+	<medium type="heterogeneous2" id="med">
+		<float name="scale" value="500"/>
+		<float name="stepSize" value="1"/>
+
+		<volume type="linesegvolume">
+			<float name="radius" value="0.002"/>
+			<float name="dropOut" value="0.1"/>
+			
+			<!-- read from txt for first time  -->			
+			<!-- <string name="filename" value="../YarnGeneration/output/woven/push/yarn8/100x100/testinfo_1830.txt"/> -->
+			<!-- <string name="filename" value="test.txt"/> -->
+
+			<string name="filename" value="$testinfo"/>
+
+			<!-- read from binary afterward -->
+<!--  			<string name="filename" value="cached.dat"/>
+			<integer name="format" value="1"/>  -->
+		</volume>
+
+		<phase type="microflake">
+			<float name="stddev" value="0.3"/>
+		</phase>
+	</medium>
+	
+
+	<shape type="obj">
+		<string name="filename" value="$obj"/>
+		<ref name="interior" id="med"/>
+		<boolean name="faceNormals" value="true"/>
+	</shape>
+
+
+	<shape type="rectangle">
+		<transform name="toWorld">
+			<rotate x="1" angle="-90"/>
+			<scale x="35" z="35"/>
+			<translate x="4.5" y="-7.0" z="4.5"/>
+		</transform>
+		<bsdf type="diffuse">
+			<texture type="bitmap" name="reflectance">
+				<string name="filename" value="concrete-lessdark.jpg"/>
+			</texture>
+		</bsdf>
+	</shape>
+
+	<emitter type="constant">
+		<spectrum name="radiance" value="0.0"/> 
+	</emitter>
+
+<!-- 	<shape type="sphere">
+		<point name="center" x="5.0" y="3.5" z="5.0"/>
+		<float name="radius" value="1.0"/>
+		<transform name="toWorld"> 
+			<translate y="0"/>
+		</transform> 
+		<emitter type="area">
+			<spectrum name="radiance" value="1.2"/> 
+		</emitter>
+	</shape> -->
+<!-- 	<shape type="cylinder">
+		<float name="radius" value="1.2"/>
+		<point name="p0" x="4.05" y="$h" z="5"/>
+		<point name="p1" x="5.95" y="$h" z="5"/>
+		<bsdf type="diffuse">
+			<spectrum name="reflectance" value="0.3"/>
+		</bsdf>	
+		<emitter type="area"> 
+			<spectrum name="radiance" value="0.7"/>  
+		</emitter> 
+	</shape>
+	<shape type="disk">
+		<transform name="toWorld">
+			<rotate y="1" angle="-90"/>
+			<scale value="1.2"/>
+			<translate x="4.05" y="$h" z="5"/>
+		</transform>
+		<emitter type="area"> 
+			<spectrum name="radiance" value="0.7"/>  
+		</emitter> 
+	</shape> -->
+<!-- 	<shape type="obj">
+		<string name="filename" value="../../capsule.obj"/>
+		<boolean name="faceNormals" value="true"/>
+		<transform name="toWorld"> 
+			<rotate z="1" angle="90"/>
+			<scale x="0.5"/> 
+			<translate x="5" y="$h" z="5"/> 
+		</transform> 
+		<bsdf type="roughplastic">
+			<float name="alpha" value="0.05"/>
+			<spectrum name="diffuseReflectance" value="0.8, 0.1, 0.1"/> 
+		</bsdf>  
+	</shape> -->
+
+	<shape type="rectangle"> 
+		<transform name="toWorld"> 
+			<rotate x="1" angle="90"/> 
+			<scale x="10" y="10" z="10"/> 
+			<translate x="4.5" y="100.0" z="4.5"/> 
+		</transform> 
+		<emitter type="area"> 
+			<spectrum name="radiance" value="150"/>  
+		</emitter> 
+	</shape> 
+
+	<sensor type="perspective">
+		<string name="fovAxis" value="smaller"/>
+		<transform name="toWorld">
+			<!-- <lookAt origin="0 30 0" target="10 0 10" up="0 1 0"/>  FOR ARBITRARY 100x100  -->
+			<lookAt origin="0 15 0" target="6 0 5" up="0 1 0"/> <!--FOR push 100x100 zoomed in  -->
+			<!-- <lookAt origin="0 150 0" target="50 0 50" up="0 1 0"/>  --> <!-- FOR ARBITRARY 512x512  -->
+
+		</transform>
+		<!-- <float name="fov" value="90.0"/> FOR ARBITRARY 100x100  -->
+		<float name="fov" value="7"/> <!--FOR push 100x100  -->
+		<!-- <float name="fov" value="60.0"/> -->
+
+		<sampler type="independent">
+			<integer name="sampleCount" value="64"/>
+		</sampler>
+		<film id="film" type="hdrfilm">
+			<integer name="width" value="512"/>
+			<!-- <integer name="width" value="910"/> -->
+			<integer name="height" value="512"/>
+			<rfilter type="gaussian"/>
+			<boolean name="banner" value="false" />
+		</film>
+	</sensor>
+
+</scene>

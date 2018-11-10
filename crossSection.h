@@ -34,8 +34,9 @@ public:
 		else
 			init(yarnfile, ply_num, curvefile, normfile, subdiv_curve, plane_num, allPlaneIntersect);
 	}
-	CrossSection(const char* yarnfile, const char* configfile, std::vector<yarnIntersect2D> &allPlaneIntersect) {
+	CrossSection(const char* yarnfile, const char* configfile, const int vrtx, std::vector<yarnIntersect2D> &allPlaneIntersect) {
 		m_yarn.parse(configfile);
+		m_yarn.setStepNum(vrtx);
 		m_yarn.build(yarnfile, m_yarn.getPlyNum());
 		yarn2crossSections(allPlaneIntersect);
 	}
@@ -65,11 +66,11 @@ public:
 	}
 
 	/* shape matching pass transformation matrix A */
-	void shapeMatch_A(const Eigen::MatrixXf &pnt_trans, const Eigen::MatrixXf &pnt_ref, Eigen::Matrix2f &A, std::ofstream &phase_fout);
-	void yarnShapeMatch_A(const yarnIntersect2D &pnts_trans, const yarnIntersect2D &pnts_ref, Eigen::Matrix2f &A, std::ofstream &phase_fout);
+	void shapeMatch_A(const Eigen::MatrixXf &pnt_trans, const Eigen::MatrixXf &pnt_ref, Eigen::Matrix2f &A, Eigen::Matrix2f &R);
+	void yarnShapeMatch_A(const yarnIntersect2D &pnts_trans, const yarnIntersect2D &pnts_ref, Eigen::Matrix2f &A, Eigen::Matrix2f &R);
 	void yarnShapeMatches_A(const std::vector<yarnIntersect2D> &pnts_trans, const std::vector<yarnIntersect2D> &pnts_ref,
-		std::vector<Eigen::Matrix2f> &all_A, std::ofstream &phase_fout);
-
+		std::vector<Eigen::Matrix2f> &all_A, std::vector<Eigen::Matrix2f> &all_R);
+	
 	/* return m_curve */
 	HermiteCurve get_curve() {
 		return m_curve;
@@ -78,11 +79,19 @@ public:
 	/* Given a yarn dataStructure, transform it to a vector of cross-sections (for debug use)*/
 	void yarn2crossSections(std::vector<yarnIntersect2D> &itsLists);
 
+	/* Write the 2D intersected points to file to be used for NN loss function */
+
 protected:
 	HermiteCurve m_curve;
 	Fiber::Yarn m_yarn;
 	std::vector<Plane> m_planesList;
 };
+
+/* outside functions */
+//write simulate and rotated referernce to be used for NN loss function
+void writePnts(const std::vector<yarnIntersect2D> &all_pnts, const std::vector<Eigen::Matrix2f> &all_R,
+	const char* pnts_file, const int isRotate, const int ws_ds, const float trimPercent, const int sampleRate);
+void convertYarnIntersect2Mat(const yarnIntersect2D &pnts_yarn, Eigen::MatrixXf &pnts_mat);
 
 
 #endif // !_CROSS_SECTION_H_

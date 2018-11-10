@@ -1008,6 +1008,7 @@ namespace Fiber {
 		}
 	} // rotate_yarn
 
+
 	void Yarn::compress_yarn_A(const char* compress_S, const char* global_rot) {
 		std::cout << "step7: compress yarn cross-sections ..." << std::endl;
 
@@ -1022,7 +1023,6 @@ namespace Fiber {
 		//double curveLength = centerCurve.totalLength();
 
 		const int ply_num = this->plys.size();
-		const int num_of_cores = omp_get_num_procs();
 
 		std::vector<Eigen::Matrix2f> A;
 		std::vector<Eigen::Matrix2f> R;
@@ -1044,6 +1044,7 @@ namespace Fiber {
 				Fiber &fiber = this->plys[i].fibers[f];
 
 				const int vertices_num = this->plys[i].fibers[f].vertices.size();
+				const int num_of_cores = omp_get_num_procs();
 //#pragma omp parallel for num_threads(num_of_cores) 
 				for (int v = 0; v < vertices_num; v++) {
 
@@ -1051,6 +1052,7 @@ namespace Fiber {
 					//int indx = static_cast<int> ((fiber.vertices[v].z - zMin) / this->z_step_size);  //was working before
 					int indx = static_cast<int> ( ((fiber.vertices[v].z - zMin) / zSpan) * (this->z_step_num-1)  ); // -1 because index starts from 0
 
+					/* transformation matrix */
 					Eigen::Matrix2f transf = A[indx];
 					if (global_rot != "") {
 						transf = A[indx] * R[indx];
@@ -1075,9 +1077,7 @@ namespace Fiber {
 					Eigen::MatrixXf def(2, 1);
 					def = transf*ref;
 					fiber.vertices[v].x = def(0, 0);
-					fiber.vertices[v].y = def(1, 0);
-
-
+					fiber.vertices[v].y = def(1, 0);					
 				}
 			}
 		}

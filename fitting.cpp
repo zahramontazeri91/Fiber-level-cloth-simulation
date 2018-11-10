@@ -67,9 +67,16 @@ void generateNNinput(const char* configfile, const int vrtx, const int skipFacto
 			std::string tmp11 = "input/" + dataset + "/angle_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
 			const char* anglefile = tmp11.c_str();
 
+			// files needed for NN loss function
+			std::string tmp12 = "input/" + dataset + "/simul2D_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+			const char* simul2Dfile = tmp12.c_str();
+			std::string tmp13 = "input/" + dataset + "/ref2D_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+			const char* ref2Dfile = tmp13.c_str();
+
 			std::vector<Eigen::Vector3d> pnts, norms, tangs;
 			std::vector<Eigen::Matrix3d> worldDGs, localDGs;
 			std::vector<double> twists;
+			const int sampleRate = upsample; // downsample the NN testfiles back to simulated resolution
 
 			// step 0: parse simulated data
 			step0_parseSimulData(fibersim_in, yarnsim_in, DG_in, vrtx, fiberNum, isTrain, scaleSim, upsample,
@@ -80,12 +87,17 @@ void generateNNinput(const char* configfile, const int vrtx, const int skipFacto
 
 			// step 2: extract matrix S
 			std::vector<Eigen::Matrix2f> matrixS;
-			if (isTrain)
-				step2_shapematching(configfile, fiberRefFile, fibersimfile,
-					centerfile, normfile, globalRot, plyNum, vrtx, matrixS);
+			if (isTrain) {
+				std::vector<yarnIntersect2D> pnts_ref, pnts_trans;
+				std::vector<Eigen::Matrix2f> all_R;
+					step2_shapematching(configfile, fiberRefFile, fibersimfile, centerfile, normfile, globalRot, 
+						plyNum, vrtx, matrixS, pnts_ref, pnts_trans, all_R);
+					//write simulate and rotated referernce to be used for NN loss function
+					writePnts(pnts_trans, all_R, simul2Dfile, 0, ws_ds, trimPercent, sampleRate);
+					writePnts(pnts_ref, all_R, ref2Dfile, 1, ws_ds, trimPercent, sampleRate);
+			}
 
 			// step 3: generate NN test files and train files if isTrain
-			const int sampleRate = upsample; // downsample the NN testfiles back to simulated resolution
 			step3_buildNNfiles(isTrain, ws_ds, trimPercent, sampleRate, pnts, norms, tangs,
 				twists, worldDGs, matrixS, trainXfile, trainYfile, testXfile, anglefile);
 		}
@@ -94,8 +106,8 @@ void generateNNinput(const char* configfile, const int vrtx, const int skipFacto
 		step4_appendTraining(skipFactor, frame0, frame1, yarn0, yarn1, dataset);
 }
 
-void L2norm(const std::vector<yarnIntersect2D> &its_deform, const std::vector<yarnIntersect2D> &its_trans, std::vector<float> &L2, const char* filename, const float trimPercent) {
-
+void L2norm(const std::vector<yarnIntersect2D> &its_deform, const std::vector<yarnIntersect2D> &its_trans, std::vector<float> &L2, const char* filename, const float trimPercent) 
+{
 	if (its_deform.size() != its_trans.size())
 		std::cout << its_deform.size() << " " << its_trans.size() << std::endl;
 	assert(its_deform.size() == its_trans.size());
@@ -457,12 +469,17 @@ void readCenterlines(const char* simulCenterline, const int vrtx, const float sc
 	std::vector<double> twist_ds(vrtx_ds);
 	for (int i = 0; i < vrtx_ds; ++i) {
 		char v;
-		float x, y, z, t;
-		simulFin >> v >> x >> y >> z >> t;
-		pts_ds[i][0] = double(x*scaleSim);
-		pts_ds[i][1] = double(y*scaleSim);
-		pts_ds[i][2] = double(z*scaleSim);
-		twist_ds[i] = t;
+		float x, y, z, t=0.0;
+		std::string line;
+		std::getline(simulFin, line);
+		std::vector<std::string> splits = split(line, ' ');
+		pts_ds[i][0] = double(std::stod(splits[1].c_str())*scaleSim);
+		pts_ds[i][1] = double(std::stod(splits[2].c_str())*scaleSim);
+		pts_ds[i][2] = double(std::stod(splits[3].c_str())*scaleSim);
+		if (splits.size() == 5 )
+			twist_ds[i] = double(std::stod(splits[4].c_str()));
+
+		//std::cout << std::setprecision(8) << pts_ds[i][0] << " " << splits[1].c_str() <<  std::endl;
 	}
 	int seg_subdiv = 10;
 	HermiteCurve curve;
@@ -473,6 +490,7 @@ void readCenterlines(const char* simulCenterline, const int vrtx, const float sc
 
 	// assign local frames for each point
 	std::vector<Eigen::Vector3d> all_pts(vrtx), all_tang(vrtx), all_norm(vrtx);
+	
 	curve.assign_twist(twists, all_pts, all_tang, all_norm, upsample);
 
 	centerlines = all_pts;
@@ -555,38 +573,31 @@ void step1_DG2local( const std::vector<Eigen::Vector3d> &norms, const std::vecto
 	}
 }
 
-void step2_shapematching(const char* configfile, const char* fiberRefFile, const char* fibersimfile,
-	const char* centerFile, const char* normFile, const char* globalRot, const int ply_num, const int vrtx,
-	std::vector<Eigen::Matrix2f> &matrixS)
+void step2_shapematching(const char* configfile, const char* fiberRefFile, const char* fibersimfile, const char* centerFile,
+	const char* normFile, const char* globalRot, const int ply_num, const int vrtx, std::vector<Eigen::Matrix2f> &matrixS, 
+	std::vector<yarnIntersect2D> &pnts_ref, std::vector<yarnIntersect2D> &pnts_trans, std::vector<Eigen::Matrix2f> &all_R)
 {
 	std::cout << "*** step2: Shapematching step to extract deformation matrix ***\n";
 	// Generate non-deformed yarn
-	std::vector<yarnIntersect2D> pnts_ref;
-	CrossSection cs1(fiberRefFile, configfile, pnts_ref);
+	//std::vector<yarnIntersect2D> pnts_ref;
+	CrossSection cs1(fiberRefFile, configfile, vrtx, pnts_ref);
 
 	// Generate deformed yarn
-	std::vector<yarnIntersect2D> pnts_trans;
+	//std::vector<yarnIntersect2D> pnts_trans;
 	CrossSection cs2(fibersimfile, centerFile, normFile, ply_num, vrtx, 100, pnts_trans, true);
 
+	assert( pnts_ref.size() == pnts_trans.size() );
+
 	// write global rotations for phase-matching purpose
-	std::ofstream phase_fout(globalRot);
-	cs2.yarnShapeMatches_A(pnts_trans, pnts_ref, matrixS, phase_fout);
-	phase_fout.close();
+	//std::vector<Eigen::Matrix2f> all_R;
+	cs2.yarnShapeMatches_A(pnts_trans, pnts_ref, matrixS, all_R);
 
-	//for debug: visualization
-	//const char* L2File = "../data/L2.txt";
-	//const char* refFile = "../data/allCrossSection2D_ref.txt";
-	//const char* deformedRefFile = "../data/allCrossSection2D_deformedRef.txt";
-	//const char* deformedFile = "../data/allCrossSection2D_deformed.txt";
-	//const float trimPercent = 0.2;
-	//plotIntersections(pnts_ref, refFile, trimPercent);
-	//std::vector<yarnIntersect2D> ref_deformed;
-	//(pnts_ref, ref_deformed, all_A);
-	//plotIntersections(ref_deformed, deformedRefFile, trimPercent);
-	//plotIntersections(pnts_trans, deformedFile, trimPercent);
+	// Write the global rotation
+	std::ofstream fout(globalRot);
+	for (int l = 0; l < all_R.size(); l++) 
+		fout << all_R[l](0, 0) << " " << all_R[l](0, 1) << " " << all_R[l](1, 0) << " " << all_R[l](1, 1) << std::endl;
+	fout.close();
 
-	//std::vector<float> L2;
-	//L2norm(ref_deformed, pnts_trans, L2, L2File, trimPercent); //note that these have same size
 }
 
 void storeNNData(const int isTrain, Eigen::VectorXd &dataX, Eigen::VectorXd &dataY, const int ws_us, const int sampleRate,
@@ -693,6 +704,7 @@ void step3_buildNNfiles(const int isTrain, const int ws_ds, const float trimPerc
 
 		// data-augmentation for training data
 		if (isTrain) {
+			
 			Eigen::VectorXd store_trainX, store_trainY;
 			storeNNData(isTrain, store_trainX, store_trainY, ws_us, sampleRate, all_tang_seg, all_norm_seg, all_dg_seg, matrixS[v_yarn], angle, 0);
 			store_NN_trainX_total[omp_i * 4 + 0] = store_trainX;
@@ -872,6 +884,8 @@ void step5_applyNNoutput(const char* configfile, const int vrtx, int skipFactor,
 			}
 			yarn_compressed.curve_yarn(curvefile, normfile);
 			yarn_compressed.write_yarn(outfile);
+
+			//yarn_compressed.write_yarn_obj(outfile);
 
 			/*******  Validate NN by L2-norm ******/
 			//std::string tmp4 = "output/" + dataset + "/genYarn_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";

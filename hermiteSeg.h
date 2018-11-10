@@ -27,6 +27,7 @@ public:
         const Eigen::Vector3d &_m0, const Eigen::Vector3d &_m1)
     {
         p0 = _p0; p1 = _p1; m0 = _m0; m1 = _m1;
+		assert((p0 - p1).norm() > HERMITE_EPS && "Points are too close!");
         u1 = (p0 - p1)*2.0 + m0 + m1;
         u2 = (p0 - p1)*(-3.0) - m0*2.0 - m1;
     }
@@ -56,7 +57,7 @@ public:
     {
         Eigen::Vector3d ret = (u1*3.0*t + u2*2.0)*t + m0;
         if ( normalize ) {
-            //assert(ret.norm() > HERMITE_EPS); 
+            assert(ret.norm() > HERMITE_EPS); 
             ret.normalize();
         }
         return ret;

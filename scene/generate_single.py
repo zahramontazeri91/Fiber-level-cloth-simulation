@@ -1,0 +1,327 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Oct 18 10:49:14 2018
+generate xml file for mitsuba for a single yarn
+@author: zahra
+"""
+
+def genScene (xmlfile, spp, yarnType=""):
+    print('writing xml file ...\n' + xmlfile)
+    isYarn4=0
+    isYarn8=0
+    isYarn11=0
+    isYarn100=0 
+    if (yarnType=='yarn4'):
+        isYarn4=1
+    elif (yarnType=='yarn8'):
+        isYarn8=1
+    elif (yarnType=='yarn11'):
+        isYarn11=1
+    elif (yarnType=='yarn100'):
+        isYarn100=1
+
+    with open(xmlfile, "w") as fout:
+        
+        fout.writelines("<?xml version='1.0' encoding='utf-8'?>\n")
+        fout.writelines('<scene version="0.4.4"> \n')
+    
+        fout.writelines('\t<integrator type="volpath"> \n')
+        fout.writelines('\t\t<integer name="maxDepth" value="25"/> \n')
+        fout.writelines('\t\t<integer name="rrDepth" value="30"/> \n')
+        fout.writelines('\t</integrator> \n')
+        fout.writelines('\n') 
+    
+#        if (isYarn8):
+#            #### cylinders 1.2 00110
+#            fout.writelines('\t<shape type="cylinder">\n')
+#            fout.writelines('\t\t<float name="radius" value="0.16"/>\n')
+#            fout.writelines('\t\t<point name="p0" x="-1.0" y="$h2" z="0"/>\n')
+#            fout.writelines('\t\t<point name="p1" x="0.5" y="$h2" z="0"/>\n')
+#            fout.writelines('\t\t<bsdf type="diffuse">\n')
+#            fout.writelines('\t\t\t<spectrum name="reflectance" value="0.3"/>\n')
+#            fout.writelines('\t\t</bsdf>	\n')
+#            fout.writelines('\t</shape>\n')
+#            fout.writelines('\t<shape type="cylinder">\n')
+#            fout.writelines('\t\t<float name="radius" value="0.16"/>\n')
+#            fout.writelines('\t\t<point name="p0" x="-1.0" y="$h2" z="0.48"/>\n')
+#            fout.writelines('\t\t<point name="p1" x="0.5" y="$h2" z="0.48"/>\n')
+#            fout.writelines('\t\t<bsdf type="diffuse">\n')
+#            fout.writelines('\t\t\t<spectrum name="reflectance" value="0.3"/>\n')
+#            fout.writelines('\t\t</bsdf>	\n')
+#            fout.writelines('\t</shape>\n')
+#            fout.writelines('\t<shape type="cylinder">\n')
+#            fout.writelines('\t\t<float name="radius" value="0.16"/>\n')
+#            fout.writelines('\t\t<point name="p0" x="-1.0" y="$h2" z="-0.48"/>\n')
+#            fout.writelines('\t\t<point name="p1" x="0.5" y="$h2" z="-0.48"/>\n')
+#            fout.writelines('\t\t<bsdf type="diffuse">\n')
+#            fout.writelines('\t\t\t<spectrum name="reflectance" value="0.3"/>\n')
+#            fout.writelines('\t\t</bsdf>	\n')
+#            fout.writelines('\t</shape>\n')
+#            fout.writelines('\t<shape type="cylinder">\n')
+#            fout.writelines('\t\t<float name="radius" value="0.16"/>\n')
+#            fout.writelines('\t\t<point name="p0" x="-1.0" y="$h1" z="0.96"/>\n')
+#            fout.writelines('\t\t<point name="p1" x="0.5" y="$h1" z="0.96"/>\n')
+#            fout.writelines('\t\t<bsdf type="diffuse">\n')
+#            fout.writelines('\t\t\t<spectrum name="reflectance" value="0.3"/>\n')
+#            fout.writelines('\t\t</bsdf>	\n')
+#            fout.writelines('\t</shape>\n')
+#            fout.writelines('\t<shape type="cylinder">\n')
+#            fout.writelines('\t\t<float name="radius" value="0.16"/>\n')
+#            fout.writelines('\t\t<point name="p0" x="-1.0" y="$h1" z="-0.96"/>\n')
+#            fout.writelines('\t\t<point name="p1" x="0.5" y="$h1" z="-0.96"/>\n')
+#            fout.writelines('\t\t<bsdf type="diffuse">\n')
+#            fout.writelines('\t\t\t<spectrum name="reflectance" value="0.3"/>\n')
+#            fout.writelines('\t\t</bsdf>	\n')
+#            fout.writelines('\t</shape>\n')
+#            
+#            fout.writelines('\t<shape type="disk">\n')
+#            fout.writelines('\t\t<transform name="toWorld">\n')
+#            fout.writelines('\t\t\t<rotate y="1" angle="-90"/>\n')
+#            fout.writelines('\t\t\t<scale value="0.16"/>\n')
+#            fout.writelines('\t\t\t<translate x="-0.1" y="$h2" z="0"/>\n')
+#            fout.writelines('\t\t</transform>\n')
+#            fout.writelines('\t\t<bsdf type="diffuse">\n')
+#            fout.writelines('\t\t\t<spectrum name="reflectance" value="0.3"/>\n')
+#            fout.writelines('\t\t</bsdf>\n')
+#            fout.writelines('\t</shape>\n')
+#            
+#            fout.writelines('\t<shape type="disk">\n')
+#            fout.writelines('\t\t<transform name="toWorld">\n')
+#            fout.writelines('\t\t\t<rotate y="1" angle="-90"/>\n')
+#            fout.writelines('\t\t\t<scale value="0.16"/>\n')
+#            fout.writelines('\t\t\t<translate x="-0.1" y="$h2" z="0.48"/>\n')
+#            fout.writelines('\t\t</transform>\n')
+#            fout.writelines('\t\t<bsdf type="diffuse">\n')
+#            fout.writelines('\t\t\t<spectrum name="reflectance" value="0.3"/>\n')
+#            fout.writelines('\t\t</bsdf>\n')
+#            fout.writelines('\t</shape>\n')
+#            
+#            fout.writelines('\t<shape type="disk">\n')
+#            fout.writelines('\t\t<transform name="toWorld">\n')
+#            fout.writelines('\t\t\t<rotate y="1" angle="-90"/>\n')
+#            fout.writelines('\t\t\t<scale value="0.16"/>\n')
+#            fout.writelines('\t\t\t<translate x="-0.1" y="$h2" z="-0.48"/>\n')
+#            fout.writelines('\t\t</transform>\n')
+#            fout.writelines('\t\t<bsdf type="diffuse">\n')
+#            fout.writelines('\t\t\t<spectrum name="reflectance" value="0.3"/>\n')
+#            fout.writelines('\t\t</bsdf>\n')
+#            fout.writelines('\t</shape>\n')
+#            
+#            fout.writelines('\t<shape type="disk">\n')
+#            fout.writelines('\t\t<transform name="toWorld">\n')
+#            fout.writelines('\t\t\t<rotate y="1" angle="-90"/>\n')
+#            fout.writelines('\t\t\t<scale value="0.16"/>\n')
+#            fout.writelines('\t\t\t<translate x="-0.1" y="$h1" z="0.96"/>\n')
+#            fout.writelines('\t\t</transform>\n')
+#            fout.writelines('\t\t<bsdf type="diffuse">\n')
+#            fout.writelines('\t\t\t<spectrum name="reflectance" value="0.3"/>\n')
+#            fout.writelines('\t\t</bsdf>\n')
+#            
+#            fout.writelines('\t</shape>\n')
+#            fout.writelines('\t<shape type="disk">\n')
+#            fout.writelines('\t\t<transform name="toWorld">\n')
+#            fout.writelines('\t\t\t<rotate y="1" angle="-90"/>\n')
+#            fout.writelines('\t\t\t<scale value="0.16"/>\n')
+#            fout.writelines('\t\t\t<translate x="-0.1" y="$h1" z="-0.96"/>\n')
+#            fout.writelines('\t\t</transform>\n')
+#            fout.writelines('\t\t<bsdf type="diffuse">\n')
+#            fout.writelines('\t\t\t<spectrum name="reflectance" value="0.3"/>\n')
+#            fout.writelines('\t\t</bsdf>\n')
+#            fout.writelines('\t</shape>\n')
+            
+        if (isYarn11):
+            #### cylinder 1.6
+            fout.writelines('\t<shape type="cylinder">\n')
+            fout.writelines('\t\t<float name="radius" value="0.16"/>\n')
+            fout.writelines('\t\t<point name="p0" x="-1.0" y="$h1" z="0"/>\n')
+            fout.writelines('\t\t<point name="p1" x="0.5" y="$h1" z="0"/>\n')
+            fout.writelines('\t\t<bsdf type="diffuse">\n')
+            fout.writelines('\t\t\t<spectrum name="reflectance" value="0.3"/>\n')
+            fout.writelines('\t\t</bsdf>	\n')
+            fout.writelines('\t</shape>\n')
+        
+            fout.writelines('\t<shape type="cylinder">\n')
+            fout.writelines('\t\t<float name="radius" value="0.16"/>\n')
+            fout.writelines('\t\t<point name="p0" x="-1.0" y="$h2" z="0.64"/>\n')
+            fout.writelines('\t\t<point name="p1" x="0.5" y="$h2" z="0.64"/>\n')
+            fout.writelines('\t\t<bsdf type="diffuse">\n')
+            fout.writelines('\t\t\t<spectrum name="reflectance" value="0.3"/>\n')
+            fout.writelines('\t\t</bsdf>	\n')
+            fout.writelines('\t</shape>\n')
+        
+            fout.writelines('\t<shape type="cylinder">\n')
+            fout.writelines('\t\t<float name="radius" value="0.16"/>\n')
+            fout.writelines('\t\t<point name="p0" x="-1.0" y="$h2" z="-0.64"/>\n')
+            fout.writelines('\t\t<point name="p1" x="0.5" y="$h2" z="-0.64"/>\n')
+            fout.writelines('\t\t<bsdf type="diffuse">\n')
+            fout.writelines('\t\t\t<spectrum name="reflectance" value="0.3"/>\n')
+            fout.writelines('\t\t</bsdf>	\n')
+            fout.writelines('\t</shape>\n')
+
+            fout.writelines('\t<shape type="disk">\n')
+            fout.writelines('\t\t<transform name="toWorld">\n')
+            fout.writelines('\t\t\t<rotate y="1" angle="-90"/>\n')
+            fout.writelines('\t\t\t<scale value="0.16"/>\n')
+            fout.writelines('\t\t\t<translate x="-0.1" y="$h1" z="0.0"/>\n')
+            fout.writelines('\t\t</transform>\n')
+            fout.writelines('\t\t<bsdf type="diffuse">\n')
+            fout.writelines('\t\t\t<spectrum name="reflectance" value="0.3"/>\n')
+            fout.writelines('\t\t</bsdf>\n')
+            fout.writelines('\t</shape>\n')
+
+            fout.writelines('\t<shape type="disk">\n')
+            fout.writelines('\t\t<transform name="toWorld">\n')
+            fout.writelines('\t\t\t<rotate y="1" angle="-90"/>\n')
+            fout.writelines('\t\t\t<scale value="0.16"/>\n')
+            fout.writelines('\t\t\t<translate x="-0.1" y="$h2" z="0.64"/>\n')
+            fout.writelines('\t\t</transform>\n')
+            fout.writelines('\t\t<bsdf type="diffuse">\n')
+            fout.writelines('\t\t\t<spectrum name="reflectance" value="0.3"/>\n')
+            fout.writelines('\t\t</bsdf>\n')
+            fout.writelines('\t</shape>\n')
+            
+            fout.writelines('\t<shape type="disk">\n')
+            fout.writelines('\t\t<transform name="toWorld">\n')
+            fout.writelines('\t\t\t<rotate y="1" angle="-90"/>\n')
+            fout.writelines('\t\t\t<scale value="0.16"/>\n')
+            fout.writelines('\t\t\t<translate x="-0.1" y="$h2" z="-0.64"/>\n')
+            fout.writelines('\t\t</transform>\n')
+            fout.writelines('\t\t<bsdf type="diffuse">\n')
+            fout.writelines('\t\t\t<spectrum name="reflectance" value="0.3"/>\n')
+            fout.writelines('\t\t</bsdf>\n')
+            fout.writelines('\t</shape>\n')
+    
+    #########
+        ### shape hair
+        fout.writelines('\t<shape type="hair">\n')
+        fout.writelines('\t\t<string name="filename" value="$fn"/>\n'  )
+        fout.writelines('\t\t<float name="radius" value="0.002"/> 	\n')	
+        fout.writelines('\t\t<float name="angleThreshold" value="0.001"/>\n')
+        
+        if (isYarn4):
+            #yarn4
+            fout.writelines('\t\t<subsurface type="fibershader">\n')
+            fout.writelines('\t\t\t<boolean name="useRandomInteractionPoint" value="true"/>\n')
+            fout.writelines('\t\t\t<boolean name="sampleInteractionPointFromCircumference" value="false"/>\n')
+            fout.writelines('\t\t\t<fiberscat type="simpfabric5">\n')
+            fout.writelines('\t\t\t\t<float name="kD" value="0"/>\n')
+            fout.writelines('\t\t\t\t<spectrum name="colorD" value="0.99,0.99,0.99"/>\n')
+            fout.writelines('\t\t\t\t<spectrum name="colorR" value="0.25,0.25,0.3"/>\n')
+            fout.writelines('\t\t\t\t<float name="betaR" value="1.23799781194"/>\n')
+            fout.writelines('\t\t\t\t<float name="betaTT" value="9.99999999999"/>\n')
+            fout.writelines('\t\t\t\t<float name="gammaTT" value="25.9890848941"/>\n')
+            fout.writelines('\t\t\t\t<spectrum name="colorTT" value="0.45,0.86,0.95"/>\n')
+            fout.writelines('\t\t\t\t<float name="alpha" value="5"/>\n')
+            fout.writelines('\t\t\t</fiberscat>\n')
+            fout.writelines('\t\t</subsurface> \n')
+        elif (isYarn8):
+            #yarn8
+            fout.writelines('\t\t<subsurface type="fibershader">\n')
+            fout.writelines('\t\t\t<boolean name="useRandomInteractionPoint" value="true"/>\n')
+            fout.writelines('\t\t\t<boolean name="sampleInteractionPointFromCircumference" value="false"/>\n')
+            fout.writelines('\t\t\t<fiberscat type="simpfabric5">\n')
+            fout.writelines('\t\t\t\t<float name="kD" value="0"/>\n')
+            fout.writelines('\t\t\t\t<spectrum name="colorD" value="0.99,0.99,0.99"/>\n')
+            fout.writelines('\t\t\t\t<spectrum name="colorR" value="0.1,0.1,0.05"/>\n')
+            fout.writelines('\t\t\t\t<float name="betaR" value="0.2"/>\n')
+            fout.writelines('\t\t\t\t<float name="betaTT" value="27"/>\n')
+            fout.writelines('\t\t\t\t<float name="gammaTT" value="38"/>\n')
+            fout.writelines('\t\t\t\t<spectrum name="colorTT" value="0.93,0.53,0.01"/>\n')
+            fout.writelines('\t\t\t\t<float name="alpha" value="5"/>\n')
+            fout.writelines('\t\t\t</fiberscat>\n')
+            fout.writelines('\t\t</subsurface> \n')
+        elif (isYarn11):
+            #yarn11
+            fout.writelines('\t\t<subsurface type="fibershader">\n')
+            fout.writelines('\t\t\t<boolean name="useRandomInteractionPoint" value="true"/>\n')
+            fout.writelines('\t\t\t<boolean name="sampleInteractionPointFromCircumference" value="false"/>\n')
+            fout.writelines('\t\t\t<fiberscat type="simpfabric5">\n')
+            fout.writelines('\t\t\t\t<float name="kD" value="0"/>\n')
+            fout.writelines('\t\t\t\t<spectrum name="colorD" value="0.99,0.99,0.99"/>\n')
+            fout.writelines('\t\t\t\t<spectrum name="colorR" value="0.1,0.1,0.05"/>\n')
+            fout.writelines('\t\t\t\t<float name="betaR" value="4.0"/>\n')
+            fout.writelines('\t\t\t\t<float name="betaTT" value="10"/>\n')
+            fout.writelines('\t\t\t\t<float name="gammaTT" value="20"/>\n')
+            fout.writelines('\t\t\t\t<spectrum name="colorTT" value="0.88,0.83,0.01"/>\n')
+            fout.writelines('\t\t\t\t<float name="alpha" value="5"/>\n')
+            fout.writelines('\t\t\t</fiberscat>\n')
+            fout.writelines('\t\t</subsurface> \n')
+        elif (isYarn100):
+            #yarn100
+            fout.writelines('\t\t<subsurface type="fibershader">\n')
+            fout.writelines('\t\t\t<boolean name="useRandomInteractionPoint" value="true"/>\n')
+            fout.writelines('\t\t\t<boolean name="sampleInteractionPointFromCircumference" value="false"/>\n')
+            fout.writelines('\t\t\t<fiberscat type="simpfabric5">\n')
+            fout.writelines('\t\t\t\t<float name="kD" value="0"/>\n')
+            fout.writelines('\t\t\t\t<spectrum name="colorD" value="0.99,0.99,0.99"/>\n')
+            fout.writelines('\t\t\t\t<spectrum name="colorR" value="0.1,0.1,0.1"/>\n')
+            fout.writelines('\t\t\t\t<float name="betaR" value="1.23799781194"/>\n')
+            fout.writelines('\t\t\t\t<float name="betaTT" value="9.99999999999"/>\n')
+            fout.writelines('\t\t\t\t<float name="gammaTT" value="25.9890848941"/>\n')
+            fout.writelines('\t\t\t\t<spectrum name="colorTT" value="0.9,0.24,0.48"/>\n')
+            fout.writelines('\t\t\t\t<float name="alpha" value="5"/>\n')
+            fout.writelines('\t\t\t</fiberscat>\n')
+            fout.writelines('\t\t</subsurface> \n')   
+        else:
+            # use bsdf
+            fout.writelines('\t\t<bsdf type="roughplastic">\n')
+            fout.writelines('\t\t\t<spectrum name="diffuseReflectance" value="0.8, 0.1, 0.1"/>\n')
+            fout.writelines('\t\t\t<float name="alpha" value="0.05"/>\n')
+            fout.writelines('\t\t</bsdf> \n')
+            
+        fout.writelines('\t</shape>\n')
+        fout.writelines('\n')
+    
+        ####  rectangle
+        fout.writelines('\t<shape type="rectangle">\n')
+        fout.writelines('\t\t<transform name="toWorld">\n')
+        fout.writelines('\t\t\t<rotate y="1" angle="-90"/>\n')
+        fout.writelines('\t\t\t<scale x="5" y="5" z="5"/>\n')
+        fout.writelines('\t\t\t<translate x="3"/>\n')
+        fout.writelines('\t\t</transform>\n')
+#        fout.writelines('\t\t<bsdf type="diffuse">\n')
+#        fout.writelines('\t\t\t<texture type="bitmap" name="reflectance">\n')
+#        fout.writelines('\t\t\t\t<string name="filename" value="concrete.jpg"/>\n')
+#        fout.writelines('\t\t\t</texture>\n')
+#        fout.writelines('\t\t</bsdf>\n')
+        fout.writelines('\t\t<bsdf type="diffuse">\n')
+        fout.writelines('\t\t\t<spectrum name="diffuseReflectance" value="0.5, 0.5, 0.5"/>\n')
+        fout.writelines('\t\t</bsdf>\n')
+        fout.writelines('\t</shape>\n')
+        
+        ####  light
+        fout.writelines('\t<shape type="rectangle"> \n')
+        fout.writelines('\t\t<transform name="toWorld"> \n')
+        fout.writelines('\t\t\t<rotate y="1" angle="90"/> \n')
+        fout.writelines('\t\t\t<rotate x="1" angle="45"/> \n')
+        fout.writelines('\t\t\t<scale x="25" y="25" z="25"/> \n')
+        fout.writelines('\t\t\t<translate x="-20" y="60" z="0.0"/> \n')
+        fout.writelines('\t\t</transform> \n')
+        fout.writelines('\t\t<emitter type="area"> \n')
+        fout.writelines('\t\t\t<spectrum name="radiance" value="25"/>  \n')
+        fout.writelines('\t\t</emitter> \n')
+        fout.writelines('\t</shape> \n')
+        
+        
+        ### sensor
+        fout.writelines('\t<sensor type="perspective">\n')
+        fout.writelines('\t\t<string name="fovAxis" value="smaller"/>\n')
+        fout.writelines('\t\t<transform name="toWorld">\n')
+        fout.writelines('\t\t\t<lookAt origin="-10 0 0" target="0 0 0" up="0 1 0"/>  \n')
+        fout.writelines('\t\t</transform>\n')
+        fout.writelines('\t\t<float name="fov" value="3.0"/>\n')
+        fout.writelines('\t\t<sampler type="ldsampler">\n')
+        fout.writelines('\t\t\t<integer name="sampleCount" value="%d"/>\n' %spp)
+        fout.writelines('\t\t</sampler>\n')
+        fout.writelines('\t\t<film id="film" type="hdrfilm">\n')
+        fout.writelines('\t\t\t<integer name="width" value="1024"/>\n') 
+        fout.writelines('\t\t\t<integer name="height" value="256"/>\n')
+        fout.writelines('\t\t\t<rfilter type="gaussian"/>\n')
+        fout.writelines('\t\t\t<boolean name="banner" value="false" />\n')
+        fout.writelines('\t\t</film>\n')
+        fout.writelines('\t</sensor>\n')
+        fout.writelines('\n')
+    
+        fout.writelines('</scene>')
+    
+    fout.close()

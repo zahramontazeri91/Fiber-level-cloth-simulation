@@ -1,0 +1,358 @@
+<?xml version='1.0' encoding='utf-8'?>
+
+<scene version="0.4.4">
+	<integrator type="path">
+		<integer name="maxDepth" value="25"/>
+		<integer name="rrDepth" value="30"/>
+	</integrator>
+
+	<shape type="shapegroup" id="myShapeGroup">
+		<shape type="hair">
+
+            <string name="filename" value="$fn"/>
+            
+            <float name="radius" value="0.002"/>             
+			<float name="angleThreshold" value="0.001"/>
+
+			<bsdf type="roughplastic">
+				<spectrum name="diffuseReflectance" value="0.8, 0.1, 0.1"/>
+				<float name="alpha" value="0.05"/>
+			</bsdf> 
+
+<!-- yarn4 -->
+<!--         <subsurface type="fibershader">
+            <boolean name="useRandomInteractionPoint" value="true"/>
+            <boolean name="sampleInteractionPointFromCircumference" value="false"/>
+
+            <fiberscat type="simpfabric5">
+                <float name="kD" value="0"/>
+                <spectrum name="colorD" value="0.99,0.99,0.99"/>
+                <spectrum name="colorR" value="0.25,0.25,0.3"/>
+                <float name="betaR" value="1.23799781194"/>
+                <float name="betaTT" value="9.99999999999"/>
+                <float name="gammaTT" value="25.9890848941"/>
+                <spectrum name="colorTT" value="0.45,0.86,0.95"/>
+                <float name="alpha" value="5"/>
+            </fiberscat>
+        </subsurface>  -->
+
+<!-- yarn8 -->
+        <!--<subsurface type="fibershader">
+            <boolean name="useRandomInteractionPoint" value="true"/>
+            <boolean name="sampleInteractionPointFromCircumference" value="false"/>
+
+            <fiberscat type="simpfabric5">
+                <float name="kD" value="0"/>
+                <spectrum name="colorD" value="0.99,0.99,0.99"/>
+                <spectrum name="colorR" value="0.1,0.1,0.05"/>
+                <float name="betaR" value="0.2"/>
+                <float name="betaTT" value="27"/>
+                <float name="gammaTT" value="38"/>
+                <spectrum name="colorTT" value="0.93,0.53,0.01"/>
+                <float name="alpha" value="5"/>
+            </fiberscat>
+        </subsurface> -->
+
+<!-- yarn9 -->
+       <!-- <subsurface type="fibershader">
+            <boolean name="useRandomInteractionPoint" value="true"/>
+            <boolean name="sampleInteractionPointFromCircumference" value="false"/>
+
+            <fiberscat type="simpfabric5">
+                <float name="kD" value="0"/>
+                <spectrum name="colorD" value="0.99,0.99,0.99"/>
+                <spectrum name="colorR" value="0.1,0.1,0.1"/>
+                <float name="betaR" value="1.0"/>
+                <float name="betaTT" value="10"/>
+                <float name="gammaTT" value="20"/>
+                <spectrum name="colorTT" value="0.73,0.5,0.67"/>
+                <float name="alpha" value="5"/>
+            </fiberscat>
+        </subsurface>  -->
+
+<!-- yarn11 -->
+        <!--<subsurface type="fibershader">
+            <boolean name="useRandomInteractionPoint" value="true"/>
+            <boolean name="sampleInteractionPointFromCircumference" value="false"/>
+
+            <fiberscat type="simpfabric5">
+                <float name="kD" value="0"/>
+                <spectrum name="colorD" value="0.99,0.99,0.99"/>
+                <spectrum name="colorR" value="0.1,0.1,0.05"/>
+                <float name="betaR" value="4.0"/>
+                <float name="betaTT" value="10"/>
+                <float name="gammaTT" value="20"/>
+                <spectrum name="colorTT" value="0.88,0.83,0.01"/>
+                <float name="alpha" value="5"/>
+            </fiberscat>
+        </subsurface> -->
+
+		</shape>
+	</shape>
+
+    <!-- Create instance of the shape group, but rotated, scaled, and translated -->
+    <shape type="instance">
+        <ref id="myShapeGroup"/>
+        <transform name="toWorld">
+            <translate x="-0.07"/>
+        </transform>
+    </shape>
+<!--     <shape type="instance">
+        <ref id="myShapeGroup"/>
+        <transform name="toWorld">
+            <translate x="-0.14"/>
+        </transform>
+    </shape> -->
+    <shape type="instance">
+        <ref id="myShapeGroup"/>
+        <transform name="toWorld">
+            <translate x="-0.21"/>
+        </transform>
+    </shape>
+<!--     <shape type="instance">
+        <ref id="myShapeGroup"/>
+        <transform name="toWorld">
+            <translate x="-0.28"/>
+        </transform>
+    </shape> -->
+    <shape type="instance">
+        <ref id="myShapeGroup"/>
+        <transform name="toWorld">
+            <translate x="-0.35"/>
+        </transform>
+    </shape>
+<!--     <shape type="instance">
+        <ref id="myShapeGroup"/>
+        <transform name="toWorld">
+            <translate x="-0.42"/>
+        </transform>
+    </shape> -->
+    <shape type="instance">
+        <ref id="myShapeGroup"/>
+        <transform name="toWorld">
+            <translate x="-0.49"/>
+        </transform>
+    </shape>
+<!--     <shape type="instance">
+        <ref id="myShapeGroup"/>
+        <transform name="toWorld">
+            <translate x="-0.56"/>
+        </transform>
+    </shape> -->
+    <shape type="instance">
+        <ref id="myShapeGroup"/>
+        <transform name="toWorld">
+            <translate x="-0.63"/>
+        </transform>
+    </shape>
+<!--     <shape type="instance">
+        <ref id="myShapeGroup"/>
+        <transform name="toWorld">
+            <translate x="-0.7"/>
+        </transform>
+    </shape> -->
+    <shape type="instance">
+        <ref id="myShapeGroup"/>
+        <transform name="toWorld">
+            <translate x="-0.77"/>
+        </transform>
+    </shape>
+<!--     <shape type="instance">
+        <ref id="myShapeGroup"/>
+        <transform name="toWorld">
+            <translate x="-0.84"/>
+        </transform>
+    </shape> -->
+    <shape type="instance">
+        <ref id="myShapeGroup"/>
+        <transform name="toWorld">
+            <translate x="-0.91"/>
+        </transform>
+    </shape>
+<!--     <shape type="instance">
+        <ref id="myShapeGroup"/>
+        <transform name="toWorld">
+            <translate x="-0.98"/>
+        </transform>
+    </shape> -->
+    <shape type="instance">
+        <ref id="myShapeGroup"/>
+        <transform name="toWorld">
+            <translate x="-1.05"/>
+        </transform>
+    </shape>
+<!--     <shape type="instance">
+        <ref id="myShapeGroup"/>
+        <transform name="toWorld">
+            <translate x="-1.12"/>
+        </transform>
+    </shape>  -->
+    <shape type="instance">
+        <ref id="myShapeGroup"/>
+        <transform name="toWorld">
+            <translate x="-1.19"/>
+        </transform>
+    </shape>
+<!--     <shape type="instance">
+        <ref id="myShapeGroup"/>
+        <transform name="toWorld">
+            <translate x="-1.26"/>
+        </transform>
+    </shape>   --> 
+    <shape type="instance">
+        <ref id="myShapeGroup"/>
+    </shape>
+    
+
+<!--     <shape type="instance">
+        <ref id="myShapeGroup"/>
+        <transform name="toWorld">
+            <translate x="0.07"/>
+        </transform>
+    </shape> -->
+    <shape type="instance">
+        <ref id="myShapeGroup"/>
+        <transform name="toWorld">
+            <translate x="0.14"/>
+        </transform>
+    </shape>
+<!--     <shape type="instance">
+        <ref id="myShapeGroup"/>
+        <transform name="toWorld">
+            <translate x="0.21"/>
+        </transform>
+    </shape> -->
+    <shape type="instance">
+        <ref id="myShapeGroup"/>
+        <transform name="toWorld">
+            <translate x="0.28"/>
+        </transform>
+    </shape>
+<!--     <shape type="instance">
+        <ref id="myShapeGroup"/>
+        <transform name="toWorld">
+            <translate x="0.35"/>
+        </transform>
+    </shape> -->
+    <shape type="instance">
+        <ref id="myShapeGroup"/>
+        <transform name="toWorld">
+            <translate x="0.42"/>
+        </transform>
+    </shape>
+<!--     <shape type="instance">
+        <ref id="myShapeGroup"/>
+        <transform name="toWorld">
+            <translate x="0.49"/>
+        </transform>
+    </shape> -->
+    <shape type="instance">
+        <ref id="myShapeGroup"/>
+        <transform name="toWorld">
+            <translate x="0.56"/>
+        </transform>
+    </shape>
+<!--     <shape type="instance">
+        <ref id="myShapeGroup"/>
+        <transform name="toWorld">
+            <translate x="0.63"/>
+        </transform>
+    </shape> -->
+    <shape type="instance">
+        <ref id="myShapeGroup"/>
+        <transform name="toWorld">
+            <translate x="0.7"/>
+        </transform>
+    </shape>
+<!--     <shape type="instance">
+        <ref id="myShapeGroup"/>
+        <transform name="toWorld">
+            <translate x="0.77"/>
+        </transform>
+    </shape> -->
+    <shape type="instance">
+        <ref id="myShapeGroup"/>
+        <transform name="toWorld">
+            <translate x="0.84"/>
+        </transform>
+    </shape>
+<!--     <shape type="instance">
+        <ref id="myShapeGroup"/>
+        <transform name="toWorld">
+            <translate x="0.91"/>
+        </transform>
+    </shape> -->
+    <shape type="instance">
+        <ref id="myShapeGroup"/>
+        <transform name="toWorld">
+            <translate x="0.98"/>
+        </transform>
+    </shape>
+<!--     <shape type="instance">
+        <ref id="myShapeGroup"/>
+        <transform name="toWorld">
+            <translate x="1.05"/>
+        </transform>
+    </shape> -->
+    <shape type="instance">
+        <ref id="myShapeGroup"/>
+        <transform name="toWorld">
+            <translate x="1.12"/>
+        </transform>
+    </shape> 
+<!--     <shape type="instance">
+        <ref id="myShapeGroup"/>
+        <transform name="toWorld">
+            <translate x="1.19"/>
+        </transform>
+    </shape> -->
+    <shape type="instance">
+        <ref id="myShapeGroup"/>
+        <transform name="toWorld">
+            <translate x="1.26"/>
+        </transform>
+    </shape>
+    <shape type="rectangle">
+        <transform name="toWorld">
+            <rotate x="1" angle="-90"/>
+            <scale x="100" z="100"/>
+            <translate y="-0.75"/>
+        </transform>
+        <bsdf type="diffuse">
+            <spectrum name="reflectance" value="0.4"/>
+        </bsdf>
+    </shape>
+
+    <emitter type="constant">
+         <spectrum name="radiance" value="0.1"/> 
+    </emitter>    
+
+    <shape type="sphere">
+        <point name="center" x="10.0" y="50.0" z ="0.0"/>
+        <float name="radius" value="10.0"/>
+        <emitter type="area">
+            <spectrum name="radiance" value="55"/>
+        </emitter>
+    </shape>
+
+	<sensor type="perspective">
+		<string name="fovAxis" value="smaller"/>
+		<transform name="toWorld">
+			<lookAt origin="-20 50 0" target="0 -0.2 -0.2" up="1 0 0"/>
+		</transform>
+		<float name="fov" value="3.0"/>
+		<!-- <float name="fov" value="2"/> -->
+
+		<sampler type="ldsampler">
+			<!-- <integer name="sampleCount" value="256"/> -->
+            <integer name="sampleCount" value="64"/>
+		</sampler>
+		<film id="film" type="hdrfilm">
+			<integer name="width" value="512"/>
+			<integer name="height" value="400"/>
+			<rfilter type="gaussian"/>
+            <boolean name="banner" value="false" />
+		</film>
+	</sensor>
+</scene>
+

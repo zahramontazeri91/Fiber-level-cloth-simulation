@@ -35,8 +35,9 @@ void step1_DG2local( const std::vector<Eigen::Vector3d> &norms, const std::vecto
 	const std::vector<Eigen::Matrix3d> &worldDGs, std::vector<Eigen::Matrix3d> &localDGs);
 
 // phase1 - step2: Apply shapematching and extract matrix-s for each cross-section (isTrain)
-void step2_shapematching(const char* configfile, const char* fiberRefFile, const char* fibersimfile, const char* centerFile, 
-	const char* normFile, const char* globalRot, const int ply_num, const int vrtx, std::vector<Eigen::Matrix2f> &matrixS);
+void step2_shapematching(const char* configfile, const char* fiberRefFile, const char* fibersimfile, const char* centerFile,
+	const char* normFile, const char* globalRot, const int ply_num, const int vrtx, std::vector<Eigen::Matrix2f> &matrixS,
+	std::vector<yarnIntersect2D> &pnts_ref, std::vector<yarnIntersect2D> &pnts_trans, std::vector<Eigen::Matrix2f> &all_R);
 
 // phase1 - step3: Generate test data files and training files (if isTrain)
 void step3_buildNNfiles(const int isTrain, const int ws_ds, const float trimPercent, const int sampleRate,

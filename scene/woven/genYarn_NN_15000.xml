@@ -1,0 +1,506 @@
+<scene version="0.4.4">
+<shape type="shapegroup" id="yarn_1">
+    <shape type="hair">
+        <string name="filename" value="../../YarnGeneration/output/woven/6x6/genYarn_NN_15000_1_tiled.txt"/>
+        <float name="radius" value="0.002"/>
+        <float name="angleThreshold" value="0.001"/>
+        <subsurface type="fibershader">
+    			<boolean name="useRandomInteractionPoint" value="true"/>
+    			<boolean name="sampleInteractionPointFromCircumference" value="false"/>
+    			<fiberscat type="simpfabric5">
+    				<float name="kD" value="0"/>
+    				<spectrum name="colorD" value="0.99,0.99,0.99"/>
+    				<spectrum name="colorR" value="0.1,0.1,0.05"/>
+    				<spectrum name="colorTT" value="0.882000, 0.762000, 0.148000"/>
+    				<float name="betaR" value="0.2"/>
+    				<float name="betaTT" value="27"/>
+    				<float name="gammaTT" value="38"/>
+    				<float name="alpha" value="5"/>
+    			</fiberscat>
+    		</subsurface> 
+            </shape>
+            </shape>
+<shape type="shapegroup" id="yarn_2">
+    <shape type="hair">
+        <string name="filename" value="../../YarnGeneration/output/woven/6x6/genYarn_NN_15000_2_tiled.txt"/>
+        <float name="radius" value="0.002"/>
+        <float name="angleThreshold" value="0.001"/>
+        <subsurface type="fibershader">
+    			<boolean name="useRandomInteractionPoint" value="true"/>
+    			<boolean name="sampleInteractionPointFromCircumference" value="false"/>
+    			<fiberscat type="simpfabric5">
+    				<float name="kD" value="0"/>
+    				<spectrum name="colorD" value="0.99,0.99,0.99"/>
+    				<spectrum name="colorR" value="0.1,0.1,0.05"/>
+    				<spectrum name="colorTT" value="0.882000, 0.762000, 0.148000"/>
+    				<float name="betaR" value="0.2"/>
+    				<float name="betaTT" value="27"/>
+    				<float name="gammaTT" value="38"/>
+    				<float name="alpha" value="5"/>
+    			</fiberscat>
+    		</subsurface> 
+            </shape>
+            </shape>
+<shape type="shapegroup" id="yarn_3">
+    <shape type="hair">
+        <string name="filename" value="../../YarnGeneration/output/woven/6x6/genYarn_NN_15000_3_tiled.txt"/>
+        <float name="radius" value="0.002"/>
+        <float name="angleThreshold" value="0.001"/>
+        <subsurface type="fibershader">
+    			<boolean name="useRandomInteractionPoint" value="true"/>
+    			<boolean name="sampleInteractionPointFromCircumference" value="false"/>
+    			<fiberscat type="simpfabric5">
+    				<float name="kD" value="0"/>
+    				<spectrum name="colorD" value="0.99,0.99,0.99"/>
+    				<spectrum name="colorR" value="0.1,0.1,0.05"/>
+    				<spectrum name="colorTT" value="0.882000, 0.762000, 0.148000"/>
+    				<float name="betaR" value="0.2"/>
+    				<float name="betaTT" value="27"/>
+    				<float name="gammaTT" value="38"/>
+    				<float name="alpha" value="5"/>
+    			</fiberscat>
+    		</subsurface> 
+            </shape>
+            </shape>
+<shape type="shapegroup" id="yarn_4">
+    <shape type="hair">
+        <string name="filename" value="../../YarnGeneration/output/woven/6x6/genYarn_NN_15000_4_tiled.txt"/>
+        <float name="radius" value="0.002"/>
+        <float name="angleThreshold" value="0.001"/>
+        <subsurface type="fibershader">
+    			<boolean name="useRandomInteractionPoint" value="true"/>
+    			<boolean name="sampleInteractionPointFromCircumference" value="false"/>
+    			<fiberscat type="simpfabric5">
+    				<float name="kD" value="0"/>
+    				<spectrum name="colorD" value="0.99,0.99,0.99"/>
+    				<spectrum name="colorR" value="0.1,0.1,0.05"/>
+    				<spectrum name="colorTT" value="0.882000, 0.762000, 0.148000"/>
+    				<float name="betaR" value="0.2"/>
+    				<float name="betaTT" value="27"/>
+    				<float name="gammaTT" value="38"/>
+    				<float name="alpha" value="5"/>
+    			</fiberscat>
+    		</subsurface> 
+            </shape>
+            </shape>
+<shape type="shapegroup" id="yarn_7">
+    <shape type="hair">
+        <string name="filename" value="../../YarnGeneration/output/woven/6x6/genYarn_NN_15000_7_tiled.txt"/>
+        <float name="radius" value="0.002"/>
+        <float name="angleThreshold" value="0.001"/>
+        <subsurface type="fibershader">
+    			<boolean name="useRandomInteractionPoint" value="true"/>
+    			<boolean name="sampleInteractionPointFromCircumference" value="false"/>
+    			<fiberscat type="simpfabric5">
+    				<float name="kD" value="0"/>
+    				<spectrum name="colorD" value="0.99,0.99,0.99"/>
+    				<spectrum name="colorR" value="0.1,0.1,0.05"/>
+    				<spectrum name="colorTT" value="0.859000, 0.058000, 0.191000"/>
+    				<float name="betaR" value="0.2"/>
+    				<float name="betaTT" value="27"/>
+    				<float name="gammaTT" value="38"/>
+    				<float name="alpha" value="5"/>
+    			</fiberscat>
+    		</subsurface> 
+            </shape>
+            </shape>
+<shape type="shapegroup" id="yarn_8">
+    <shape type="hair">
+        <string name="filename" value="../../YarnGeneration/output/woven/6x6/genYarn_NN_15000_8_tiled.txt"/>
+        <float name="radius" value="0.002"/>
+        <float name="angleThreshold" value="0.001"/>
+        <subsurface type="fibershader">
+    			<boolean name="useRandomInteractionPoint" value="true"/>
+    			<boolean name="sampleInteractionPointFromCircumference" value="false"/>
+    			<fiberscat type="simpfabric5">
+    				<float name="kD" value="0"/>
+    				<spectrum name="colorD" value="0.99,0.99,0.99"/>
+    				<spectrum name="colorR" value="0.1,0.1,0.05"/>
+    				<spectrum name="colorTT" value="0.859000, 0.058000, 0.191000"/>
+    				<float name="betaR" value="0.2"/>
+    				<float name="betaTT" value="27"/>
+    				<float name="gammaTT" value="38"/>
+    				<float name="alpha" value="5"/>
+    			</fiberscat>
+    		</subsurface> 
+            </shape>
+            </shape>
+<shape type="shapegroup" id="yarn_9">
+    <shape type="hair">
+        <string name="filename" value="../../YarnGeneration/output/woven/6x6/genYarn_NN_15000_9_tiled.txt"/>
+        <float name="radius" value="0.002"/>
+        <float name="angleThreshold" value="0.001"/>
+        <subsurface type="fibershader">
+    			<boolean name="useRandomInteractionPoint" value="true"/>
+    			<boolean name="sampleInteractionPointFromCircumference" value="false"/>
+    			<fiberscat type="simpfabric5">
+    				<float name="kD" value="0"/>
+    				<spectrum name="colorD" value="0.99,0.99,0.99"/>
+    				<spectrum name="colorR" value="0.1,0.1,0.05"/>
+    				<spectrum name="colorTT" value="0.859000, 0.058000, 0.191000"/>
+    				<float name="betaR" value="0.2"/>
+    				<float name="betaTT" value="27"/>
+    				<float name="gammaTT" value="38"/>
+    				<float name="alpha" value="5"/>
+    			</fiberscat>
+    		</subsurface> 
+            </shape>
+            </shape>
+<shape type="shapegroup" id="yarn_10">
+    <shape type="hair">
+        <string name="filename" value="../../YarnGeneration/output/woven/6x6/genYarn_NN_15000_10_tiled.txt"/>
+        <float name="radius" value="0.002"/>
+        <float name="angleThreshold" value="0.001"/>
+        <subsurface type="fibershader">
+    			<boolean name="useRandomInteractionPoint" value="true"/>
+    			<boolean name="sampleInteractionPointFromCircumference" value="false"/>
+    			<fiberscat type="simpfabric5">
+    				<float name="kD" value="0"/>
+    				<spectrum name="colorD" value="0.99,0.99,0.99"/>
+    				<spectrum name="colorR" value="0.1,0.1,0.05"/>
+    				<spectrum name="colorTT" value="0.859000, 0.058000, 0.191000"/>
+    				<float name="betaR" value="0.2"/>
+    				<float name="betaTT" value="27"/>
+    				<float name="gammaTT" value="38"/>
+    				<float name="alpha" value="5"/>
+    			</fiberscat>
+    		</subsurface> 
+            </shape>
+            </shape>
+<shape type="instance">
+    <ref id="yarn_1"/>
+    <transform name="toWorld">
+        <translate x="-1.780758" y="0.000000" z="0.000000"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_2"/>
+    <transform name="toWorld">
+        <translate x="-1.780758" y="0.000000" z="0.000000"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_3"/>
+    <transform name="toWorld">
+        <translate x="-1.780758" y="0.000000" z="0.000000"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_4"/>
+    <transform name="toWorld">
+        <translate x="-1.780758" y="0.000000" z="0.000000"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_7"/>
+    <transform name="toWorld">
+        <translate x="0.000000" y="0.000000" z="-1.780758"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_8"/>
+    <transform name="toWorld">
+        <translate x="0.000000" y="0.000000" z="-1.780758"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_9"/>
+    <transform name="toWorld">
+        <translate x="0.000000" y="0.000000" z="-1.780758"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_10"/>
+    <transform name="toWorld">
+        <translate x="0.000000" y="0.000000" z="-1.780758"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_1"/>
+    <transform name="toWorld">
+        <translate x="-1.187172" y="0.000000" z="0.000000"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_2"/>
+    <transform name="toWorld">
+        <translate x="-1.187172" y="0.000000" z="0.000000"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_3"/>
+    <transform name="toWorld">
+        <translate x="-1.187172" y="0.000000" z="0.000000"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_4"/>
+    <transform name="toWorld">
+        <translate x="-1.187172" y="0.000000" z="0.000000"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_7"/>
+    <transform name="toWorld">
+        <translate x="0.000000" y="0.000000" z="-1.187172"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_8"/>
+    <transform name="toWorld">
+        <translate x="0.000000" y="0.000000" z="-1.187172"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_9"/>
+    <transform name="toWorld">
+        <translate x="0.000000" y="0.000000" z="-1.187172"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_10"/>
+    <transform name="toWorld">
+        <translate x="0.000000" y="0.000000" z="-1.187172"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_1"/>
+    <transform name="toWorld">
+        <translate x="-0.593586" y="0.000000" z="0.000000"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_2"/>
+    <transform name="toWorld">
+        <translate x="-0.593586" y="0.000000" z="0.000000"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_3"/>
+    <transform name="toWorld">
+        <translate x="-0.593586" y="0.000000" z="0.000000"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_4"/>
+    <transform name="toWorld">
+        <translate x="-0.593586" y="0.000000" z="0.000000"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_7"/>
+    <transform name="toWorld">
+        <translate x="0.000000" y="0.000000" z="-0.593586"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_8"/>
+    <transform name="toWorld">
+        <translate x="0.000000" y="0.000000" z="-0.593586"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_9"/>
+    <transform name="toWorld">
+        <translate x="0.000000" y="0.000000" z="-0.593586"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_10"/>
+    <transform name="toWorld">
+        <translate x="0.000000" y="0.000000" z="-0.593586"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_1"/>
+    <transform name="toWorld">
+        <translate x="0.000000" y="0.000000" z="0.000000"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_2"/>
+    <transform name="toWorld">
+        <translate x="0.000000" y="0.000000" z="0.000000"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_3"/>
+    <transform name="toWorld">
+        <translate x="0.000000" y="0.000000" z="0.000000"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_4"/>
+    <transform name="toWorld">
+        <translate x="0.000000" y="0.000000" z="0.000000"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_7"/>
+    <transform name="toWorld">
+        <translate x="0.000000" y="0.000000" z="0.000000"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_8"/>
+    <transform name="toWorld">
+        <translate x="0.000000" y="0.000000" z="0.000000"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_9"/>
+    <transform name="toWorld">
+        <translate x="0.000000" y="0.000000" z="0.000000"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_10"/>
+    <transform name="toWorld">
+        <translate x="0.000000" y="0.000000" z="0.000000"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_1"/>
+    <transform name="toWorld">
+        <translate x="0.593586" y="0.000000" z="0.000000"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_2"/>
+    <transform name="toWorld">
+        <translate x="0.593586" y="0.000000" z="0.000000"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_3"/>
+    <transform name="toWorld">
+        <translate x="0.593586" y="0.000000" z="0.000000"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_4"/>
+    <transform name="toWorld">
+        <translate x="0.593586" y="0.000000" z="0.000000"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_7"/>
+    <transform name="toWorld">
+        <translate x="0.000000" y="0.000000" z="0.593586"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_8"/>
+    <transform name="toWorld">
+        <translate x="0.000000" y="0.000000" z="0.593586"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_9"/>
+    <transform name="toWorld">
+        <translate x="0.000000" y="0.000000" z="0.593586"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_10"/>
+    <transform name="toWorld">
+        <translate x="0.000000" y="0.000000" z="0.593586"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_1"/>
+    <transform name="toWorld">
+        <translate x="1.187172" y="0.000000" z="0.000000"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_2"/>
+    <transform name="toWorld">
+        <translate x="1.187172" y="0.000000" z="0.000000"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_3"/>
+    <transform name="toWorld">
+        <translate x="1.187172" y="0.000000" z="0.000000"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_4"/>
+    <transform name="toWorld">
+        <translate x="1.187172" y="0.000000" z="0.000000"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_7"/>
+    <transform name="toWorld">
+        <translate x="0.000000" y="0.000000" z="1.187172"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_8"/>
+    <transform name="toWorld">
+        <translate x="0.000000" y="0.000000" z="1.187172"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_9"/>
+    <transform name="toWorld">
+        <translate x="0.000000" y="0.000000" z="1.187172"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_10"/>
+    <transform name="toWorld">
+        <translate x="0.000000" y="0.000000" z="1.187172"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_1"/>
+    <transform name="toWorld">
+        <translate x="1.780758" y="0.000000" z="0.000000"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_2"/>
+    <transform name="toWorld">
+        <translate x="1.780758" y="0.000000" z="0.000000"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_3"/>
+    <transform name="toWorld">
+        <translate x="1.780758" y="0.000000" z="0.000000"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_4"/>
+    <transform name="toWorld">
+        <translate x="1.780758" y="0.000000" z="0.000000"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_7"/>
+    <transform name="toWorld">
+        <translate x="0.000000" y="0.000000" z="1.780758"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_8"/>
+    <transform name="toWorld">
+        <translate x="0.000000" y="0.000000" z="1.780758"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_9"/>
+    <transform name="toWorld">
+        <translate x="0.000000" y="0.000000" z="1.780758"/>
+    </transform>
+</shape>
+<shape type="instance">
+    <ref id="yarn_10"/>
+    <transform name="toWorld">
+        <translate x="0.000000" y="0.000000" z="1.780758"/>
+    </transform>
+</shape>
+</scene>

@@ -96,13 +96,17 @@ int main(int argc, const char **argv) {
 
 	if ( argc < 4 ) {
 		std::cout << "Number of argument: " << argc << std::endl;
-		printf("USAGE: YarnGeneration [phase1/phase2] [configFile] [datasetFile] -w window-size=5 -s upsample=2 -t isTrain=1 -x trimPercent -v vrtx-num -c isCompress -z stepSize_ds -v hasVol -rx resolution-AABB-x -ry -rz -rad radius-AABB \n");
-		printf("EXAMPLE: YarnGeneration 1 yarnTypes/yarn4/config_step2.txt yarnTypes/yarn4/datasets.txt -w 5 -s 2 -t 0 -x 0.0 -k 500 -v 150 -c 1 -scale 0.25 -z 0.02 -vol 1 -rx 5 -ry 5 -rz 20 -rad 0.1 \n");
+		printf("USAGE: YarnGeneration [phase1/phase2] [yarnType] -w window-size=5 -s upsample=2 -t isTrain=1 -x trimPercent -v vrtx-num -c isCompress -z stepSize_ds -v hasVol -rx resolution-AABB-x -ry -rz -rad radius-AABB \n");
+		printf("EXAMPLE: YarnGeneration 1 yarn8 -w 5 -s 2 -t 0 -x 0.0 -k 500 -v 150 -c 1 -scale 0.25 -z 0.02 -vol 1 -rx 5 -ry 5 -rz 20 -rad 0.1 \n");
 		return 1;
 	}
 
-	const char* configfile = argv[2];
-	const char* datasetfile = argv[3];
+	std::string yarnType = argv[2];
+	std::string tmp1 = "yarnTypes/" + yarnType + "/config_step2.txt";
+	const char* configfile = tmp1.c_str();
+	std::string tmp2 = "yarnTypes/" + yarnType + "/datasets.txt";
+	const char* datasetfile = tmp2.c_str();
+
 	int window_size = 5;
 	int upsample = 2;
 	int upsampleMore = 1;
@@ -118,7 +122,7 @@ int main(int argc, const char **argv) {
 	float radius = 0.1;
 	float scaleSim = 0.25;
 
-	for (int i = 4; i < argc-1; ++i) {
+	for (int i = 3; i < argc-1; ++i) { //first three args are already read
 		std::string arg = argv[i];
 		std::stringstream arg1(argv[i+1]);
 		if (arg == "-w")

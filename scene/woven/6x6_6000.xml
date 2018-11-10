@@ -1,0 +1,198 @@
+<scene version="0.4.4"> 
+	<integrator type="volpath_simple"> 
+		<integer name="maxDepth" value="25"/> 
+		<integer name="rrDepth" value="30"/> 
+	</integrator> 
+
+	<shape type="hair">
+		<string name="filename" value="../YarnGeneration/data/woven/6x6/simul_frame_6000_1_us.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<subsurface type="fibershader">
+			<boolean name="useRandomInteractionPoint" value="true"/>
+			<boolean name="sampleInteractionPointFromCircumference" value="false"/>
+			<fiberscat type="simpfabric5">
+				<float name="kD" value="0"/>
+				<spectrum name="colorD" value="0.99,0.99,0.99"/>
+				<spectrum name="colorR" value="0.1,0.1,0.05"/>
+				<spectrum name="colorTT" value="0.882,0.762,0.148"/>
+				<float name="betaR" value="0.2"/>
+				<float name="betaTT" value="27"/>
+				<float name="gammaTT" value="38"/>
+				<float name="alpha" value="5"/>
+			</fiberscat>
+		</subsurface> 
+	</shape>
+
+	<shape type="hair">
+		<string name="filename" value="../YarnGeneration/data/woven/6x6/simul_frame_6000_2_us.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<subsurface type="fibershader">
+			<boolean name="useRandomInteractionPoint" value="true"/>
+			<boolean name="sampleInteractionPointFromCircumference" value="false"/>
+			<fiberscat type="simpfabric5">
+				<float name="kD" value="0"/>
+				<spectrum name="colorD" value="0.99,0.99,0.99"/>
+				<spectrum name="colorR" value="0.1,0.1,0.05"/>
+				<spectrum name="colorTT" value="0.882,0.762,0.148"/>
+				<float name="betaR" value="0.2"/>
+				<float name="betaTT" value="27"/>
+				<float name="gammaTT" value="38"/>
+				<float name="alpha" value="5"/>
+			</fiberscat>
+		</subsurface> 
+	</shape>
+
+	<shape type="hair">
+		<string name="filename" value="../YarnGeneration/data/woven/6x6/simul_frame_6000_3_us.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<subsurface type="fibershader">
+			<boolean name="useRandomInteractionPoint" value="true"/>
+			<boolean name="sampleInteractionPointFromCircumference" value="false"/>
+			<fiberscat type="simpfabric5">
+				<float name="kD" value="0"/>
+				<spectrum name="colorD" value="0.99,0.99,0.99"/>
+				<spectrum name="colorR" value="0.1,0.1,0.05"/>
+				<spectrum name="colorTT" value="0.882,0.762,0.148"/>
+				<float name="betaR" value="0.2"/>
+				<float name="betaTT" value="27"/>
+				<float name="gammaTT" value="38"/>
+				<float name="alpha" value="5"/>
+			</fiberscat>
+		</subsurface> 
+	</shape>
+
+	<shape type="hair">
+		<string name="filename" value="../YarnGeneration/data/woven/6x6/simul_frame_6000_4_us.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<subsurface type="fibershader">
+			<boolean name="useRandomInteractionPoint" value="true"/>
+			<boolean name="sampleInteractionPointFromCircumference" value="false"/>
+			<fiberscat type="simpfabric5">
+				<float name="kD" value="0"/>
+				<spectrum name="colorD" value="0.99,0.99,0.99"/>
+				<spectrum name="colorR" value="0.1,0.1,0.05"/>
+				<spectrum name="colorTT" value="0.882,0.762,0.148"/>
+				<float name="betaR" value="0.2"/>
+				<float name="betaTT" value="27"/>
+				<float name="gammaTT" value="38"/>
+				<float name="alpha" value="5"/>
+			</fiberscat>
+		</subsurface> 
+	</shape>
+
+	<shape type="hair">
+		<string name="filename" value="../YarnGeneration/data/woven/6x6/simul_frame_6000_7_us.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<subsurface type="fibershader">
+			<boolean name="useRandomInteractionPoint" value="true"/>
+			<boolean name="sampleInteractionPointFromCircumference" value="false"/>
+			<fiberscat type="simpfabric5">
+				<float name="kD" value="0"/>
+				<spectrum name="colorD" value="0.99,0.99,0.99"/>
+				<spectrum name="colorR" value="0.1,0.1,0.05"/>
+				<spectrum name="colorTT" value="0.859,0.058,0.191"/>
+				<float name="betaR" value="0.2"/>
+				<float name="betaTT" value="27"/>
+				<float name="gammaTT" value="38"/>
+				<float name="alpha" value="5"/>
+			</fiberscat>
+		</subsurface> 
+	</shape>
+
+	<shape type="hair">
+		<string name="filename" value="../YarnGeneration/data/woven/6x6/simul_frame_6000_8_us.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<subsurface type="fibershader">
+			<boolean name="useRandomInteractionPoint" value="true"/>
+			<boolean name="sampleInteractionPointFromCircumference" value="false"/>
+			<fiberscat type="simpfabric5">
+				<float name="kD" value="0"/>
+				<spectrum name="colorD" value="0.99,0.99,0.99"/>
+				<spectrum name="colorR" value="0.1,0.1,0.05"/>
+				<spectrum name="colorTT" value="0.859,0.058,0.191"/>
+				<float name="betaR" value="0.2"/>
+				<float name="betaTT" value="27"/>
+				<float name="gammaTT" value="38"/>
+				<float name="alpha" value="5"/>
+			</fiberscat>
+		</subsurface> 
+	</shape>
+
+	<shape type="hair">
+		<string name="filename" value="../YarnGeneration/data/woven/6x6/simul_frame_6000_9_us.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<subsurface type="fibershader">
+			<boolean name="useRandomInteractionPoint" value="true"/>
+			<boolean name="sampleInteractionPointFromCircumference" value="false"/>
+			<fiberscat type="simpfabric5">
+				<float name="kD" value="0"/>
+				<spectrum name="colorD" value="0.99,0.99,0.99"/>
+				<spectrum name="colorR" value="0.1,0.1,0.05"/>
+				<spectrum name="colorTT" value="0.859,0.058,0.191"/>
+				<float name="betaR" value="0.2"/>
+				<float name="betaTT" value="27"/>
+				<float name="gammaTT" value="38"/>
+				<float name="alpha" value="5"/>
+			</fiberscat>
+		</subsurface> 
+	</shape>
+
+	<shape type="hair">
+		<string name="filename" value="../YarnGeneration/data/woven/6x6/simul_frame_6000_10_us.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<subsurface type="fibershader">
+			<boolean name="useRandomInteractionPoint" value="true"/>
+			<boolean name="sampleInteractionPointFromCircumference" value="false"/>
+			<fiberscat type="simpfabric5">
+				<float name="kD" value="0"/>
+				<spectrum name="colorD" value="0.99,0.99,0.99"/>
+				<spectrum name="colorR" value="0.1,0.1,0.05"/>
+				<spectrum name="colorTT" value="0.859,0.058,0.191"/>
+				<float name="betaR" value="0.2"/>
+				<float name="betaTT" value="27"/>
+				<float name="gammaTT" value="38"/>
+				<float name="alpha" value="5"/>
+			</fiberscat>
+		</subsurface> 
+	</shape>
+
+	<emitter type="constant">
+		<spectrum name="radiance" value="0.0"/> 
+	</emitter>
+	<shape type="rectangle"> 
+		<transform name="toWorld"> 
+			<rotate x="1" angle="90"/> 
+			<scale x="30" y="30" z="30"/> 
+			<translate x="0.0" y="200.0" z="0.0"/> 
+		</transform> 
+		<emitter type="area"> 
+			<spectrum name="radiance" value="80"/>  
+		</emitter> 
+	</shape> 
+	<sensor type="perspective">
+		<string name="fovAxis" value="smaller"/>
+		<transform name="toWorld">
+			<lookAt origin="0.25 10 0.0" target="0.25 0 0.0" up="1 0 0"/>  
+		</transform>
+		<float name="fov" value="3.0"/>
+
+		<sampler type="ldsampler">
+			<integer name="sampleCount" value="1024"/>
+		</sampler>
+		<film id="film" type="hdrfilm">
+			<integer name="width" value="512"/>
+			<integer name="height" value="512"/>
+			<rfilter type="gaussian"/>
+			<boolean name="banner" value="false" />
+		</film>
+	</sensor>
+
+</scene>

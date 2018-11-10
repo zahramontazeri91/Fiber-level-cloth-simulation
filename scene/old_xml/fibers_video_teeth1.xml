@@ -1,0 +1,342 @@
+<?xml version='1.0' encoding='utf-8'?>
+
+<scene version="0.4.4">
+	<integrator type="volpath">
+		<integer name="maxDepth" value="25"/>
+		<integer name="rrDepth" value="30"/>
+	</integrator>
+
+<!-- <spectrum name="reflectance" value="0.05"/> FOR VIDEO -->
+
+<!-- teeth config 4_1.6 -->
+	<shape type="cylinder">
+		<float name="radius" value="0.16"/>
+		<point name="p0" x="-0.1" y="$h1" z="0"/>
+		<point name="p1" x="0.5" y="$h1" z="0"/>
+		<bsdf type="diffuse">
+			<spectrum name="reflectance" value="0.3"/>
+		</bsdf>	
+	</shape>
+	<shape type="cylinder">
+		<float name="radius" value="0.16"/>
+		<point name="p0" x="-0.1" y="$h2" z="0.64"/>
+		<point name="p1" x="0.5" y="$h2" z="0.64"/>
+		<bsdf type="diffuse">
+			<spectrum name="reflectance" value="0.3"/>
+		</bsdf>	
+	</shape>
+	<shape type="cylinder">
+		<float name="radius" value="0.16"/>
+		<point name="p0" x="-0.1" y="$h2" z="-0.64"/>
+		<point name="p1" x="0.5" y="$h2" z="-0.64"/>
+		<bsdf type="diffuse">
+			<spectrum name="reflectance" value="0.3"/>
+		</bsdf>	
+	</shape>
+	<shape type="disk">
+		<transform name="toWorld">
+			<rotate y="1" angle="-90"/>
+			<scale value="0.16"/>
+			<translate x="-0.1" y="$h1" z="0.0"/>
+		</transform>
+		<bsdf type="diffuse">
+			<spectrum name="reflectance" value="0.3"/>
+		</bsdf>	
+	</shape>
+	<shape type="disk">
+		<transform name="toWorld">
+			<rotate y="1" angle="-90"/>
+			<scale value="0.16"/>
+			<translate x="-0.1" y="$h2" z="0.64"/>
+		</transform>
+		<bsdf type="diffuse">
+			<spectrum name="reflectance" value="0.3"/>
+		</bsdf>	
+	</shape>
+	<shape type="disk">
+		<transform name="toWorld">
+			<rotate y="1" angle="-90"/>
+			<scale value="0.16"/>
+			<translate x="-0.1" y="$h2" z="-0.64"/>
+		</transform>
+		<bsdf type="diffuse">
+			<spectrum name="reflectance" value="0.3"/>
+		</bsdf>	
+	</shape>
+
+
+<!-- teeth config 4_1.2 -->
+<!-- 	<shape type="cylinder">
+		<float name="radius" value="0.16"/>
+		<point name="p0" x="-0.1" y="$h2" z="0"/>
+		<point name="p1" x="0.5" y="$h2" z="0"/>
+		<bsdf type="diffuse">
+			<spectrum name="reflectance" value="0.1"/>
+		</bsdf>	
+	</shape>
+	<shape type="cylinder">
+		<float name="radius" value="0.16"/>
+		<point name="p0" x="-0.1" y="$h2" z="0.48"/>
+		<point name="p1" x="0.5" y="$h2" z="0.48"/>
+		<bsdf type="diffuse">
+			<spectrum name="reflectance" value="0.1"/>
+		</bsdf>	
+	</shape>
+	<shape type="cylinder">
+		<float name="radius" value="0.16"/>
+		<point name="p0" x="-0.1" y="$h2" z="-0.48"/>
+		<point name="p1" x="0.5" y="$h2" z="-0.48"/>
+		<bsdf type="diffuse">
+			<spectrum name="reflectance" value="0.1"/>
+		</bsdf>	
+	</shape>
+	<shape type="cylinder">
+		<float name="radius" value="0.16"/>
+		<point name="p0" x="-0.1" y="$h1" z="0.96"/>
+		<point name="p1" x="0.5" y="$h1" z="0.96"/>
+		<bsdf type="diffuse">
+			<spectrum name="reflectance" value="0.1"/>
+		</bsdf>	
+	</shape>
+	<shape type="cylinder">
+		<float name="radius" value="0.16"/>
+		<point name="p0" x="-0.1" y="$h1" z="-0.96"/>
+		<point name="p1" x="0.5" y="$h1" z="-0.96"/>
+		<bsdf type="diffuse">
+			<spectrum name="reflectance" value="0.1"/>
+		</bsdf>	
+	</shape>
+	<shape type="disk">
+		<transform name="toWorld">
+			<rotate y="1" angle="-90"/>
+			<scale value="0.16"/>
+			<translate x="-0.1" y="$h2" z="0.0"/>
+		</transform>
+		<bsdf type="diffuse">
+			<spectrum name="reflectance" value="0.1"/>
+		</bsdf>	
+	</shape>
+	<shape type="disk">
+		<transform name="toWorld">
+			<rotate y="1" angle="-90"/>
+			<scale value="0.16"/>
+			<translate x="-0.1" y="$h2" z="-0.48"/>
+		</transform>
+		<bsdf type="diffuse">
+			<spectrum name="reflectance" value="0.1"/>
+		</bsdf>	
+	</shape> 
+	<shape type="disk">
+		<transform name="toWorld">
+			<rotate y="1" angle="-90"/>
+			<scale value="0.16"/>
+			<translate x="-0.1" y="$h2" z="0.48"/>
+		</transform>
+		<bsdf type="diffuse">
+			<spectrum name="reflectance" value="0.1"/>
+		</bsdf>	
+	</shape>
+	<shape type="disk">
+		<transform name="toWorld">
+			<rotate y="1" angle="-90"/>
+			<scale value="0.16"/>
+			<translate x="-0.1" y="$h1" z="-0.96"/>
+		</transform>
+		<bsdf type="diffuse">
+			<spectrum name="reflectance" value="0.1"/>
+		</bsdf>	
+	</shape>
+	<shape type="disk">
+		<transform name="toWorld">
+			<rotate y="1" angle="-90"/>
+			<scale value="0.16"/>
+			<translate x="-0.1" y="$h1" z="0.96"/>
+		</transform>
+		<bsdf type="diffuse">
+			<spectrum name="reflectance" value="0.1"/>
+		</bsdf>	
+	</shape> -->
+
+	<shape type="hair">
+  		<string name="filename" value="$fn"/>	
+		<float name="radius" value="0.002"/> 		
+		<float name="angleThreshold" value="0.001"/>
+
+			<!-- <spectrum name="diffuseReflectance" value="0.8, 0.1, 0.1"/> -->
+			<!-- <spectrum name="diffuseReflectance" value="0.45,0.86,0.95"/> --> <!-- rayon -->
+			<!-- <spectrum name="diffuseReflectance" value="0.93,0.53,0.01"/> --> <!-- cotton -->
+			<!-- <spectrum name="diffuseReflectance" value="0.88,0.83,0.01"/>  --><!-- polyester -->
+
+<!-- 		<bsdf type="roughplastic">
+			<float name="alpha" value="0.05"/>
+			<spectrum name="diffuseReflectance" value="0.8, 0.1, 0.1"/> 
+		</bsdf>  -->
+
+<!-- yarn4 -->
+<!--   		<subsurface type="fibershader">
+            <boolean name="useRandomInteractionPoint" value="true"/>
+            <boolean name="sampleInteractionPointFromCircumference" value="false"/>
+
+            <fiberscat type="simpfabric5">
+                <float name="kD" value="0"/>
+                <spectrum name="colorD" value="0.99,0.99,0.99"/>
+                <spectrum name="colorR" value="0.25,0.25,0.3"/>
+                <float name="betaR" value="1.23799781194"/>
+                <float name="betaTT" value="9.99999999999"/>
+                <float name="gammaTT" value="25.9890848941"/>
+                <spectrum name="colorTT" value="0.45,0.86,0.95"/>
+                <float name="alpha" value="5"/>
+            </fiberscat>
+        </subsurface>   -->
+
+<!-- yarn8 -->
+<!--         <subsurface type="fibershader">
+		    <boolean name="useRandomInteractionPoint" value="true"/>
+		    <boolean name="sampleInteractionPointFromCircumference" value="false"/>
+
+		    <fiberscat type="simpfabric5">
+		        <float name="kD" value="0"/>
+		        <spectrum name="colorD" value="0.99,0.99,0.99"/>
+		        <spectrum name="colorR" value="0.1,0.1,0.05"/>
+		        <float name="betaR" value="0.2"/>
+		        <float name="betaTT" value="27"/>
+		        <float name="gammaTT" value="38"/>
+		        <spectrum name="colorTT" value="0.93,0.53,0.01"/>
+		        <float name="alpha" value="5"/>
+		    </fiberscat>
+		</subsurface>  -->
+
+<!-- yarn9 -->
+<!--   		<subsurface type="fibershader">
+		    <boolean name="useRandomInteractionPoint" value="true"/>
+		    <boolean name="sampleInteractionPointFromCircumference" value="false"/>
+
+		    <fiberscat type="simpfabric5">
+		        <float name="kD" value="0"/>
+		        <spectrum name="colorD" value="0.99,0.99,0.99"/>
+		        <spectrum name="colorR" value="0.1,0.1,0.1"/>
+		        <float name="betaR" value="1.0"/>
+		        <float name="betaTT" value="10"/>
+		        <float name="gammaTT" value="20"/>
+		        <spectrum name="colorTT" value="0.73,0.5,0.67"/>
+		        <float name="alpha" value="5"/>
+		    </fiberscat>
+		</subsurface> -->
+
+<!-- yarn11 -->
+ 		<subsurface type="fibershader">
+		    <boolean name="useRandomInteractionPoint" value="true"/>
+		    <boolean name="sampleInteractionPointFromCircumference" value="false"/>
+
+		    <fiberscat type="simpfabric5">
+		        <float name="kD" value="0"/>
+		        <spectrum name="colorD" value="0.99,0.99,0.99"/>
+		        <spectrum name="colorR" value="0.1,0.1,0.05"/>
+		        <float name="betaR" value="4.0"/>
+		        <float name="betaTT" value="10"/>
+		        <float name="gammaTT" value="20"/>
+		        <spectrum name="colorTT" value="0.88,0.83,0.01"/>
+		        <float name="alpha" value="5"/>
+		    </fiberscat>
+		</subsurface> 
+
+<!-- yarn100 -->
+<!--   		<subsurface type="fibershader">
+            <boolean name="useRandomInteractionPoint" value="true"/>
+            <boolean name="sampleInteractionPointFromCircumference" value="false"/>
+
+            <fiberscat type="simpfabric5">
+                <float name="kD" value="0"/>
+                <spectrum name="colorD" value="0.99,0.99,0.99"/>
+                <spectrum name="colorR" value="0.1,0.1,0.1"/>
+                <float name="betaR" value="1.23799781194"/>
+                <float name="betaTT" value="9.99999999999"/>
+                <float name="gammaTT" value="25.9890848941"/>
+                <spectrum name="colorTT" value="0.9,0.24,0.48"/>
+                <float name="alpha" value="5"/>
+            </fiberscat>
+        </subsurface>   -->
+
+
+	</shape>
+	
+<!-- 	<shape type="rectangle">
+		<transform name="toWorld">
+			<rotate y="1" angle="-90"/>
+			<scale x="1" y="1" z="1.2"/>
+			<translate x="0.05"/>
+		</transform>
+		<bsdf type="diffuse">
+			<texture type="bitmap" name="reflectance">
+				<string name="filename" value="concrete.jpg"/>
+			</texture>
+		</bsdf>	
+	</shape> -->
+
+ 	<emitter type="constant">
+		 <spectrum name="radiance" value="0.0"/> 
+	</emitter>
+	
+<!--     <shape type="sphere">
+        <point name="center" x="-100.0" y="50.0" z="0.0"/>
+        <float name="radius" value="10.0"/>
+        <emitter type="area">
+            <spectrum name="radiance" value="50"/> 
+        </emitter>
+    </shape> -->
+
+    <shape type="rectangle">
+		<transform name="toWorld">
+			<rotate y="1" angle="90"/>
+			<rotate x="1" angle="45"/>
+			<scale x="30" y="30" z="30"/>
+			<translate x="-20" y="60" z="0.0"/>
+		</transform>
+        <emitter type="area">
+            <spectrum name="radiance" value="25"/> 
+        </emitter>
+    </shape>
+
+	<sensor type="perspective">
+		<string name="fovAxis" value="smaller"/>
+		<transform name="toWorld">
+			<!-- <lookAt origin="0 10 0" target="0 0 0" up="1 0 0"/>  --> <!-- TOP -->
+			<lookAt origin="-10 0 0" target="0 0 0" up="0 1 0"/>
+		</transform>
+		<float name="fov" value="3.0"/>
+
+
+		<sampler type="ldsampler">
+			<integer name="sampleCount" value="2048"/>
+			<!-- <integer name="sampleCount" value="1"/> -->
+		</sampler>
+		<film id="film" type="hdrfilm">
+			<integer name="width" value="1024"/>
+			<integer name="height" value="256"/>
+			<rfilter type="gaussian"/>
+            <boolean name="banner" value="false" />
+		</film>
+
+
+<!--  -->
+		<!-- <film type="hdrfilm"> -->
+<!--             <integer name="cropOffsetX" value="850"/>
+            <integer name="cropOffsetY" value="256"/> -->
+            
+<!--             <integer name="cropOffsetX" value="1350"/>
+            <integer name="cropOffsetY" value="40"/> -->
+
+<!--             <integer name="cropWidth" value="360"/>
+            <integer name="cropHeight" value="240"/>
+            <boolean name="banner" value="false"/>
+            <integer name="width" value="2048"/>
+            <integer name="height" value="512"/>
+            <rfilter type="gaussian"/>
+        </film> -->
+ 
+<!--  -->
+
+	</sensor>
+
+</scene>
+

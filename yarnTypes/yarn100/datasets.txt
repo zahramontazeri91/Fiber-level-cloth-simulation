@@ -1,4 +1,4 @@
-pattern/yarn100/spacing3.0x/10 19500 19500 0 1 -k 500
+pattern/yarn100/spacing0.5x/10 8000 18500 0 1 -k 500
 eof
 single_yarn/yarn100/stretch 0 0 0 1 -k 500
 eof

@@ -1,0 +1,223 @@
+<?xml version='1.0' encoding='utf-8'?>
+
+<scene version="0.4.4">
+	<integrator type="volpath">
+		<integer name="maxDepth" value="25"/>
+		<integer name="rrDepth" value="30"/>
+	</integrator>
+
+	<shape type="hair">
+  		<string name="filename" value="$fn0"/>	
+		
+<!-- 		<transform name="toWorld">
+			<rotate y="1" angle="-30"/>
+		</transform> -->
+
+		<float name="radius" value="0.002"/> 		
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.8, 0.1, 0.1"/>
+			<float name="alpha" value="0.05"/>
+		</bsdf> 
+<!--  		<subsurface type="fibershader">
+            <boolean name="useRandomInteractionPoint" value="true"/>
+            <boolean name="sampleInteractionPointFromCircumference" value="false"/>
+
+            <fiberscat type="simpfabric5">
+                <float name="kD" value="0"/>
+                <spectrum name="colorD" value="0.99,0.99,0.99"/>
+                <spectrum name="colorR" value="0.25,0.25,0.3"/>
+                <float name="betaR" value="1.23799781194"/>
+                <float name="betaTT" value="9.99999999999"/>
+                <float name="gammaTT" value="25.9890848941"/>
+                <spectrum name="colorTT" value="0.45,0.86,0.95"/>
+                <float name="alpha" value="5"/>
+            </fiberscat>
+        </subsurface>  -->
+	</shape>
+  	<shape type="hair">
+  		<string name="filename" value="$fn1"/>
+		<float name="radius" value="0.002"/> 		
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.8, 0.1, 0.1"/>
+			<float name="alpha" value="0.05"/>
+		</bsdf> 
+	</shape>
+	<shape type="hair">
+  		<string name="filename" value="$fn2"/>
+		<float name="radius" value="0.002"/> 		
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.8, 0.1, 0.1"/>
+			<float name="alpha" value="0.05"/>
+		</bsdf> 
+	</shape>
+	<shape type="hair">
+  		<string name="filename" value="$fn3"/>
+		<float name="radius" value="0.002"/> 		
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.8, 0.1, 0.1"/>
+			<float name="alpha" value="0.05"/>
+		</bsdf> 
+	</shape>
+	<shape type="hair">
+  		<string name="filename" value="$fn4"/>
+		<float name="radius" value="0.002"/> 		
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.8, 0.1, 0.1"/>
+			<float name="alpha" value="0.05"/>
+		</bsdf> 
+	</shape>
+	<shape type="hair">
+  		<string name="filename" value="$fn5"/>
+		<float name="radius" value="0.002"/> 		
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.8, 0.1, 0.1"/>
+			<float name="alpha" value="0.05"/>
+		</bsdf> 
+	</shape>
+	<shape type="hair">
+  		<string name="filename" value="$fn6"/>
+		<float name="radius" value="0.002"/> 		
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.8, 0.1, 0.1"/>
+			<float name="alpha" value="0.05"/>
+		</bsdf> 
+	</shape>
+	<shape type="hair">
+  		<string name="filename" value="$fn7"/>
+		<float name="radius" value="0.002"/> 		
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.8, 0.1, 0.1"/>
+			<float name="alpha" value="0.05"/>
+		</bsdf> 
+	</shape>
+	<shape type="hair">
+  		<string name="filename" value="$fn8"/>
+		<float name="radius" value="0.002"/> 		
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.8, 0.1, 0.1"/>
+			<float name="alpha" value="0.05"/>
+		</bsdf> 
+	</shape>
+	<shape type="hair">
+  		<string name="filename" value="$fn9"/>
+		<float name="radius" value="0.002"/> 		
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.8, 0.1, 0.1"/>
+			<float name="alpha" value="0.05"/>
+		</bsdf> 
+	</shape>
+ 	<shape type="hair">
+  		<string name="filename" value="$fn10"/>
+		<float name="radius" value="0.002"/> 		
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.8, 0.1, 0.1"/>
+			<float name="alpha" value="0.05"/>
+		</bsdf> 
+	</shape>
+	<shape type="hair">
+  		<string name="filename" value="$fn11"/>
+		<float name="radius" value="0.002"/> 		
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.8, 0.1, 0.1"/>
+			<float name="alpha" value="0.05"/>
+		</bsdf> 
+	</shape>
+	<shape type="hair">
+  		<string name="filename" value="$fn12"/>
+		<float name="radius" value="0.002"/> 		
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.8, 0.1, 0.1"/>
+			<float name="alpha" value="0.05"/>
+		</bsdf> 
+	</shape>
+	<shape type="hair">
+  		<string name="filename" value="$fn13"/>
+		<float name="radius" value="0.002"/> 		
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.8, 0.1, 0.1"/>
+			<float name="alpha" value="0.05"/>
+		</bsdf> 
+	</shape>
+	<shape type="hair">
+  		<string name="filename" value="$fn14"/>
+		<float name="radius" value="0.002"/> 		
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.8, 0.1, 0.1"/>
+			<float name="alpha" value="0.05"/>
+		</bsdf> 
+	</shape>
+	<shape type="hair">
+  		<string name="filename" value="$fn15"/>
+		<float name="radius" value="0.002"/> 		
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.8, 0.1, 0.1"/>
+			<float name="alpha" value="0.05"/>
+		</bsdf> 
+	</shape>
+
+
+
+<!-- 	<shape type="rectangle">
+		<transform name="toWorld">
+			<rotate y="1" angle="-90"/>
+			<scale x="1" y="1" z="10"/>
+			<translate x="0.2"/>
+		</transform>
+		<bsdf type="diffuse">
+			<spectrum name="reflectance" value="0.4"/>
+		</bsdf>		
+	</shape> -->
+
+ 	<emitter type="constant">
+		 <spectrum name="radiance" value="0.1"/> 
+	</emitter>
+	
+    <shape type="sphere">
+        <point name="center" x="-100.0" y="50.0" z ="0.0"/>
+        <float name="radius" value="10.0"/>
+        <emitter type="area">
+            <spectrum name="radiance" value="200"/> 
+        </emitter>
+    </shape>
+
+	<sensor type="perspective">
+		<string name="fovAxis" value="smaller"/>
+		<transform name="toWorld">
+			<lookAt origin="1 10 1.3" target="0.5 0 0.5" up="1 0 0"/>  
+			<!--<lookAt origin="-10 1 1.3" target="0 0 1.3" up="0 1 0"/>-->
+		</transform>
+		<float name="fov" value="9.0"/>
+		<!-- <float name="fov" value="15.0"/> -->
+
+
+		<sampler type="ldsampler">
+			<integer name="sampleCount" value="64"/>
+			<!-- <integer name="sampleCount" value="2048"/> -->
+		</sampler>
+		<film id="film" type="hdrfilm">
+			<!--<integer name="width" value="10240"/>-->
+			<integer name="width" value="512"/>
+			<integer name="height" value="512"/>
+			<rfilter type="gaussian"/>
+            <boolean name="banner" value="false" />
+		</film>
+	</sensor>
+
+</scene>
+

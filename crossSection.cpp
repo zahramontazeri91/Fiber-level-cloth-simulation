@@ -73,8 +73,6 @@ bool CrossSection::yarnPlaneIntersection(const Plane &plane, yarnIntersect &itsL
 
 	assert(nv::length(plane.n) - 1.f < EPS   && "normal vector is not normalized!");
 
-	const int num_of_cores = omp_get_num_procs();
-
 	for (int p = 0; p < ply_num; ++p) {
 		const int fiber_num = m_yarn.plys[p].fibers.size();
 		for (int f = 0; f < fiber_num; ++f) {
@@ -110,7 +108,6 @@ bool CrossSection::yarnPlaneIntersection(const Plane &plane, yarnIntersect &itsL
 }
 
 bool CrossSection::allPlanesIntersections(std::vector<yarnIntersect> &itsLists) {
-	const int num_of_cores = omp_get_num_procs();
 	bool isIntrsct = false;
 
 	for (int i = 0; i < m_planesList.size(); ++i) {
@@ -137,7 +134,7 @@ bool CrossSection::allPlanesIntersections(std::vector<yarnIntersect> &itsLists) 
 	return false;
 }
 
-void CrossSection::shapeMatch_A(const Eigen::MatrixXf &pnt_trans, const Eigen::MatrixXf &pnt_ref, Eigen::Matrix2f &A, std::ofstream &phase_fout) {
+void CrossSection::shapeMatch_A(const Eigen::MatrixXf &pnt_trans, const Eigen::MatrixXf &pnt_ref, Eigen::Matrix2f &A, Eigen::Matrix2f &R) {
 
 	Matrix_S mat_S; float theta_R;
 
@@ -159,7 +156,8 @@ void CrossSection::shapeMatch_A(const Eigen::MatrixXf &pnt_trans, const Eigen::M
 		cm_trans /= n;
 	}
 
-
+	const int num_of_cores = omp_get_num_procs();
+#pragma omp parallel for num_threads(num_of_cores)
 	for (int i = 0; i < n; ++i) {
 		Apq += (pnt_trans.col(i) - cm_trans)  *  (pnt_ref.col(i) - cm_ref).transpose() / n;
 		Aqq_1 += (pnt_ref.col(i) - cm_ref) *  (pnt_ref.col(i) - cm_ref).transpose() / n;
@@ -181,73 +179,116 @@ void CrossSection::shapeMatch_A(const Eigen::MatrixXf &pnt_trans, const Eigen::M
 	//SR decompose
 	Eigen::Matrix2f S = U*sigma*U.transpose();
 	//we don't care about R at this point:
-	Eigen::Matrix2f R = U*V.transpose();
+	R = U*V.transpose();
 	theta_R = atan2(R(1, 0), R(0, 0));
-	phase_fout << R(0, 0) << " " << R(0, 1) << " " << R(1, 0) << " " << R(1, 1) << std::endl;
 
-	//Return only S for generating training because global-rotation (R) may distract NN
+	//Return only S for generating training because global-rotation (R) may distract NN but store it for phase-matching purpose
 	A = S;
 
 }
 
-void CrossSection::yarnShapeMatch_A(const yarnIntersect2D &pnts_trans, const yarnIntersect2D &pnts_ref, Eigen::Matrix2f &A, std::ofstream &phase_fout) {
+void convertYarnIntersect2Mat(const yarnIntersect2D &pnts_yarn, Eigen::MatrixXf &pnts_mat) {
 	//Find the total number of points for all plys
-	int sz_ref = 0, sz_trans = 0;
-	for (int p = 0; p < pnts_ref.size(); ++p)
-		sz_ref += pnts_ref[p].size();
-	for (int p = 0; p < pnts_trans.size(); ++p)
-		sz_trans += pnts_trans[p].size();
+	int sz = 0;
+	for (int p = 0; p < pnts_yarn.size(); ++p)
+		sz += pnts_yarn[p].size();
 
-	if (sz_ref != sz_trans) std::cout << "size ref-yarn and simulated are: " << sz_ref << " " << sz_trans << std::endl;
-	assert(sz_ref == sz_trans);
-	const int n = sz_ref;
-	Eigen::MatrixXf all_ref(2, n);
-	Eigen::MatrixXf all_trans(2, n);
+	pnts_mat = Eigen::MatrixXf(2, sz);
 
 	int c = 0;
-	for (int p = 0; p < pnts_ref.size(); ++p) {
-		for (int i = 0; i < pnts_ref[p].size(); ++i) {
-			all_ref(0, c) = pnts_ref[p][i].x;
-			all_ref(1, c) = pnts_ref[p][i].y;
+	for (int p = 0; p < pnts_yarn.size(); ++p) {
+		for (int i = 0; i < pnts_yarn[p].size(); ++i) {
+			pnts_mat(0, c) = pnts_yarn[p][i].x;
+			pnts_mat(1, c) = pnts_yarn[p][i].y;
 			++c;
 		}
 	}
+}
 
-	c = 0;
-	for (int p = 0; p < pnts_trans.size(); ++p) {
-		for (int i = 0; i < pnts_trans[p].size(); ++i) {
-			all_trans(0, c) = pnts_trans[p][i].x;
-			all_trans(1, c) = pnts_trans[p][i].y;
-			++c;
+void writePnts(const std::vector<yarnIntersect2D> &all_pnts, const std::vector<Eigen::Matrix2f> &all_R, 
+	const char* pnts_file, const int isRotate, const int ws_ds, const float trimPercent, const int sampleRate) {
+
+	assert(all_R.size() == all_pnts.size());
+	const int vrtx = all_R.size();
+
+	/* window-level */
+	const int ignorPlanes = trimPercent * vrtx; // crop the first and last #% of the yarn
+	const int ws_us = ws_ds * sampleRate; // first upsample the window-size
+	const int window_num = ((vrtx - ws_us + 1) - 2 * ignorPlanes);
+
+	std::vector<int> indices;
+	for (int w = ignorPlanes; w < (vrtx - ws_us + 1) - ignorPlanes; w = w + sampleRate)
+		indices.push_back(w);
+
+	std::ofstream fout(pnts_file);
+	for (int omp_i = 0; omp_i < static_cast<int>(indices.size()); ++omp_i) {
+		const int w = indices[omp_i];
+
+		//define a curve segment 
+		const int start = w;
+		const int end = w + (ws_us - 1);
+		const int v_yarn = ceil((start + end) / 2.0);
+
+		Eigen::MatrixXf pnts_mat;
+		convertYarnIntersect2Mat(all_pnts[v_yarn], pnts_mat);
+		for (int j = 0; j < pnts_mat.cols(); j++) {
+
+			if (isRotate) {
+				Eigen::MatrixXf mat_rot(2, 1);
+				mat_rot = all_R[v_yarn] * pnts_mat.col(j);
+				fout << mat_rot(0, 0) << " " << mat_rot(1, 0) << std::endl;
+			}
+			else
+				fout << pnts_mat(0, j) << " " << pnts_mat(1, j) << std::endl;
 		}
+		fout << std::endl;
+
 	}
-	shapeMatch_A(all_trans, all_ref, A, phase_fout);
+	fout.close();
+}
+
+
+
+void CrossSection::yarnShapeMatch_A(const yarnIntersect2D &pnts_trans, const yarnIntersect2D &pnts_ref, Eigen::Matrix2f &A, Eigen::Matrix2f &R) {
+
+	Eigen::MatrixXf all_ref;
+	Eigen::MatrixXf all_trans;
+	convertYarnIntersect2Mat(pnts_trans, all_trans);
+	convertYarnIntersect2Mat(pnts_ref, all_ref);
+
+	const int sz_ref = all_ref.cols();
+	const int sz_trans = all_trans.cols();
+	if (sz_ref != sz_trans) std::cout << "size ref-yarn and simulated are: " << sz_ref << " " << sz_trans << std::endl;
+	assert(sz_ref == sz_trans);
+
+	shapeMatch_A(all_trans, all_ref, A, R);
 }
 
 
 void CrossSection::yarnShapeMatches_A(const std::vector<yarnIntersect2D> &pnts_trans, const std::vector<yarnIntersect2D> &pnts_ref,
-	std::vector<Eigen::Matrix2f> &all_A, std::ofstream &phase_fout) {
+	std::vector<Eigen::Matrix2f> &all_A, std::vector<Eigen::Matrix2f> &all_R) {
 
-	assert(pnts_trans.size() == pnts_trans.size());
+	if (pnts_trans.size() != pnts_ref.size()) std::cout << pnts_trans.size() << " " << pnts_ref.size() << std::endl;
+	assert(pnts_trans.size() == pnts_ref.size());
 	const int n = pnts_trans.size();
 	all_A.resize(n);
-	const int num_of_cores = omp_get_num_procs();
-
-
+	all_R.resize(n);
 
 	for (int i = 0; i < n; ++i) {
-		Eigen::Matrix2f A;
-		if (pnts_trans[i][0].size() != pnts_ref[i][0].size() || pnts_trans[i][1].size() != pnts_ref[i][1].size() ) { //for two plys!
-			std::cout << "Mismatch in " << i << "-th cross-section. fibersim:" << pnts_trans[i][0].size() << " ref: " << pnts_ref[i][0].size() << std::endl;
+		Eigen::Matrix2f A, R;
+		if (pnts_trans[i][0].size() != pnts_ref[i][0].size() || pnts_trans[i][1].size() != pnts_ref[i][1].size()) { //for two plys!
+			std::cout << "Mismatch in " << i << "-th cross-section. fibersim: " << pnts_trans[i][0].size() << " ref: " << pnts_ref[i][0].size() << std::endl;
 			A(0, 0) = 0.0;
 			A(0, 1) = 1.0;
 			A(1, 0) = 0.0;
 			A(1, 1) = 1.0;
-			phase_fout << 1.f << " " << 0.f << " " << 0.f <<  " " << 1.0 << std::endl; //set global rotation to 0-degree for lost planes
-			continue;
+			R = A;
 		}
-		yarnShapeMatch_A(pnts_trans[i], pnts_ref[i], A, phase_fout);
+		else {
+			yarnShapeMatch_A(pnts_trans[i], pnts_ref[i], A, R);
+		}
 		all_A[i] = A;
+		all_R[i] = R;
 	}
 }
 
@@ -256,7 +297,6 @@ void CrossSection::allPlyCenters(std::vector<std::vector<vec3f>> &plyCenters, st
 
 	const int plane_num = itsLists.size();
 	plyCenters.resize(plane_num); //number of planes
-	const int num_of_cores = omp_get_num_procs();
 
 	for (int i = 0; i < plane_num; ++i) { //plane num
 		const int ply_num = itsLists[i].size();
@@ -286,8 +326,6 @@ void CrossSection::project2Plane(const vec3f& P3d, const Plane& plane, vec2f& P2
 void CrossSection::PlanesIntersections2D(std::vector<yarnIntersect> &itsLists, std::vector<yarnIntersect2D> &allPlaneIntersect) {
 
 	const int ply_num = m_yarn.plys.size();
-	const int num_of_cores = omp_get_num_procs();
-
 
 	for (int cs = 0; cs < itsLists.size(); ++cs) { //for each plane
 		Plane plane;

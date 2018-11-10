@@ -1,0 +1,338 @@
+<scene version="0.4.4"> 
+	<integrator type="volpath_simple"> 
+		<integer name="maxDepth" value="25"/> 
+		<integer name="rrDepth" value="30"/> 
+	</integrator> 
+
+	<shape type="hair">
+		<string name="filename" value="F:/YarnGeneration/output/knitted/sweater_stretch/genYarn_wo_0_1.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.796875, 0.796875, 0.0"/>
+			<float name="alpha" value="0.15"/>
+		</bsdf> 
+	</shape>
+
+	<shape type="hair">
+		<string name="filename" value="F:/YarnGeneration/output/knitted/sweater_stretch/genYarn_wo_0_2.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.796875, 0.796875, 0.0"/>
+			<float name="alpha" value="0.15"/>
+		</bsdf> 
+	</shape>
+
+	<shape type="hair">
+		<string name="filename" value="F:/YarnGeneration/output/knitted/sweater_stretch/genYarn_wo_0_3.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.796875, 0.796875, 0.0"/>
+			<float name="alpha" value="0.15"/>
+		</bsdf> 
+	</shape>
+
+	<shape type="hair">
+		<string name="filename" value="F:/YarnGeneration/output/knitted/sweater_stretch/genYarn_wo_0_4.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.796875, 0.796875, 0.0"/>
+			<float name="alpha" value="0.15"/>
+		</bsdf> 
+	</shape>
+
+	<shape type="hair">
+		<string name="filename" value="F:/YarnGeneration/output/knitted/sweater_stretch/genYarn_wo_0_7.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.796875, 0.796875, 0.0"/>
+			<float name="alpha" value="0.15"/>
+		</bsdf> 
+	</shape>
+
+	<shape type="hair">
+		<string name="filename" value="F:/YarnGeneration/output/knitted/sweater_stretch/genYarn_wo_0_8.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.796875, 0.796875, 0.0"/>
+			<float name="alpha" value="0.15"/>
+		</bsdf> 
+	</shape>
+
+	<shape type="hair">
+		<string name="filename" value="F:/YarnGeneration/output/knitted/sweater_stretch/genYarn_wo_0_9.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.796875, 0.796875, 0.0"/>
+			<float name="alpha" value="0.15"/>
+		</bsdf> 
+	</shape>
+
+	<shape type="hair">
+		<string name="filename" value="F:/YarnGeneration/output/knitted/sweater_stretch/genYarn_wo_0_10.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.796875, 0.796875, 0.0"/>
+			<float name="alpha" value="0.15"/>
+		</bsdf> 
+	</shape>
+
+	<shape type="hair">
+		<string name="filename" value="F:/YarnGeneration/output/knitted/sweater_stretch/genYarn_wo_0_12.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.796875, 0.796875, 0.0"/>
+			<float name="alpha" value="0.15"/>
+		</bsdf> 
+	</shape>
+
+	<shape type="hair">
+		<string name="filename" value="F:/YarnGeneration/output/knitted/sweater_stretch/genYarn_wo_0_13.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.796875, 0.796875, 0.0"/>
+			<float name="alpha" value="0.15"/>
+		</bsdf> 
+	</shape>
+
+	<shape type="hair">
+		<string name="filename" value="F:/YarnGeneration/output/knitted/sweater_stretch/genYarn_wo_0_14.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.796875, 0.796875, 0.0"/>
+			<float name="alpha" value="0.15"/>
+		</bsdf> 
+	</shape>
+
+	<shape type="hair">
+		<string name="filename" value="F:/YarnGeneration/output/knitted/sweater_stretch/genYarn_wo_0_15.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.796875, 0.796875, 0.0"/>
+			<float name="alpha" value="0.15"/>
+		</bsdf> 
+	</shape>
+
+	<shape type="hair">
+		<string name="filename" value="F:/YarnGeneration/output/knitted/sweater_stretch/genYarn_wo_0_16.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.796875, 0.796875, 0.0"/>
+			<float name="alpha" value="0.15"/>
+		</bsdf> 
+	</shape>
+
+	<shape type="hair">
+		<string name="filename" value="F:/YarnGeneration/output/knitted/sweater_stretch/genYarn_wo_0_17.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.1, 0.1, 0.8997"/>
+			<float name="alpha" value="0.15"/>
+		</bsdf> 
+	</shape>
+
+	<shape type="hair">
+		<string name="filename" value="F:/YarnGeneration/output/knitted/sweater_stretch/genYarn_wo_0_18.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.1, 0.1, 0.8997"/>
+			<float name="alpha" value="0.15"/>
+		</bsdf> 
+	</shape>
+
+	<shape type="hair">
+		<string name="filename" value="F:/YarnGeneration/output/knitted/sweater_stretch/genYarn_wo_0_19.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.1, 0.1, 0.8997"/>
+			<float name="alpha" value="0.15"/>
+		</bsdf> 
+	</shape>
+
+	<shape type="hair">
+		<string name="filename" value="F:/YarnGeneration/output/knitted/sweater_stretch/genYarn_wo_0_20.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.1, 0.1, 0.8997"/>
+			<float name="alpha" value="0.15"/>
+		</bsdf> 
+	</shape>
+
+	<shape type="hair">
+		<string name="filename" value="F:/YarnGeneration/output/knitted/sweater_stretch/genYarn_wo_0_21.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.1, 0.1, 0.8997"/>
+			<float name="alpha" value="0.15"/>
+		</bsdf> 
+	</shape>
+
+	<shape type="hair">
+		<string name="filename" value="F:/YarnGeneration/output/knitted/sweater_stretch/genYarn_wo_0_22.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.1, 0.1, 0.8997"/>
+			<float name="alpha" value="0.15"/>
+		</bsdf> 
+	</shape>
+
+	<shape type="hair">
+		<string name="filename" value="F:/YarnGeneration/output/knitted/sweater_stretch/genYarn_wo_0_23.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.1, 0.1, 0.8997"/>
+			<float name="alpha" value="0.15"/>
+		</bsdf> 
+	</shape>
+
+	<shape type="hair">
+		<string name="filename" value="F:/YarnGeneration/output/knitted/sweater_stretch/genYarn_wo_0_24.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.1, 0.1, 0.8997"/>
+			<float name="alpha" value="0.15"/>
+		</bsdf> 
+	</shape>
+
+	<shape type="hair">
+		<string name="filename" value="F:/YarnGeneration/output/knitted/sweater_stretch/genYarn_wo_0_25.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.1, 0.1, 0.8997"/>
+			<float name="alpha" value="0.15"/>
+		</bsdf> 
+	</shape>
+
+	<shape type="hair">
+		<string name="filename" value="F:/YarnGeneration/output/knitted/sweater_stretch/genYarn_wo_0_26.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.1, 0.1, 0.8997"/>
+			<float name="alpha" value="0.15"/>
+		</bsdf> 
+	</shape>
+
+	<shape type="hair">
+		<string name="filename" value="F:/YarnGeneration/output/knitted/sweater_stretch/genYarn_wo_0_27.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.1, 0.1, 0.8997"/>
+			<float name="alpha" value="0.15"/>
+		</bsdf> 
+	</shape>
+
+	<shape type="hair">
+		<string name="filename" value="F:/YarnGeneration/output/knitted/sweater_stretch/genYarn_wo_0_28.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.1, 0.1, 0.8997"/>
+			<float name="alpha" value="0.15"/>
+		</bsdf> 
+	</shape>
+
+	<shape type="hair">
+		<string name="filename" value="F:/YarnGeneration/output/knitted/sweater_stretch/genYarn_wo_0_29.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.1, 0.1, 0.8997"/>
+			<float name="alpha" value="0.15"/>
+		</bsdf> 
+	</shape>
+
+	<shape type="hair">
+		<string name="filename" value="F:/YarnGeneration/output/knitted/sweater_stretch/genYarn_wo_0_30.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.1, 0.1, 0.8997"/>
+			<float name="alpha" value="0.15"/>
+		</bsdf> 
+	</shape>
+
+	<shape type="hair">
+		<string name="filename" value="F:/YarnGeneration/output/knitted/sweater_stretch/genYarn_wo_0_31.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.1, 0.1, 0.8997"/>
+			<float name="alpha" value="0.15"/>
+		</bsdf> 
+	</shape>
+
+	<shape type="hair">
+		<string name="filename" value="F:/YarnGeneration/output/knitted/sweater_stretch/genYarn_wo_0_32.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.1, 0.1, 0.8997"/>
+			<float name="alpha" value="0.15"/>
+		</bsdf> 
+	</shape>
+
+	<shape type="hair">
+		<string name="filename" value="F:/YarnGeneration/output/knitted/sweater_stretch/genYarn_wo_0_33.txt"/>
+		<float name="radius" value="0.002"/> 	
+		<float name="angleThreshold" value="0.001"/>
+		<bsdf type="roughplastic">
+			<spectrum name="diffuseReflectance" value="0.1, 0.1, 0.8997"/>
+			<float name="alpha" value="0.15"/>
+		</bsdf> 
+	</shape>
+
+	<emitter type="constant">
+		<spectrum name="radiance" value="0.0"/> 
+	</emitter>
+	<shape type="rectangle"> 
+		<transform name="toWorld"> 
+			<rotate x="1" angle="90"/> 
+			<scale x="30" y="30" z="30"/> 
+			<translate x="0.0" y="200.0" z="0.0"/> 
+		</transform> 
+		<emitter type="area"> 
+			<spectrum name="radiance" value="80"/>  
+		</emitter> 
+	</shape> 
+	<sensor type="perspective">
+		<string name="fovAxis" value="smaller"/>
+		<transform name="toWorld">
+			<lookAt origin="0.24 10 0.0" target="0.24 0 0.0" up="1 0 0"/>  
+		</transform>
+		<float name="fov" value="3.8"/>
+
+		<sampler type="ldsampler">
+			<integer name="sampleCount" value="16"/>
+		</sampler>
+		<film id="film" type="hdrfilm">
+			<integer name="width" value="512"/>
+			<integer name="height" value="512"/>
+			<rfilter type="gaussian"/>
+			<boolean name="banner" value="false" />
+		</film>
+	</sensor>
+
+</scene>

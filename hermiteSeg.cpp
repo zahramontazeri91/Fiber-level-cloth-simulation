@@ -109,6 +109,7 @@ void HermiteSpline::build(int _subdiv, Eigen::Vector3d _norm0, Eigen::Vector3d _
         for ( int i = 1; i < subdiv; ++i ) {
             double t = static_cast<double>(i)/subdiv;
             norms[i] = ((1.0 - t)*_norm0 + t*_norm1).normalized();
+			assert(std::abs(norms[i].norm() - 1.0) < HERMITE_EPS);
         }
     }
 	//use forward-RM if the first normal is given 
@@ -116,6 +117,7 @@ void HermiteSpline::build(int _subdiv, Eigen::Vector3d _norm0, Eigen::Vector3d _
 		norms[0] = _norm0.normalized();
 		for (int i = 1; i <= subdiv; ++i) {
 			norms[i] = computeRotatedNormal(tangents[i - 1], tangents[i], norms[i - 1]);
+			assert(std::abs(norms[i].norm() - 1.0) < HERMITE_EPS);
 		}
     }
 	//use backward-RM if the first normal is given 
@@ -127,9 +129,9 @@ void HermiteSpline::build(int _subdiv, Eigen::Vector3d _norm0, Eigen::Vector3d _
 		}
 	}
 
-	for (int i = 0; i <= subdiv; ++i) {
-		norms[i].normalize();
-	}
+	//for (int i = 0; i <= subdiv; ++i) {
+		//norms[i].normalize();
+	//}
 }
 #endif
 
@@ -352,17 +354,17 @@ void HermiteSpline::output(int n, Eigen::Vector3d *bufferPosition, Eigen::Vector
 
 Eigen::Vector3d HermiteSpline::computeRotatedNormal(const Eigen::Vector3d &tang0, const Eigen::Vector3d &tang1, const Eigen::Vector3d norm0)
 {
-	//debug:
-	if (std::abs(norm0.norm() - 1.0) > HERMITE_EPS)
-		std::cout << "norm0.norm: " << std::abs(norm0.norm() - 1.0) << ", norm0 \n" << norm0 << std::endl;
+	//debug:	
 	if (std::abs(tang0.norm() - 1.0) > HERMITE_EPS)
 		std::cout << "tang0.norm: " << std::abs(tang0.norm() - 1.0) << ", tang0 \n" << tang0 << std::endl;
 	if (std::abs(tang1.norm() - 1.0) > HERMITE_EPS)
 		std::cout << "tang1.norm: " << std::abs(tang1.norm() - 1.0) << ", tang1 \n" << tang1 << std::endl;
+	if (std::abs(norm0.norm() - 1.0) > HERMITE_EPS)
+		std::cout << "norm0.norm: " << std::abs(norm0.norm() - 1.0) << ", norm0 \n" << norm0 << std::endl;
 
-	assert(std::abs(norm0.norm() - 1.0) < HERMITE_EPS);
     assert(std::abs(tang0.norm() - 1.0) < HERMITE_EPS);
-    assert(std::abs(tang1.norm() - 1.0) < HERMITE_EPS);
+    assert(std::abs(tang1.norm() - 1.0) < HERMITE_EPS); 
+	assert(std::abs(norm0.norm() - 1.0) < HERMITE_EPS);
 
     double val = tang0.dot(tang1);
 

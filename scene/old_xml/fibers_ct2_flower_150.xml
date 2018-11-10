@@ -1,0 +1,163 @@
+<?xml version='1.0' encoding='utf-8'?>
+
+<scene version="0.5.0">
+	<integrator type="volpath_simple">
+		<integer name="maxDepth" value="10"/>
+		<integer name="rrDepth" value="15"/>
+	</integrator>
+
+	<medium type="heterogeneous2" id="med">
+		<float name="scale" value="500"/>
+		<float name="stepSize" value="1"/>
+
+		<volume type="linesegvolume">
+			<float name="radius" value="0.004"/>
+			<!-- <float name="radius" value="0.03"/> -->
+			<!-- <float name="dropOut" value="0.5"/> -->
+			<!-- read from txt for first time  -->
+			<!-- <string name="filename" value="D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/output/woven/arbitrary_pattern/150x100/testinfo_6500.txt"/> -->
+			<!-- <string name="filename" value="test.txt"/> -->
+
+			<string name="filename" value="$testinfo"/>
+
+			<!-- read from binary afterward -->
+<!-- 			<string name="filename" value="cached.dat"/>
+			<integer name="format" value="1"/>  -->
+		</volume>
+
+		<phase type="microflake">
+			<float name="stddev" value="0.3"/>
+		</phase>
+	</medium>
+
+	<shape type="obj">
+		<string name="filename" value="$obj"/>
+		<!-- <string name="filename" value="D:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/output/woven/arbitrary_pattern/150x100/volume_6500.obj"/> -->
+
+		<ref name="interior" id="med"/>
+		<boolean name="faceNormals" value="true"/>
+		<transform name="toWorld">
+			<rotate y="1" angle="90"/>
+		</transform>
+	</shape>
+
+	<shape type="rectangle">
+		<transform name="toWorld">
+			<rotate x="1" angle="-90"/>
+			<scale x="75" z="75"/>
+			<translate x="10" y="-15.0" z="10"/>
+		</transform>
+
+		<bsdf type="diffuse">
+			<texture name="reflectance" type="bitmap">
+				<string name="filename" value="concrete-lessdark.jpg"/>
+			</texture>
+		</bsdf>
+	</shape>
+	<!-- 	<emitter type="constant">
+		<spectrum name="radiance" value="0.01"/> 
+	</emitter> -->
+	<!-- 	<emitter type="envmap">
+		 <string name="filename" value="ennis_2k.exr"/> 
+		 <transform name="toWorld"> 
+			<rotate x="1" angle="90"/>
+		</transform> 
+	</emitter> -->
+	<!-- 	<shape type="sphere">
+		<point name="center" x="5.0" y="3.5" z="5.0"/>
+		<float name="radius" value="1.0"/>
+		<transform name="toWorld"> 
+			<translate y="0"/>
+		</transform> 
+		<emitter type="area">
+			<spectrum name="radiance" value="1.2"/> 
+		</emitter>
+	</shape> -->
+	<!-- 	<shape type="cylinder">
+		<float name="radius" value="1.2"/>
+		<point name="p0" x="4.05" y="$h" z="5"/>
+		<point name="p1" x="5.95" y="$h" z="5"/>
+		<bsdf type="diffuse">
+			<spectrum name="reflectance" value="0.3"/>
+		</bsdf>	
+		<emitter type="area"> 
+			<spectrum name="radiance" value="0.7"/>  
+		</emitter> 
+	</shape>
+	<shape type="disk">
+		<transform name="toWorld">
+			<rotate y="1" angle="-90"/>
+			<scale value="1.2"/>
+			<translate x="4.05" y="$h" z="5"/>
+		</transform>
+		<emitter type="area"> 
+			<spectrum name="radiance" value="0.7"/>  
+		</emitter> 
+	</shape> -->
+	<!-- 
+	<shape type="obj">
+		<string name="filename" value="../../capsule_new.obj"/>
+		<boolean name="faceNormals" value="true"/>
+		<transform name="toWorld"> 
+			<scale x="0.4" y="0.4" z="0.7"/> 
+			<translate x="5" y="$h" z="5"/> 
+		</transform> 
+		<bsdf type="diffuse">
+			<spectrum name="reflectance" value="0.25, 0.25, 0.25"/> 
+		</bsdf>  
+	</shape> -->
+
+	<shape type="rectangle">
+		<transform name="toWorld">
+			<rotate x="1" angle="90"/>
+			<scale x="10" y="100" z="10"/>
+			<translate x="10" y="70.0" z="10"/>
+		</transform>
+
+		<emitter type="area">
+			<spectrum name="radiance" value="80"/>
+		</emitter>
+	</shape>
+
+<!-- 	<sensor type="perspective">
+		<float name="focusDistance" value="25.1002"/>
+		<float name="fov" value="102.434"/>
+		<string name="fovAxis" value="x"/>
+		<transform name="toWorld">
+			<lookat target="-2.64329, 12.0869, -5.11472" origin="-2.6572, 13.0372, -5.42598" up="0.92113, 0.241516, 0.30527"/> 
+		</transform>
+
+		<sampler type="independent">
+			<integer name="sampleCount" value="1"/>
+		</sampler>
+
+		<film type="hdrfilm">
+			<boolean name="banner" value="false"/>
+			<integer name="height" value="512"/>
+			<integer name="width" value="910"/>
+
+			<rfilter type="gaussian"/>
+		</film>
+	</sensor> -->
+
+
+	<sensor type="perspective">
+		<string name="fovAxis" value="smaller"/>
+		<transform name="toWorld">
+			<lookAt origin="0 20 0" target="0 0 0" up="1 0 0"/> 
+		</transform>
+		<float name="fov" value="$fov"/>
+
+		<sampler type="independent">
+			<integer name="sampleCount" value="32"/>
+		</sampler>
+		<film id="film" type="hdrfilm">
+			<integer name="width" value="910"/>
+			<integer name="height" value="512"/>
+			<rfilter type="gaussian"/>
+			<boolean name="banner" value="false" />
+		</film>
+	</sensor>
+
+
+</scene>
