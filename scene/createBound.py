@@ -1,3 +1,4 @@
+
 import argparse
 import numpy as np
 import struct, time, sys
@@ -103,6 +104,7 @@ def main(args):
 
 
 if __name__ == "__main__":
+    print ('generate obj mesh from volume AABB')
     parser = argparse.ArgumentParser(
             description='Create bounding meshes for single-channel Mitsuba volumes',
             epilog='Shuang Zhao (shz@ics.uci.edu)')

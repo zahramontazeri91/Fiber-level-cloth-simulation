@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Apr 30 17:07:09 2018
+Generate mitsuba scene file for knitted example
+Note that this uses python 2.7 and doens't work with 3.5 because 
+createBoun.py works with 2.7
 
+This uses fiber-mitsuba to render knitted sample
 @author: zahra
 """
 
-isSimul = 0
-
-def wovenXMLgenerator(dataset, frame, sz):
-    outname = 'woven/' + str(sz) +'x'+str(sz) + '_' + str(frame) + '_wo.xml'
+def knittedXMLgenerator(dataset, frame, yarnNum, outname):
     print(outname)
     with open(outname, "w") as fout:
         
@@ -21,27 +21,18 @@ def wovenXMLgenerator(dataset, frame, sz):
         fout.writelines('\t</integrator> \n')
         fout.writelines('\n') 
         
-        for i in range (0,sz+sz):
-            if (i==0 or i==5 or i==6 or i==11): #remove the boundry yarns
-                continue
+        for i in range (0,yarnNum):
             ### shape hair
             fout.writelines('\t<shape type="hair">\n')
-            if (isSimul):
-                fn = "F:/YarnGeneration/fibersim/" + dataset + "/simul_frame_" + str(frame) + "_" + str(i)+ ".txt"
-            else:
-#                fn = "F:/YarnGeneration/output/" + dataset + "/genYarn_NN_" + str(frame) + "_" + str(i)+ "_us.txt"
-                fn = "F:/YarnGeneration/output/" + dataset + "/genYarn_wo_" + str(frame) + "_" + str(i)+ ".txt"               
+#            fn = "F:/YarnGeneration/output/" + dataset + "/genYarn_wo_" + str(frame) + "_" + str(i)+ ".txt"               
             
-            fout.writelines('\t\t<string name="filename" value="%s"/>\n' % (fn) )
+            fout.writelines('\t\t<string name="filename" value="$fn%d"/>\n' % (i) )
             fout.writelines('\t\t<float name="radius" value="0.002"/> 	\n')	
             fout.writelines('\t\t<float name="angleThreshold" value="0.001"/>\n')
             
             # use bsdf
             fout.writelines('\t\t<bsdf type="roughplastic">\n')
-            if (i<sz):
-                fout.writelines('\t\t\t<spectrum name="diffuseReflectance" value="0.856875, 0.796875, 0.0"/>\n')
-            else:
-                fout.writelines('\t\t\t<spectrum name="diffuseReflectance" value="0.856875, 0.796875, 0.0"/>\n')
+            fout.writelines('\t\t\t<spectrum name="diffuseReflectance" value="0.856875, 0.796875, 0.0"/>\n')
             fout.writelines('\t\t\t<float name="alpha" value="0.15"/>\n')
             fout.writelines('\t\t</bsdf> \n')
 
@@ -55,10 +46,7 @@ def wovenXMLgenerator(dataset, frame, sz):
 #            fout.writelines('\t\t\t\t<float name="kD" value="0"/>\n')
 #            fout.writelines('\t\t\t\t<spectrum name="colorD" value="0.99,0.99,0.99"/>\n')
 #            fout.writelines('\t\t\t\t<spectrum name="colorR" value="0.1,0.1,0.05"/>\n')
-#            if (i<sz):
-#                fout.writelines('\t\t\t\t<spectrum name="colorTT" value="0.882,0.762,0.148"/>\n')
-#            else:
-#                fout.writelines('\t\t\t\t<spectrum name="colorTT" value="0.859,0.058,0.191"/>\n')
+#            fout.writelines('\t\t\t\t<spectrum name="colorTT" value="0.859,0.058,0.191"/>\n')
 #            fout.writelines('\t\t\t\t<float name="betaR" value="0.2"/>\n')
 #            fout.writelines('\t\t\t\t<float name="betaTT" value="27"/>\n')
 #            fout.writelines('\t\t\t\t<float name="gammaTT" value="38"/>\n')
@@ -100,18 +88,10 @@ def wovenXMLgenerator(dataset, frame, sz):
         fout.writelines('\t<sensor type="perspective">\n')
         fout.writelines('\t\t<string name="fovAxis" value="smaller"/>\n')
         fout.writelines('\t\t<transform name="toWorld">\n')
-        if (isSimul):
-            fout.writelines('\t\t\t<lookAt origin="0.25 10 0.0" target="0.25 0 0.0" up="1 0 0"/>  \n')  #for simul xml
-        else:
-#            fout.writelines('\t\t\t<lookAt origin="0.24 10 0.0" target="0.24 0 0.0" up="1 0 0"/>  \n')  #for NN xml
-            fout.writelines('\t\t\t<lookAt origin="1 0 -10" target="1 0 -1.5" up="0 1 0"/>   \n')  #for sweater
+        fout.writelines('\t\t\t<lookAt origin="1 0 -10" target="1 0 -1.5" up="0 1 0"/>   \n')  #for sweater
             
         fout.writelines('\t\t</transform>\n')
-        
-        if(isSimul):
-            fout.writelines('\t\t<float name="fov" value="3.0"/>\n') #for NN xml
-        else:
-            fout.writelines('\t\t<float name="fov" value="50"/>\n') #3.8 for simul xml
+        fout.writelines('\t\t<float name="fov" value="50"/>\n') #3.8 for simul xml
         fout.writelines('\n')
         
         ### sampler
@@ -134,26 +114,14 @@ def wovenXMLgenerator(dataset, frame, sz):
 
 
 # In[]:
-#dataset = 'woven/push/yarn4/100x100'
-#dataset = 'woven/stretch/yarn4/100x100'
-#dataset = 'woven/6x6'
-dataset = 'knitted/sweater_stretch'
-    
-
+dataset = 'knitted/slipStitch_stretch'
+outname = 'slipStitch_stretch.xml'
+f0 = 0
+f1 = 0
+yarnNum = 1
 
 # for generating xml file
-sz = 17
-if (isSimul):
-#    f = 10000
-#    f = 1000000 #for frame-2
-#    f = 6000
-    f = 1000
-else:
-#    f = 6000
-    f = 0
-#    f = 15000
-
-for i in range (f, f+1, 500):
+for i in range (f0, f1+1, 500):
     print (i)
     frame = i
-    wovenXMLgenerator(dataset, frame, sz)
+    knittedXMLgenerator(dataset, frame, yarnNum, outname)

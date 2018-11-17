@@ -205,13 +205,51 @@ void convertYarnIntersect2Mat(const yarnIntersect2D &pnts_yarn, Eigen::MatrixXf 
 	}
 }
 
+void writeFirstPnts(const std::vector<yarnIntersect2D> &all_pnts, const char* pnts_file) {
+	const int cs_num = 1; //write only first cross-seciton
+	std::ofstream fout(pnts_file);
+	for (int c = 0; c < cs_num; c++) {
+		const int plyNum = all_pnts[c].size();
+		for (int p = 0; p < plyNum; p++) {
+			const int fiberNum_ply = all_pnts[c][p].size();
+			for (int f = 0; f < fiberNum_ply; f++) {
+				fout << all_pnts[c][p][f].x << " " << all_pnts[c][p][f].y << std::endl; //total points are fibernum for each ply
+			}
+		}
+	}
+	fout.close();
+	std::cout << "Average points are written to " << pnts_file << std::endl;
+}
+/*
+void writeAvgPnts(const std::vector<yarnIntersect2D> &all_pnts, const int fiber_num, const char* pnts_file) {
+	const int cs_num = all_pnts.size();
+	vec2f pnt(0.0);
+	std::vector<vec2f> avg(fiber_num, pnt);
+	for (int c = 0; c < cs_num; c++) {
+		const int plyNum = all_pnts[c].size();
+		for (int p = 0; p < plyNum; p++) {
+			const int fiberNum_ply = all_pnts[c][p].size();
+			for (int f = 0; f < fiberNum_ply; f++) {
+				avg[p*fiberNum_ply + f] = avg[p*fiberNum_ply + f] + all_pnts[c][p][f]; //total points are fibernum for each ply
+			}
+		}
+	}
+	std::ofstream fout(pnts_file);
+	for (int i = 0; i < fiber_num; i++) {
+		avg[i] = avg[i] / cs_num;
+		fout << avg[i].x << " " << avg[i].y << std::endl;
+	}
+	fout.close();
+	std::cout << "Average points are written to " << pnts_file << std::endl;
+}
+
+
 void writePnts(const std::vector<yarnIntersect2D> &all_pnts, const std::vector<Eigen::Matrix2f> &all_R, 
 	const char* pnts_file, const int isRotate, const int ws_ds, const float trimPercent, const int sampleRate) {
 
 	assert(all_R.size() == all_pnts.size());
 	const int vrtx = all_R.size();
 
-	/* window-level */
 	const int ignorPlanes = trimPercent * vrtx; // crop the first and last #% of the yarn
 	const int ws_us = ws_ds * sampleRate; // first upsample the window-size
 	const int window_num = ((vrtx - ws_us + 1) - 2 * ignorPlanes);
@@ -232,7 +270,6 @@ void writePnts(const std::vector<yarnIntersect2D> &all_pnts, const std::vector<E
 		Eigen::MatrixXf pnts_mat;
 		convertYarnIntersect2Mat(all_pnts[v_yarn], pnts_mat);
 		for (int j = 0; j < pnts_mat.cols(); j++) {
-
 			if (isRotate) {
 				Eigen::MatrixXf mat_rot(2, 1);
 				mat_rot = all_R[v_yarn] * pnts_mat.col(j);
@@ -246,7 +283,7 @@ void writePnts(const std::vector<yarnIntersect2D> &all_pnts, const std::vector<E
 	}
 	fout.close();
 }
-
+*/
 
 
 void CrossSection::yarnShapeMatch_A(const yarnIntersect2D &pnts_trans, const yarnIntersect2D &pnts_ref, Eigen::Matrix2f &A, Eigen::Matrix2f &R) {

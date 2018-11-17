@@ -32,11 +32,12 @@ def loadScaler(fn_trainX, fn_trainY):
 
     
 def loadData(fn_trainX, fn_trainY, fn_validX, fn_validY):
-    X_train_all2 = np.loadtxt(fn_trainX,delimiter=None)
-    Y_train_all2 = np.loadtxt(fn_trainY,delimiter=None)
+    X_train_all = np.loadtxt(fn_trainX,delimiter=None)
+    Y_train_all = np.loadtxt(fn_trainY,delimiter=None)
     
-    X_train_all = X_train_all2[0:40, :]
-    Y_train_all = Y_train_all2[0:40, :]
+    #to take only part of data
+#    X_train_all = X_train_all2[0:20, :]
+#    Y_train_all = Y_train_all2[0:20, :]
 
     print("Original training data shape (X): ", X_train_all.shape)
     print("Original training data shape (Y): ", Y_train_all.shape)
@@ -49,7 +50,7 @@ def loadData(fn_trainX, fn_trainY, fn_validX, fn_validY):
     nb_features = X_train_all.shape[1]
     nb_traindata = X_train_all.shape[0]
     split = 0.99
-    nb_halfdata = int ( round(nb_traindata*split) / 16 ) * 16 #make the number of data to be divisible by 16
+    nb_halfdata = int ( round(nb_traindata*split) / 16 ) * 16 #make the number of data to be divisible by 16 so all batches has exastly same number of data
     print (round(nb_traindata*split), nb_halfdata)
     nb_outputs = Y_train_all.shape[1]
     
@@ -60,12 +61,12 @@ def loadData(fn_trainX, fn_trainY, fn_validX, fn_validY):
     Y_train = all_train[0:nb_halfdata,nb_features:]  
     
     ### prepare the validation data
-#    X_valid_all = all_train[nb_halfdata:,0:nb_features]
-#    Y_valid_all = all_train[nb_halfdata:,nb_features:] 
+    X_valid_all = all_train[nb_halfdata:,0:nb_features]
+    Y_valid_all = all_train[nb_halfdata:,nb_features:] 
     
-    X_valid_all = np.loadtxt(fn_validX,delimiter=None)
-    Y_valid_all = np.loadtxt(fn_validY,delimiter=None)
-    
+#    X_valid_all = np.loadtxt(fn_validX,delimiter=None)
+#    Y_valid_all = np.loadtxt(fn_validY,delimiter=None)
+#    
     all_valid = np.concatenate((X_valid_all,Y_valid_all), axis=1)
     np.random.shuffle(all_valid)
     split_val = 0.2
@@ -90,31 +91,29 @@ def loadData(fn_trainX, fn_trainY, fn_validX, fn_validY):
 
 ## Build a customized loss function
 # In[]:
-def customLoss(pnts, nbatch):
+def customLoss(nbatch, pnts, nPnt, lenPnt):
     def loss(y_true, y_pred):
-#        e_np = K.zeros((1)) 
-#        err = K.eval(e_np) 
-        err = 0
-        
-        for i in range (0, 10): #nbatch):
-            print (i, nbatch)
+        w = 0
+        err = 0 
+        for i in range (0, nbatch):
             y_true_mat = K.reshape(y_true[i], [-1,2])
             y_pred_mat = K.reshape(y_pred[i], [-1,2]) #-1 means: reshape so that columns will be 2 with whatever number of row
-            for j in range (0, pnts.shape[0]):
+            for j in range (0, nPnt):
                 pnt_v = K.reshape(pnts[j], [-1,1])
                 pnt_pred = K.dot(y_pred_mat, pnt_v)
                 pnt_true = K.dot(y_true_mat, pnt_v)
                 err = err + K.mean( K.square(pnt_pred - pnt_true ) )
  
-#        err /= ( nbatch * 40 )
-#        w = 1.0/(np.linalg.norm(pnts))
-#        print('w for regularization term is ', w)
-        return K.variable(value=err) + K.mean(K.square(y_true-y_pred) )
+        err /= ( nbatch * nPnt )
+        c = 0.0001
+        w = c/lenPnt
+        print('w for regularization term is ', w )
+        return  K.mean(K.square(y_true-y_pred) ) + w*err
     return loss
 
 ## Build neural network model
 # In[]:
-def buildModel(input_dim, output_dim, neurons, w_path, nbatch, pnts):
+def buildModel(input_dim, output_dim, neurons, w_path, nbatch, pnts, nPnts, lenPnts):
 
     # Simple fully-connected neural network with 2 hidden layers.
     # Including dropout layer helps avoid overfitting.
@@ -132,17 +131,13 @@ def buildModel(input_dim, output_dim, neurons, w_path, nbatch, pnts):
     model.add(Activation('relu')) 
     model.add(BatchNormalization())
     
-#    model.add(Dense(neurons))
-#    model.add(Activation('relu')) 
-#    model.add(BatchNormalization())
-    
     model.add(Dense(output_dim))
     model.add(Activation('linear'))
 #    model.add(Activation('sigmoid'))
 
     
-#    model.compile(loss='mse', optimizer='adam', metrics=['mse'])
-    model.compile(loss=customLoss( pnts, nbatch), optimizer='adam', metrics=['mse'])
+    model.compile(loss='mse', optimizer='adam', metrics=['mse'])
+#    model.compile(loss=customLoss( nbatch, pnts, nPnts, lenPnts), optimizer='adam', metrics=['mse'])
     
     return model
 
@@ -200,7 +195,6 @@ def extrapolate(predicted, totalNum, nb_outputs, stride):
         total[j, : ] = predictExtr[-1]
     return total
     
-
 ## rotate the NN output back to RM frames
 # In[]:
 def rotate(predicted, angles):
@@ -310,27 +304,27 @@ def predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, angles
 def test(neurons,fn_trainX, fn_trainY, fn_validX, fn_validY, reTrain, w_path): 
 #    storeModel = w_path + 'train_all/model_ws5_temporal.h5'
     storeModel = w_path + 'train_all/model_ws5.h5'
+    nbatch = 16
+    # Read point cloud needed for loss-function
+    pnts = np.loadtxt(w_path+'train_all/ref2D.txt')
+    lenPnts = (np.linalg.norm(pnts))
+    nPnts = pnts.shape[0]#number of points in one cross-section
+    pnt_K = K.variable(value=pnts)
+    print('point cloud shape: ', pnts.shape)
+    
     if (reTrain):
-        print ('<<<<< train the model >>>>>>')
-        nbatch = 16
-        # Read point cloud needed for loss-function
-        n = 3 #number of points in one cross-section
-        pnt_ref = np.loadtxt(w_path+'train_all/ref2D.txt')
-        pnts = pnt_ref[0:n]
+        print ('<<<<< train the model >>>>>>')        
         
-        #        pnts = np.random.rand(n,2)
-        pnt_K = K.variable(value=pnts)
-        
-        print('point cloud shape: ', pnt_ref.shape, pnts.shape)
         (X_train, Y_train, X_valid, Y_valid, nb_features, nb_outputs, scaler) = loadData(fn_trainX, fn_trainY, fn_validX, fn_validY)
-        model = buildModel(nb_features, nb_outputs, neurons, w_path, nbatch, pnt_K)
+        model = buildModel(nb_features, nb_outputs, neurons, w_path, nbatch, pnt_K, nPnts, lenPnts)
         model = trainModel(model, X_train, Y_train, X_valid, Y_valid, nbatch)
         model.save(storeModel)  # creates a HDF5 file 'my_model.h5'
     else:
         print ('<<<<< load the stored model >>>>>')
         (nb_features, nb_outputs, scaler) = loadScaler(fn_trainX, fn_trainY)
 #        del model  # deletes the existing model
-        model = load_model(storeModel) 
+#        model = load_model(storeModel, custom_objects={'loss': customLoss( nbatch, pnt_K, nPnts, lenPnts) }) 
+        model = load_model(storeModel)
         
     return model, scaler, nb_outputs
 
@@ -370,33 +364,33 @@ window_sweep = 3
 def main_NN(yarn_type,upsample_rate, dataset, firstFrame, lastFrame, yarn0, yarn1, skipFactor, vrtxNum):
     datasets = []
     
-    config = 'pattern/'+ yarn_type +'/'
+    config = yarn_type + '/train/'
     loc = 'F:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/input/'
     w_path =  loc + config
     datasets.append('spacing0.5x/10/')
-#    datasets.append('spacing0.5x/00011/')
-#    datasets.append('spacing0.5x/10100/')
-#    datasets.append('spacing0.5x/11110/')
-#    datasets.append('spacing1.0x/10/')
-#    datasets.append('spacing1.0x/00011/')
-#    datasets.append('spacing1.0x/10100/')
-#    datasets.append('spacing1.0x/11110/')
-#    datasets.append('spacing1.5x/10/')
-#    datasets.append('spacing1.5x/00011/')
-#    datasets.append('spacing1.5x/10100/')
-#    datasets.append('spacing1.5x/11110/')
-#    datasets.append('spacing2.0x/10/')
-#    datasets.append('spacing2.0x/00011/')
-#    datasets.append('spacing2.0x/10100/')
-#    datasets.append('spacing2.0x/11110/')
-#    datasets.append('spacing2.5x/10/')
-#    datasets.append('spacing2.5x/00011/')
-#    datasets.append('spacing2.5x/10100/')
-#    datasets.append('spacing2.5x/11110/')
-#    datasets.append('spacing3.0x/10/')
-#    datasets.append('spacing3.0x/00011/')
-#    datasets.append('spacing3.0x/10100/')
-#    datasets.append('spacing3.0x/11110/')
+    datasets.append('spacing0.5x/00011/')
+    datasets.append('spacing0.5x/10100/')
+    datasets.append('spacing0.5x/11110/')
+    datasets.append('spacing1.0x/10/')
+    datasets.append('spacing1.0x/00011/')
+    datasets.append('spacing1.0x/10100/')
+    datasets.append('spacing1.0x/11110/')
+    datasets.append('spacing1.5x/10/')
+    datasets.append('spacing1.5x/00011/')
+    datasets.append('spacing1.5x/10100/')
+    datasets.append('spacing1.5x/11110/')
+    datasets.append('spacing2.0x/10/')
+    datasets.append('spacing2.0x/00011/')
+    datasets.append('spacing2.0x/10100/')
+    datasets.append('spacing2.0x/11110/')
+    datasets.append('spacing2.5x/10/')
+    datasets.append('spacing2.5x/00011/')
+    datasets.append('spacing2.5x/10100/')
+    datasets.append('spacing2.5x/11110/')
+    datasets.append('spacing3.0x/10/')
+    datasets.append('spacing3.0x/00011/')
+    datasets.append('spacing3.0x/10100/')
+    datasets.append('spacing3.0x/11110/')
     
     fn_trainX = w_path + "train_all/trainX_all.txt"
     fn_trainY = w_path + "train_all/trainY_all.txt"
@@ -422,7 +416,7 @@ def main_NN(yarn_type,upsample_rate, dataset, firstFrame, lastFrame, yarn0, yarn
             #X_test = np.loadtxt(path + "testX_" + str(f) + '_' + str(y) + "_temporal.txt",delimiter=None)
             filename = "testY_NN_" + str(f) + '_' + str(y) +  ".txt"
             anglesFile = path + "angle_" + str(f) + '_' + str(y) + ".txt"
-            isRot = 1
+            isRot = 1 
             predicted_total = predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, anglesFile, isRot, upsample_rate, path)
             np.savetxt(path + filename, predicted_total, fmt='%.6f', delimiter=' ') 
   

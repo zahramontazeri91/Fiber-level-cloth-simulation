@@ -11,7 +11,7 @@
 
 void generateNNinput(const char* configfile, const int vrtx, const int skipFactor, const int frame0, const int frame1,
 	const int yarn0, const int yarn1, const std::string &dataset, const int isTrain,
-	const float scaleSim, const int ws_ds, const float trimPercent, const int upsample) {
+	const float scaleSim, const int ws_ds, const float trimPercent, const int upsample, std::string &yarnType) {
 
 	// reference yarn can be any of existing yarnTypes with different vrtx num
 	const char* fiberRefFile = "genYarnRef.txt";
@@ -25,6 +25,7 @@ void generateNNinput(const char* configfile, const int vrtx, const int skipFacto
 	}
 	const int fiberNum = yarnRef.getFiberNum();
 	const int plyNum = yarnRef.getPlyNum();
+	int isFirst = 1;
 
 	std::cout << "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n";
 	std::cout << "@@@@@@@@@@ " << dataset << " @@@@@@@@@@ \n";
@@ -68,9 +69,7 @@ void generateNNinput(const char* configfile, const int vrtx, const int skipFacto
 			const char* anglefile = tmp11.c_str();
 
 			// files needed for NN loss function
-			std::string tmp12 = "input/" + dataset + "/simul2D_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
-			const char* simul2Dfile = tmp12.c_str();
-			std::string tmp13 = "input/" + dataset + "/ref2D_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+			std::string tmp13 = "input/" + yarnType + "/train/train_all/ref2D.txt";
 			const char* ref2Dfile = tmp13.c_str();
 
 			std::vector<Eigen::Vector3d> pnts, norms, tangs;
@@ -90,11 +89,13 @@ void generateNNinput(const char* configfile, const int vrtx, const int skipFacto
 			if (isTrain) {
 				std::vector<yarnIntersect2D> pnts_ref, pnts_trans;
 				std::vector<Eigen::Matrix2f> all_R;
-					step2_shapematching(configfile, fiberRefFile, fibersimfile, centerfile, normfile, globalRot, 
-						plyNum, vrtx, matrixS, pnts_ref, pnts_trans, all_R);
-					//write simulate and rotated referernce to be used for NN loss function
-					writePnts(pnts_trans, all_R, simul2Dfile, 0, ws_ds, trimPercent, sampleRate);
-					writePnts(pnts_ref, all_R, ref2Dfile, 1, ws_ds, trimPercent, sampleRate);
+				step2_shapematching(configfile, fiberRefFile, fibersimfile, centerfile, normfile, globalRot, 
+					plyNum, vrtx, matrixS, pnts_ref, pnts_trans, all_R);
+				if (isFirst) {//write rotated referernce to be used for NN loss function
+					writeFirstPnts(pnts_ref, ref2Dfile);
+					isFirst = 0;
+				}
+				
 			}
 
 			// step 3: generate NN test files and train files if isTrain
@@ -353,7 +354,7 @@ void writeVol(const std::string &dataset, const int frame, const int yarn0, cons
 	std::vector<Eigen::Vector3f> pnts;
 	//for loop over yarns y
 	for (int y = yarn0; y < yarn1; y++) {
-		std::string tmp = "input/" + dataset + "/centerYarn_" + std::to_string(frame) + "_" + std::to_string(y) + "_us.txt";
+		std::string tmp = "input/" + dataset + "/centerYarn_" + std::to_string(frame) + "_" + std::to_string(y) + ".txt";
 		const char* curvefile_us = tmp.c_str();
 		loadSamples(curvefile_us, pnts);
 	}
@@ -425,6 +426,9 @@ void writeVol(const std::string &dataset, const int frame, const int yarn0, cons
 	// Write AABB
 	fwrite(minAABB, sizeof(float), 3, fout);
 	fwrite(maxAABB, sizeof(float), 3, fout);
+
+	std::cout << "AABB min is: " << minAABB[0] << " " << minAABB[1] << " " << minAABB[2] << std::endl;
+	std::cout << "AABB max is: " << maxAABB[0] << " " << maxAABB[1] << " " << maxAABB[2] << std::endl;
 
 	// write voxel extent
 	for (int i = 0; i < N; i++)
@@ -524,7 +528,7 @@ void step0_parseSimulData(const char* fibersim_in, const char* yarnsim_in, const
 	std::vector<Eigen::Vector3d> &norms, std::vector<Eigen::Vector3d> &tangs, std::vector<double> &twists, 
 	std::vector<Eigen::Matrix3d> &worldDGs, const char* centerfile, const char* normfile, const char* fibersimfile) {
 
-	std::cout << "*** step0: parse the simulated files ***\n";
+	std::cout << "*** step 0: parse the simulated files ***\n";
 
 	// write the fibersim file in mitsuba format, scale the fibers back
 	if (isTrain)
@@ -543,7 +547,7 @@ void step0_parseSimulData(const char* fibersim_in, const char* yarnsim_in, const
 void step1_DG2local( const std::vector<Eigen::Vector3d> &norms, const std::vector<Eigen::Vector3d> &tangs, 
 	const std::vector<Eigen::Matrix3d> &worldDGs, std::vector<Eigen::Matrix3d> &localDGs) {
 
-	std::cout << "*** step1: Convert external-force to local coordinate ***\n";
+	std::cout << "*** step 1: Convert external-force to local coordinate ***\n";
 	const int num_of_cores = omp_get_num_procs();
 
 	int vrtx = norms.size();
@@ -577,7 +581,7 @@ void step2_shapematching(const char* configfile, const char* fiberRefFile, const
 	const char* normFile, const char* globalRot, const int ply_num, const int vrtx, std::vector<Eigen::Matrix2f> &matrixS, 
 	std::vector<yarnIntersect2D> &pnts_ref, std::vector<yarnIntersect2D> &pnts_trans, std::vector<Eigen::Matrix2f> &all_R)
 {
-	std::cout << "*** step2: Shapematching step to extract deformation matrix ***\n";
+	std::cout << "*** step 2: Shapematching step to extract deformation matrix ***\n";
 	// Generate non-deformed yarn
 	//std::vector<yarnIntersect2D> pnts_ref;
 	CrossSection cs1(fiberRefFile, configfile, vrtx, pnts_ref);
@@ -813,7 +817,7 @@ void step4_appendTraining(int skipFactor, int frame0, int frame1, int yarn0, int
 void step5_applyNNoutput(const char* configfile, const int vrtx, int skipFactor, int frame0, int frame1,
 	int yarn0, int yarn1, const std::string &dataset, const int isTrain, const int isCompress, const float stepSize) {
 	std::cout << "\n**************************************************\n";
-	std::cout << "*** Testing-NN phase ***\n";
+	std::cout << "*** step5 : apply NN output ***\n";
 	std::cout << " @@@@@@@@@@ " << dataset << " @@@@@@@@@@ \n";
 	const int num_of_cores = omp_get_num_procs();
 
@@ -823,10 +827,14 @@ void step5_applyNNoutput(const char* configfile, const int vrtx, int skipFactor,
 	yarn.parse(configfile);
 	yarn.setStepNum(vrtx);
 	yarn.setStepSize(stepSize);
+	std::cout << "simulate_ply()\n";
 	yarn.simulate_ply();
+	std::cout << "write_plys()\n";
 	yarn.write_plys("test_ply.txt");
+	std::cout << "roll_plys()\n";
 	const int K = yarn.getPlyNum();
 	yarn.roll_plys(K, "test_ply.txt", "test_fly.txt");
+	std::cout << "build()\n";
 	yarn.build("test_fly.txt", K);
 
 	const int total_frame = (frame1 - frame0) / skipFactor + 1; 

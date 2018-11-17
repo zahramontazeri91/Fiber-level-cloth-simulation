@@ -984,7 +984,7 @@ namespace Fiber {
 		// change the yarn cross-sections
 		for (int i = 0; i < ply_num; i++) {
 			const int fiber_num = this->plys[i].fibers.size();
-//#pragma omp parallel for num_threads(num_of_cores) 
+#pragma omp parallel for num_threads(num_of_cores) 
 			for (int f = 0; f < fiber_num; f++) {
 				Fiber &fiber = this->plys[i].fibers[f];
 				const int vertices_num = this->plys[i].fibers[f].vertices.size();

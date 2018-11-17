@@ -89,8 +89,10 @@ protected:
 
 /* outside functions */
 //write simulate and rotated referernce to be used for NN loss function
-void writePnts(const std::vector<yarnIntersect2D> &all_pnts, const std::vector<Eigen::Matrix2f> &all_R,
-	const char* pnts_file, const int isRotate, const int ws_ds, const float trimPercent, const int sampleRate);
+void writeFirstPnts(const std::vector<yarnIntersect2D> &all_pnts, const char* pnts_file);
+//void writeAvgPnts(const std::vector<yarnIntersect2D> &all_pnts, const int fiber_num, const char* pnts_file);
+//void writePnts(const std::vector<yarnIntersect2D> &all_pnts, const std::vector<Eigen::Matrix2f> &all_R,
+	//const char* pnts_file, const int isRotate, const int ws_ds, const float trimPercent, const int sampleRate);
 void convertYarnIntersect2Mat(const yarnIntersect2D &pnts_yarn, Eigen::MatrixXf &pnts_mat);
 
 

@@ -5,38 +5,38 @@ import os
 ########################## set dataset parameters
 # set paramters for the dataset: (later read these parameters from dataset.txt)
 yarnType = 'yarn8'
-vrtNum = 400 ###before upsampling
-#150 #trainign
-#397 #woven
-#51 #for 6x6
+info = yarnType + '/train/spacing1.5x/00011 7000 17500 0 1 -k 500 -v 150 -t 1 -s 2'
+split = info.split()
+########################## Read info
+dataset = split[0]
+firstFrame = int(split[1])
+lastFrame = int(split[2])
+yarn0 = int(split[3])
+yarn1 = int(split[4])
 isTrain = 0
-trimPercent = 0.1 #larger than 0 if isTrain
-upsample = 1
-upsampleMore = 1 # 3 for teeth and 9 for stretch
-hasCylinder = 0
-pos = 0
+skipFactor = 500
+vrtNum = 150 #before upsampling
+upsample = 2
+n = len(split)
+for i in range (5, n-1): #5 first terms already reserved
+    if (info[i] == '-t'):
+        isTrain = int(info[i + 1])
+    if (info[i] == '-k'):
+        skipFactor = int(info[i + 1])
+    if (info[i] == '-v'):
+        vrtNum = int(info[i + 1])
+    if (info[i] == '-s'):
+        upsample = int(info[i + 1])
 
-########################## Read dataset.txt
-# example in dataset.txt : single_yarn/yarn4/stretch 0 49500 0 1 -k 500
-fn = "F:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/yarnTypes/" + yarnType + "/datasets.txt"
-with open(fn, 'r') as fin:  
-    info = fin.readline().split()
-    dataset = info[0]
-    firstFrame = int(info[1])
-    lastFrame = int(info[2])
-    yarn0 = int(info[3])
-    yarn1 = int(info[4])
-    if (info[5] == '-k'):
-        skipFactor = int(info[6])
 
 # In[] 
 ########################## phase1
 print ("*************** phase1: GENERATE NN INPUT ***************\n")
 os.chdir('F:/YarnGeneration/x64/Release')
-os.system('YarnGeneration 1 %s -w 5 -s %d -t %d -x %f -k %d -v %d' %(yarnType, upsample, isTrain, trimPercent, skipFactor, vrtNum))
+os.system('YarnGeneration 1 %s' %(info))
 
-# In[]print(type(tf.Session().run(tf.constant([1,2,3]))))
-########################## NN
+# In[]
+########################## NN\
 #from nonNN import main_NN
 from NN import main_NN
 print ("*************** phase1.5: NN ***************\n")
@@ -47,20 +47,24 @@ main_NN(yarnType, upsample, dataset, firstFrame, lastFrame, yarn0, yarn1, skipFa
 ########################## phase2
 print ("*************** phase2: APPLY NN OUTPUT ***************\n")
 os.chdir('F:/YarnGeneration/x64/Release')
-#os.system('YarnGeneration 2 %s -w 5 -s %d -s2 %d -t %d -x %f -k %d -v %d -c 1 -vol 0 -rx 10 -ry 10 -rz 10 -rad 0.1' %(yarnType, upsample, upsampleMore, isTrain, trimPercent, skipFactor, vrtNum)) #deform the yarn
-#os.system('YarnGeneration 2 %s -w 5 -s %d -s2 %d -t %d -x %f -k %d -v %d -c 0 -vol 0 -rx 10 -ry 10 -rz 10 -rad 0.1' %(yarnType, upsample, upsampleMore, isTrain, trimPercent, skipFactor, vrtNum)) #without deformation
+os.system('YarnGeneration 2 %s -c 0' %(info)) #deform the yarn
+os.system('YarnGeneration 2 %s -c 1' %(info)) #without deformation
+
+# In[]
+# use scene/render_ct2.py for volume rendering
 
 # In[]
 ########################## write mitsuba xml file
 import sys
 sys.path.insert(0, '../scene')
 import generate_single
+hasCylinder = 0
 
 if hasCylinder:
     xmlfile = 'fibers.xml'
-    spp = 32
-    generate_single.genScene (xmlfile, spp, yarnType )
-#    generate_single.genScene (xmlfile, spp )
+    spp = 8
+#    generate_single.genScene (xmlfile, spp, yarnType )
+    generate_single.genScene (xmlfile, spp )
     
     ########################## rendering
     def cubic_ease_function( t, t0, t1, L):
@@ -77,18 +81,18 @@ if hasCylinder:
             else:
                 return yh
             
-    t0 = 0.0
-    t1 = 1.0
-    L = 0.8/4
-    dt = 0.00004 * skipFactor
-    #dt = (t1-t0)/( (lastFrame-firstFrame)/skipFactor )
-    pos = L
-    t = 0.0
-    c = 0
 # In[]
 ############################ 
 os.chdir('F:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/scene')
+t0 = 0.0
+t1 = 1.0
+L = 0.8/4
+dt = 0.00004 * skipFactor
+#dt = (t1-t0)/( (lastFrame-firstFrame)/skipFactor )
+pos = L
+c = 2 #start simulation at dt (Raymond: "The simulation used t+2dt as the parameter currently.")
 
+    
 for f in range (firstFrame, lastFrame+1, skipFactor):
     
     if hasCylinder:    
@@ -96,21 +100,22 @@ for f in range (firstFrame, lastFrame+1, skipFactor):
         c = c + 1 #frame counter 
         yh = cubic_ease_function( t, t0, t1, L)
         pos = pos - yh*dt
-        print('frame: ', f, 'time: ', t,'position: ', pos)
+#        print('frame: ', f, 'time: ', t,'position: ', pos)
     ####
     for y in range (yarn0, yarn1):
         
         h1 = pos
         h2 = -h1
-          
+        
+#        fn = "../output/" + dataset + "/curve_" + str(f).zfill(7) + "_" + str(y).zfill(2) + ".txt"
 #        fn = "../fibersim/" + dataset + "/simul_frame_" + str(f) + "_" + str(y)+ ".txt"
 #        fn = "../output/" + dataset + "/genYarn_wo_" + str(f) + "_" + str(y)+ ".txt"
-#        fn = "../output/" + dataset + "/genYarn_NN_" + str(f) + "_" + str(y)+ "_us.txt"
+        fn = "../output/" + dataset + "/genYarn_NN_" + str(f) + "_" + str(y)+ ".txt"
 #        fn = "../fibersim/slipstitchrib_2.3.txt"
         
         print(fn)
-#        os.system('F:/sandbox/fiberSimulation/dist_fiber_mitsuba/dist/mitsuba -D h1=%.8f -D h2=%.8f -D fn="%s" fibers.xml' % (h1, h2, fn))
-        os.system('F:/sandbox/fiberSimulation/dist_fiber_mitsuba/dist/mitsuba knitted_stretch.xml')
-        os.rename("knitted_stretch.exr", '../../results/' + dataset + '/simul_' + str(f) + '_' + str(y) + '.exr')
+        os.system('F:/sandbox/fiberSimulation/dist_fiber_mitsuba/dist/mitsuba -D h1=%.8f -D h2=%.8f -D fn="%s" fibers.xml' % (h1, h2, fn))
+#        os.system('F:/sandbox/fiberSimulation/dist_fiber_mitsuba/dist/mitsuba knitted_stretch.xml')
+        os.rename("fibers.exr", '../../results/' + dataset + '/NN_trained_God_' + str(f) + '_' + str(y) + '_all_old.exr')
         
     

@@ -1,3 +1,7 @@
+single_yarn/yarn9/teeth_1.2_00110 0 45500 0 1 -k 500
+eof
+pattern/yarn9/spacing1.0x/00011 7000 17000 0 1 -k 500
+eof
 single_yarn/yarn9/teeth/4_1.6 17000 17000 0 1 
 eof
 single_yarn/yarn9/teeth/4_1.2 17000 17000 0 1

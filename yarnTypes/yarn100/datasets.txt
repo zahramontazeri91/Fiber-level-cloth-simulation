@@ -1,5 +1,7 @@
 pattern/yarn100/spacing0.5x/10 8000 18500 0 1 -k 500
 eof
+knitted/slipStitch_stretch 0 0 0 1 -k 500
+eof
 single_yarn/yarn100/stretch 0 0 0 1 -k 500
 eof
 single_yarn/yarn100/stretch 0 24000 0 1 

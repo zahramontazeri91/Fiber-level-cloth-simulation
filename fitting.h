@@ -22,7 +22,7 @@ float get_angle(Eigen::Vector3d &norm1, Eigen::Vector3d &norm2, Eigen::Vector3d 
 // *** phase 1 *** generate training and test data
 void generateNNinput(const char* configfile, const int vrtx, const int skipFactor, const int frame0, const int frame1,
 	const int yarn0, const int yarn1, const std::string &dataset, const int isTrain,
-	const float scaleSim, const int ws_ds, const float trimPercent, const int upsample);
+	const float scaleSim, const int ws_ds, const float trimPercent, const int upsample, std::string &yarnType);
 
 // phase1 - step0: parse the simulatd files: fibersim fibers to mitsuba forrmat, yarnsim to centerlines and fe files as world-DGs. Then upsample all 
 void step0_parseSimulData(const char* fibersim_in, const char* yarnsim_in, const char* DG_in, const int vrtx,

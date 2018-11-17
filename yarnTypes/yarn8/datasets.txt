@@ -1,10 +1,4 @@
-knitted/sweater_stretch 0 0 0 34 -k 500
-eof
-knitted/slipStitch_stretch 0 0 0 1 -k 500
-eof
-woven/knit_stretch 0 0 0 1 -k 500
-eof
-single_yarn/yarn8/teeth_1.2_00110 0 45500 0 1 -k 500
+pattern/yarn8/spacing0.5x/00011 7000 16000 0 1 -k 500
 eof
 pattern/yarn8/spacing0.5x/10 7000 14000 0 1 -k 500
 pattern/yarn8/spacing0.5x/00011 7000 16000 0 1 -k 500
@@ -30,6 +24,14 @@ pattern/yarn8/spacing3.0x/10 7000 16500 0 1 -k 500
 pattern/yarn8/spacing3.0x/00011 7000 19000 0 1 -k 500
 pattern/yarn8/spacing3.0x/10100 7000 19500 0 1 -k 500
 pattern/yarn8/spacing3.0x/11110 7000 19000 0 1 -k 500
+eof
+single_yarn/yarn8/teeth_1.2_00110 0 45500 0 1 -k 500
+eof
+knitted/slipStitch_stretch 0 0 0 1 -k 500
+eof
+knitted/sweater_stretch 0 0 0 34 -k 500
+eof
+woven/knit_stretch 0 0 0 1 -k 500
 eof
 single_yarn/yarn8/stretch 25000 30000 0 1 -k 1000
 eof

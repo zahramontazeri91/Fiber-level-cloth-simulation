@@ -6,36 +6,36 @@
 		<integer name="rrDepth" value="15"/>
 	</integrator>
 
-	<medium type="heterogeneous2" id="med">
+<!-- 	<medium type="heterogeneous2" id="med">
 		<float name="scale" value="500"/>
 		<float name="stepSize" value="1"/>
 
 		<volume type="linesegvolume">
 			<float name="radius" value="0.002"/>
-			<float name="dropOut" value="0.1"/>
+			<float name="dropOut" value="0.1"/> -->
 			
 			<!-- read from txt for first time  -->			
 			<!-- <string name="filename" value="../YarnGeneration/output/woven/push/yarn8/100x100/testinfo_1830.txt"/> -->
 			<!-- <string name="filename" value="test.txt"/> -->
 
-			<string name="filename" value="$testinfo"/>
+			<!-- <string name="filename" value="$testinfo"/> -->
 
 			<!-- read from binary afterward -->
 <!--  			<string name="filename" value="cached.dat"/>
 			<integer name="format" value="1"/>  -->
-		</volume>
+<!-- 		</volume>
 
 		<phase type="microflake">
 			<float name="stddev" value="0.3"/>
 		</phase>
-	</medium>
+	</medium> -->
 	
 
-	<shape type="obj">
+<!-- 	<shape type="obj">
 		<string name="filename" value="$obj"/>
 		<ref name="interior" id="med"/>
 		<boolean name="faceNormals" value="true"/>
-	</shape>
+	</shape> -->
 
 
 	<shape type="rectangle">

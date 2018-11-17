@@ -1,13 +1,13 @@
 function process2(tiling, connectCurves, outputObj, outputMts, plotResult)
     if ~exist('tiling', 'var')
-        %tiling = [5, 5];
-        tiling = [50, 50];
+        %tiling = [10,10];
+        tiling = [25, 50];
     end
     if ~exist('connectCurves', 'var')
         connectCurves = true;
     end
     if ~exist('outputObj', 'var')
-        outputObj = false;
+        outputObj = true;
     end   
     if ~exist('outputMts', 'var')
         outputMts = false;
@@ -239,7 +239,45 @@ function process2(tiling, connectCurves, outputObj, outputMts, plotResult)
     
     totCurves = length(curves);
     fprintf("Total number of curves: %d\n", totCurves);
+    %%%%
+    %print the edge vertices
+    % write the vertex if its distance with bounding-box boundary is less
+    % than # so to get the edging points.
+    min_x = min(vtx1(:, 1))
+    max_x = max(vtx1(:, 1))
+    min_y = min(vtx1(:, 2))
+    max_y = max(vtx1(:, 2))
+    thrsh = 2;
+    clf
+    figure(1); hold on
+    fileID = fopen('edgePnts.txt','w');
+
+    for i = 1 : totCurves
+            m = size(curves{i}, 1);
+            for j = 1 : m
+                if ( abs(curves{i}(j, 1) - min_x ) < thrsh )
+                    fprintf(fileID,'group1 %.8f %.8f %.8f \n', curves{i}(j, 1), curves{i}(j, 2), curves{i}(j, 3));
+                    scatter3(curves{i}(j, 1), curves{i}(j, 2), curves{i}(j, 3), '*b')
+                elseif ( abs(curves{i}(j, 1) - max_x ) < thrsh ) 
+                    fprintf(fileID,'group2 %.8f %.8f %.8f \n', curves{i}(j, 1), curves{i}(j, 2), curves{i}(j, 3));
+                    scatter3(curves{i}(j, 1), curves{i}(j, 2), curves{i}(j, 3), '*r')
+                elseif ( abs(curves{i}(j, 2) - min_y ) < thrsh )
+                    fprintf(fileID,'group3 %.8f %.8f %.8f \n', curves{i}(j, 1), curves{i}(j, 2), curves{i}(j, 3));
+                    scatter3(curves{i}(j, 1), curves{i}(j, 2), curves{i}(j, 3), '*g')
+                elseif ( abs(curves{i}(j, 2) - max_y ) < thrsh ) 
+                    fprintf(fileID,'group4 %.8f %.8f %.8f \n', curves{i}(j, 1), curves{i}(j, 2), curves{i}(j, 3));
+                    scatter3(curves{i}(j, 1), curves{i}(j, 2), curves{i}(j, 3), '*m')
+                end
+            end
+    end
+    fclose(fileID);
     
+%    axis equal
+%    view(-30,10)
+    %%%%
+    %return
+    
+
     if outputObj
         fout = fopen("slipstitchrib.obj", "wt");
         for i = 1 : size(vtx1, 1)
@@ -272,8 +310,9 @@ function process2(tiling, connectCurves, outputObj, outputMts, plotResult)
         fclose(fout);
     end
     
+    %figure(3)
     if plotResult
-        clf
+        %clf
         hold on
         for i = 1 : totCurves
             plot3(curves{i}(:, 1), curves{i}(:, 2), curves{i}(:, 3))
