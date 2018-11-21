@@ -1,7 +1,7 @@
 function process2(tiling, connectCurves, outputObj, outputMts, plotResult)
     if ~exist('tiling', 'var')
-        %tiling = [10,10];
-        tiling = [25, 50];
+        tiling = [5,10];
+        %tiling = [25, 50];
     end
     if ~exist('connectCurves', 'var')
         connectCurves = true;
@@ -247,25 +247,25 @@ function process2(tiling, connectCurves, outputObj, outputMts, plotResult)
     max_x = max(vtx1(:, 1))
     min_y = min(vtx1(:, 2))
     max_y = max(vtx1(:, 2))
-    thrsh = 2;
     clf
     figure(1); hold on
-    fileID = fopen('edgePnts.txt','w');
-
+    thrsh = 8;
+    fileID = fopen('fixedPnts.txt','w');
+    %write the fixed points in format: point-idx point-group needed for simulation
     for i = 1 : totCurves
             m = size(curves{i}, 1);
             for j = 1 : m
                 if ( abs(curves{i}(j, 1) - min_x ) < thrsh )
-                    fprintf(fileID,'group1 %.8f %.8f %.8f \n', curves{i}(j, 1), curves{i}(j, 2), curves{i}(j, 3));
+                    fprintf(fileID,'%d 1 \n', j);
                     scatter3(curves{i}(j, 1), curves{i}(j, 2), curves{i}(j, 3), '*b')
                 elseif ( abs(curves{i}(j, 1) - max_x ) < thrsh ) 
-                    fprintf(fileID,'group2 %.8f %.8f %.8f \n', curves{i}(j, 1), curves{i}(j, 2), curves{i}(j, 3));
+                    fprintf(fileID,'%d 2 \n', j);
                     scatter3(curves{i}(j, 1), curves{i}(j, 2), curves{i}(j, 3), '*r')
                 elseif ( abs(curves{i}(j, 2) - min_y ) < thrsh )
-                    fprintf(fileID,'group3 %.8f %.8f %.8f \n', curves{i}(j, 1), curves{i}(j, 2), curves{i}(j, 3));
+                    fprintf(fileID,'%d 3 \n', j);
                     scatter3(curves{i}(j, 1), curves{i}(j, 2), curves{i}(j, 3), '*g')
                 elseif ( abs(curves{i}(j, 2) - max_y ) < thrsh ) 
-                    fprintf(fileID,'group4 %.8f %.8f %.8f \n', curves{i}(j, 1), curves{i}(j, 2), curves{i}(j, 3));
+                    fprintf(fileID,'%d 4 \n', j);
                     scatter3(curves{i}(j, 1), curves{i}(j, 2), curves{i}(j, 3), '*m')
                 end
             end
@@ -277,17 +277,19 @@ function process2(tiling, connectCurves, outputObj, outputMts, plotResult)
     %%%%
     %return
     
-
+    scale = 0.025; 
+    %%%% scale the fibers only for output files (obj and mitsuba)
+    
     if outputObj
         fout = fopen("slipstitchrib.obj", "wt");
         for i = 1 : size(vtx1, 1)
-            fprintf(fout, "v %.6f %.6f %.6f\n", vtx1(i, 1), vtx1(i, 2), vtx1(i, 3));
+            fprintf(fout, "v %.6f %.6f %.6f\n", scale*vtx1(i, 1), scale*vtx1(i, 2), scale*vtx1(i, 3));
         end
         for i = 1 : totCurves
             m = size(curves{i}, 1);
-            fprintf(fout, "l");
-            for j = 1 : m
-                fprintf(fout, " %d", curveIds{i}{j});
+            %fprintf(fout, "l");
+            for j = 1 : m-1
+                fprintf(fout, "l %d %d\n", curveIds{i}{j}, curveIds{i}{j+1});
             end
             fprintf(fout, "\n");
         end
@@ -301,7 +303,7 @@ function process2(tiling, connectCurves, outputObj, outputMts, plotResult)
             m = size(curves{i}, 1);
             fprintf(fout, "%d\n", m);
             for j = 1 : m
-                fprintf(fout, "%.6f %.6f %.6f\n", curves{i}(j, 1), curves{i}(j, 2), curves{i}(j, 3));
+                fprintf(fout, "%.6f %.6f %.6f\n", scale*curves{i}(j, 1), scale*curves{i}(j, 2), scale*curves{i}(j, 3));
             end
             if i < totCurves
                 fprintf(fout, "\n");

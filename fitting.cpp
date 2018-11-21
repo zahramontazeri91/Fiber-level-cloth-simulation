@@ -577,6 +577,19 @@ void step1_DG2local( const std::vector<Eigen::Vector3d> &norms, const std::vecto
 	}
 }
 
+void smoothMat(std::vector<Eigen::Matrix2f> &mat, std::vector<Eigen::Matrix2f> &mat_smooth, const int halfw) {
+	mat_smooth.resize(mat.size() );
+	mat_smooth = mat;
+	Eigen::Matrix2f avg;
+	for (int r = halfw; r < mat.size() - halfw; r++) {
+		avg = Eigen::Matrix2f::Zero();
+		for (int w = 1; w <= halfw; w++) {
+			avg = avg + mat[r - w] + mat[r + w];
+		}
+		mat_smooth[r] = (avg + mat[r]) / (2.f*halfw + 1);
+	}
+}
+
 void step2_shapematching(const char* configfile, const char* fiberRefFile, const char* fibersimfile, const char* centerFile,
 	const char* normFile, const char* globalRot, const int ply_num, const int vrtx, std::vector<Eigen::Matrix2f> &matrixS, 
 	std::vector<yarnIntersect2D> &pnts_ref, std::vector<yarnIntersect2D> &pnts_trans, std::vector<Eigen::Matrix2f> &all_R)
@@ -596,10 +609,15 @@ void step2_shapematching(const char* configfile, const char* fiberRefFile, const
 	//std::vector<Eigen::Matrix2f> all_R;
 	cs2.yarnShapeMatches_A(pnts_trans, pnts_ref, matrixS, all_R);
 
-	// Write the global rotation
+	// Write the global rotation (smooth it because we smooth matrix-S outputed from NN)
+	std::vector<Eigen::Matrix2f> all_R_reg0, all_R_reg1, all_R_reg2, all_R_reg3;
+	smoothMat(all_R, all_R_reg0, 5);
+	smoothMat(all_R_reg0, all_R_reg1, 5);
+	smoothMat(all_R_reg1, all_R_reg2, 5);
+	smoothMat(all_R_reg2, all_R_reg3, 5);
 	std::ofstream fout(globalRot);
-	for (int l = 0; l < all_R.size(); l++) 
-		fout << all_R[l](0, 0) << " " << all_R[l](0, 1) << " " << all_R[l](1, 0) << " " << all_R[l](1, 1) << std::endl;
+	for (int r =0 ; r < all_R_reg3.size(); r++)
+		fout << all_R_reg3[r](0, 0) << " " << all_R_reg3[r](0, 1) << " " << all_R_reg3[r](1, 0) << " " << all_R_reg3[r](1, 1) << std::endl;
 	fout.close();
 
 }
@@ -856,7 +874,7 @@ void step5_applyNNoutput(const char* configfile, const int vrtx, int skipFactor,
 			const char* global_rot = tmp11.c_str();
 
 			std::ifstream fin2(compress_S);
-			if (isTrain)
+			if (isTrain && isCompress)
 				assert(fin2.is_open() && "testY file wasn't found!\n");
 			std::ifstream fin3(curvefile);
 			assert(fin3.is_open() && "curvefile file wasn't found!\n");
@@ -889,6 +907,10 @@ void step5_applyNNoutput(const char* configfile, const int vrtx, int skipFactor,
 					yarn_compressed.compress_yarn_A(compress_S, global_rot);
 				else 
 					yarn_compressed.compress_yarn_A(compress_S);
+			}
+			else {
+				if (isTrain)
+					yarn_compressed.flip_yarn(global_rot); //for phase because simulated yarn is fliped 
 			}
 			yarn_compressed.curve_yarn(curvefile, normfile);
 			yarn_compressed.write_yarn(outfile);
@@ -986,13 +1008,11 @@ void step7_upsample(int skipFactor, int frame0, int frame1, int yarn0, int yarn1
 				const char* outfile = tmp2.c_str();
 				upsampleYarn(infile, outfile, sampleRate);
 			}
-
-			// simulated and bottomline fibers don't need upsampling
-			//if (isTrain && isCompress) { //upsample the simulated yarns once
-			//	tmp1 = "fibersim/" + dataset + "/simul_frame_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
-			//	tmp2 = "fibersim/" + dataset + "/simul_frame_" + std::to_string(f) + "_" + std::to_string(y) + "_us.txt";
-			//	infile = tmp1.c_str();
-			//	outfile = tmp2.c_str();
+			//else { no need to upsample bottomline or simulated
+			//	tmp1 = "output/" + dataset + "/genYarn_wo_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+			//	tmp2 = "output/" + dataset + "/genYarn_wo_" + std::to_string(f) + "_" + std::to_string(y) + "_us.txt";
+			//	const char* infile = tmp1.c_str();
+			//	const char* outfile = tmp2.c_str();
 			//	upsampleYarn(infile, outfile, sampleRate);
 			//}
 		}

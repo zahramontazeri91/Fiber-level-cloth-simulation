@@ -105,7 +105,7 @@ def customLoss(nbatch, pnts, nPnt, lenPnt):
                 err = err + K.mean( K.square(pnt_pred - pnt_true ) )
  
         err /= ( nbatch * nPnt )
-        c = 0.0001
+        c = 0.001
         w = c/lenPnt
         print('w for regularization term is ', w )
         return  K.mean(K.square(y_true-y_pred) ) + w*err
@@ -136,8 +136,8 @@ def buildModel(input_dim, output_dim, neurons, w_path, nbatch, pnts, nPnts, lenP
 #    model.add(Activation('sigmoid'))
 
     
-    model.compile(loss='mse', optimizer='adam', metrics=['mse'])
-#    model.compile(loss=customLoss( nbatch, pnts, nPnts, lenPnts), optimizer='adam', metrics=['mse'])
+#    model.compile(loss='mse', optimizer='adam', metrics=['mse'])
+    model.compile(loss=customLoss( nbatch, pnts, nPnts, lenPnts), optimizer='adam', metrics=['mse'])
     
     return model
 
@@ -287,12 +287,13 @@ def predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, angles
 #    predicted_reg = regularize(predicted_sweep2, window_reg) 
 #    predicted_reg2 = regularize(predicted_reg, window_reg+2) 
     ####################
+#    uncomment sweep only for stretching
     predicted_sweep = predicted
-    #uncomment sweep only for stretching
 #    predicted_sweep = sweep(predicted, window_sweep)
-#    predicted_reg = regularize(predicted_sweep, window_reg) 
-#    predicted_reg2 = regularize(predicted_reg, window_reg+2) 
-    predicted_reg2 = predicted_sweep
+    predicted_reg = regularize(predicted_sweep, window_reg)
+    predicted_reg1 = regularize(predicted_reg, window_reg+2)
+    predicted_reg2 = regularize(predicted_reg1, window_reg) 
+#    predicted_reg2 = predicted_sweep
     
     predicted_us = upsample(predicted_reg2, upsample_rate)
     predicted_total = extrapolate(predicted_us, vrtxNum, nb_outputs, stride)
@@ -302,8 +303,7 @@ def predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, angles
 ## Main
 # In[]    
 def test(neurons,fn_trainX, fn_trainY, fn_validX, fn_validY, reTrain, w_path): 
-#    storeModel = w_path + 'train_all/model_ws5_temporal.h5'
-    storeModel = w_path + 'train_all/model_ws5.h5'
+    storeModel = w_path + 'train_all/model_ws5_new.h5'
     nbatch = 16
     # Read point cloud needed for loss-function
     pnts = np.loadtxt(w_path+'train_all/ref2D.txt')
@@ -318,13 +318,13 @@ def test(neurons,fn_trainX, fn_trainY, fn_validX, fn_validY, reTrain, w_path):
         (X_train, Y_train, X_valid, Y_valid, nb_features, nb_outputs, scaler) = loadData(fn_trainX, fn_trainY, fn_validX, fn_validY)
         model = buildModel(nb_features, nb_outputs, neurons, w_path, nbatch, pnt_K, nPnts, lenPnts)
         model = trainModel(model, X_train, Y_train, X_valid, Y_valid, nbatch)
-        model.save(storeModel)  # creates a HDF5 file 'my_model.h5'
+        model.save(storeModel)
     else:
         print ('<<<<< load the stored model >>>>>')
         (nb_features, nb_outputs, scaler) = loadScaler(fn_trainX, fn_trainY)
 #        del model  # deletes the existing model
-#        model = load_model(storeModel, custom_objects={'loss': customLoss( nbatch, pnt_K, nPnts, lenPnts) }) 
-        model = load_model(storeModel)
+        model = load_model(storeModel, custom_objects={'loss': customLoss( nbatch, pnt_K, nPnts, lenPnts) }) 
+#        model = load_model(storeModel)
         
     return model, scaler, nb_outputs
 
@@ -359,8 +359,8 @@ def appendTrainingData(datasets, w_path, fn_trainX, fn_trainY):
 # In[]
 stride = 1
 #window_reg = 5 #for stretching
-window_reg = 3 #for non-stretching
-window_sweep = 3
+window_reg = 5 #for non-stretching
+window_sweep = 5
 def main_NN(yarn_type,upsample_rate, dataset, firstFrame, lastFrame, yarn0, yarn1, skipFactor, vrtxNum):
     datasets = []
     
@@ -399,8 +399,8 @@ def main_NN(yarn_type,upsample_rate, dataset, firstFrame, lastFrame, yarn0, yarn
     fn_validY = loc + 'single_yarn/' + yarn_type + '/stretch/trainY_all.txt'
     
     reTrain = 1
-    if (reTrain):
-        appendTrainingData(datasets, w_path, fn_trainX, fn_trainY)
+#    if (reTrain):
+#        appendTrainingData(datasets, w_path, fn_trainX, fn_trainY)
        
     model, scaler, nb_outputs = test(256, fn_trainX, fn_trainY, fn_validX, fn_validY, reTrain, w_path)
     

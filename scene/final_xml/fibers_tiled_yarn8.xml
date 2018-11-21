@@ -4,6 +4,46 @@
 		<integer name="rrDepth" value="30"/> 
 	</integrator> 
 
+	<shape type="cylinder">
+		<float name="radius" value="0.16"/>
+		<point name="p0" x="-1.8" y="$h2" z="0"/>
+		<point name="p1" x="1.8" y="$h2" z="0"/>
+		<bsdf type="diffuse">
+			<spectrum name="reflectance" value="0.3"/>
+		</bsdf>	
+	</shape>
+	<shape type="cylinder">
+		<float name="radius" value="0.16"/>
+		<point name="p0" x="-1.8" y="$h2" z="0.48"/>
+		<point name="p1" x="1.8" y="$h2" z="0.48"/>
+		<bsdf type="diffuse">
+			<spectrum name="reflectance" value="0.3"/>
+		</bsdf>	
+	</shape>
+	<shape type="cylinder">
+		<float name="radius" value="0.16"/>
+		<point name="p0" x="-1.8" y="$h2" z="-0.48"/>
+		<point name="p1" x="1.8" y="$h2" z="-0.48"/>
+		<bsdf type="diffuse">
+			<spectrum name="reflectance" value="0.3"/>
+		</bsdf>	
+	</shape>
+	<shape type="cylinder">
+		<float name="radius" value="0.16"/>
+		<point name="p0" x="-1.8" y="$h1" z="0.96"/>
+		<point name="p1" x="1.8" y="$h1" z="0.96"/>
+		<bsdf type="diffuse">
+			<spectrum name="reflectance" value="0.3"/>
+		</bsdf>	
+	</shape>
+	<shape type="cylinder">
+		<float name="radius" value="0.16"/>
+		<point name="p0" x="-1.8" y="$h1" z="-0.96"/>
+		<point name="p1" x="1.8" y="$h1" z="-0.96"/>
+		<bsdf type="diffuse">
+			<spectrum name="reflectance" value="0.3"/>
+		</bsdf>	
+	</shape>
 	<shape type="shapegroup" id="myShapeGroup">
 		<shape type="hair">
 			<string name="filename" value="$fn"/>
@@ -15,11 +55,11 @@
 			<fiberscat type="simpfabric5">
 				<float name="kD" value="0"/>
 				<spectrum name="colorD" value="0.99,0.99,0.99"/>
-				<spectrum name="colorR" value="0.25,0.25,0.3"/>
-				<float name="betaR" value="1.23799781194"/>
-				<float name="betaTT" value="9.99999999999"/>
-				<float name="gammaTT" value="25.9890848941"/>
-				<spectrum name="colorTT" value="0.45,0.86,0.95"/>
+				<spectrum name="colorR" value="0.1,0.1,0.05"/>
+				<float name="betaR" value="0.2"/>
+				<float name="betaTT" value="27"/>
+				<float name="gammaTT" value="38"/>
+				<spectrum name="colorTT" value="0.93,0.53,0.01"/>
 				<float name="alpha" value="5"/>
 			</fiberscat>
 		</subsurface> 
@@ -29,455 +69,301 @@
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="0.000000" y="1.000000" />
+			<translate x="0.000000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="0.060000" y="0.998000" />
+			<translate x="0.072000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="0.120000" y="0.992000" />
+			<translate x="0.144000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="0.180000" y="0.982000" />
+			<translate x="0.216000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="0.240000" y="0.968000" />
+			<translate x="0.288000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="0.300000" y="0.950000" />
+			<translate x="0.360000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="0.360000" y="0.928000" />
+			<translate x="0.432000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="0.420000" y="0.902000" />
+			<translate x="0.504000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="0.480000" y="0.872000" />
+			<translate x="0.576000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="0.540000" y="0.838000" />
+			<translate x="0.648000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="0.600000" y="0.800000" />
+			<translate x="0.720000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="0.660000" y="0.758000" />
+			<translate x="0.792000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="0.720000" y="0.712000" />
+			<translate x="0.864000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="0.780000" y="0.662000" />
+			<translate x="0.936000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="0.840000" y="0.608000" />
+			<translate x="1.008000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="0.900000" y="0.550000" />
+			<translate x="1.080000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="0.960000" y="0.488000" />
+			<translate x="1.152000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="1.020000" y="0.422000" />
+			<translate x="1.224000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="1.080000" y="0.352000" />
+			<translate x="1.296000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="1.140000" y="0.278000" />
+			<translate x="1.368000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="1.200000" y="0.200000" />
+			<translate x="1.440000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="1.260000" y="0.118000" />
+			<translate x="1.512000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="1.320000" y="0.032000" />
+			<translate x="-0.072000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="1.380000" y="-0.058000" />
+			<translate x="-0.144000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="1.440000" y="-0.152000" />
+			<translate x="-0.216000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="1.500000" y="-0.250000" />
+			<translate x="-0.288000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="1.560000" y="-0.352000" />
+			<translate x="-0.360000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="1.620000" y="-0.458000" />
+			<translate x="-0.432000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="1.680000" y="-0.568000" />
+			<translate x="-0.504000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="1.740000" y="-0.682000" />
+			<translate x="-0.576000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="1.800000" y="-0.800000" />
+			<translate x="-0.648000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="1.860000" y="-0.922000" />
+			<translate x="-0.720000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="1.920000" y="-1.048000" />
+			<translate x="-0.792000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="-0.060000" y="0.998000" />
+			<translate x="-0.864000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="-0.120000" y="0.992000" />
+			<translate x="-0.936000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="-0.180000" y="0.982000" />
+			<translate x="-1.008000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="-0.240000" y="0.968000" />
+			<translate x="-1.080000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="-0.300000" y="0.950000" />
+			<translate x="-1.152000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="-0.360000" y="0.928000" />
+			<translate x="-1.224000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="-0.420000" y="0.902000" />
+			<translate x="-1.296000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="-0.480000" y="0.872000" />
+			<translate x="-1.368000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="-0.540000" y="0.838000" />
+			<translate x="-1.440000" />
 		</transform> 
 	</shape>
 
 	<shape type="instance">
 		<ref id="myShapeGroup"/>
 		<transform name="toWorld">
-			<translate x="-0.600000" y="0.800000" />
-		</transform> 
-	</shape>
-
-	<shape type="instance">
-		<ref id="myShapeGroup"/>
-		<transform name="toWorld">
-			<translate x="-0.660000" y="0.758000" />
-		</transform> 
-	</shape>
-
-	<shape type="instance">
-		<ref id="myShapeGroup"/>
-		<transform name="toWorld">
-			<translate x="-0.720000" y="0.712000" />
-		</transform> 
-	</shape>
-
-	<shape type="instance">
-		<ref id="myShapeGroup"/>
-		<transform name="toWorld">
-			<translate x="-0.780000" y="0.662000" />
-		</transform> 
-	</shape>
-
-	<shape type="instance">
-		<ref id="myShapeGroup"/>
-		<transform name="toWorld">
-			<translate x="-0.840000" y="0.608000" />
-		</transform> 
-	</shape>
-
-	<shape type="instance">
-		<ref id="myShapeGroup"/>
-		<transform name="toWorld">
-			<translate x="-0.900000" y="0.550000" />
-		</transform> 
-	</shape>
-
-	<shape type="instance">
-		<ref id="myShapeGroup"/>
-		<transform name="toWorld">
-			<translate x="-0.960000" y="0.488000" />
-		</transform> 
-	</shape>
-
-	<shape type="instance">
-		<ref id="myShapeGroup"/>
-		<transform name="toWorld">
-			<translate x="-1.020000" y="0.422000" />
-		</transform> 
-	</shape>
-
-	<shape type="instance">
-		<ref id="myShapeGroup"/>
-		<transform name="toWorld">
-			<translate x="-1.080000" y="0.352000" />
-		</transform> 
-	</shape>
-
-	<shape type="instance">
-		<ref id="myShapeGroup"/>
-		<transform name="toWorld">
-			<translate x="-1.140000" y="0.278000" />
-		</transform> 
-	</shape>
-
-	<shape type="instance">
-		<ref id="myShapeGroup"/>
-		<transform name="toWorld">
-			<translate x="-1.200000" y="0.200000" />
-		</transform> 
-	</shape>
-
-	<shape type="instance">
-		<ref id="myShapeGroup"/>
-		<transform name="toWorld">
-			<translate x="-1.260000" y="0.118000" />
-		</transform> 
-	</shape>
-
-	<shape type="instance">
-		<ref id="myShapeGroup"/>
-		<transform name="toWorld">
-			<translate x="-1.320000" y="0.032000" />
-		</transform> 
-	</shape>
-
-	<shape type="instance">
-		<ref id="myShapeGroup"/>
-		<transform name="toWorld">
-			<translate x="-1.380000" y="-0.058000" />
-		</transform> 
-	</shape>
-
-	<shape type="instance">
-		<ref id="myShapeGroup"/>
-		<transform name="toWorld">
-			<translate x="-1.440000" y="-0.152000" />
-		</transform> 
-	</shape>
-
-	<shape type="instance">
-		<ref id="myShapeGroup"/>
-		<transform name="toWorld">
-			<translate x="-1.500000" y="-0.250000" />
-		</transform> 
-	</shape>
-
-	<shape type="instance">
-		<ref id="myShapeGroup"/>
-		<transform name="toWorld">
-			<translate x="-1.560000" y="-0.352000" />
-		</transform> 
-	</shape>
-
-	<shape type="instance">
-		<ref id="myShapeGroup"/>
-		<transform name="toWorld">
-			<translate x="-1.620000" y="-0.458000" />
-		</transform> 
-	</shape>
-
-	<shape type="instance">
-		<ref id="myShapeGroup"/>
-		<transform name="toWorld">
-			<translate x="-1.680000" y="-0.568000" />
-		</transform> 
-	</shape>
-
-	<shape type="instance">
-		<ref id="myShapeGroup"/>
-		<transform name="toWorld">
-			<translate x="-1.740000" y="-0.682000" />
-		</transform> 
-	</shape>
-
-	<shape type="instance">
-		<ref id="myShapeGroup"/>
-		<transform name="toWorld">
-			<translate x="-1.800000" y="-0.800000" />
-		</transform> 
-	</shape>
-
-	<shape type="instance">
-		<ref id="myShapeGroup"/>
-		<transform name="toWorld">
-			<translate x="-1.860000" y="-0.922000" />
-		</transform> 
-	</shape>
-
-	<shape type="instance">
-		<ref id="myShapeGroup"/>
-		<transform name="toWorld">
-			<translate x="-1.920000" y="-1.048000" />
+			<translate x="-1.512000" />
 		</transform> 
 	</shape>
 
@@ -509,7 +395,7 @@
 	<sensor type="perspective">
 		<string name="fovAxis" value="smaller"/>
 		<transform name="toWorld">
-			<lookAt origin="-17 40 15" target="0 -0.9 -0.4" up="0 1 0"/>  
+			<lookAt origin="-17 30 5" target="0 0 0" up="0 1 0"/>  
 		</transform>
 		<float name="fov" value="6.3"/>
 		<sampler type="ldsampler">

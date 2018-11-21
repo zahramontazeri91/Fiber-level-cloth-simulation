@@ -227,7 +227,7 @@ namespace Fiber {
 		void compress_yarn_A(const char* compress_S, const char* global_rot = "");
 
 		/*spin the yarn around itself to match the phase with simulated input */
-		void rotate_yarn(const char *global_rot);
+		void flip_yarn(const char *global_rot);
 
 		/* Write simulated data (single yarns) to disk */
 		void write_yarn(const char* filename);

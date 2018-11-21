@@ -963,8 +963,8 @@ namespace Fiber {
 	}
 
 
-	void Yarn::rotate_yarn(const char* global_rot) {
-		std::cout << "step7: compress yarn cross-sections ..." << std::endl;
+	void Yarn::flip_yarn(const char* global_rot) {
+		std::cout << "step7: rotate yarn cross-sections ..." << std::endl;
 
 		double zMin = std::numeric_limits<double>::max(), zMax = std::numeric_limits<double>::lowest();
 		for (const auto &ply : plys)
@@ -991,18 +991,9 @@ namespace Fiber {
 
 				for (int v = 0; v < vertices_num; v++) {
 
-					int indx = static_cast<int> ((fiber.vertices[v].z - zMin) / this->z_step_size);
-
-					//Eigen::Matrix2f transf = A[indx];
-					Eigen::Matrix2f rot = R[indx];
-
-
-					Eigen::MatrixXf ref(2, 1);
-					ref << fiber.vertices[v].x, fiber.vertices[v].y;
-					Eigen::MatrixXf def(2, 1);
-					def = rot*ref;
-					fiber.vertices[v].x = def(0, 0);
-					fiber.vertices[v].y = def(1, 0);
+					fiber.vertices[v].x = -1.0 * fiber.vertices[v].x;
+					fiber.vertices[v].y = 1.0 * fiber.vertices[v].y;
+					fiber.vertices[v].z = 1.0 * fiber.vertices[v].z;
 				}
 			}
 		}
@@ -1188,12 +1179,6 @@ namespace Fiber {
 					Eigen::Vector3d local;
 					local << vertex.x, vertex.y, 0.0; //0 since we are in 2D plane
 					Eigen::Matrix3d M;
-
-					// phase doesn't match:
-					//M << ey[0], ex[0], ez[0],
-						//ey[1], ex[1], ez[1],
-						//ey[2], ex[2], ez[2];
-
 
 					M << ex[0], ey[0], ez[0],
 						ex[1], ey[1], ez[1],

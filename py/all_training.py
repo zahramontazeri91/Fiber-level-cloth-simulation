@@ -6,7 +6,7 @@ Generate training data for teeth case for 24 configurations
 import os
 os.chdir('F:/YarnGeneration/x64/Release')
 
-yarnType = 'yarn8'
+yarnType = 'yarn100'
 info = yarnType + '/train/spacing0.5x/10 7000 14000 0 1 -k 500 -v 150 -t 1 -s 2'
 os.system('YarnGeneration 1 %s' %(info))
 info = yarnType + '/train/spacing0.5x/00011 7000 16000 0 1 -k 500 -v 150 -t 1 -s 2'
