@@ -65,7 +65,7 @@ void HermiteCurve::init_norm(const char* pntsFILE, const char* normsFILE, int su
 	assert(pntsFILE);
 	std::ifstream fin(pntsFILE);
 	if (!fin.is_open()) std::cout << pntsFILE << std::endl;
-	assert(!fin.fail());
+	assert(fin.is_open() && "normsFILE file wasn't found!\n");
 	int n;
 	fin >> n;
 	std::vector<Eigen::Vector3d> pts(n);
@@ -74,7 +74,8 @@ void HermiteCurve::init_norm(const char* pntsFILE, const char* normsFILE, int su
 	// import the normals 
 	assert(normsFILE);
 	std::ifstream fin2(normsFILE);
-	assert(!fin2.fail());
+	if (!fin2.is_open()) std::cout << normsFILE << std::endl;
+	assert(fin2.is_open() && "normsFILE file wasn't found!\n");
 	fin2 >> n;
 	std::vector<Eigen::Vector3d> norms(n);
 	for (int i = 0; i < n; ++i) {

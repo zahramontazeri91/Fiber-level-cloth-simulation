@@ -837,7 +837,6 @@ void step5_applyNNoutput(const char* configfile, const int vrtx, int skipFactor,
 	std::cout << "\n**************************************************\n";
 	std::cout << "*** step5 : apply NN output ***\n";
 	std::cout << " @@@@@@@@@@ " << dataset << " @@@@@@@@@@ \n";
-	const int num_of_cores = omp_get_num_procs();
 
 	//// Procedural step
 	/* This yarn is what will be compressed (has flyaways) */
@@ -845,6 +844,7 @@ void step5_applyNNoutput(const char* configfile, const int vrtx, int skipFactor,
 	yarn.parse(configfile);
 	yarn.setStepNum(vrtx);
 	yarn.setStepSize(stepSize);
+
 	std::cout << "simulate_ply()\n";
 	yarn.simulate_ply();
 	std::cout << "write_plys()\n";
@@ -882,63 +882,43 @@ void step5_applyNNoutput(const char* configfile, const int vrtx, int skipFactor,
 			assert(fin4.is_open() && "normfile file wasn't found!\n");
 
 			///*******  write the yarn ******/
-			std::string tmp3;
+			std::string tmp4;
+#ifndef IMPROVED_FLYAWAYS
+			tmp4 = "output/" + dataset + "/genYarn_wo_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+#else
+			tmp4 = "output/" + dataset + "/genYarn_fly_wo_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
+#endif
+			const char* bottomlinefile = tmp4.c_str();
+			Fiber::Yarn yarn_bottomline; //renew the yarn
+			yarn_bottomline = yarn;
+			if (isTrain) {
+				yarn_bottomline.flip_yarn(global_rot); //for phase because simulated yarn is fliped 
+				yarn_bottomline.curve_yarn(curvefile, normfile);
+			}
+			else {
+				yarn_bottomline.curve_yarn(curvefile);
+			}
+			yarn_bottomline.write_yarn(bottomlinefile);
+
 			if (isCompress) {
+				std::string tmp3;
 #ifndef IMPROVED_FLYAWAYS
 				tmp3 = "output/" + dataset + "/genYarn_NN_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
 #else
 				tmp3 = "output/" + dataset + "/genYarn_NN_fly_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
 #endif
-			}
-			else {
-#ifndef IMPROVED_FLYAWAYS
-				tmp3 = "output/" + dataset + "/genYarn_wo_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
-#else
-				tmp3 = "output/" + dataset + "/genYarn_fly_wo_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
-#endif
-			}
-
-			const char* outfile = tmp3.c_str();
-			////// Procedural step
-			Fiber::Yarn yarn_compressed; //renew the yarn
-			yarn_compressed = yarn;
-			if (isCompress) {
+				const char* NNfile = tmp3.c_str();
+				////// Procedural step
+				Fiber::Yarn yarn_compressed; //renew the yarn
+				yarn_compressed = yarn;
 				if (isTrain)
 					yarn_compressed.compress_yarn_A(compress_S, global_rot);
-				else 
+				else
 					yarn_compressed.compress_yarn_A(compress_S);
+				yarn_compressed.curve_yarn(curvefile, normfile);
+				yarn_compressed.write_yarn(NNfile);
+				//yarn_compressed.write_yarn_obj(outfile);
 			}
-			else {
-				if (isTrain)
-					yarn_compressed.flip_yarn(global_rot); //for phase because simulated yarn is fliped 
-			}
-			yarn_compressed.curve_yarn(curvefile, normfile);
-			yarn_compressed.write_yarn(outfile);
-
-			//yarn_compressed.write_yarn_obj(outfile);
-
-			/*******  Validate NN by L2-norm ******/
-			//std::string tmp4 = "output/" + dataset + "/genYarn_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
-			//const char* yarnfile_proc = tmp4.c_str(); //proc yarn
-			//std::ifstream fin6(yarnfile_proc);
-			//assert(fin6.is_open() && "yarn_proc file wasn't found!\n");
-			//Fiber::Yarn yarn_proc;
-			//yarn_proc.parse(configfile);
-			//yarn_proc.build(yarnfile_proc, yarn_proc.getPlyNum());
-
-			//std::string tmp5 = "fibersim/" + dataset + "/simul_frame_" + std::to_string(f) + "_" + std::to_string(y) + ".txt";
-			//const char* yarnfile_simul = tmp5.c_str();
-			//std::ifstream fin5(yarnfile_simul);
-			//assert(fin5.is_open() && "yarn_simul file wasn't found!\n");
-			//Fiber::Yarn yarn_simul;
-			//yarn_simul.parse(configfile);
-			//yarn_simul.build(yarnfile_simul, yarn_simul.getPlyNum());
-
-			//const int trimPercent = 0.15; // should match with building NN data
-			//float L2;
-			//yarn.L2norm_3D(yarn, yarn_proc, trimPercent, L2);
-			//std::cout << "L2 is: " << L2 << std::endl;
-
 		}
 	}
 }
@@ -947,7 +927,6 @@ void step6_createVOL(int skipFactor, int frame0, int frame1, int yarn0, int yarn
 	const int resol_x, const int resol_y, const int resol_z, const float radius) {
 
 	std::cout << "*** step 6: Create volume phase ***\n";
-	const int num_of_cores = omp_get_num_procs();
 
 	const int total_frame = (frame1 - frame0) / skipFactor + 1;
 	for (int i = 0; i < total_frame; i++) {
@@ -955,7 +934,7 @@ void step6_createVOL(int skipFactor, int frame0, int frame1, int yarn0, int yarn
 
 		std::string tmp = "output/" + dataset + "/volume_" + std::to_string(f) + ".vol";
 		const char* volfile_us = tmp.c_str();
-		std::cout << frame0 << " " << f << " " << volfile_us << " generation is started... \n";
+		std::cout << volfile_us << " generation is started... \n";
 		int curr_frame = f;
 		writeVol(dataset, curr_frame, yarn0, yarn1, resol_x, resol_y, resol_z, radius, volfile_us);
 	}

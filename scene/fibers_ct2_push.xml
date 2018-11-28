@@ -1,0 +1,111 @@
+<?xml version='1.0' encoding='utf-8'?>
+
+<scene version="0.5.0">
+	<integrator type="volpath_simple">
+		<integer name="maxDepth" value="10"/>
+		<integer name="rrDepth" value="15"/>
+	</integrator>
+
+	<medium type="heterogeneous2" id="med">
+		<float name="scale" value="500"/>
+		<float name="stepSize" value="1"/>
+		<integer name="maxWoodcockIterations" value="10000"/>
+
+		<volume type="linesegvolume">
+			<float name="radius" value="0.002"/>
+			<float name="dropOut" value="0.5"/>
+			
+			<integer name="format" value="$f"/> <!--1 if reading from binary, 0 if normal text -->
+			<!-- read from txt for first time  -->			
+			<string name="filename" value="$testinfo"/>
+
+			<!-- read from binary afterward (next two lines needed) -->
+ 			<!-- <string name="filename" value="cached.dat"/> -->
+			
+		</volume>
+		<phase type="microflake">
+			<float name="stddev" value="0.2"/>
+		</phase>
+	</medium>
+	
+<!-- 	<shape type="cube">
+		<transform name="toWorld">
+			<scale x="20" y="1" z="20"/>
+		</transform>
+		<ref name="interior" id="med"/>
+	</shape> -->
+	<shape type="obj">
+		<string name="filename" value="$obj"/>
+		<ref name="interior" id="med"/>
+		<boolean name="faceNormals" value="true"/>
+	</shape>
+
+
+<!-- 	<shape type="rectangle">
+		<transform name="toWorld">
+			<rotate x="1" angle="-90"/>
+			<translate x="0.5" y="-0.2" z="0.5"/>
+			<scale x="14.7" z="14.7"/>
+		</transform>
+		<bsdf type="diffuse">
+			<texture type="bitmap" name="reflectance">
+				<string name="filename" value="concrete.jpg"/>
+			</texture>
+		</bsdf>
+	</shape> -->
+
+	<emitter type="constant">
+		<spectrum name="radiance" value="0.00"/> 
+	</emitter>
+
+<!-- 	<shape type="sphere">
+		<point name="center" x="-100.0" y="50.0" z="0.0"/>
+		<float name="radius" value="10.0"/>
+		<emitter type="area">
+			<spectrum name="radiance" value="200"/> 
+		</emitter>
+	</shape> -->
+	<shape type="sphere">
+		<point name="center" x="-120.0" y="0.0" z="270.0"/>
+		<float name="radius" value="50.0"/>
+		<emitter type="area">
+			<spectrum name="radiance" value="100"/> 
+		</emitter>
+	</shape>
+
+<!-- 	<shape type="rectangle"> 
+		<transform name="toWorld"> 
+			<rotate y="1" angle="135"/> 
+			<scale x="50" y="50" z="50"/> 
+			<translate x="-100.0" y="0.0" z="250.0"/> 
+		</transform> 
+		<emitter type="area"> 
+			<spectrum name="radiance" value="50"/>  
+		</emitter> 
+	</shape>  -->
+
+	<sensor type="perspective">
+		<string name="fovAxis" value="smaller"/>
+		<transform name="toWorld">
+			<!-- <lookAt origin="0 30 0" target="10 0 10" up="0 1 0"/> -->  <!--FOR ARBITRARY 100x100  -->
+			<!-- <lookAt origin="0 15 0" target="3.9 0 3.9" up="0 1 0"/> --> <!--FOR push 100x100  -->
+			<!-- <lookAt origin="0 0 10" target="0 0 0" up="0 1 0"/> --> <!--FOR ARBITRARY 100x100  -->
+			<lookAt origin="0 0 10" target="0 0 0" up="0 1 0"/> <!--FOR slipstitchrib push  -->
+
+		</transform>
+		<!-- <float name="fov" value="90.0"/>-->  <!--FOR ARBITRARY 100x100  -->
+		<!-- <float name="fov" value="55"/> --> <!--FOR push 100x100  -->
+		<float name="fov" value="20"/>
+
+		<sampler type="independent">
+			<integer name="sampleCount" value="8"/>
+		</sampler>
+		<film id="film" type="hdrfilm">
+			<!-- <integer name="width" value="600"/> -->
+			<integer name="width" value="910"/>
+			<integer name="height" value="512"/>
+			<rfilter type="gaussian"/>
+			<boolean name="banner" value="false" />
+		</film>
+	</sensor>
+</scene>

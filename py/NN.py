@@ -8,7 +8,6 @@ from keras.layers.normalization import BatchNormalization
 import math
 from shutil import copyfile
 from keras.models import load_model
-
 from keras import backend as K
 
 ## Load data
@@ -135,9 +134,10 @@ def buildModel(input_dim, output_dim, neurons, w_path, nbatch, pnts, nPnts, lenP
     model.add(Activation('linear'))
 #    model.add(Activation('sigmoid'))
 
-    
-#    model.compile(loss='mse', optimizer='adam', metrics=['mse'])
-    model.compile(loss=customLoss( nbatch, pnts, nPnts, lenPnts), optimizer='adam', metrics=['mse'])
+    if (newLoss):
+        model.compile(loss=customLoss( nbatch, pnts, nPnts, lenPnts), optimizer='adam', metrics=['mse'])
+    else:
+        model.compile(loss='mse', optimizer='adam', metrics=['mse'])
     
     return model
 
@@ -261,11 +261,25 @@ def regularize(predicted, window_reg):
         avg_window = sum_window/sum_w
         predicted_reg.append(avg_window)
     
-    predicted_reg_np = np.array(predicted_reg)
-      
+    predicted_reg_np = np.array(predicted_reg)      
     return predicted_reg_np
-#    return predicted_reg_np_again
 
+# In[]:
+def MaxRegularize(predicted, window_max):
+    sz = predicted.shape[0]
+    predicted_reg = []
+    for i in range (0, sz - window_max + 1):
+#        sum_window = np.zeros(predicted.shape[1])
+        max_window = np.zeros(predicted.shape[1])
+
+        for s in range (0, window_max):           
+            if (abs( predicted[i+s].any() ) > abs( max_window.any() ) ):
+                max_window = predicted[i+s]
+            
+        predicted_reg.append(max_window)
+    
+    predicted_reg_np = np.array(predicted_reg)  
+    return predicted_reg_np
 
 ## Prediction
 # In[]:
@@ -281,21 +295,32 @@ def predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, angles
         angles = np.loadtxt(anglesFile, delimiter=None)
         predicted = rotate(predicted, angles)
 
-    ########## Regularize synthesized example ##########
+    ########## Regularize old synthesized example ##########
 #    predicted_sweep = sweep(predicted, window_sweep)
 #    predicted_sweep2 = sweep(predicted_sweep, window_sweep)
 #    predicted_reg = regularize(predicted_sweep2, window_reg) 
 #    predicted_reg2 = regularize(predicted_reg, window_reg+2) 
-    ####################
-#    uncomment sweep only for stretching
-    predicted_sweep = predicted
-#    predicted_sweep = sweep(predicted, window_sweep)
-    predicted_reg = regularize(predicted_sweep, window_reg)
-    predicted_reg1 = regularize(predicted_reg, window_reg+2)
-    predicted_reg2 = regularize(predicted_reg1, window_reg) 
-#    predicted_reg2 = predicted_sweep
     
-    predicted_us = upsample(predicted_reg2, upsample_rate)
+    ########## Regularize yarn11 1.6 example ##########
+#    predicted_sweep = sweep(predicted, window_sweep)
+#    predicted_sweep2 = sweep(predicted_sweep, window_sweep)  
+#    predicted_reg = regularize(predicted_sweep2, window_reg)
+#    predicted_reg1 = regularize(predicted_reg, window_reg+2)
+#    predicted_reg3 = regularize(predicted_reg1, window_reg)
+    
+    ########## Regularize yarn8 1.2 example ########## 
+#    predicted_reg = MaxRegularize(predicted, window_max)
+#    predicted_reg3 = regularize(predicted_reg, window_reg+2)
+
+    ########## Regularize yarn4 stretch example ########## 
+#    predicted_sweep = sweep(predicted, window_sweep-2)
+    predicted_reg = regularize(predicted, window_reg)
+    predicted_reg3 = regularize(predicted_reg, window_reg+2)
+    
+    ########## No smoothing ##########
+    predicted_reg3 = predicted
+    
+    predicted_us = upsample(predicted_reg3, upsample_rate)
     predicted_total = extrapolate(predicted_us, vrtxNum, nb_outputs, stride)
 #    np.savetxt(path + filename, predicted_total, fmt='%.6f', delimiter=' ')
     
@@ -303,7 +328,10 @@ def predict(model, X_test, scaler, nb_outputs, filename, vrtxNum, stride, angles
 ## Main
 # In[]    
 def test(neurons,fn_trainX, fn_trainY, fn_validX, fn_validY, reTrain, w_path): 
-    storeModel = w_path + 'train_all/model_ws5_new.h5'
+    if (newLoss):
+        storeModel = w_path + 'train_all/model_ws5_new.h5'
+    else:
+        storeModel = w_path + 'train_all/model_ws5_old.h5'
     nbatch = 16
     # Read point cloud needed for loss-function
     pnts = np.loadtxt(w_path+'train_all/ref2D.txt')
@@ -323,8 +351,10 @@ def test(neurons,fn_trainX, fn_trainY, fn_validX, fn_validY, reTrain, w_path):
         print ('<<<<< load the stored model >>>>>')
         (nb_features, nb_outputs, scaler) = loadScaler(fn_trainX, fn_trainY)
 #        del model  # deletes the existing model
-        model = load_model(storeModel, custom_objects={'loss': customLoss( nbatch, pnt_K, nPnts, lenPnts) }) 
-#        model = load_model(storeModel)
+        if (newLoss):
+            model = load_model(storeModel, custom_objects={'loss': customLoss( nbatch, pnt_K, nPnts, lenPnts) }) 
+        else:
+            model = load_model(storeModel)
         
     return model, scaler, nb_outputs
 
@@ -357,10 +387,13 @@ def appendTrainingData(datasets, w_path, fn_trainX, fn_trainY):
             print('appended ' + datasets[i])
         
 # In[]
-stride = 1
-#window_reg = 5 #for stretching
-window_reg = 5 #for non-stretching
+stride = 1 
+window_reg = 5 
 window_sweep = 5
+window_max = 20
+reTrain = 0
+newLoss = 0
+
 def main_NN(yarn_type,upsample_rate, dataset, firstFrame, lastFrame, yarn0, yarn1, skipFactor, vrtxNum):
     datasets = []
     
@@ -398,7 +431,6 @@ def main_NN(yarn_type,upsample_rate, dataset, firstFrame, lastFrame, yarn0, yarn
     fn_validX = loc + 'single_yarn/' + yarn_type + '/stretch/trainX_all.txt'
     fn_validY = loc + 'single_yarn/' + yarn_type + '/stretch/trainY_all.txt'
     
-    reTrain = 1
 #    if (reTrain):
 #        appendTrainingData(datasets, w_path, fn_trainX, fn_trainY)
        

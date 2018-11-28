@@ -9,22 +9,22 @@
 	<medium type="heterogeneous2" id="med">
 		<float name="scale" value="500"/>
 		<float name="stepSize" value="1"/>
+		<integer name="maxWoodcockIterations" value="10000"/>
 
 		<volume type="linesegvolume">
 			<float name="radius" value="0.002"/>
 			<float name="dropOut" value="0.5"/>
 			
+			<integer name="format" value="$f"/> <!--1 if reading from binary, 0 if normal text -->
 			<!-- read from txt for first time  -->			
 			<string name="filename" value="$testinfo"/>
 
 			<!-- read from binary afterward (next two lines needed) -->
-<!--  			<string name="filename" value="cached.dat"/>
-			<integer name="format" value="1"/>  -->
-
-
+ 			<!-- <string name="filename" value="cached.dat"/> -->
+			
 		</volume>
 		<phase type="microflake">
-			<float name="stddev" value="0.3"/>
+			<float name="stddev" value="0.2"/>
 		</phase>
 	</medium>
 	
@@ -55,7 +55,7 @@
 	</shape> -->
 
 	<emitter type="constant">
-		<spectrum name="radiance" value="0.4"/> 
+		<spectrum name="radiance" value="0.00"/> 
 	</emitter>
 
 <!-- 	<shape type="sphere">
@@ -65,22 +65,22 @@
 			<spectrum name="radiance" value="200"/> 
 		</emitter>
 	</shape> -->
-<!-- 	<shape type="sphere">
-		<point name="center" x="0.0" y="0.0" z="0.0"/>
-		<float name="radius" value="1.0"/>
+	<shape type="sphere">
+		<point name="center" x="-120.0" y="0.0" z="270.0"/>
+		<float name="radius" value="50.0"/>
 		<emitter type="area">
-			<spectrum name="radiance" value="20"/> 
+			<spectrum name="radiance" value="100"/> 
 		</emitter>
-	</shape> -->
+	</shape>
 
 <!-- 	<shape type="rectangle"> 
 		<transform name="toWorld"> 
-			<rotate x="1" angle="90"/> 
-			<scale x="90" y="90" z="90"/> 
-			<translate x="0.0" y="160.0" z="0.0"/> 
+			<rotate y="1" angle="135"/> 
+			<scale x="50" y="50" z="50"/> 
+			<translate x="-100.0" y="0.0" z="250.0"/> 
 		</transform> 
 		<emitter type="area"> 
-			<spectrum name="radiance" value="70"/>  
+			<spectrum name="radiance" value="50"/>  
 		</emitter> 
 	</shape>  -->
 
@@ -89,15 +89,16 @@
 		<transform name="toWorld">
 			<!-- <lookAt origin="0 30 0" target="10 0 10" up="0 1 0"/> -->  <!--FOR ARBITRARY 100x100  -->
 			<!-- <lookAt origin="0 15 0" target="3.9 0 3.9" up="0 1 0"/> --> <!--FOR push 100x100  -->
-			<lookAt origin="0 0 10" target="0 0 0" up="0 1 0"/> <!--FOR ARBITRARY 100x100  -->
+			<!-- <lookAt origin="0 0 10" target="0 0 0" up="0 1 0"/> --> <!--FOR ARBITRARY 100x100  -->
+			<lookAt origin="0 0 10" target="0 0 0" up="0 1 0"/> <!--FOR slipstitchrib push  -->
 
 		</transform>
 		<!-- <float name="fov" value="90.0"/>-->  <!--FOR ARBITRARY 100x100  -->
 		<!-- <float name="fov" value="55"/> --> <!--FOR push 100x100  -->
-		<float name="fov" value="100"/>
+		<float name="fov" value="20"/>
 
 		<sampler type="independent">
-			<integer name="sampleCount" value="32"/>
+			<integer name="sampleCount" value="8"/>
 		</sampler>
 		<film id="film" type="hdrfilm">
 			<!-- <integer name="width" value="600"/> -->
@@ -107,5 +108,4 @@
 			<boolean name="banner" value="false" />
 		</film>
 	</sensor>
-
 </scene>

@@ -4,7 +4,7 @@ generate xml file for mitsuba for tiling the single-yarn
 @author: zahra
 """
 
-def genScene (xmlfile, spp, yarnType=""):
+def genScene (xmlfile, spp, isFlat, yarnType=""):
     print('writing xml file ...\n' + xmlfile)
     isYarn4=0
     isYarn8=0
@@ -20,9 +20,12 @@ def genScene (xmlfile, spp, yarnType=""):
         isYarn100=1
 
     with open(xmlfile, "w") as fout:
-
-        sz = 33 #cylinder (for stretch case)
-#        sz = 22 #flat tiling (for teeth cases)
+        
+        if (isFlat):
+            sz = 22 #flat tiling (for teeth cases)
+        else: 
+            sz = 33 #cylinder (for stretch case)
+       
 
         fout.writelines('<scene version="0.4.4"> \n')    
         fout.writelines('\t<integrator type="path"> \n')
@@ -38,7 +41,7 @@ def genScene (xmlfile, spp, yarnType=""):
             fout.writelines('\t\t<point name="p0" x="-1.8" y="$h2" z="0"/>\n')
             fout.writelines('\t\t<point name="p1" x="1.8" y="$h2" z="0"/>\n')
             fout.writelines('\t\t<bsdf type="diffuse">\n')
-            fout.writelines('\t\t\t<spectrum name="reflectance" value="0.3"/>\n')
+            fout.writelines('\t\t\t<spectrum name="reflectance" value="0.1"/>\n')
             fout.writelines('\t\t</bsdf>	\n')
             fout.writelines('\t</shape>\n')
             fout.writelines('\t<shape type="cylinder">\n')
@@ -46,7 +49,7 @@ def genScene (xmlfile, spp, yarnType=""):
             fout.writelines('\t\t<point name="p0" x="-1.8" y="$h2" z="0.48"/>\n')
             fout.writelines('\t\t<point name="p1" x="1.8" y="$h2" z="0.48"/>\n')
             fout.writelines('\t\t<bsdf type="diffuse">\n')
-            fout.writelines('\t\t\t<spectrum name="reflectance" value="0.3"/>\n')
+            fout.writelines('\t\t\t<spectrum name="reflectance" value="0.1"/>\n')
             fout.writelines('\t\t</bsdf>	\n')
             fout.writelines('\t</shape>\n')
             fout.writelines('\t<shape type="cylinder">\n')
@@ -54,7 +57,7 @@ def genScene (xmlfile, spp, yarnType=""):
             fout.writelines('\t\t<point name="p0" x="-1.8" y="$h2" z="-0.48"/>\n')
             fout.writelines('\t\t<point name="p1" x="1.8" y="$h2" z="-0.48"/>\n')
             fout.writelines('\t\t<bsdf type="diffuse">\n')
-            fout.writelines('\t\t\t<spectrum name="reflectance" value="0.3"/>\n')
+            fout.writelines('\t\t\t<spectrum name="reflectance" value="0.1"/>\n')
             fout.writelines('\t\t</bsdf>	\n')
             fout.writelines('\t</shape>\n')
             fout.writelines('\t<shape type="cylinder">\n')
@@ -62,7 +65,7 @@ def genScene (xmlfile, spp, yarnType=""):
             fout.writelines('\t\t<point name="p0" x="-1.8" y="$h1" z="0.96"/>\n')
             fout.writelines('\t\t<point name="p1" x="1.8" y="$h1" z="0.96"/>\n')
             fout.writelines('\t\t<bsdf type="diffuse">\n')
-            fout.writelines('\t\t\t<spectrum name="reflectance" value="0.3"/>\n')
+            fout.writelines('\t\t\t<spectrum name="reflectance" value="0.1"/>\n')
             fout.writelines('\t\t</bsdf>	\n')
             fout.writelines('\t</shape>\n')
             fout.writelines('\t<shape type="cylinder">\n')
@@ -70,7 +73,7 @@ def genScene (xmlfile, spp, yarnType=""):
             fout.writelines('\t\t<point name="p0" x="-1.8" y="$h1" z="-0.96"/>\n')
             fout.writelines('\t\t<point name="p1" x="1.8" y="$h1" z="-0.96"/>\n')
             fout.writelines('\t\t<bsdf type="diffuse">\n')
-            fout.writelines('\t\t\t<spectrum name="reflectance" value="0.3"/>\n')
+            fout.writelines('\t\t\t<spectrum name="reflectance" value="0.1"/>\n')
             fout.writelines('\t\t</bsdf>	\n')
             fout.writelines('\t</shape>\n')
             
@@ -81,7 +84,7 @@ def genScene (xmlfile, spp, yarnType=""):
             fout.writelines('\t\t<point name="p0" x="-1.8" y="$h1" z="0"/>\n')
             fout.writelines('\t\t<point name="p1" x="1.8" y="$h1" z="0"/>\n')
             fout.writelines('\t\t<bsdf type="diffuse">\n')
-            fout.writelines('\t\t\t<spectrum name="reflectance" value="0.3"/>\n')
+            fout.writelines('\t\t\t<spectrum name="reflectance" value="0.1"/>\n')
             fout.writelines('\t\t</bsdf>	\n')
             fout.writelines('\t</shape>\n')
         
@@ -90,7 +93,7 @@ def genScene (xmlfile, spp, yarnType=""):
             fout.writelines('\t\t<point name="p0" x="-1.8" y="$h2" z="0.64"/>\n')
             fout.writelines('\t\t<point name="p1" x="1.8" y="$h2" z="0.64"/>\n')
             fout.writelines('\t\t<bsdf type="diffuse">\n')
-            fout.writelines('\t\t\t<spectrum name="reflectance" value="0.3"/>\n')
+            fout.writelines('\t\t\t<spectrum name="reflectance" value="0.1"/>\n')
             fout.writelines('\t\t</bsdf>	\n')
             fout.writelines('\t</shape>\n')
         
@@ -99,7 +102,7 @@ def genScene (xmlfile, spp, yarnType=""):
             fout.writelines('\t\t<point name="p0" x="-1.8" y="$h2" z="-0.64"/>\n')
             fout.writelines('\t\t<point name="p1" x="1.8" y="$h2" z="-0.64"/>\n')
             fout.writelines('\t\t<bsdf type="diffuse">\n')
-            fout.writelines('\t\t\t<spectrum name="reflectance" value="0.3"/>\n')
+            fout.writelines('\t\t\t<spectrum name="reflectance" value="0.1"/>\n')
             fout.writelines('\t\t</bsdf>	\n')
             fout.writelines('\t</shape>\n')
 
@@ -198,10 +201,11 @@ def genScene (xmlfile, spp, yarnType=""):
                         
             x_t = 0.06 * float(i)
             y_t = 1.0 - x_t * x_t/1.8
-            fout.writelines('\t\t\t<translate x="%.6f" y="%.6f" />\n' % (x_t, y_t) )#cylinder tiling
-#            fout.writelines('\t\t\t<translate x="%.6f" />\n' % (1.2*x_t))#flat tiling
+            if (isFlat):
+                fout.writelines('\t\t\t<translate x="%.6f" />\n' % (1.2*x_t))#flat tiling    
+            else:
+                fout.writelines('\t\t\t<translate x="%.6f" y="%.6f" />\n' % (x_t, y_t) )#cylinder tiling
             fout.writelines('\t\t</transform> \n')
-            #use actualbrdf
             fout.writelines('\t</shape>\n')
             fout.writelines('\n')
     
@@ -215,8 +219,10 @@ def genScene (xmlfile, spp, yarnType=""):
             
             x_t = -1.0 * 0.06 * float(i)
             y_t = 1.0 - x_t * x_t/1.8
-            fout.writelines('\t\t\t<translate x="%.6f" y="%.6f" />\n' % (x_t, y_t) )#cylinder tiling
-#            fout.writelines('\t\t\t<translate x="%.6f" />\n' % (1.2*x_t))#flat tiling
+            if (isFlat):
+                fout.writelines('\t\t\t<translate x="%.6f" />\n' % (1.2*x_t))#flat tiling
+            else:
+                fout.writelines('\t\t\t<translate x="%.6f" y="%.6f" />\n' % (x_t, y_t) )#cylinder tiling            
             fout.writelines('\t\t</transform> \n')
             fout.writelines('\t</shape>\n')
             fout.writelines('\n')
@@ -270,8 +276,10 @@ def genScene (xmlfile, spp, yarnType=""):
         fout.writelines('\t\t<transform name="toWorld">\n')
     #    fout.writelines('\t\t\t<lookAt origin="-17 40 15" target="0 0.9 1.1" up="0 1 0"/>  \n') #9:16 ratio for video
     #    fout.writelines('\t\t\t<lookAt origin="-17 40 15" target="0 -0.3 -0.0" up="0 1 0"/>  \n') #cylinder tiling for snthesized result
-        fout.writelines('\t\t\t<lookAt origin="-17 40 15" target="0 -0.9 -0.4" up="0 1 0"/>  \n') #cylinder tiling
-#        fout.writelines('\t\t\t<lookAt origin="-17 30 5" target="0 0 0" up="0 1 0"/>  \n') #flat tiling for video
+        if (isFlat):
+            fout.writelines('\t\t\t<lookAt origin="-17 30 5" target="0 0 0" up="0 1 0"/>  \n') #flat tiling for video
+        else:
+            fout.writelines('\t\t\t<lookAt origin="-17 40 15" target="0 -0.9 -0.4" up="0 1 0"/>  \n') #cylinder tiling
         fout.writelines('\t\t</transform>\n')
         
     #    fout.writelines('\t\t<float name="fov" value="7.1"/>\n')#cylinder tiling for snthesized result

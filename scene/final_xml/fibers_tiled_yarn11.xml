@@ -1,5 +1,5 @@
 <scene version="0.4.4"> 
-	<integrator type="path"> 
+	<integrator type="volpath_simple"> 
 		<integer name="maxDepth" value="25"/> 
 		<integer name="rrDepth" value="30"/> 
 	</integrator> 
@@ -9,7 +9,7 @@
 		<point name="p0" x="-1.8" y="$h1" z="0"/>
 		<point name="p1" x="1.8" y="$h1" z="0"/>
 		<bsdf type="diffuse">
-			<spectrum name="reflectance" value="0.3"/>
+			<spectrum name="reflectance" value="0.05"/>
 		</bsdf>	
 	</shape>
 	<shape type="cylinder">
@@ -17,7 +17,7 @@
 		<point name="p0" x="-1.8" y="$h2" z="0.64"/>
 		<point name="p1" x="1.8" y="$h2" z="0.64"/>
 		<bsdf type="diffuse">
-			<spectrum name="reflectance" value="0.3"/>
+			<spectrum name="reflectance" value="0.05"/>
 		</bsdf>	
 	</shape>
 	<shape type="cylinder">
@@ -25,7 +25,7 @@
 		<point name="p0" x="-1.8" y="$h2" z="-0.64"/>
 		<point name="p1" x="1.8" y="$h2" z="-0.64"/>
 		<bsdf type="diffuse">
-			<spectrum name="reflectance" value="0.3"/>
+			<spectrum name="reflectance" value="0.05"/>
 		</bsdf>	
 	</shape>
 	<shape type="shapegroup" id="myShapeGroup">
@@ -383,11 +383,11 @@
 		</transform>
 		<float name="fov" value="6.3"/>
 		<sampler type="ldsampler">
-			<integer name="sampleCount" value="1024"/>
+			<integer name="sampleCount" value="128"/>
 		</sampler>
 		<film id="film" type="hdrfilm">
-			<integer name="width" value="1024"/>
-			<integer name="height" value="576"/>
+			<integer name="width" value="1920"/>
+			<integer name="height" value="1080"/>
 			<rfilter type="gaussian"/>
 			<boolean name="banner" value="false" />
 		</film>

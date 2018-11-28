@@ -101,8 +101,8 @@ def main(args):
             print >> fout, 'f %d %d %d %d' % (i + 1, i + 2, i + 3, i + 4)
 
     sys.stdout.write('Processed in %.2f secs.\n' % time.clock())
-
-
+    print('successfully converted volumes to obj files! \n')
+    
 if __name__ == "__main__":
     print ('generate obj mesh from volume AABB')
     parser = argparse.ArgumentParser(

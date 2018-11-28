@@ -516,8 +516,8 @@
 			<integer name="sampleCount" value="1024"/>
 		</sampler>
 		<film id="film" type="hdrfilm">
-			<integer name="width" value="1024"/>
-			<integer name="height" value="576"/>
+			<integer name="width" value="1920"/>
+			<integer name="height" value="1080"/>
 			<rfilter type="gaussian"/>
 			<boolean name="banner" value="false" />
 		</film>

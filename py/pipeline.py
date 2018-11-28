@@ -3,13 +3,17 @@ change the parameters for each dataset accordingly
 Inputs are listed in yarnTypes/#yarnType/dataset '''
 import os
 ########################## set dataset parameters
-# set paramters for the dataset: 
-yarnType = 'yarn8'
-#info = yarnType + '/train/spacing1.0x/00011 7000 17000 0 1 -k 500 -v 150 -t 1 -s 2'
-info = yarnType + '/single_teeth_1.2_00110 45500 45500 0 1 -k 500 -t 1 -v 150 -s 2 -ss 5'
-#info = yarnType + '/single_teeth_1.6_10 45500 45500 0 1 -k 500 -t 1 -v 150 -s 2 -ss 8'
-#info = yarnType + '/single_stretch 0 45500 0 1 -k 500 -t 1 -v 150 -s 2 -ss 5'
+#info = 'yarn100/train/spacing1.0x/00011 7000 17000 0 1 -k 500 -v 150 -t 1 -s 2'
+#info = 'yarn4/single_stretch 30000 30000 0 1 -k 500 -t 1 -v 150 -s 2 -ss 5'
+#info = 'yarn8/single_teeth_1.2_00110 500 1000 0 1 -k 500 -t 1 -v 150 -s 2 -ss 5'
+#info = 'yarn11/single_teeth_1.6_10 0 45500 0 1 -k 500 -t 1 -v 150 -s 2 -ss 5'
+
+info = 'yarn8/slipstitchrib_push 14000 23000 0 1 -k 1000 -t 0 -v 85832 -s 1 -vol 1'
+#info = 'yarn8/slipstitchrib_stretch 0 49500 0 1 -k 500 -t 0 -v 3372 -s 1 -vol 1'
+#info = 'yarn8/slipstitchrib_stretch 0 49500 0 1 -k 1000 -t 0 -v 85832 -s 1 -vol 1'
+
 ########################## Read info
+yarnType = info.split("/")[0]
 split = info.split()
 dataset = split[0]
 firstFrame = int(split[1])
@@ -22,15 +26,14 @@ vrtNum = 150 #before upsampling
 upsample = 2
 n = len(split)
 for i in range (5, n-1): #5 first terms already reserved
-    if (info[i] == '-t'):
-        isTrain = int(info[i + 1])
-    if (info[i] == '-k'):
-        skipFactor = int(info[i + 1])
-    if (info[i] == '-v'):
-        vrtNum = int(info[i + 1])
-    if (info[i] == '-s'):
-        upsample = int(info[i + 1])
-
+    if (split[i] == '-t'):
+        isTrain = int(split[i + 1])
+    if (split[i] == '-k'):
+        skipFactor = int(split[i + 1])
+    if (split[i] == '-v'):
+        vrtNum = int(split[i + 1])
+    if (split[i] == '-s'):
+        upsample = int(split[i + 1])
 
 # In[] 
 ########################## phase1
@@ -50,25 +53,24 @@ main_NN(yarnType, upsample, dataset, firstFrame, lastFrame, yarn0, yarn1, skipFa
 ########################## phase2
 print ("*************** phase2: APPLY NN OUTPUT ***************\n")
 os.chdir('F:/YarnGeneration/x64/Release')
-os.system('YarnGeneration 2 %s -c 1' %(info)) #deform the yarn
-#os.system('YarnGeneration 2 %s -c 0' %(info)) #without deformation
+os.system('YarnGeneration 2 %s -c 1' %(info)) #prints both compressed and non-compressed resutls
 
 # In[]
-# use scene/render_ct2.py for volume rendering
+# use scene/render_ct2.py for volume rendering (use python2.7)
 
 # In[]
 ########################## write mitsuba xml file
-#import sys
-#sys.path.insert(0, '../scene')
+
 os.chdir('F:/sandbox/fiberSimulation/yarn_generation_project/YarnGeneration/scene')
 import generate_single
 import generate_tiled
-hasCylinder = 0
+hasCylinder = 1
 xmlfile = 'fibers.xml'
-spp = 1024
-
+spp = 16
+isFlat = 0
+#generate_single.genScene (xmlfile, spp)
 #generate_single.genScene (xmlfile, spp, yarnType )
-generate_tiled.genScene (xmlfile, spp, yarnType)
+#generate_tiled.genScene (xmlfile, spp, isFlat, yarnType)
   
 ########################## rendering
 def cubic_ease_function( t, t0, t1, L):
@@ -89,7 +91,6 @@ t0 = 0.0
 t1 = 1.0
 L = 0.8/4
 dt = 0.00004 * skipFactor
-#dt = (t1-t0)/( (lastFrame-firstFrame)/skipFactor )
 pos = L
 c = 2 #start simulation at dt (Raymond: "The simulation used t+2dt as the parameter currently.")
 
@@ -101,10 +102,8 @@ for f in range (firstFrame, lastFrame+1, skipFactor):
         c = c + 1 #frame counter 
         yh = cubic_ease_function( t, t0, t1, L)
         pos = pos - yh*dt
-#        print('frame: ', f, 'time: ', t,'position: ', pos)
-    ####
+
     for y in range (yarn0, yarn1):
-        
         h1 = pos
         h2 = -h1
         
@@ -117,6 +116,6 @@ for f in range (firstFrame, lastFrame+1, skipFactor):
         print(fn)
         os.system('F:/sandbox/fiberSimulation/dist_fiber_mitsuba/dist/mitsuba -D h1=%.8f -D h2=%.8f -D fn="%s" fibers.xml' % (h1, h2, fn))
 #        os.system('F:/sandbox/fiberSimulation/dist_fiber_mitsuba/dist/mitsuba knitted_stretch.xml')
-#        os.rename("fibers.exr", '../../results/' + dataset + '/NN_testFlicker_' + str(f) + '_' + str(y) + '_tiled.exr')
+        os.rename("fibers.exr", '../../results/' + dataset + '/test_path_tile_' + str(f) + '_' + str(y) + '.exr')
         
   
